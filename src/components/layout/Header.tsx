@@ -19,8 +19,8 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/the-next-leap", label: "The Next Leap" },
-    { href: "/level-up-weekly", label: "Level-Up Weekly" },
+    { href: "/200k-method", label: "200K Method" },
+    { href: "/weekly-edge", label: "Weekly Edge" },
     { href: "/contact", label: "Contact" },
   ];
 
