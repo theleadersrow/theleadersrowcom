@@ -230,7 +230,7 @@ const Register = () => {
                       <SelectValue placeholder="Choose a program" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="entry-to-faang">Entry to FAANG ($2,000)</SelectItem>
+                      <SelectItem value="200k-method">200K Method ($2,000)</SelectItem>
                       <SelectItem value="level-up-weekly">Level-Up Weekly ($100/month)</SelectItem>
                     </SelectContent>
                   </Select>
