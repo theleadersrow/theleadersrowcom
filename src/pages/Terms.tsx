@@ -29,7 +29,7 @@ const Terms = () => {
               </h2>
               <p className="mb-6">
                 The Leader's Row provides career coaching and professional development programs. 
-                Our programs include The Next Leap (8-week accelerator) and Level-Up Weekly 
+                Our programs include the 200K Method (8-week accelerator) and Weekly Edge 
                 (ongoing membership).
               </p>
 
@@ -38,8 +38,9 @@ const Terms = () => {
               </h2>
               <p className="mb-6">
                 Payment is required prior to program enrollment. Refund policies vary by program 
-                and will be communicated during the registration process. For Level-Up Weekly, 
-                you may cancel your subscription at any time.
+                and will be communicated during the registration process. For Weekly Edge, 
+                you may cancel your monthly membership at any time. However, if you have already 
+                been billed, you will have access until the end of your current billing cycle.
               </p>
 
               <h2 className="font-serif text-2xl font-semibold text-foreground mt-10 mb-4">
@@ -65,8 +66,8 @@ const Terms = () => {
               </h2>
               <p className="mb-6">
                 For questions about these terms, please contact us at{" "}
-                <a href="mailto:hello@theleadersrow.com" className="text-secondary hover:underline">
-                  hello@theleadersrow.com
+                <a href="mailto:connect@theleadersrow.com" className="text-secondary hover:underline">
+                  connect@theleadersrow.com
                 </a>
               </p>
             </div>
