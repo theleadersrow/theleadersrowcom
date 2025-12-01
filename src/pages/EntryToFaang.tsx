@@ -91,15 +91,25 @@ const The200KMethod = () => {
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6">
               200K Method
             </h1>
-            <p className="text-xl md:text-2xl text-cream/80 mb-8 leading-relaxed">
+            <p className="text-xl md:text-2xl text-cream/80 mb-6 leading-relaxed">
               An 8-Week Accelerator to Reach $200K+ and Beyond
             </p>
-            <Link to="/register">
-              <Button variant="hero" size="xl" className="group">
-                Register Now
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            
+            {/* Next Cohort Info */}
+            <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
+              <p className="text-secondary font-semibold mb-1">Next Cohort</p>
+              <p className="text-cream text-lg">Jan 8th – Feb 26th, 2025</p>
+              <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
+            </div>
+            
+            <div className="block">
+              <Link to="/register">
+                <Button variant="hero" size="xl" className="group">
+                  Register Now
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -186,16 +196,26 @@ const The200KMethod = () => {
               <TrendingUp className="w-6 h-6 text-secondary" />
               <span className="font-serif text-5xl md:text-6xl font-semibold text-cream">$2,000</span>
             </div>
-            <p className="text-cream/70 mb-8 text-lg leading-relaxed max-w-xl mx-auto">
+            <p className="text-cream/70 mb-6 text-lg leading-relaxed max-w-xl mx-auto">
               A single salary increase from leveling up often returns 10–50x this investment. 
               This is an investment in your long-term earning potential and career trajectory.
             </p>
-            <Link to="/register">
-              <Button variant="hero" size="xl" className="group">
-                Register Now
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            
+            {/* Next Cohort Info */}
+            <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
+              <p className="text-secondary font-semibold mb-1">Next Cohort</p>
+              <p className="text-cream text-lg">Jan 8th – Feb 26th, 2025</p>
+              <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
+            </div>
+            
+            <div className="block">
+              <Link to="/register">
+                <Button variant="hero" size="xl" className="group">
+                  Register Now
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
