@@ -39,7 +39,7 @@ const ProgramsSection = () => {
           />
 
           <ProgramCard
-            title="SkillRise Weekly"
+            title="Weekly Edge"
             subtitle="Ongoing Skill Building"
             description="Weekly 75–90 minute sessions to stay sharp, grow consistently, and learn new skills every week. Build confidence, storytelling, influence, leadership communication, productivity, and more — with live Q&A."
             features={[
@@ -53,7 +53,7 @@ const ProgramsSection = () => {
             ]}
             price="$100"
             priceNote="/month"
-            href="/skillrise-weekly"
+            href="/weekly-edge"
             ctaText="Learn More"
           />
         </div>
