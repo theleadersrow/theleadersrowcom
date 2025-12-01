@@ -19,7 +19,7 @@ const ProgramsSection = () => {
         {/* Program Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           <ProgramCard
-            title="Entry to FAANG"
+            title="200K Method"
             subtitle="8-Week Accelerator"
             description="A transformational 8-week program to accelerate your career, build your brand, and position yourself as a high-impact product leader."
             features={[
@@ -32,7 +32,7 @@ const ProgramsSection = () => {
               "Future-proof your career",
             ]}
             price="$2,000"
-            href="/entry-to-faang"
+            href="/200k-method"
             ctaText="Learn More"
             featured
           />

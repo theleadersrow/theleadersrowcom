@@ -77,7 +77,7 @@ const programFormat = [
   "Measurable progress week-by-week",
 ];
 
-const EntryToFaang = () => {
+const The200KMethod = () => {
   return (
     <Layout>
       {/* Hero */}
@@ -89,10 +89,10 @@ const EntryToFaang = () => {
           <div className="max-w-4xl">
             <p className="text-secondary font-medium mb-4">8-Week Accelerator</p>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6">
-              Entry to FAANG
+              200K Method
             </h1>
             <p className="text-xl md:text-2xl text-cream/80 mb-8 leading-relaxed">
-              An 8-Week Accelerator to Break Into Top Tech Companies
+              An 8-Week Accelerator to Reach $200K+ and Beyond
             </p>
             <Link to="/register">
               <Button variant="hero" size="xl" className="group">
@@ -203,4 +203,4 @@ const EntryToFaang = () => {
   );
 };
 
-export default EntryToFaang;
+export default The200KMethod;
