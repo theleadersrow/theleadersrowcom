@@ -137,7 +137,7 @@ const WeeklyEdge = () => {
             <div className="text-center mb-12">
               <p className="text-secondary font-semibold mb-4">⭐ Your Weekly Career Asset Collection</p>
               <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-                High-Leverage Skills You'll Master
+                Examples of Skills You'll Master Each Week
               </h2>
             </div>
             
@@ -147,9 +147,6 @@ const WeeklyEdge = () => {
                   key={index}
                   className="bg-card rounded-2xl p-6 shadow-soft hover:shadow-card transition-shadow duration-300"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                    <span className="text-secondary font-bold">{index + 1}</span>
-                  </div>
                   <h3 className="font-serif text-lg font-semibold text-foreground mb-3">
                     {asset.title}
                   </h3>
