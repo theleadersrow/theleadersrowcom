@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import TheNextLeap from "./pages/TheNextLeap";
+import EntryToFaang from "./pages/EntryToFaang";
 import LevelUpWeekly from "./pages/LevelUpWeekly";
 import Register from "./pages/Register";
 import Contact from "./pages/Contact";
@@ -22,7 +22,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/the-next-leap" element={<TheNextLeap />} />
+          <Route path="/entry-to-faang" element={<EntryToFaang />} />
           <Route path="/level-up-weekly" element={<LevelUpWeekly />} />
           <Route path="/register" element={<Register />} />
           <Route path="/contact" element={<Contact />} />
