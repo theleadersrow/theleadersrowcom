@@ -21,8 +21,8 @@ const Footer = () => {
             <h4 className="font-semibold text-cream mb-4">Programs</h4>
             <ul className="space-y-3">
               <li>
-                <Link to="/the-next-leap" className="text-cream/60 hover:text-secondary transition-colors">
-                  The Next Leap
+                <Link to="/200k-method" className="text-cream/60 hover:text-secondary transition-colors">
+                  200K Method
                 </Link>
               </li>
               <li>
