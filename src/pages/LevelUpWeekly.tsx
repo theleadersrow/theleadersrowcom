@@ -137,7 +137,7 @@ const WeeklyEdge = () => {
             <div className="text-center mb-12">
               <p className="text-secondary font-semibold mb-4">⭐ Your Weekly Career Asset Collection</p>
               <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-                9 High-Leverage Skills You'll Master
+                High-Leverage Skills You'll Master
               </h2>
             </div>
             
