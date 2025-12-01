@@ -38,7 +38,7 @@ const ProgramsSection = () => {
           />
 
           <ProgramCard
-            title="Level-Up Weekly"
+            title="Weekly Edge"
             subtitle="Ongoing Skill Building"
             description="Weekly 75–90 minute sessions to help you stay relevant, improve communication, strengthen execution, and build confidence."
             features={[
@@ -52,7 +52,7 @@ const ProgramsSection = () => {
             ]}
             price="$100"
             priceNote="/month"
-            href="/level-up-weekly"
+            href="/weekly-edge"
             ctaText="Learn More"
           />
         </div>
