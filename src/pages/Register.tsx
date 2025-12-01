@@ -231,7 +231,7 @@ const Register = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="200k-method">200K Method ($2,000)</SelectItem>
-                      <SelectItem value="skillrise-weekly">SkillRise Weekly ($100/month)</SelectItem>
+                      <SelectItem value="weekly-edge">Weekly Edge ($100/month)</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.program && (
