@@ -30,18 +30,23 @@ const Hero = () => {
           </h1>
           
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-cream/80 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0 animate-fade-up delay-200">
-            We remove the barriers holding you back and give you the skills, tools, 
-            and confidence to grow faster, stand out, and become a high-impact product leader.
+          <p className="text-lg md:text-xl text-cream/80 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
+            You're talented. You're capable. But the path to your next level shouldn't feel confusing, lonely, or filled with guesswork.
+          </p>
+          <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-250">
+            At The Leader's Row, we remove the blockers holding you back and teach you the real skills — frameworks, systems, communication, product thinking, leadership — that help top professionals accelerate their careers.
+          </p>
+          <p className="text-lg md:text-xl text-secondary font-medium max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
+            And we don't just teach you. We practice with you, live.
           </p>
           
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up delay-300">
-            <Link to="/the-next-leap">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up delay-400">
+            <a href="#programs">
               <Button variant="hero" size="xl">
                 Explore Programs
               </Button>
-            </Link>
+            </a>
             <Link to="/register">
               <Button variant="heroOutline" size="xl">
                 Register Now

@@ -12,6 +12,7 @@ interface ProgramCardProps {
   href: string;
   ctaText: string;
   featured?: boolean;
+  badge?: string;
 }
 
 const ProgramCard = ({
@@ -24,6 +25,7 @@ const ProgramCard = ({
   href,
   ctaText,
   featured = false,
+  badge,
 }: ProgramCardProps) => {
   return (
     <div
@@ -33,9 +35,9 @@ const ProgramCard = ({
           : "bg-card text-card-foreground shadow-card hover:shadow-elevated"
       }`}
     >
-      {featured && (
+      {(featured || badge) && (
         <div className="absolute -top-4 left-8 bg-secondary text-secondary-foreground text-sm font-semibold px-4 py-1 rounded-full">
-          Most Popular
+          {badge || "Most Popular"}
         </div>
       )}
 
