@@ -24,7 +24,7 @@ const whatsIncluded = [
   "Continuous career growth momentum",
 ];
 
-const WeeklyEdge = () => {
+const SkillRiseWeekly = () => {
   return (
     <Layout>
       {/* Hero */}
@@ -36,7 +36,7 @@ const WeeklyEdge = () => {
           <div className="max-w-4xl">
             <p className="text-secondary font-medium mb-4">Ongoing Skill Building</p>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6">
-              Weekly Edge
+              SkillRise Weekly
             </h1>
             <p className="text-xl md:text-2xl text-cream/80 mb-8 leading-relaxed">
               Weekly live skill-building sessions for product professionals who want to stay 
@@ -161,4 +161,4 @@ const WeeklyEdge = () => {
   );
 };
 
-export default WeeklyEdge;
+export default SkillRiseWeekly;

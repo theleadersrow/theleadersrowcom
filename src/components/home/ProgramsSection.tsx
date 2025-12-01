@@ -2,7 +2,7 @@ import ProgramCard from "./ProgramCard";
 
 const ProgramsSection = () => {
   return (
-    <section className="section-padding bg-background">
+    <section id="programs" className="section-padding bg-background">
       <div className="container-wide mx-auto">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -21,7 +21,7 @@ const ProgramsSection = () => {
           <ProgramCard
             title="200K Method"
             subtitle="8-Week Accelerator"
-            description="A transformational 8-week program to accelerate your career, build your brand, and position yourself as a high-impact product leader."
+            description="8 weeks of deep skill-building and transformation. We rebuild your personal brand, strengthen your communication, sharpen your product thinking, master interviews with you, and help you negotiate your worth."
             features={[
               "Build a strong personal brand",
               "Create an elite resume & LinkedIn",
@@ -35,12 +35,13 @@ const ProgramsSection = () => {
             href="/200k-method"
             ctaText="Learn More"
             featured
+            badge="Perfect for $200K+ roles"
           />
 
           <ProgramCard
-            title="Weekly Edge"
+            title="SkillRise Weekly"
             subtitle="Ongoing Skill Building"
-            description="Weekly 75–90 minute sessions to help you stay relevant, improve communication, strengthen execution, and build confidence."
+            description="Weekly 75–90 minute sessions to stay sharp, grow consistently, and learn new skills every week. Build confidence, storytelling, influence, leadership communication, productivity, and more — with live Q&A."
             features={[
               "Weekly live skill-building sessions",
               "20–30 minutes of live Q&A",
@@ -52,7 +53,7 @@ const ProgramsSection = () => {
             ]}
             price="$100"
             priceNote="/month"
-            href="/weekly-edge"
+            href="/skillrise-weekly"
             ctaText="Learn More"
           />
         </div>
