@@ -27,7 +27,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/level-up-weekly" className="text-cream/60 hover:text-secondary transition-colors">
-                  Level-Up Weekly
+                  Weekly Edge
                 </Link>
               </li>
             </ul>
