@@ -38,16 +38,25 @@ const WeeklyEdge = () => {
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6">
               Weekly Edge
             </h1>
-            <p className="text-xl md:text-2xl text-cream/80 mb-8 leading-relaxed">
+            <p className="text-xl md:text-2xl text-cream/80 mb-6 leading-relaxed">
               Weekly live skill-building sessions for product professionals who want to stay 
               relevant and grow continuously.
             </p>
-            <Link to="/register">
-              <Button variant="hero" size="xl" className="group">
-                Join Membership
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            
+            {/* Session Schedule */}
+            <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
+              <p className="text-secondary font-semibold mb-1">Live Sessions</p>
+              <p className="text-cream text-lg">Every Wednesday, 7–8:30pm CT</p>
+            </div>
+            
+            <div className="block">
+              <Link to="/register">
+                <Button variant="hero" size="xl" className="group">
+                  Join Membership
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -68,14 +77,14 @@ const WeeklyEdge = () => {
             {/* Quick Stats */}
             <div className="grid sm:grid-cols-3 gap-6 mb-12">
               <div className="bg-muted/50 rounded-2xl p-6 text-center">
-                <Clock className="w-8 h-8 text-secondary mx-auto mb-3" />
-                <p className="font-serif text-2xl font-semibold text-foreground mb-1">75-90 min</p>
-                <p className="text-muted-foreground text-sm">Session Length</p>
+                <Calendar className="w-8 h-8 text-secondary mx-auto mb-3" />
+                <p className="font-serif text-2xl font-semibold text-foreground mb-1">Wednesday</p>
+                <p className="text-muted-foreground text-sm">7–8:30pm CT</p>
               </div>
               <div className="bg-muted/50 rounded-2xl p-6 text-center">
-                <Calendar className="w-8 h-8 text-secondary mx-auto mb-3" />
-                <p className="font-serif text-2xl font-semibold text-foreground mb-1">Weekly</p>
-                <p className="text-muted-foreground text-sm">Live Sessions</p>
+                <Clock className="w-8 h-8 text-secondary mx-auto mb-3" />
+                <p className="font-serif text-2xl font-semibold text-foreground mb-1">90 min</p>
+                <p className="text-muted-foreground text-sm">Session Length</p>
               </div>
               <div className="bg-muted/50 rounded-2xl p-6 text-center">
                 <Users className="w-8 h-8 text-secondary mx-auto mb-3" />
