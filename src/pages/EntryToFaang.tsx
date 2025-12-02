@@ -73,6 +73,7 @@ const programFormat = [
   "Clear weekly deliverables",
   "Real-time feedback",
   "Career asset creation (resume, LinkedIn, stories, scripts, decks)",
+  "Invite-only Slack channel to track progress and get weekly prompts",
   "A supportive community",
   "Measurable progress week-by-week",
 ];
