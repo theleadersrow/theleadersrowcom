@@ -17,43 +17,35 @@ import {
 const modules = [
   {
     icon: Star,
-    title: "Build Your Personal Brand + Create a Top-Tier Resume & LinkedIn",
-    description: "Identify your strengths and value — then transform them into a brand that attracts attention. You'll leave with a resume rewritten to be one of the top resumes for your target roles and a fully optimized LinkedIn profile that increases recruiter traction.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Position Your Brand & Become a Strong Storyteller",
-    description: "Learn how to talk about your work in a clear, confident, and memorable way that makes your value obvious.",
-  },
-  {
-    icon: Target,
-    title: "Product Judgment & First-Principles Thinking",
-    description: "Develop strong product instincts and learn to break down problems clearly, evaluate tradeoffs, and make smart decisions — skills that signal seniority.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Master All PM Interview Techniques",
-    description: "Learn simple, repeatable frameworks for Product Sense, Execution, Analytics, and Strategy. Know exactly how to structure your thinking and answer confidently.",
-  },
-  {
-    icon: Award,
-    title: "Communicate & Present Like a Product Leader",
-    description: "Speak clearly, present persuasively, and share ideas with leadership-level clarity.",
-  },
-  {
-    icon: Users,
-    title: "Develop Executive Presence",
-    description: "Build the tone, behavior, and confidence that shift perception from 'contributor' to leader.",
+    title: "Build a Strong Personal Leadership Brand",
   },
   {
     icon: Briefcase,
-    title: "Negotiate Seniority, Offers & Compensation",
-    description: "Use proven strategies and scripts to negotiate titles, pay, equity, benefits, and role scope — without fear.",
+    title: "Create an Elite Resume & LinkedIn That Attracts Senior Roles",
+  },
+  {
+    icon: Target,
+    title: "Master Product Judgment & Strategic Thinking",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Learn All PM Interview Frameworks (Beginner → Advanced)",
+  },
+  {
+    icon: Award,
+    title: "Develop Executive Presence & Communication",
+  },
+  {
+    icon: TrendingUp,
+    title: "Visibility, Promotion & Influence Tools",
+  },
+  {
+    icon: MessageSquare,
+    title: "Negotiate Seniority, Scope & Compensation",
   },
   {
     icon: Rocket,
-    title: "Future-Proof & Create Opportunities",
-    description: "Learn how to build visibility, attract advocacy, and create long-term, sustainable growth.",
+    title: "Future-Proof Your Career",
   },
 ];
 
@@ -146,21 +138,18 @@ const The200KMethod = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
             {modules.map((module, index) => (
               <div
                 key={index}
-                className="bg-card rounded-2xl p-8 shadow-soft hover:shadow-card transition-all duration-300"
+                className="bg-card rounded-xl p-6 shadow-soft hover:shadow-card transition-all duration-300 flex items-start gap-3"
               >
-                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                  <module.icon className="w-6 h-6 text-secondary" />
+                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                  <module.icon className="w-5 h-5 text-secondary" />
                 </div>
-                <h3 className="font-serif text-xl font-semibold text-foreground mb-3">
-                  {index + 1}. {module.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {module.description}
-                </p>
+                <span className="font-medium text-foreground leading-tight">
+                  {module.title}
+                </span>
               </div>
             ))}
           </div>
