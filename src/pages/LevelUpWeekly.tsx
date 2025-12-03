@@ -66,8 +66,7 @@ const WeeklyEdge = () => {
               Weekly Edge
             </h1>
             <p className="text-xl md:text-2xl text-cream/80 mb-6 leading-relaxed">
-              Weekly live skill-building sessions for product professionals who want to stay 
-              relevant and grow continuously.
+              Grow Every Week. Lead Every Day.
             </p>
             
             {/* Session Schedule */}
