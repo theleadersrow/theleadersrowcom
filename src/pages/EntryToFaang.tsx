@@ -57,14 +57,13 @@ const whoIsFor = [
 ];
 
 const programFormat = [
-  "Weekly 2-hour coaching sessions",
-  "Weekly practice labs",
-  "Clear weekly deliverables",
-  "Real-time feedback",
-  "Career asset creation (resume, LinkedIn, stories, scripts, decks)",
-  "Invite-only Slack channel to track progress and get weekly prompts",
-  "A supportive community",
-  "Measurable progress week-by-week",
+  "8 Weeks of Structured Growth: A step-by-step path that strengthens your brand, skills, and leadership identity",
+  "Weekly Live Coaching Sessions: High-impact calls focused on clarity, communication, product thinking, and leadership",
+  "Hands-On Skill Workshops: Frameworks, scripts, and tools you can immediately apply in interviews and at work",
+  "Personalized Career Feedback: Tailored guidance on your resume, LinkedIn, narrative, interviews, and negotiation",
+  "Real-World Practice: Weekly assignments that help you build confidence and mastery through action",
+  "End-to-End Career Support: From positioning and visibility to interviews and compensation—every part of your career is optimized",
+  "Private Community Support: A space to ask questions, share wins, and get accountability throughout your journey",
 ];
 
 const The200KMethod = () => {
