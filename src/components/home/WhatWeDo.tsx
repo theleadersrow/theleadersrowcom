@@ -1,13 +1,14 @@
 import { CheckCircle2 } from "lucide-react";
 
 const offerings = [
-  "Proven frameworks",
-  "Clear tactics",
-  "Real examples",
-  "Hands-on coaching",
-  "Live practice labs",
-  "Personalized feedback",
-  "Career assets that differentiate you",
+  "Clarity on your brand identity",
+  "Tools to influence, inspire and lead",
+  "Acceleration towards high visibility roles",
+  "Mindset transformation for long term success",
+  "Weekly skill building that elevates your leadership identity",
+  "A supportive community of ambitious professionals",
+  "Personalized coaching to unlock your next level",
+  "A path to become a more confident, respected, high impact leader",
 ];
 
 const WhatWeDo = () => {
