@@ -1,9 +1,10 @@
-import { Target, Users, TrendingUp, Award, Briefcase, Lightbulb, Eye } from "lucide-react";
+import { Target, Users, TrendingUp, Award, Briefcase, Lightbulb, Eye, MessageSquare } from "lucide-react";
 
 const stuckReasons = [
   { icon: Award, text: "How to create your personal brand" },
   { icon: Target, text: "How to position yourself as a leader" },
   { icon: Users, text: "How to build connections and communicate effectively" },
+  { icon: MessageSquare, text: "How to build your relational brand" },
   { icon: Eye, text: "How to create executive presence and visibility" },
   { icon: TrendingUp, text: "How to attract opportunities" },
   { icon: Briefcase, text: "How to interview with strategic framework" },
