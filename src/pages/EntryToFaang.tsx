@@ -81,8 +81,8 @@ const The200KMethod = () => {
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6">
               200K Method
             </h1>
-            <p className="text-xl md:text-2xl text-cream/80 mb-6 leading-relaxed">
-              An 8-Week Accelerator to Reach $200K+ and Beyond
+            <p className="text-lg md:text-xl text-cream/80 mb-6 leading-relaxed max-w-3xl">
+              The 200K Method is an 8-week career acceleration program that transforms ambitious Product Managers into highly visible, well-positioned, and top-paid leaders. We rebuild your personal brand, sharpen your product thinking, elevate your communication, and help you master interviews and negotiation—so you can step into senior roles with confidence and clarity.
             </p>
             
             {/* Next Cohort Info */}
