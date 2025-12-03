@@ -6,9 +6,10 @@ const stuckReasons = [
   { icon: Users, text: "How to build connections and communicate effectively" },
   { icon: MessageSquare, text: "How to build your relational brand" },
   { icon: Eye, text: "How to create executive presence and visibility" },
+  { icon: Lightbulb, text: "How to create your perception" },
   { icon: TrendingUp, text: "How to attract opportunities" },
   { icon: Briefcase, text: "How to interview with strategic framework" },
-  { icon: Lightbulb, text: "How to deliver value that drives outcomes" },
+  { icon: Target, text: "How to deliver value that drives outcomes" },
 ];
 
 const WhyStuck = () => {
