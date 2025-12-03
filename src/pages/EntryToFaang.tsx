@@ -50,13 +50,10 @@ const modules = [
 ];
 
 const whoIsFor = [
-  "Professionals who want to stand out in the job market",
-  "Those looking to improve interview performance",
-  "People ready to position themselves for senior roles",
-  "Leaders wanting to strengthen communication & presence",
-  "Anyone ready to negotiate better offers",
-  "Professionals seeking to build long-term growth momentum",
-  "Those who want to move faster with clarity & structure",
+  "Aspiring PMs breaking into the field",
+  "Early–mid career PMs seeking faster growth",
+  "Senior PMs looking for visibility and promotion",
+  "Experienced leaders who want to elevate their brand, influence, compensation, and long-term trajectory",
 ];
 
 const programFormat = [
