@@ -1,14 +1,13 @@
-import { MessageSquare, Target, Users, TrendingUp, Award, Briefcase, Lightbulb, Eye } from "lucide-react";
+import { Target, Users, TrendingUp, Award, Briefcase, Lightbulb, Eye } from "lucide-react";
 
 const stuckReasons = [
-  { icon: MessageSquare, text: "How to communicate clearly" },
-  { icon: Target, text: "How to position their value" },
-  { icon: Lightbulb, text: "How to build product judgment" },
-  { icon: Briefcase, text: "How to interview with structure" },
-  { icon: TrendingUp, text: "How to negotiate" },
-  { icon: Award, text: "How to build executive presence" },
-  { icon: Users, text: "How to think like a leader" },
-  { icon: Eye, text: "How to create visibility and opportunities" },
+  { icon: Award, text: "How to create your personal brand" },
+  { icon: Target, text: "How to position yourself as a leader" },
+  { icon: Users, text: "How to build connections" },
+  { icon: Eye, text: "How to create executive presence and visibility" },
+  { icon: TrendingUp, text: "How to attract opportunities" },
+  { icon: Briefcase, text: "How to interview with strategic framework" },
+  { icon: Lightbulb, text: "How to deliver value that drives outcomes" },
 ];
 
 const WhyStuck = () => {
