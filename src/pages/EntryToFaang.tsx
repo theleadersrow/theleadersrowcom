@@ -57,13 +57,13 @@ const whoIsFor = [
 ];
 
 const programFormat = [
-  "8 Weeks of Structured Growth: A step-by-step path that strengthens your brand, skills, and leadership identity",
-  "Weekly Live Coaching Sessions: High-impact calls focused on clarity, communication, product thinking, and leadership",
-  "Hands-On Skill Workshops: Frameworks, scripts, and tools you can immediately apply in interviews and at work",
-  "Personalized Career Feedback: Tailored guidance on your resume, LinkedIn, narrative, interviews, and negotiation",
-  "Real-World Practice: Weekly assignments that help you build confidence and mastery through action",
-  "End-to-End Career Support: From positioning and visibility to interviews and compensation—every part of your career is optimized",
-  "Private Community Support: A space to ask questions, share wins, and get accountability throughout your journey",
+  "8 Weeks of Structured Growth",
+  "Weekly Live Coaching Sessions",
+  "Hands-On Skill Workshops",
+  "Personalized Career Feedback",
+  "Real-World Practice",
+  "End-to-End Career Support",
+  "Private Community Support",
 ];
 
 const The200KMethod = () => {
