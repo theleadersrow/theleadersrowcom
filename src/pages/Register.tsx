@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const registerSchema = z.object({
   fullName: z
@@ -44,6 +45,7 @@ type FormData = z.infer<typeof registerSchema>;
 const Register = () => {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -62,7 +64,7 @@ const Register = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const result = registerSchema.safeParse(formData);
@@ -82,8 +84,28 @@ const Register = () => {
       return;
     }
 
-    // Success
-    setIsSubmitted(true);
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.functions.invoke("send-registration-email", {
+        body: formData,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setIsSubmitted(true);
+    } catch (error: any) {
+      console.error("Error sending registration:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again or contact us directly at connect@theleadersrow.com",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -240,8 +262,8 @@ const Register = () => {
                 </div>
 
                 {/* Submit */}
-                <Button type="submit" variant="gold" size="xl" className="w-full mt-4">
-                  Submit Registration
+                <Button type="submit" variant="gold" size="xl" className="w-full mt-4" disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : "Submit Registration"}
                 </Button>
               </div>
             </form>
