@@ -216,20 +216,64 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* Program Format */}
-      <section className="section-padding bg-background">
+      {/* Program Format & Experience */}
+      <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-8">
-              Program Format
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+              Program Format & Experience
             </h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {programFormat.map((item, index) => (
-                <div key={index} className="flex items-start gap-3">
+            <p className="text-lg text-secondary font-medium mb-10">
+              This is not a lecture series—it is a live execution lab.
+            </p>
+
+            {/* The Learning Model */}
+            <div className="mb-12">
+              <h3 className="font-serif text-2xl font-semibold text-foreground mb-4">
+                The Learning Model: Learn, Apply, Coach
+              </h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Each 2-hour session is structured to maximize retention and immediate application. You won't just watch slides; you will build, speak, and refine in real-time.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">{item}</span>
+                  <span className="text-foreground">Live Strategy & Frameworks</span>
                 </div>
-              ))}
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                  <span className="text-foreground">Active Breakout Rooms (Pairs & Triads)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                  <span className="text-foreground">Live Coaching & Hot Seats</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                  <span className="text-foreground">Personalized Feedback</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Beyond the Classroom */}
+            <div>
+              <h3 className="font-serif text-2xl font-semibold text-foreground mb-4">
+                Beyond the Classroom
+              </h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                The transformation continues between sessions:
+              </p>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="bg-background rounded-xl p-5 border border-border/50 text-center">
+                  <p className="font-semibold text-foreground">Private Community Access</p>
+                </div>
+                <div className="bg-background rounded-xl p-5 border border-border/50 text-center">
+                  <p className="font-semibold text-foreground">Accountability Triads</p>
+                </div>
+                <div className="bg-background rounded-xl p-5 border border-border/50 text-center">
+                  <p className="font-semibold text-foreground">Asset Reviews</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
