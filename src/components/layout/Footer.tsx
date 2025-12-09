@@ -68,10 +68,10 @@ const Footer = () => {
               © {new Date().getFullYear()} The Leader's Row. All rights reserved.
             </p>
             <a 
-              href="mailto:connect@theleadersrow.com" 
+              href="mailto:theleadersrow@gmail.com" 
               className="text-cream/60 hover:text-secondary transition-colors text-sm"
             >
-              connect@theleadersrow.com
+              theleadersrow@gmail.com
             </a>
           </div>
         </div>
