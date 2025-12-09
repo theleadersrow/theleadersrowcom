@@ -21,15 +21,16 @@ const ProgramsSection = () => {
           <ProgramCard
             title="200K Method"
             subtitle="8-Week Accelerator"
-            description="8 weeks of deep skill-building and transformation. We rebuild your personal brand, strengthen your communication, sharpen your product thinking, master interviews with you, and help you negotiate your worth."
+            description="The definitive strategic playbook for experienced Product Managers aiming for high-impact, $200K+ roles. We provide the precise framework to define your next level, engineer an executive-ready personal brand, and negotiate like a CEO."
             features={[
-              "Build a strong personal brand",
-              "Create an elite resume & LinkedIn",
-              "Master product judgment & thinking",
-              "Learn all PM interview frameworks",
-              "Develop executive presence",
-              "Negotiate seniority & compensation",
-              "Future-proof your career",
+              "The Strategic Benchmark",
+              "Narrative Control: Engineering Your PM Brand",
+              "High-Value Profile and Network Activation",
+              "Interview Mastery: Advanced Framework Toolkit",
+              "Product Judgment: High-Stakes Decisions",
+              "Executive Presence: Communication for Impact",
+              "The Influence Engine: Managing Power Dynamics",
+              "Future-Proofing and The Leader's Playbook",
             ]}
             price="$2,000"
             href="/200k-method"
