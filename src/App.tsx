@@ -8,6 +8,7 @@ import The200KMethod from "./pages/EntryToFaang";
 import WeeklyEdge from "./pages/LevelUpWeekly";
 import Register from "./pages/Register";
 import Contact from "./pages/Contact";
+import Newsletter from "./pages/Newsletter";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/weekly-edge" element={<WeeklyEdge />} />
           <Route path="/register" element={<Register />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
