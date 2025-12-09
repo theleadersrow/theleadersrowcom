@@ -19,34 +19,42 @@ const modules = [
   {
     icon: Star,
     title: "The Strategic Benchmark",
+    description: "Pinpoint your exact PM level and identify target companies that maximize your career and compensation potential.",
   },
   {
     icon: Briefcase,
     title: "Narrative Control: Engineering Your PM Brand",
+    description: "Define and broadcast a compelling Product Leader identity with a rewritten professional narrative.",
   },
   {
     icon: Users,
     title: "High-Value Profile and Network Activation",
+    description: "Optimize your resume and LinkedIn with metrics of influence, and activate a high-value professional network.",
   },
   {
     icon: CheckCircle2,
     title: "Interview Mastery: The Advanced Framework Toolkit",
+    description: "Master behavioral, product sense, and strategic interview frameworks for Director-track roles.",
   },
   {
     icon: Target,
     title: "Product Judgment: Mastering High-Stakes Decisions",
+    description: "Develop advanced strategic thinking and complex trade-off justification at the executive level.",
   },
   {
     icon: Award,
     title: "Executive Presence: Communication for Impact",
+    description: "Build the communication style and presence of a senior executive that commands attention.",
   },
   {
     icon: TrendingUp,
     title: "The Influence Engine: Managing Power Dynamics",
+    description: "Learn to manage stakeholders up, down, and laterally while building your Influence Portfolio.",
   },
   {
     icon: Rocket,
     title: "Future-Proofing and The Leader's Playbook",
+    description: "Create a repeatable system for continuous self-assessment and strategic career evolution.",
   },
 ];
 
@@ -227,9 +235,12 @@ const The200KMethod = () => {
                 <div className="text-secondary/60 text-sm font-medium mb-2">
                   Module {index + 1}
                 </div>
-                <h3 className="font-semibold text-cream leading-snug">
+                <h3 className="font-semibold text-cream leading-snug mb-2">
                   {module.title}
                 </h3>
+                <p className="text-cream/60 text-sm leading-relaxed">
+                  {module.description}
+                </p>
               </div>
             ))}
           </div>
