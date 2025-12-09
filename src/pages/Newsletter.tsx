@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Mail, Sparkles, TrendingUp, Users } from "lucide-react";
+import { CheckCircle2, Mail, Sparkles, TrendingUp, Users, ExternalLink } from "lucide-react";
 import { z } from "zod";
 
 const newsletterSchema = z.object({
@@ -131,6 +131,26 @@ const Newsletter = () => {
                 Join thousands of ambitious professionals receiving weekly insights 
                 on leadership, career growth, and product management excellence.
               </p>
+            </div>
+
+            {/* Substack CTA */}
+            <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-3xl p-8 md:p-12 text-center mb-16">
+              <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+                Read Our Latest Articles
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
+                Dive into our archive of leadership insights, career strategies, and product management wisdom on Substack.
+              </p>
+              <a
+                href="https://nainasheth.substack.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="gold" size="lg" className="gap-2">
+                  Visit Our Substack
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </a>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12 items-start">
