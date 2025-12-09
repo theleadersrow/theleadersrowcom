@@ -21,6 +21,7 @@ const Header = () => {
     { href: "/", label: "Home" },
     { href: "/200k-method", label: "200K Method" },
     { href: "/weekly-edge", label: "Weekly Edge" },
+    { href: "/newsletter", label: "Newsletter" },
     { href: "/contact", label: "Contact" },
   ];
 
