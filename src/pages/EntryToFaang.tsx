@@ -152,6 +152,70 @@ const The200KMethod = () => {
         </div>
       </section>
 
+      {/* What You Will Achieve */}
+      <section className="section-padding bg-background">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-10">
+              What You Will Achieve
+            </h2>
+            
+            <div className="space-y-8">
+              <div className="border-l-4 border-secondary pl-6">
+                <h3 className="font-semibold text-foreground text-lg mb-2">
+                  Strategic Leveling & Targeting (Phase 1)
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Objectively pinpoint the exact PM level you are qualified for and the type of company that maximizes your career and compensation potential.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-6">
+                <h3 className="font-semibold text-foreground text-lg mb-2">
+                  Brand & Perception Control (Phase 2 & 3)
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Systematically define and broadcast a "Product Leader" identity. You will rewrite your professional narrative, optimize your resume/LinkedIn with metrics of influence, and activate a high-value professional network.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-6">
+                <h3 className="font-semibold text-foreground text-lg mb-2">
+                  Interview & Judgment Mastery (Phase 4 & 5)
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Move beyond basic frameworks. Master advanced strategic thinking, complex trade-off justification, and executive-level behavioral tactics to conquer interviews for Director-track roles.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-6">
+                <h3 className="font-semibold text-foreground text-lg mb-2">
+                  Executive Influence & Visibility (Phase 6 & 7)
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Develop the communication style and presence of a senior executive. Learn to manage stakeholders (up, down, and laterally) and build an "Influence Portfolio" to ensure your contributions lead directly to promotion and visibility.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-6">
+                <h3 className="font-semibold text-foreground text-lg mb-2">
+                  Future-Proofing (Phase 8)
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Walk away with a repeatable, adaptable system for continuous self-assessment and strategic career evolution, ensuring long-term relevance in a rapidly changing tech landscape.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-10 p-6 bg-navy/5 rounded-xl border border-navy/10">
+              <p className="text-foreground font-medium text-center italic">
+                This is not a course on what a PM does; it is a strategic masterclass on how a PM achieves their next-level career destiny.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Program Format */}
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
