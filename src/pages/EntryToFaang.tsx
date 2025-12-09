@@ -11,7 +11,8 @@ import {
   Award,
   MessageSquare,
   Briefcase,
-  Rocket
+  Rocket,
+  X
 } from "lucide-react";
 
 const modules = [
@@ -50,10 +51,41 @@ const modules = [
 ];
 
 const whoIsFor = [
-  "Aspiring PMs breaking into the field",
-  "Early–mid career PMs seeking faster growth",
-  "Senior PMs looking for visibility and promotion",
-  "Experienced leaders who want to elevate their brand, influence, compensation, and long-term trajectory",
+  {
+    label: "Experienced PMs",
+    description: "You have 3+ years in Product and have mastered the fundamentals.",
+  },
+  {
+    label: "The Strategically Stuck",
+    description: "You are a Senior PM (or equivalent) aiming for GPM, Principal, or Director roles.",
+  },
+  {
+    label: "The Undervalued",
+    description: "You need to bridge the gap between your impact and your current compensation/title.",
+  },
+  {
+    label: "The Brand Builder",
+    description: "You want to define and broadcast an Executive-Ready personal brand and narrative.",
+  },
+  {
+    label: "The System Seeker",
+    description: "You require a proven, repeatable framework for interviewing, negotiating, and strategic career growth.",
+  },
+];
+
+const whoIsNotFor = [
+  {
+    label: "Entry-Level Professionals",
+    description: "The content is too advanced for first-time PMs.",
+  },
+  {
+    label: "Passive Learners",
+    description: "This is an active, hands-on coaching and role-playing environment.",
+  },
+  {
+    label: "The \"Hack\" Seekers",
+    description: "If you are looking for a magic trick to double your salary without improving your skills, communication, or strategic value, this is not the right fit.",
+  },
 ];
 
 const programFormat = [
@@ -107,16 +139,43 @@ const The200KMethod = () => {
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-8">
-              Who This Program Is For
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {whoIsFor.map((item, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">{item}</span>
-                </div>
-              ))}
+            {/* Who This Is For */}
+            <div className="mb-12">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                🎯 Who This Program Is For
+              </h2>
+              <p className="text-muted-foreground text-lg mb-8">
+                This program is designed for ambitious, experienced Product Managers ready for their next strategic leap.
+              </p>
+              <div className="space-y-4">
+                {whoIsFor.map((item, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-1" />
+                    <div>
+                      <span className="font-semibold text-foreground">{item.label}:</span>{" "}
+                      <span className="text-muted-foreground">{item.description}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Who This Is NOT For */}
+            <div className="bg-muted/50 rounded-xl p-6 border border-border/50">
+              <h3 className="font-serif text-2xl font-semibold text-foreground mb-6">
+                ⛔ Who This Is NOT For
+              </h3>
+              <div className="space-y-4">
+                {whoIsNotFor.map((item, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <X className="w-5 h-5 text-destructive flex-shrink-0 mt-1" />
+                    <div>
+                      <span className="font-semibold text-foreground">{item.label}:</span>{" "}
+                      <span className="text-muted-foreground">{item.description}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
