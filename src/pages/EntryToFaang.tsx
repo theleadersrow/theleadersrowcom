@@ -200,29 +200,36 @@ const The200KMethod = () => {
       </section>
 
       {/* What You'll Learn */}
-      <section className="section-padding bg-muted/50">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-6">
+      <section className="section-padding bg-navy relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
+        </div>
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
               What You'll Learn
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-cream/70 text-lg">
               Eight powerful modules designed to transform every aspect of your professional presence.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
             {modules.map((module, index) => (
               <div
                 key={index}
-                className="bg-card rounded-xl p-6 shadow-soft hover:shadow-card transition-all duration-300 flex items-start gap-3"
+                className="group bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10 hover:bg-cream/10 hover:border-secondary/30 transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                  <module.icon className="w-5 h-5 text-secondary" />
+                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 group-hover:bg-secondary/30 transition-colors">
+                  <module.icon className="w-6 h-6 text-secondary" />
                 </div>
-                <span className="font-medium text-foreground leading-tight">
+                <div className="text-secondary/60 text-sm font-medium mb-2">
+                  Module {index + 1}
+                </div>
+                <h3 className="font-semibold text-cream leading-snug">
                   {module.title}
-                </span>
+                </h3>
               </div>
             ))}
           </div>
