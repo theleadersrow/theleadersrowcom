@@ -248,64 +248,64 @@ const The200KMethod = () => {
       </section>
 
       {/* What You Will Achieve */}
-      <section className="section-padding bg-background">
+      <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-10">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
               What You Will Achieve
             </h2>
-            
-            <div className="space-y-8">
-              <div className="border-l-4 border-secondary pl-6">
-                <h3 className="font-semibold text-foreground text-lg mb-2">
-                  Strategic Leveling & Targeting (Phase 1)
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Objectively pinpoint the exact PM level you are qualified for and the type of company that maximizes your career and compensation potential.
-                </p>
-              </div>
+            <p className="text-muted-foreground text-lg">
+              A strategic masterclass on how a PM achieves their next-level career destiny.
+            </p>
+          </div>
 
-              <div className="border-l-4 border-secondary pl-6">
-                <h3 className="font-semibold text-foreground text-lg mb-2">
-                  Brand & Perception Control (Phase 2 & 3)
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Systematically define and broadcast a "Product Leader" identity. You will rewrite your professional narrative, optimize your resume/LinkedIn with metrics of influence, and activate a high-value professional network.
-                </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                <Target className="w-6 h-6 text-secondary" />
               </div>
-
-              <div className="border-l-4 border-secondary pl-6">
-                <h3 className="font-semibold text-foreground text-lg mb-2">
-                  Interview & Judgment Mastery (Phase 4 & 5)
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Move beyond basic frameworks. Master advanced strategic thinking, complex trade-off justification, and executive-level behavioral tactics to conquer interviews for Director-track roles.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-secondary pl-6">
-                <h3 className="font-semibold text-foreground text-lg mb-2">
-                  Executive Influence & Visibility (Phase 6 & 7)
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Develop the communication style and presence of a senior executive. Learn to manage stakeholders (up, down, and laterally) and build an "Influence Portfolio" to ensure your contributions lead directly to promotion and visibility.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-secondary pl-6">
-                <h3 className="font-semibold text-foreground text-lg mb-2">
-                  Future-Proofing (Phase 8)
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Walk away with a repeatable, adaptable system for continuous self-assessment and strategic career evolution, ensuring long-term relevance in a rapidly changing tech landscape.
-                </p>
-              </div>
+              <h3 className="font-semibold text-foreground mb-2">Strategic Leveling</h3>
+              <p className="text-muted-foreground text-sm">Pinpoint your exact PM level and target companies for maximum potential.</p>
             </div>
 
-            <div className="mt-10 p-6 bg-navy/5 rounded-xl border border-navy/10">
-              <p className="text-foreground font-medium text-center italic">
-                This is not a course on what a PM does; it is a strategic masterclass on how a PM achieves their next-level career destiny.
-              </p>
+            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                <Award className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Brand & Perception</h3>
+              <p className="text-muted-foreground text-sm">Define your Product Leader identity with optimized resume and LinkedIn.</p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Interview Mastery</h3>
+              <p className="text-muted-foreground text-sm">Master advanced frameworks and executive-level tactics for Director roles.</p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                <MessageSquare className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Executive Presence</h3>
+              <p className="text-muted-foreground text-sm">Develop senior executive communication and stakeholder management.</p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Visibility & Influence</h3>
+              <p className="text-muted-foreground text-sm">Build an Influence Portfolio that leads to promotion and recognition.</p>
+            </div>
+
+            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+                <Rocket className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Future-Proofing</h3>
+              <p className="text-muted-foreground text-sm">Create a repeatable system for continuous career evolution.</p>
             </div>
           </div>
         </div>
