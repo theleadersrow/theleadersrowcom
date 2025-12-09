@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 
 interface ProgramCardProps {
   title: string;
@@ -36,7 +36,8 @@ const ProgramCard = ({
       }`}
     >
       {(featured || badge) && (
-        <div className="absolute -top-4 left-8 bg-secondary text-secondary-foreground text-sm font-semibold px-4 py-1 rounded-full">
+        <div className="absolute -top-4 left-8 bg-secondary text-secondary-foreground text-sm font-semibold px-4 py-1 rounded-full flex items-center gap-1.5">
+          <Star className="w-3.5 h-3.5 fill-current" />
           {badge || "Most Popular"}
         </div>
       )}
