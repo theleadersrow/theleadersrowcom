@@ -26,21 +26,21 @@ const Hero = () => {
           
           {/* Headline */}
           <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-semibold text-cream mb-6 opacity-0 animate-fade-up delay-100">
-            Unlock the Career You Know <span className="text-gradient-gold">You're Capable Of.</span>
+            Unlock the Career You Know <span className="text-gradient-gold">You're Capable Of</span>
           </h1>
           
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-cream/80 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
-            No confusion. No guesswork. No stagnation — just clarity, skill, and momentum.
+            No confusion. No guesswork. Just clarity, confidence, and momentum.
           </p>
           <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-250">
-            You're brilliant. You work hard. But growth in today's world requires more than effort — it requires identity shifts, strategic communication, leadership presence, and execution excellence. The Leader's Row is where talented professionals come to grow with intention, strengthen their voice, and accelerate into the top 10% of their field.
+            You're talented and hardworking — but rising today requires more than effort. It requires identity shifts, strategic communication, leadership presence, and execution excellence.
           </p>
           <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-275">
-            We remove the hidden blockers holding you back and replace them with systems, frameworks, strategic thinking, leadership behaviors, and hands-on practice that turn potential into real, visible progress.
+            The Leader's Row is where ambitious professionals strengthen their voice, elevate their identity, and accelerate into the top 10% of their field. We remove the hidden blockers slowing you down and give you the systems, frameworks, and leadership behaviors that turn potential into visible progress.
           </p>
           <p className="text-lg md:text-xl text-secondary font-medium max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
-            And unlike every other course — we build these muscles LIVE, together. No more learning alone.
+            And unlike traditional courses, we build these skills live — together. You don't grow alone here.
           </p>
           
           {/* CTAs */}
