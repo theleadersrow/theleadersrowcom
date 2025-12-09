@@ -17,35 +17,35 @@ import {
 const modules = [
   {
     icon: Star,
-    title: "Build a Strong Personal Leadership Brand",
+    title: "The Strategic Benchmark",
   },
   {
     icon: Briefcase,
-    title: "Create an Elite Resume & LinkedIn That Attracts Senior Roles",
+    title: "Narrative Control: Engineering Your PM Brand",
   },
   {
-    icon: Target,
-    title: "Master Product Judgment & Strategic Thinking",
+    icon: Users,
+    title: "High-Value Profile and Network Activation",
   },
   {
     icon: CheckCircle2,
-    title: "Learn All PM Interview Frameworks (Beginner → Advanced)",
+    title: "Interview Mastery: The Advanced Framework Toolkit",
+  },
+  {
+    icon: Target,
+    title: "Product Judgment: Mastering High-Stakes Decisions",
   },
   {
     icon: Award,
-    title: "Develop Executive Presence & Communication",
+    title: "Executive Presence: Communication for Impact",
   },
   {
     icon: TrendingUp,
-    title: "Visibility, Promotion & Influence Tools",
-  },
-  {
-    icon: MessageSquare,
-    title: "Negotiate Seniority, Scope & Compensation",
+    title: "The Influence Engine: Managing Power Dynamics",
   },
   {
     icon: Rocket,
-    title: "Future-Proof Your Career",
+    title: "Future-Proofing and The Leader's Playbook",
   },
 ];
 
