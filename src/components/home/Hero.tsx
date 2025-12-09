@@ -31,16 +31,16 @@ const Hero = () => {
           
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-cream/80 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
-            No confusion. No guesswork. Just clarity, confidence, and momentum.
+            Rise with clarity, confidence, and momentum.
           </p>
           <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-250">
-            You're talented and hardworking — but rising today requires more than effort. It requires identity shifts, strategic communication, leadership presence, and execution excellence.
+            Hard work isn't enough anymore — growth now requires identity, communication, presence, and strategic execution.
           </p>
           <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-275">
-            The Leader's Row is where ambitious professionals strengthen their voice, elevate their identity, and accelerate into the top 10% of their field. We remove the hidden blockers slowing you down and give you the systems, frameworks, and leadership behaviors that turn potential into visible progress.
+            The Leader's Row helps ambitious professionals strengthen their voice, elevate their identity, and accelerate into the top 10%.
           </p>
           <p className="text-lg md:text-xl text-secondary font-medium max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
-            And unlike traditional courses, we build these skills live — together. You don't grow alone here.
+            We remove blockers and build real leadership skills live, together — so you never grow alone.
           </p>
           
           {/* CTAs */}
