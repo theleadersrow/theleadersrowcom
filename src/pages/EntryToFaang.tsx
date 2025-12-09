@@ -109,11 +109,17 @@ const The200KMethod = () => {
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl">
             <p className="text-secondary font-medium mb-4">8-Week Accelerator</p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6">
-              200K Method
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-4">
+              200K Method: The Product Leader's Recalibration
             </h1>
-            <p className="text-lg md:text-xl text-cream/80 mb-6 leading-relaxed max-w-3xl">
-              The 200K Method is an 8-week career acceleration program that transforms ambitious Product Managers into highly visible, well-positioned, and top-paid leaders. We rebuild your personal brand, sharpen your product thinking, elevate your communication, and help you master interviews and negotiation—so you can step into senior roles with confidence and clarity.
+            <p className="text-xl md:text-2xl text-cream font-medium mb-6">
+              Stop guessing your worth. Start commanding it.
+            </p>
+            <p className="text-lg text-cream/80 mb-4 leading-relaxed max-w-3xl">
+              This 8-week accelerator is the definitive strategic playbook for experienced Product Managers aiming to execute a calculated career leap into high-impact, $200K+ roles (GPM, Principal, Director).
+            </p>
+            <p className="text-lg text-cream/80 mb-6 leading-relaxed max-w-3xl">
+              We provide the precise framework to: define your next level, engineer an executive-ready personal brand, master advanced product judgment, and negotiate like a CEO. This is high-stakes career strategy, built for maximum ROI.
             </p>
             
             {/* Next Cohort Info */}
