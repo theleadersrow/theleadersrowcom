@@ -148,8 +148,8 @@ const The200KMethod = () => {
             {/* Who This Is For */}
             <div className="mb-16">
               <div className="text-center mb-10">
-                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-                  🎯 Who This Program Is For
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                Who This Program Is For
                 </h2>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                   This program is designed for ambitious, experienced Product Managers ready for their next strategic leap.
