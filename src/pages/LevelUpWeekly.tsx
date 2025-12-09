@@ -130,6 +130,29 @@ const WeeklyEdge = () => {
         </div>
       </section>
 
+      {/* Why Continuous Skill Building */}
+      <section className="section-padding bg-navy">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-6">
+              Why Continuous Skill Building Is Non-Negotiable
+            </h2>
+            <p className="text-cream/90 text-lg md:text-xl leading-relaxed mb-6">
+              Your career moves at the speed of your skills — not your experience.
+            </p>
+            <p className="text-cream/80 text-lg leading-relaxed mb-6">
+              Today's workplace rewards sharper thinkers, faster decision-makers, clear communicators, and leaders who influence without authority. These aren't "nice-to-haves." They're the currency of modern careers — and they fade if you don't actively strengthen them.
+            </p>
+            <p className="text-cream/80 text-lg leading-relaxed mb-6">
+              If you're not leveling up weekly, you're falling behind weekly.
+            </p>
+            <p className="text-secondary text-xl font-semibold">
+              Weekly Edge keeps you ahead of the curve — not catching up to it.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Your Weekly Career Asset Collection */}
       <section className="section-padding bg-muted/50">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
