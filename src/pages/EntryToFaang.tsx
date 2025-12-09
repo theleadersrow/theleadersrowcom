@@ -144,41 +144,53 @@ const The200KMethod = () => {
       {/* Who This Is For */}
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             {/* Who This Is For */}
-            <div className="mb-12">
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-                🎯 Who This Program Is For
-              </h2>
-              <p className="text-muted-foreground text-lg mb-8">
-                This program is designed for ambitious, experienced Product Managers ready for their next strategic leap.
-              </p>
-              <div className="space-y-4">
+            <div className="mb-16">
+              <div className="text-center mb-10">
+                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                  🎯 Who This Program Is For
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  This program is designed for ambitious, experienced Product Managers ready for their next strategic leap.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {whoIsFor.map((item, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-1" />
-                    <div>
-                      <span className="font-semibold text-foreground">{item.label}:</span>{" "}
-                      <span className="text-muted-foreground">{item.description}</span>
+                  <div 
+                    key={index} 
+                    className="bg-card rounded-xl p-5 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4 text-secondary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground">{item.label}</h3>
                     </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Who This Is NOT For */}
-            <div className="bg-muted/50 rounded-xl p-6 border border-border/50">
-              <h3 className="font-serif text-2xl font-semibold text-foreground mb-6">
+            <div className="bg-muted/30 rounded-2xl p-8 border border-border/30">
+              <h3 className="font-serif text-2xl font-semibold text-foreground mb-6 text-center">
                 ⛔ Who This Is NOT For
               </h3>
-              <div className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 {whoIsNotFor.map((item, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <X className="w-5 h-5 text-destructive flex-shrink-0 mt-1" />
-                    <div>
-                      <span className="font-semibold text-foreground">{item.label}:</span>{" "}
-                      <span className="text-muted-foreground">{item.description}</span>
+                  <div 
+                    key={index} 
+                    className="bg-background rounded-xl p-5 border border-destructive/20"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
+                        <X className="w-4 h-4 text-destructive" />
+                      </div>
+                      <h4 className="font-semibold text-foreground text-sm">{item.label}</h4>
                     </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
                   </div>
                 ))}
               </div>
