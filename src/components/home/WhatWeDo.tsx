@@ -2,13 +2,13 @@ import { CheckCircle2 } from "lucide-react";
 
 const offerings = [
   "Clarity on your brand identity",
-  "Tools to influence, inspire and lead",
-  "Acceleration towards high visibility roles",
-  "Mindset transformation for long term success",
-  "Weekly skill building that elevates your leadership identity",
+  "Tools to influence, inspire, and lead",
+  "Acceleration into high-visibility roles",
+  "Mindset transformation for long-term success",
+  "Weekly skill-building to elevate your leadership identity",
   "A supportive community of ambitious professionals",
   "Personalized coaching to unlock your next level",
-  "A path to become a more confident, respected, high impact leader",
+  "A path to becoming a confident, respected, high-impact leader",
 ];
 
 const WhatWeDo = () => {
@@ -18,9 +18,12 @@ const WhatWeDo = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-secondary font-medium mb-3">What We Do</p>
-            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-6">
-              We help ambitious professionals grow faster
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-4">
+              We Help Ambitious Professionals Grow Faster
             </h2>
+            <p className="text-lg md:text-xl text-muted-foreground">
+              With Clarity, Confidence, and Momentum
+            </p>
           </div>
 
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-12">
