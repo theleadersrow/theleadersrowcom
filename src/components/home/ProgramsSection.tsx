@@ -42,15 +42,15 @@ const ProgramsSection = () => {
           <ProgramCard
             title="Weekly Edge"
             subtitle="Ongoing Skill Building"
-            description="Weekly 75–90 minute sessions to stay sharp, grow consistently, and learn new skills every week. Build confidence, storytelling, influence, leadership communication, productivity, and more — with live Q&A."
+            description="60-minute live weekly sessions plus 30-minute Q&A & coaching. Build confidence, storytelling, influence, leadership communication, and more — with a community that accelerates your growth."
             features={[
-              "Weekly live skill-building sessions",
-              "20–30 minutes of live Q&A",
-              "Communication & storytelling",
-              "Stakeholder management",
-              "Leadership & execution skills",
-              "Worksheets & practical examples",
-              "Continuous career growth",
+              "60-minute live weekly session",
+              "30-minute live Q&A + coaching",
+              "Action-ready worksheets & examples",
+              "Proven scripts, templates & frameworks",
+              "One high-impact skill focus each week",
+              "Career momentum that compounds over time",
+              "Network with ambitious professionals",
             ]}
             price="$100"
             priceNote="/month"
