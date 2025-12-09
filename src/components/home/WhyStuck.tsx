@@ -1,15 +1,14 @@
 import { Target, Users, TrendingUp, Award, Briefcase, Lightbulb, Eye, MessageSquare } from "lucide-react";
 
 const stuckReasons = [
-  { icon: Award, text: "How to create your personal brand" },
-  { icon: Target, text: "How to position yourself as a leader" },
-  { icon: Users, text: "How to build connections and communicate effectively" },
-  { icon: MessageSquare, text: "How to build your relational brand" },
-  { icon: Eye, text: "How to create executive presence and visibility" },
-  { icon: Lightbulb, text: "How to create your perception" },
-  { icon: TrendingUp, text: "How to attract opportunities" },
-  { icon: Briefcase, text: "How to interview with strategic framework" },
-  { icon: Target, text: "How to deliver value that drives outcomes" },
+  { icon: Award, text: "No one teaches you how to build a personal brand" },
+  { icon: Target, text: "You were never shown how to position yourself as a leader" },
+  { icon: Users, text: "You don't learn how to communicate or build connections strategically" },
+  { icon: MessageSquare, text: "You've never built your relational brand" },
+  { icon: Eye, text: "Executive presence is expected, but never taught" },
+  { icon: Lightbulb, text: "Perception becomes more important than performance" },
+  { icon: TrendingUp, text: "Opportunities don't flow your way" },
+  { icon: Briefcase, text: "Interviewing and delivering outcomes require frameworks" },
 ];
 
 const WhyStuck = () => {
@@ -22,11 +21,11 @@ const WhyStuck = () => {
               Why Professionals Get Stuck{" "}
               <span className="text-secondary">(And Why It's Not Your Fault)</span>
             </h2>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-2">
               Most professionals don't struggle because they lack ability.
             </p>
-            <p className="text-lg md:text-xl text-foreground font-medium mt-2">
-              They struggle because no one has ever taught them the real career skills that drive growth:
+            <p className="text-lg md:text-xl text-foreground font-medium">
+              They struggle because:
             </p>
           </div>
 
