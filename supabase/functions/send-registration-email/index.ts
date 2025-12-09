@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send notification email to The Leader's Row
     const notificationResponse = await resend.emails.send({
       from: "The Leader's Row <onboarding@resend.dev>",
-      to: ["connect@theleadersrow.com"],
+      to: ["theleadersrow@gmail.com"],
       subject: `New Registration: ${fullName} - ${programName}`,
       html: `
         <h2>New Program Registration</h2>
