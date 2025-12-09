@@ -96,15 +96,16 @@ const WeeklyEdge = () => {
               <p className="text-secondary font-semibold">What You'll Build Inside Weekly Edge</p>
             </div>
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-6">
-              Build Career Assets That Compound
+              Career Assets That Compound
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-4">
               Weekly Edge isn't about learning "topics."
             </p>
+            <p className="text-muted-foreground text-lg leading-relaxed mb-4">
+              It's about building career assets that make you sharper, faster, more confident, and impossible to overlook.
+            </p>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              It's about building career assets that make you sharper, faster, more confident, 
-              and impossible to overlook. Every week, you add a new high-leverage skill to your 
-              toolkit — one that compounds your growth and strengthens your leadership identity.
+              Each week, you add one new high-leverage skill — a capability that compounds your growth and strengthens your leadership identity.
             </p>
 
             {/* Quick Stats */}
