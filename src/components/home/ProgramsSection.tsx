@@ -42,7 +42,7 @@ const ProgramsSection = () => {
           <ProgramCard
             title="Weekly Edge"
             subtitle="Ongoing Skill Building"
-            description="60-minute live weekly sessions plus 30-minute Q&A & coaching. Build confidence, storytelling, influence, leadership communication, and more — with a community that accelerates your growth."
+            description="Weekly Edge is your weekly upgrade engine — sharpening how you speak, lead, influence, and show up at work, supported by a community that pushes you to rise."
             features={[
               "60-minute live weekly session",
               "30-minute live Q&A + coaching",
