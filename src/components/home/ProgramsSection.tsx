@@ -36,7 +36,7 @@ const ProgramsSection = () => {
             href="/200k-method"
             ctaText="Learn More"
             featured
-            badge="Perfect for $200K+ roles"
+            badge="High demand and best seller"
           />
 
           <ProgramCard
