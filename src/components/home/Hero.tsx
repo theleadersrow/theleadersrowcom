@@ -26,18 +26,21 @@ const Hero = () => {
           
           {/* Headline */}
           <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-semibold text-cream mb-6 opacity-0 animate-fade-up delay-100">
-            Your Growth, <span className="text-gradient-gold">Unblocked.</span>
+            Unlock the Career You Know <span className="text-gradient-gold">You're Capable Of.</span>
           </h1>
           
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-cream/80 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
-            You're talented. You're capable. But the path to your next level shouldn't feel confusing, lonely, or filled with guesswork.
+            No confusion. No guesswork. No stagnation — just clarity, skill, and momentum.
           </p>
           <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-250">
-            At The Leader's Row, we remove the blockers holding you back and teach you the real skills — frameworks, systems, communication, product thinking, leadership — that help top professionals accelerate their careers.
+            You're brilliant. You work hard. But growth in today's world requires more than effort — it requires identity shifts, strategic communication, leadership presence, and execution excellence. The Leader's Row is where talented professionals come to grow with intention, strengthen their voice, and accelerate into the top 10% of their field.
+          </p>
+          <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-275">
+            We remove the hidden blockers holding you back and replace them with systems, frameworks, strategic thinking, leadership behaviors, and hands-on practice that turn potential into real, visible progress.
           </p>
           <p className="text-lg md:text-xl text-secondary font-medium max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
-            And we don't just teach you. We practice with you, live.
+            And unlike every other course — we build these muscles LIVE, together. No more learning alone.
           </p>
           
           {/* CTAs */}
