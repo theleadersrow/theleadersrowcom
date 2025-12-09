@@ -34,17 +34,17 @@ const modules = [
   {
     icon: CheckCircle2,
     title: "Interview Mastery: The Advanced Framework Toolkit",
-    description: "Master behavioral, product sense, and strategic interview frameworks for Director-track roles.",
+    description: "Master strategic execution and behavioral interviewing at the executive level.",
   },
   {
     icon: Target,
     title: "Product Judgment: Mastering High-Stakes Decisions",
-    description: "Develop advanced strategic thinking and complex trade-off justification at the executive level.",
+    description: "Elevate decision-making through economic and systems thinking.",
   },
   {
     icon: Award,
     title: "Executive Presence: Communication for Impact",
-    description: "Build the communication style and presence of a senior executive that commands attention.",
+    description: "Develop the gravitas and speaking style of a senior leader.",
   },
   {
     icon: TrendingUp,
