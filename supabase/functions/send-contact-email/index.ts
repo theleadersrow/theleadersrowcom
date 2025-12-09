@@ -11,6 +11,7 @@ const corsHeaders = {
 interface ContactEmailRequest {
   name: string;
   email: string;
+  phone?: string;
   message: string;
 }
 
@@ -23,9 +24,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, message }: ContactEmailRequest = await req.json();
+    const { name, email, phone, message }: ContactEmailRequest = await req.json();
     
-    console.log("Received contact form submission:", { name, email });
+    console.log("Received contact form submission:", { name, email, phone });
 
     // Send notification email to The Leader's Row
     const notificationResponse = await resend.emails.send({
@@ -36,6 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
         <h2>New Contact Form Submission</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
+        ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ''}
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>
         <hr>

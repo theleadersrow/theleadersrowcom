@@ -18,6 +18,11 @@ const contactSchema = z.object({
     .string()
     .email("Please enter a valid email address")
     .max(255, "Email must be less than 255 characters"),
+  phone: z
+    .string()
+    .max(20, "Phone number must be less than 20 characters")
+    .optional()
+    .or(z.literal("")),
   message: z
     .string()
     .min(10, "Message must be at least 10 characters")
@@ -34,6 +39,7 @@ const Contact = () => {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
+    phone: "",
     message: "",
   });
 
@@ -71,6 +77,7 @@ const Contact = () => {
         body: {
           name: formData.name,
           email: formData.email,
+          phone: formData.phone || "",
           message: formData.message,
         },
       });
@@ -182,6 +189,20 @@ const Contact = () => {
                     {errors.email && (
                       <p className="text-destructive text-sm mt-1">{errors.email}</p>
                     )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone" className="text-foreground font-medium">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                      className="mt-2"
+                    />
                   </div>
 
                   <div>
