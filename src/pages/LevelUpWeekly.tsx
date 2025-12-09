@@ -43,12 +43,14 @@ const careerAssets = [
 ];
 
 const whatsIncluded = [
-  "75–90 minute live session each week",
-  "20–30 minutes of live Q&A",
-  "Worksheets and practical examples",
-  "Scripts and frameworks you can use immediately",
-  "A new skill focus each week",
-  "Continuous career growth momentum",
+  "60-minute live weekly session",
+  "30-minute live Q&A + coaching",
+  "Action-ready worksheets & examples",
+  "Proven scripts, templates & frameworks",
+  "One high-impact skill focus each week",
+  "Career momentum that compounds over time",
+  "Meet other ambitious professionals & learn from real experiences",
+  "Network with a community that accelerates your growth",
 ];
 
 const WeeklyEdge = () => {
