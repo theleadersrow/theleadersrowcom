@@ -98,22 +98,37 @@ const QuizLeadMagnet = () => {
 
     setIsSubmitting(true);
     try {
+      // Save lead to database
       const { error } = await supabase.from("email_leads").insert({
         email: validation.data,
         lead_magnet: "career-readiness-quiz",
       });
 
-      if (error) {
-        if (error.code === "23505") {
-          setStep(5); // Show results anyway
-          return;
-        }
+      if (error && error.code !== "23505") {
         throw error;
       }
 
-      setStep(5);
-      toast.success("Your personalized results are ready!");
+      // Get results to send in email
+      const result = getResultsMessage();
+
+      // Send results email via edge function
+      const { error: emailError } = await supabase.functions.invoke("send-quiz-results", {
+        body: {
+          email: validation.data,
+          answers,
+          result,
+        },
+      });
+
+      if (emailError) {
+        console.error("Email error:", emailError);
+        // Still show results even if email fails
+      }
+
+      setStep(totalQuestions + 2);
+      toast.success("Your results have been sent to your email!");
     } catch (error) {
+      console.error("Submit error:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -243,10 +258,10 @@ const QuizLeadMagnet = () => {
                 <CheckCircle2 className="w-8 h-8 text-secondary" />
               </div>
               <h3 className="font-serif text-xl md:text-2xl font-semibold text-foreground mb-4">
-                Your Results Are Ready!
+                Where Should We Send Your Results?
               </h3>
               <p className="text-muted-foreground mb-6">
-                Enter your email to see your personalized career acceleration plan.
+                Enter your email and we'll send your personalized career acceleration plan directly to your inbox.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <Input
@@ -280,6 +295,7 @@ const QuizLeadMagnet = () => {
               <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-8 h-8 text-green-500" />
               </div>
+              <p className="text-sm text-muted-foreground mb-2">Results sent to {email}</p>
               <h3 className="font-serif text-xl md:text-2xl font-semibold text-foreground mb-2">
                 {results.title}
               </h3>
