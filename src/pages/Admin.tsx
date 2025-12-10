@@ -44,6 +44,13 @@ interface Enrollment {
   zoom_link: string | null;
   notes: string | null;
   start_date: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  occupation: string | null;
   profiles: {
     full_name: string | null;
     email: string;
@@ -77,7 +84,14 @@ const Admin = () => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   
   // New enrollment form
+  const [newFirstName, setNewFirstName] = useState("");
+  const [newLastName, setNewLastName] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newCity, setNewCity] = useState("");
+  const [newState, setNewState] = useState("");
+  const [newCountry, setNewCountry] = useState("");
+  const [newOccupation, setNewOccupation] = useState("");
   const [newProgramId, setNewProgramId] = useState("");
   const [newPaymentStatus, setNewPaymentStatus] = useState("pending");
   const [newZoomLink, setNewZoomLink] = useState("");
@@ -145,6 +159,7 @@ const Admin = () => {
           .select(`
             id, enrolled_at, payment_status, user_id, program_id,
             enrollment_code, email, zoom_link, notes, start_date,
+            first_name, last_name, phone, city, state, country, occupation,
             profiles!enrollments_user_id_fkey (full_name, email),
             programs!enrollments_program_id_fkey (name, start_date)
           `)
@@ -176,6 +191,7 @@ const Admin = () => {
       .select(`
         id, enrolled_at, payment_status, user_id, program_id,
         enrollment_code, email, zoom_link, notes, start_date,
+        first_name, last_name, phone, city, state, country, occupation,
         profiles!enrollments_user_id_fkey (full_name, email),
         programs!enrollments_program_id_fkey (name, start_date)
       `)
@@ -194,6 +210,10 @@ const Admin = () => {
       toast.error("Please select a program");
       return;
     }
+    if (!newEmail || !newFirstName || !newLastName) {
+      toast.error("Please fill in required fields (First Name, Last Name, Email)");
+      return;
+    }
 
     setIsCreating(true);
     try {
@@ -201,7 +221,14 @@ const Admin = () => {
         .from("enrollments")
         .insert({
           program_id: newProgramId,
-          email: newEmail || null,
+          first_name: newFirstName,
+          last_name: newLastName,
+          email: newEmail,
+          phone: newPhone || null,
+          city: newCity || null,
+          state: newState || null,
+          country: newCountry || null,
+          occupation: newOccupation || null,
           payment_status: newPaymentStatus,
           zoom_link: newZoomLink || null,
           start_date: newStartDate || null,
@@ -215,7 +242,14 @@ const Admin = () => {
         toast.error("Failed to create enrollment");
       } else {
         toast.success(`Enrollment created! Code: ${data.enrollment_code}`);
+        setNewFirstName("");
+        setNewLastName("");
         setNewEmail("");
+        setNewPhone("");
+        setNewCity("");
+        setNewState("");
+        setNewCountry("");
+        setNewOccupation("");
         setNewProgramId("");
         setNewPaymentStatus("pending");
         setNewZoomLink("");
@@ -361,64 +395,143 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={createEnrollment} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Member Email (optional)</Label>
-                    <Input
-                      type="email"
-                      placeholder="member@example.com"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Program *</Label>
-                    <Select value={newProgramId} onValueChange={setNewProgramId}>
-                      <SelectTrigger><SelectValue placeholder="Select program" /></SelectTrigger>
-                      <SelectContent>
-                        {programs.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Payment Status</Label>
-                    <Select value={newPaymentStatus} onValueChange={setNewPaymentStatus}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Input
-                      type="date"
-                      value={newStartDate}
-                      onChange={(e) => setNewStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Zoom Link</Label>
-                    <Input
-                      type="url"
-                      placeholder="https://zoom.us/j/..."
-                      value={newZoomLink}
-                      onChange={(e) => setNewZoomLink(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2 lg:col-span-1">
-                    <Label>Notes</Label>
-                    <Input
-                      placeholder="Any additional notes"
-                      value={newNotes}
-                      onChange={(e) => setNewNotes(e.target.value)}
-                    />
+                {/* Personal Information */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-muted-foreground">Personal Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label>First Name *</Label>
+                      <Input
+                        placeholder="John"
+                        value={newFirstName}
+                        onChange={(e) => setNewFirstName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name *</Label>
+                      <Input
+                        placeholder="Doe"
+                        value={newLastName}
+                        onChange={(e) => setNewLastName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email *</Label>
+                      <Input
+                        type="email"
+                        placeholder="john@example.com"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone</Label>
+                      <Input
+                        type="tel"
+                        placeholder="+1 234 567 8900"
+                        value={newPhone}
+                        onChange={(e) => setNewPhone(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+
+                {/* Address & Occupation */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-muted-foreground">Address & Occupation</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label>City</Label>
+                      <Input
+                        placeholder="New York"
+                        value={newCity}
+                        onChange={(e) => setNewCity(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>State</Label>
+                      <Input
+                        placeholder="NY"
+                        value={newState}
+                        onChange={(e) => setNewState(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Country</Label>
+                      <Input
+                        placeholder="USA"
+                        value={newCountry}
+                        onChange={(e) => setNewCountry(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Current Occupation</Label>
+                      <Input
+                        placeholder="Product Manager"
+                        value={newOccupation}
+                        onChange={(e) => setNewOccupation(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Program Details */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-muted-foreground">Program Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Program *</Label>
+                      <Select value={newProgramId} onValueChange={setNewProgramId}>
+                        <SelectTrigger><SelectValue placeholder="Select program" /></SelectTrigger>
+                        <SelectContent>
+                          {programs.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Payment Status</Label>
+                      <Select value={newPaymentStatus} onValueChange={setNewPaymentStatus}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Start Date</Label>
+                      <Input
+                        type="date"
+                        value={newStartDate}
+                        onChange={(e) => setNewStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Zoom Link</Label>
+                      <Input
+                        type="url"
+                        placeholder="https://zoom.us/j/..."
+                        value={newZoomLink}
+                        onChange={(e) => setNewZoomLink(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Notes</Label>
+                      <Input
+                        placeholder="Any additional notes"
+                        value={newNotes}
+                        onChange={(e) => setNewNotes(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
                   <Button type="submit" disabled={isCreating}>
                     {isCreating ? "Creating..." : "Create Enrollment"}
                   </Button>
@@ -501,10 +614,17 @@ const Admin = () => {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{e.profiles?.full_name || "—"}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {e.profiles?.email || e.email || "—"}
+                            <div className="font-medium">
+                              {e.first_name && e.last_name 
+                                ? `${e.first_name} ${e.last_name}` 
+                                : e.profiles?.full_name || "—"}
                             </div>
+                            <div className="text-xs text-muted-foreground">
+                              {e.email || e.profiles?.email || "—"}
+                            </div>
+                            {e.occupation && (
+                              <div className="text-xs text-muted-foreground">{e.occupation}</div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>{e.programs?.name || "—"}</TableCell>
