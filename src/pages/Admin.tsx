@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,9 +22,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, Link, FileText } from "lucide-react";
 
 interface Enrollment {
   id: string;
@@ -33,6 +41,9 @@ interface Enrollment {
   program_id: string;
   enrollment_code: string | null;
   email: string | null;
+  zoom_link: string | null;
+  notes: string | null;
+  start_date: string | null;
   profiles: {
     full_name: string | null;
     email: string;
@@ -48,6 +59,13 @@ interface Program {
   name: string;
 }
 
+interface Resource {
+  id: string;
+  title: string;
+  url: string;
+  type: string;
+}
+
 const Admin = () => {
   const { user, signOut, loading } = useAuth();
   const navigate = useNavigate();
@@ -56,15 +74,37 @@ const Admin = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  
+  // New enrollment form
   const [newEmail, setNewEmail] = useState("");
   const [newProgramId, setNewProgramId] = useState("");
   const [newPaymentStatus, setNewPaymentStatus] = useState("pending");
+  const [newZoomLink, setNewZoomLink] = useState("");
+  const [newStartDate, setNewStartDate] = useState("");
+  const [newNotes, setNewNotes] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  // Edit enrollment
+  const [editingEnrollment, setEditingEnrollment] = useState<Enrollment | null>(null);
+  const [editPaymentStatus, setEditPaymentStatus] = useState("");
+  const [editZoomLink, setEditZoomLink] = useState("");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editProgramId, setEditProgramId] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Resources
+  const [resourceEnrollmentId, setResourceEnrollmentId] = useState<string | null>(null);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [newResourceTitle, setNewResourceTitle] = useState("");
+  const [newResourceUrl, setNewResourceUrl] = useState("");
+  const [newResourceType, setNewResourceType] = useState("link");
+  const [isAddingResource, setIsAddingResource] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/login");
+      navigate("/admin-login");
     }
   }, [user, loading, navigate]);
 
@@ -78,7 +118,6 @@ const Admin = () => {
       });
 
       if (error) {
-        console.error("Error checking admin role:", error);
         setIsAdmin(false);
         return;
       }
@@ -87,7 +126,7 @@ const Admin = () => {
       
       if (!data) {
         toast.error("Access denied. Admin privileges required.");
-        navigate("/dashboard");
+        navigate("/admin-login");
       }
     };
 
@@ -104,48 +143,30 @@ const Admin = () => {
         supabase
           .from("enrollments")
           .select(`
-            id,
-            enrolled_at,
-            payment_status,
-            user_id,
-            program_id,
-            enrollment_code,
-            email,
-            profiles!enrollments_user_id_fkey (
-              full_name,
-              email
-            ),
-            programs!enrollments_program_id_fkey (
-              name,
-              start_date
-            )
+            id, enrolled_at, payment_status, user_id, program_id,
+            enrollment_code, email, zoom_link, notes, start_date,
+            profiles!enrollments_user_id_fkey (full_name, email),
+            programs!enrollments_program_id_fkey (name, start_date)
           `)
           .order("enrolled_at", { ascending: false }),
         supabase.from("programs").select("id, name")
       ]);
 
-      if (enrollmentsRes.error) {
-        console.error("Error fetching enrollments:", enrollmentsRes.error);
-        toast.error("Failed to load enrollments");
-      } else {
+      if (!enrollmentsRes.error) {
         setEnrollments(enrollmentsRes.data as unknown as Enrollment[]);
       }
-
       if (programsRes.data) {
         setPrograms(programsRes.data);
       }
-
       setLoadingData(false);
     };
 
-    if (isAdmin) {
-      fetchData();
-    }
+    if (isAdmin) fetchData();
   }, [isAdmin]);
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/login");
+    navigate("/admin-login");
   };
 
   const refreshData = async () => {
@@ -153,27 +174,14 @@ const Admin = () => {
     const { data, error } = await supabase
       .from("enrollments")
       .select(`
-        id,
-        enrolled_at,
-        payment_status,
-        user_id,
-        program_id,
-        enrollment_code,
-        email,
-        profiles!enrollments_user_id_fkey (
-          full_name,
-          email
-        ),
-        programs!enrollments_program_id_fkey (
-          name,
-          start_date
-        )
+        id, enrolled_at, payment_status, user_id, program_id,
+        enrollment_code, email, zoom_link, notes, start_date,
+        profiles!enrollments_user_id_fkey (full_name, email),
+        programs!enrollments_program_id_fkey (name, start_date)
       `)
       .order("enrolled_at", { ascending: false });
 
-    if (error) {
-      toast.error("Failed to refresh data");
-    } else {
+    if (!error) {
       setEnrollments(data as unknown as Enrollment[]);
       toast.success("Data refreshed");
     }
@@ -182,14 +190,12 @@ const Admin = () => {
 
   const createEnrollment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!newProgramId) {
       toast.error("Please select a program");
       return;
     }
 
     setIsCreating(true);
-
     try {
       const { data, error } = await supabase
         .from("enrollments")
@@ -197,6 +203,9 @@ const Admin = () => {
           program_id: newProgramId,
           email: newEmail || null,
           payment_status: newPaymentStatus,
+          zoom_link: newZoomLink || null,
+          start_date: newStartDate || null,
+          notes: newNotes || null,
           user_id: null,
         })
         .select("enrollment_code")
@@ -204,26 +213,116 @@ const Admin = () => {
 
       if (error) {
         toast.error("Failed to create enrollment");
-        console.error(error);
       } else {
         toast.success(`Enrollment created! Code: ${data.enrollment_code}`);
         setNewEmail("");
         setNewProgramId("");
         setNewPaymentStatus("pending");
+        setNewZoomLink("");
+        setNewStartDate("");
+        setNewNotes("");
         setShowForm(false);
         refreshData();
       }
-    } catch (error) {
-      toast.error("An error occurred");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const openEditDialog = (enrollment: Enrollment) => {
+    setEditingEnrollment(enrollment);
+    setEditPaymentStatus(enrollment.payment_status);
+    setEditZoomLink(enrollment.zoom_link || "");
+    setEditStartDate(enrollment.start_date || "");
+    setEditNotes(enrollment.notes || "");
+    setEditProgramId(enrollment.program_id);
+  };
+
+  const updateEnrollment = async () => {
+    if (!editingEnrollment) return;
+    
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("enrollments")
+        .update({
+          payment_status: editPaymentStatus,
+          zoom_link: editZoomLink || null,
+          start_date: editStartDate || null,
+          notes: editNotes || null,
+          program_id: editProgramId,
+        })
+        .eq("id", editingEnrollment.id);
+
+      if (error) {
+        toast.error("Failed to update enrollment");
+      } else {
+        toast.success("Enrollment updated");
+        setEditingEnrollment(null);
+        refreshData();
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const loadResources = async (enrollmentId: string) => {
+    setResourceEnrollmentId(enrollmentId);
+    const { data } = await supabase
+      .from("enrollment_resources")
+      .select("*")
+      .eq("enrollment_id", enrollmentId)
+      .order("created_at", { ascending: false });
+    
+    setResources(data || []);
+  };
+
+  const addResource = async () => {
+    if (!resourceEnrollmentId || !newResourceTitle || !newResourceUrl) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsAddingResource(true);
+    try {
+      const { error } = await supabase
+        .from("enrollment_resources")
+        .insert({
+          enrollment_id: resourceEnrollmentId,
+          title: newResourceTitle,
+          url: newResourceUrl,
+          type: newResourceType,
+        });
+
+      if (error) {
+        toast.error("Failed to add resource");
+      } else {
+        toast.success("Resource added");
+        setNewResourceTitle("");
+        setNewResourceUrl("");
+        loadResources(resourceEnrollmentId);
+      }
+    } finally {
+      setIsAddingResource(false);
+    }
+  };
+
+  const deleteResource = async (resourceId: string) => {
+    const { error } = await supabase
+      .from("enrollment_resources")
+      .delete()
+      .eq("id", resourceId);
+
+    if (!error && resourceEnrollmentId) {
+      toast.success("Resource deleted");
+      loadResources(resourceEnrollmentId);
     }
   };
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
-    toast.success("Code copied to clipboard");
+    toast.success("Code copied");
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
@@ -235,24 +334,19 @@ const Admin = () => {
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-display font-bold text-foreground">
-            Admin Portal
-          </h1>
+          <h1 className="text-2xl font-display font-bold text-foreground">Admin Portal</h1>
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={() => navigate("/dashboard")}>
               Member View
             </Button>
             <Button variant="ghost" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              <LogOut className="h-4 w-4 mr-2" /> Sign Out
             </Button>
           </div>
         </div>
@@ -267,11 +361,10 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={createEnrollment} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Member Email (optional)</Label>
+                    <Label>Member Email (optional)</Label>
                     <Input
-                      id="email"
                       type="email"
                       placeholder="member@example.com"
                       value={newEmail}
@@ -279,31 +372,50 @@ const Admin = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="program">Program</Label>
+                    <Label>Program *</Label>
                     <Select value={newProgramId} onValueChange={setNewProgramId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select program" />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select program" /></SelectTrigger>
                       <SelectContent>
-                        {programs.map((program) => (
-                          <SelectItem key={program.id} value={program.id}>
-                            {program.name}
-                          </SelectItem>
+                        {programs.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="status">Payment Status</Label>
+                    <Label>Payment Status</Label>
                     <Select value={newPaymentStatus} onValueChange={setNewPaymentStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Input
+                      type="date"
+                      value={newStartDate}
+                      onChange={(e) => setNewStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Zoom Link</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://zoom.us/j/..."
+                      value={newZoomLink}
+                      onChange={(e) => setNewZoomLink(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2 lg:col-span-1">
+                    <Label>Notes</Label>
+                    <Input
+                      placeholder="Any additional notes"
+                      value={newNotes}
+                      onChange={(e) => setNewNotes(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -330,8 +442,7 @@ const Admin = () => {
             <div className="flex gap-2">
               {!showForm && (
                 <Button onClick={() => setShowForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Enrollment
+                  <Plus className="h-4 w-4 mr-2" /> New Enrollment
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={refreshData} disabled={loadingData}>
@@ -354,60 +465,194 @@ const Admin = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Enrollment Code</TableHead>
+                      <TableHead>Code</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Member</TableHead>
-                      <TableHead>Email</TableHead>
                       <TableHead>Program</TableHead>
-                      <TableHead>Enrolled Date</TableHead>
+                      <TableHead>Start Date</TableHead>
                       <TableHead>Payment</TableHead>
+                      <TableHead>Zoom</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {enrollments.map((enrollment) => (
-                      <TableRow key={enrollment.id}>
+                    {enrollments.map((e) => (
+                      <TableRow key={e.id}>
                         <TableCell>
-                          {enrollment.enrollment_code ? (
+                          {e.enrollment_code && (
                             <div className="flex items-center gap-2">
                               <code className="bg-muted px-2 py-1 rounded text-xs">
-                                {enrollment.enrollment_code}
+                                {e.enrollment_code}
                               </code>
-                              <button
-                                onClick={() => copyCode(enrollment.enrollment_code!)}
-                                className="text-muted-foreground hover:text-foreground"
-                              >
-                                {copiedCode === enrollment.enrollment_code ? (
+                              <button onClick={() => copyCode(e.enrollment_code!)}>
+                                {copiedCode === e.enrollment_code ? (
                                   <Check className="h-4 w-4 text-green-500" />
                                 ) : (
-                                  <Copy className="h-4 w-4" />
+                                  <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                                 )}
                               </button>
                             </div>
-                          ) : (
-                            "—"
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={enrollment.user_id ? "default" : "secondary"}>
-                            {enrollment.user_id ? "Claimed" : "Pending"}
+                          <Badge variant={e.user_id ? "default" : "secondary"}>
+                            {e.user_id ? "Claimed" : "Pending"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {enrollment.profiles?.full_name || "—"}
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{e.profiles?.full_name || "—"}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {e.profiles?.email || e.email || "—"}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{e.programs?.name || "—"}</TableCell>
+                        <TableCell>
+                          {e.start_date ? new Date(e.start_date).toLocaleDateString() : "—"}
                         </TableCell>
                         <TableCell>
-                          {enrollment.profiles?.email || enrollment.email || "—"}
-                        </TableCell>
-                        <TableCell>{enrollment.programs?.name || "—"}</TableCell>
-                        <TableCell>
-                          {new Date(enrollment.enrolled_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={enrollment.payment_status === "paid" ? "default" : "secondary"}
-                          >
-                            {enrollment.payment_status}
+                          <Badge variant={e.payment_status === "paid" ? "default" : "secondary"}>
+                            {e.payment_status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {e.zoom_link ? (
+                            <a href={e.zoom_link} target="_blank" rel="noopener noreferrer">
+                              <Link className="h-4 w-4 text-primary" />
+                            </a>
+                          ) : "—"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" onClick={() => openEditDialog(e)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Edit Enrollment</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  <div className="space-y-2">
+                                    <Label>Program</Label>
+                                    <Select value={editProgramId} onValueChange={setEditProgramId}>
+                                      <SelectTrigger><SelectValue /></SelectTrigger>
+                                      <SelectContent>
+                                        {programs.map((p) => (
+                                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Payment Status</Label>
+                                    <Select value={editPaymentStatus} onValueChange={setEditPaymentStatus}>
+                                      <SelectTrigger><SelectValue /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="paid">Paid</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Start Date</Label>
+                                    <Input
+                                      type="date"
+                                      value={editStartDate}
+                                      onChange={(e) => setEditStartDate(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Zoom Link</Label>
+                                    <Input
+                                      type="url"
+                                      placeholder="https://zoom.us/j/..."
+                                      value={editZoomLink}
+                                      onChange={(e) => setEditZoomLink(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Notes</Label>
+                                    <Textarea
+                                      placeholder="Any additional notes"
+                                      value={editNotes}
+                                      onChange={(e) => setEditNotes(e.target.value)}
+                                    />
+                                  </div>
+                                  <Button onClick={updateEnrollment} disabled={isUpdating} className="w-full">
+                                    {isUpdating ? "Saving..." : "Save Changes"}
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" onClick={() => loadResources(e.id)}>
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Resources for {e.profiles?.full_name || e.email || "Member"}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                    <Input
+                                      placeholder="Resource title"
+                                      value={newResourceTitle}
+                                      onChange={(e) => setNewResourceTitle(e.target.value)}
+                                    />
+                                    <Input
+                                      placeholder="URL"
+                                      value={newResourceUrl}
+                                      onChange={(e) => setNewResourceUrl(e.target.value)}
+                                    />
+                                    <div className="flex gap-2">
+                                      <Select value={newResourceType} onValueChange={setNewResourceType}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="link">Link</SelectItem>
+                                          <SelectItem value="video">Video</SelectItem>
+                                          <SelectItem value="pdf">PDF</SelectItem>
+                                          <SelectItem value="worksheet">Worksheet</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <Button onClick={addResource} disabled={isAddingResource} size="sm">
+                                        <Plus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  
+                                  {resources.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {resources.map((r) => (
+                                        <div key={r.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                          <div>
+                                            <div className="font-medium">{r.title}</div>
+                                            <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                                              {r.url}
+                                            </a>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <Badge variant="outline">{r.type}</Badge>
+                                            <Button variant="ghost" size="sm" onClick={() => deleteResource(r.id)}>
+                                              ×
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-muted-foreground text-center py-4">No resources yet.</p>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
