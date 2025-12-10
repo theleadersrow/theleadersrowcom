@@ -7,7 +7,7 @@ const testimonials = [
     role: "Jena, Germany",
     company: "",
     quote: "It has been really positive. I've learned things I can truly apply in my life on a daily basis. Thank you so much for making me a stronger person and making my belief even stronger.",
-    outcome: "Weekly Edge Member",
+    outcome: "200K Method Member",
   },
   {
     name: "James K.",
