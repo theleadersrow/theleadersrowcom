@@ -47,14 +47,14 @@ const Index = () => {
       {/* CALL TO ACTION - Programs */}
       <ProgramsSection />
       
-      {/* Secondary CTA - Lower commitment lead magnet */}
-      <LeadMagnet />
-      
       {/* AUTHORITY - Why this works */}
       <WhyItWorks />
       
       {/* SUCCESS - Transformation stories */}
       <SuccessStories />
+      
+      {/* Secondary CTA - Starter Kit lead magnet */}
+      <LeadMagnet />
       
       {/* Final CALL TO ACTION */}
       <CTASection />
