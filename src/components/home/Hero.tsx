@@ -25,22 +25,19 @@ const Hero = () => {
           </div>
           
           {/* Headline */}
-          <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-semibold text-cream mb-6 opacity-0 animate-fade-up delay-100">
-            Transforming Professionals into <span className="text-gradient-gold">Inspiring Leaders</span>
+          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-6 opacity-0 animate-fade-up delay-100 leading-tight">
+            Helping Ambitious Professionals Break Into <span className="text-gradient-gold">Top 10% Leadership Roles</span>
           </h1>
           
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-cream/80 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
-            Rise with clarity, confidence, and momentum.
+          <p className="text-lg md:text-xl text-cream/90 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
+            With clarity, confidence, and a proven system.
           </p>
           <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-250">
-            Hard work isn't enough anymore — growth now requires identity, communication, presence, and strategic execution.
-          </p>
-          <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-275">
-            The Leader's Row helps ambitious professionals strengthen their voice, elevate their identity, and accelerate into the top 10%.
+            Stop guessing your worth. Master the skills that drive promotions, higher pay, and executive presence — through live coaching and a community of ambitious professionals.
           </p>
           <p className="text-lg md:text-xl text-secondary font-medium max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
-            We remove blockers and build real leadership skills live, together — so you never grow alone.
+            Your career plateau ends here.
           </p>
           
           {/* CTAs */}
