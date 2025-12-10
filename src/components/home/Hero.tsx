@@ -45,16 +45,16 @@ const Hero = () => {
           
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-up delay-400">
-            <a href="#programs">
+            <Link to="/200k-method">
               <Button variant="hero" size="xl">
-                Explore Programs
-              </Button>
-            </a>
-            <Link to="/register">
-              <Button variant="heroOutline" size="xl">
-                Register Now
+                Get the 200K Method
               </Button>
             </Link>
+            <a href="#programs">
+              <Button variant="heroOutline" size="xl">
+                View All Programs
+              </Button>
+            </a>
           </div>
         </div>
       </div>

@@ -34,7 +34,7 @@ const ProgramsSection = () => {
             ]}
             price="$2,000"
             href="/200k-method"
-            ctaText="Learn More"
+            ctaText="Join 200K Method"
             featured
             badge="High Demand"
           />
@@ -55,7 +55,7 @@ const ProgramsSection = () => {
             price="$100"
             priceNote="/month"
             href="/weekly-edge"
-            ctaText="Learn More"
+            ctaText="Join Weekly Edge"
           />
         </div>
       </div>

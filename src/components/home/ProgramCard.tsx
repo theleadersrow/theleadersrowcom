@@ -82,7 +82,7 @@ const ProgramCard = ({
 
       <Link to={href}>
         <Button
-          variant={featured ? "hero" : "gold"}
+          variant="gold"
           size="lg"
           className="w-full group"
         >
