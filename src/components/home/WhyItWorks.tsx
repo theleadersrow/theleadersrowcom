@@ -1,4 +1,4 @@
-import { Lightbulb, Target, TrendingUp, Shield } from "lucide-react";
+import { Lightbulb, Target, TrendingUp, Shield, ArrowDown } from "lucide-react";
 
 const reasons = [
   { icon: Lightbulb, title: "Clarity > Confusion", description: "Proven frameworks replace guesswork." },
@@ -30,6 +30,19 @@ const WhyItWorks = () => {
               <p className="text-cream/70 text-sm leading-relaxed">{reason.description}</p>
             </div>
           ))}
+        </div>
+
+        {/* Transition to Programs */}
+        <div className="text-center mt-16 pt-12 border-t border-cream/10">
+          <p className="text-secondary font-medium mb-3">Ready to Transform?</p>
+          <h3 className="font-serif text-2xl md:text-3xl text-cream mb-4">
+            Choose the Path That Fits Your Journey
+          </h3>
+          <p className="text-cream/70 max-w-2xl mx-auto mb-6">
+            Whether you want intensive career acceleration or steady weekly growth, 
+            we have a program designed for where you are and where you want to go.
+          </p>
+          <ArrowDown className="w-6 h-6 text-secondary mx-auto animate-bounce" />
         </div>
       </div>
     </section>
