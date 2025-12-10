@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import Hero from "@/components/home/Hero";
+import LeadMagnet from "@/components/home/LeadMagnet";
 import WhyStuck from "@/components/home/WhyStuck";
 import WhatWeDo from "@/components/home/WhatWeDo";
 import Mission from "@/components/home/Mission";
@@ -13,6 +14,7 @@ const Index = () => {
   return (
     <Layout>
       <Hero />
+      <LeadMagnet />
       <WhyStuck />
       <WhatWeDo />
       <Mission />
