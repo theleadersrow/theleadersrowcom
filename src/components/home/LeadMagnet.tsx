@@ -55,7 +55,7 @@ const LeadMagnet = () => {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-br from-navy via-navy-dark to-navy relative overflow-hidden">
+    <section id="lead-magnet" className="py-16 bg-gradient-to-br from-navy via-navy-dark to-navy relative overflow-hidden">
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-10 right-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
         <div className="absolute bottom-10 left-10 w-48 h-48 bg-secondary rounded-full blur-3xl" />
