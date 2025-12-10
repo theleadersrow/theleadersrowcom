@@ -31,8 +31,24 @@ const registerSchema = z.object({
     .regex(/^[\d\s+()-]+$/, "Please enter a valid phone number"),
   address: z
     .string()
-    .min(5, "Please enter your full address")
-    .max(500, "Address is too long"),
+    .min(5, "Please enter your street address")
+    .max(200, "Address is too long"),
+  city: z
+    .string()
+    .min(2, "Please enter your city")
+    .max(100, "City name is too long"),
+  state: z
+    .string()
+    .min(2, "Please enter your state/province")
+    .max(100, "State name is too long"),
+  country: z
+    .string()
+    .min(2, "Please enter your country")
+    .max(100, "Country name is too long"),
+  zipcode: z
+    .string()
+    .min(3, "Please enter a valid zip/postal code")
+    .max(20, "Zip code is too long"),
   occupation: z
     .string()
     .min(2, "Please enter your occupation")
@@ -52,6 +68,10 @@ const Register = () => {
     email: "",
     phone: "",
     address: "",
+    city: "",
+    state: "",
+    country: "",
+    zipcode: "",
     occupation: "",
     program: "",
   });
@@ -203,22 +223,94 @@ const Register = () => {
                   )}
                 </div>
 
-                {/* Address */}
+                {/* Street Address */}
                 <div>
                   <Label htmlFor="address" className="text-foreground font-medium">
-                    Address *
+                    Street Address *
                   </Label>
                   <Input
                     id="address"
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleChange("address", e.target.value)}
-                    placeholder="123 Main St, City, Country"
+                    placeholder="123 Main St, Apt 4B"
                     className={`mt-2 ${errors.address ? "border-destructive" : ""}`}
                   />
                   {errors.address && (
                     <p className="text-destructive text-sm mt-1">{errors.address}</p>
                   )}
+                </div>
+
+                {/* City and State */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="city" className="text-foreground font-medium">
+                      City *
+                    </Label>
+                    <Input
+                      id="city"
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => handleChange("city", e.target.value)}
+                      placeholder="New York"
+                      className={`mt-2 ${errors.city ? "border-destructive" : ""}`}
+                    />
+                    {errors.city && (
+                      <p className="text-destructive text-sm mt-1">{errors.city}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="state" className="text-foreground font-medium">
+                      State/Province *
+                    </Label>
+                    <Input
+                      id="state"
+                      type="text"
+                      value={formData.state}
+                      onChange={(e) => handleChange("state", e.target.value)}
+                      placeholder="NY"
+                      className={`mt-2 ${errors.state ? "border-destructive" : ""}`}
+                    />
+                    {errors.state && (
+                      <p className="text-destructive text-sm mt-1">{errors.state}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Country and Zipcode */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="country" className="text-foreground font-medium">
+                      Country *
+                    </Label>
+                    <Input
+                      id="country"
+                      type="text"
+                      value={formData.country}
+                      onChange={(e) => handleChange("country", e.target.value)}
+                      placeholder="United States"
+                      className={`mt-2 ${errors.country ? "border-destructive" : ""}`}
+                    />
+                    {errors.country && (
+                      <p className="text-destructive text-sm mt-1">{errors.country}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="zipcode" className="text-foreground font-medium">
+                      Zip/Postal Code *
+                    </Label>
+                    <Input
+                      id="zipcode"
+                      type="text"
+                      value={formData.zipcode}
+                      onChange={(e) => handleChange("zipcode", e.target.value)}
+                      placeholder="10001"
+                      className={`mt-2 ${errors.zipcode ? "border-destructive" : ""}`}
+                    />
+                    {errors.zipcode && (
+                      <p className="text-destructive text-sm mt-1">{errors.zipcode}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Occupation */}
