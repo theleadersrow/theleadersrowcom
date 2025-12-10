@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, CheckCircle2, FileText, Target, Users } from "lucide-react";
+import { Download, CheckCircle2, Compass, PenTool, Linkedin, MessageSquare, Brain, Mic2, Network, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const benefits = [
-  { icon: FileText, text: "Personal Brand Audit Checklist" },
-  { icon: Target, text: "5-Step Framework for $200K+ Roles" },
-  { icon: Users, text: "Executive Presence Quick Guide" },
+const moduleHighlights = [
+  { icon: Compass, text: "Strategic Career Benchmarking" },
+  { icon: PenTool, text: "Personal Brand Engineering" },
+  { icon: Linkedin, text: "Profile & Network Activation" },
+  { icon: MessageSquare, text: "Interview Framework Toolkit" },
+  { icon: Brain, text: "Product Judgment Mastery" },
+  { icon: Mic2, text: "Executive Presence & Communication" },
+  { icon: Network, text: "Influence & Power Dynamics" },
+  { icon: Rocket, text: "Future-Proofing Your Career" },
 ];
 
 const LeadMagnet = () => {
@@ -29,7 +34,7 @@ const LeadMagnet = () => {
     try {
       const { error } = await supabase
         .from("email_leads")
-        .insert({ email: email.trim(), lead_magnet: "starter-kit" });
+        .insert({ email: email.trim(), lead_magnet: "200k-method-blueprint" });
 
       if (error) {
         if (error.code === "23505") {
@@ -62,25 +67,23 @@ const LeadMagnet = () => {
             {/* Content */}
             <div>
               <span className="inline-block text-xs font-bold text-secondary bg-secondary/20 px-3 py-1 rounded-full mb-4">
-                FREE RESOURCE
+                FREE 20-PAGE GUIDE
               </span>
               <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
-                Get the 200K Method Starter Kit
+                The Complete 200K Method Blueprint
               </h2>
               <p className="text-cream/70 mb-6">
-                The exact frameworks top performers use to break into $200K+ leadership roles. Free, actionable, and immediately useful.
+                Get a sneak peek into all 8 modules of our career acceleration program. Learn the exact strategies that help PMs break into $200K+ leadership roles.
               </p>
 
-              <ul className="space-y-3 mb-6">
-                {benefits.map((benefit, index) => (
-                  <li key={index} className="flex items-center gap-3 text-cream/80">
-                    <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                      <benefit.icon className="w-4 h-4 text-secondary" />
-                    </div>
-                    <span>{benefit.text}</span>
-                  </li>
+              <div className="grid grid-cols-2 gap-2">
+                {moduleHighlights.map((module, index) => (
+                  <div key={index} className="flex items-center gap-2 text-cream/80 text-sm">
+                    <module.icon className="w-4 h-4 text-secondary flex-shrink-0" />
+                    <span>{module.text}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
             {/* Form */}
@@ -92,16 +95,16 @@ const LeadMagnet = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-2">You're in!</h3>
                   <p className="text-muted-foreground">
-                    Check your email for the Starter Kit. Your leadership journey starts now.
+                    Check your email for the Complete Blueprint. Your leadership journey starts now.
                   </p>
                 </div>
               ) : (
                 <>
                   <h3 className="text-xl font-semibold text-foreground mb-2">
-                    Download Your Free Starter Kit
+                    Download the Free Blueprint
                   </h3>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Join 1,000+ ambitious professionals getting career-accelerating resources.
+                    20 pages covering all 8 modules of the 200K Method — yours free.
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,7 +128,7 @@ const LeadMagnet = () => {
                       ) : (
                         <>
                           <Download className="w-4 h-4 mr-2" />
-                          Get the Free Guide
+                          Get the Free Blueprint
                         </>
                       )}
                     </Button>
