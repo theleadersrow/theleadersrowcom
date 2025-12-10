@@ -146,11 +146,15 @@ const QuizLeadMagnet = () => {
 
       if (emailError) {
         console.error("Email error:", emailError);
-        // Still show results even if email fails
       }
 
       setStep(totalQuestions + 2);
-      toast.success("Your results have been sent to your email!");
+      toast.success("Your personalized results are ready!");
+      
+      // Open results page in new tab after a short delay
+      setTimeout(() => {
+        window.open(result.link, '_blank');
+      }, 1500);
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Something went wrong. Please try again.");
