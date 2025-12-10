@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Target } from "lucide-react";
 
 const CTASection = () => {
+  const scrollToQuiz = () => {
+    const quizSection = document.querySelector('[data-quiz-section]');
+    quizSection?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section className="section-padding bg-navy relative overflow-hidden">
       {/* Background decoration */}
@@ -32,6 +37,19 @@ const CTASection = () => {
                 Get in Touch
               </Button>
             </Link>
+          </div>
+          
+          {/* Quiz promotion */}
+          <div className="mt-10 pt-8 border-t border-cream/20">
+            <p className="text-cream/60 text-sm mb-3">Not sure where to start?</p>
+            <button
+              onClick={scrollToQuiz}
+              className="inline-flex items-center gap-2 text-secondary hover:text-secondary/80 font-medium transition-colors"
+            >
+              <Target className="w-4 h-4" />
+              Take the 60-Second Career Assessment
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

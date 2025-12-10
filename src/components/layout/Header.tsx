@@ -17,6 +17,14 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const scrollToQuiz = () => {
+    const quizSection = document.querySelector('[data-quiz-section]');
+    if (quizSection) {
+      quizSection.scrollIntoView({ behavior: 'smooth' });
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/200k-method", label: "200K Method" },
@@ -61,8 +69,18 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            {isHomePage && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={scrollToQuiz}
+                className={`${textColor} hover:text-secondary`}
+              >
+                Take Quiz
+              </Button>
+            )}
             <Link to="/register">
               <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} size="default">
                 Register Now
@@ -98,6 +116,14 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
+              {isHomePage && (
+                <button
+                  onClick={scrollToQuiz}
+                  className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
+                >
+                  Take Career Quiz
+                </button>
+              )}
               <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="gold" className="w-full mt-2">
                   Register Now
