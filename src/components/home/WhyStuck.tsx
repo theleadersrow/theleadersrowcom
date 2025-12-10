@@ -1,4 +1,5 @@
 import { Target, Users, TrendingUp, Award, Briefcase, Lightbulb, Eye, MessageSquare } from "lucide-react";
+import journeyBefore from "@/assets/journey-before.jpg";
 
 const stuckReasons = [
   { icon: Award, text: "No one teaches you how to build a personal brand" },
@@ -15,7 +16,23 @@ const WhyStuck = () => {
   return (
     <section className="section-padding bg-background">
       <div className="container-wide mx-auto">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
+          {/* Before State Image */}
+          <div className="relative rounded-2xl overflow-hidden mb-12 max-w-3xl mx-auto shadow-elevated">
+            <img 
+              src={journeyBefore} 
+              alt="Professional feeling overlooked and stuck in their career" 
+              className="w-full h-64 md:h-80 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+              <p className="text-sm font-medium text-secondary mb-2">Sound familiar?</p>
+              <p className="text-lg md:text-xl font-serif text-foreground">
+                Talented. Hardworking. Yet somehow... overlooked.
+              </p>
+            </div>
+          </div>
+
           <div className="text-center mb-12">
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-6">
               Why Professionals Get Stuck{" "}
