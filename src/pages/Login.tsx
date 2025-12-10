@@ -187,12 +187,20 @@ const Login = () => {
           </div>
 
           {!isResetMode && (
-            <p className="mt-4 text-xs text-muted-foreground text-center">
-              Need access? Contact us at{" "}
-              <a href="mailto:theleadersrow@gmail.com" className="text-secondary hover:underline">
-                theleadersrow@gmail.com
+            <div className="mt-4 text-center space-y-2">
+              <a
+                href="/signup"
+                className="text-sm text-secondary hover:text-secondary/80 transition-colors block"
+              >
+                Have an enrollment code? Create your account
               </a>
-            </p>
+              <p className="text-xs text-muted-foreground">
+                Need access? Contact{" "}
+                <a href="mailto:theleadersrow@gmail.com" className="text-secondary hover:underline">
+                  theleadersrow@gmail.com
+                </a>
+              </p>
+            </div>
           )}
         </div>
 

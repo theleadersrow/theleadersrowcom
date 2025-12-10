@@ -15,6 +15,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import BookCall from "./pages/BookCall";
 import Login from "./pages/Login";
+import MemberSignup from "./pages/MemberSignup";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/book-call" element={<BookCall />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<MemberSignup />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
