@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Download, CheckCircle2, Compass, PenTool, Linkedin, MessageSquare, Brain, Mic2, Network, Rocket } from "lucide-react";
+import { Download, CheckCircle2, Target, Mic2, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const moduleHighlights = [
-  { icon: Compass, text: "Strategic Career Benchmarking" },
-  { icon: PenTool, text: "Personal Brand Engineering" },
-  { icon: Linkedin, text: "Profile & Network Activation" },
-  { icon: MessageSquare, text: "Interview Framework Toolkit" },
-  { icon: Brain, text: "Product Judgment Mastery" },
-  { icon: Mic2, text: "Executive Presence & Communication" },
-  { icon: Network, text: "Influence & Power Dynamics" },
-  { icon: Rocket, text: "Future-Proofing Your Career" },
+const teaserPoints = [
+  { icon: Target, text: "The 3 Career Accelerators top PMs use" },
+  { icon: Mic2, text: "Why executive presence matters more than skills" },
+  { icon: TrendingUp, text: "The positioning secret to $200K+ roles" },
 ];
 
 const LeadMagnet = () => {
@@ -34,7 +29,7 @@ const LeadMagnet = () => {
     try {
       const { error } = await supabase
         .from("email_leads")
-        .insert({ email: email.trim(), lead_magnet: "200k-method-blueprint" });
+        .insert({ email: email.trim(), lead_magnet: "200k-quick-start" });
 
       if (error) {
         if (error.code === "23505") {
@@ -50,10 +45,11 @@ const LeadMagnet = () => {
 
         if (emailError) {
           console.error("Error sending email:", emailError);
+          toast.error("Guide saved! Email delivery may be delayed.");
         }
 
         setIsSuccess(true);
-        toast.success("Success! Check your email for the Blueprint.");
+        toast.success("Success! Check your email for the Quick Start Guide.");
       }
     } catch (error) {
       console.error("Error subscribing:", error);
@@ -76,23 +72,25 @@ const LeadMagnet = () => {
             {/* Content */}
             <div>
               <span className="inline-block text-xs font-bold text-secondary bg-secondary/20 px-3 py-1 rounded-full mb-4">
-                FREE 20-PAGE GUIDE
+                FREE GUIDE
               </span>
               <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
-                The Complete 200K Method Blueprint
+                200K Method Quick Start Guide
               </h2>
               <p className="text-cream/70 mb-6">
-                Get a sneak peek into all 8 modules of our career acceleration program. Learn the exact strategies that help PMs break into $200K+ leadership roles.
+                Discover the 3 key strategies that separate $200K+ Product Leaders from everyone else. A quick preview of what's possible.
               </p>
 
-              <div className="grid grid-cols-2 gap-2">
-                {moduleHighlights.map((module, index) => (
-                  <div key={index} className="flex items-center gap-2 text-cream/80 text-sm">
-                    <module.icon className="w-4 h-4 text-secondary flex-shrink-0" />
-                    <span>{module.text}</span>
-                  </div>
+              <ul className="space-y-3">
+                {teaserPoints.map((point, index) => (
+                  <li key={index} className="flex items-center gap-3 text-cream/80">
+                    <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                      <point.icon className="w-4 h-4 text-secondary" />
+                    </div>
+                    <span>{point.text}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
             {/* Form */}
@@ -104,16 +102,16 @@ const LeadMagnet = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-2">You're in!</h3>
                   <p className="text-muted-foreground">
-                    Check your email for the Complete Blueprint. Your leadership journey starts now.
+                    Check your email for the Quick Start Guide. Ready to go deeper? Explore the full 200K Method.
                   </p>
                 </div>
               ) : (
                 <>
                   <h3 className="text-xl font-semibold text-foreground mb-2">
-                    Download the Free Blueprint
+                    Get the Free Quick Start Guide
                   </h3>
                   <p className="text-sm text-muted-foreground mb-6">
-                    20 pages covering all 8 modules of the 200K Method — yours free.
+                    A preview of the strategies inside the 200K Method program.
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +135,7 @@ const LeadMagnet = () => {
                       ) : (
                         <>
                           <Download className="w-4 h-4 mr-2" />
-                          Get the Free Blueprint
+                          Get the Free Guide
                         </>
                       )}
                     </Button>

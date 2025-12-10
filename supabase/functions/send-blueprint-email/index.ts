@@ -14,6 +14,8 @@ interface BlueprintEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log("send-blueprint-email function called");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,12 +24,12 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email }: BlueprintEmailRequest = await req.json();
     
-    console.log("Sending blueprint email to:", email);
+    console.log("Sending blueprint teaser email to:", email);
 
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
-      subject: "Your Complete 200K Method Blueprint is Here!",
+      subject: "Your 200K Method Quick Start Guide is Here!",
       html: `
         <!DOCTYPE html>
         <html>
@@ -41,26 +43,29 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="background: #fff; padding: 40px 30px; border: 1px solid #e5e5e5; border-top: none;">
-            <h2 style="color: #1a2332; margin-top: 0;">Your Blueprint is Ready!</h2>
+            <h2 style="color: #1a2332; margin-top: 0;">Your Quick Start Guide is Ready!</h2>
             
-            <p>Thank you for downloading <strong>The Complete 200K Method Blueprint</strong>.</p>
+            <p>Thanks for downloading the <strong>200K Method Quick Start Guide</strong> — here's a preview of what separates $200K+ Product Leaders from everyone else.</p>
             
-            <p>This 20-page guide covers all 8 modules of our career acceleration program:</p>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1a2332; margin-top: 0; font-size: 18px;">🎯 The 3 Career Accelerators</h3>
+              
+              <p><strong>1. Strategic Positioning</strong><br>
+              Most PMs focus on doing great work. Top earners focus on being <em>known</em> for great work. Your personal brand isn't vanity — it's leverage.</p>
+              
+              <p><strong>2. Interview Mastery</strong><br>
+              The difference between a $150K and $200K+ offer often comes down to <em>how</em> you communicate your value, not <em>what</em> you've done.</p>
+              
+              <p><strong>3. Executive Presence</strong><br>
+              Senior leaders don't just have skills — they have <em>presence</em>. The way you speak, present, and influence determines your ceiling.</p>
+            </div>
             
-            <ul style="padding-left: 20px;">
-              <li><strong>Strategic Career Benchmarking</strong> - Define your exact PM level and target</li>
-              <li><strong>Personal Brand Engineering</strong> - Craft your Product Leader identity</li>
-              <li><strong>Profile & Network Activation</strong> - Optimize your LinkedIn and resume</li>
-              <li><strong>Interview Framework Toolkit</strong> - Master advanced PM interview tactics</li>
-              <li><strong>Product Judgment Mastery</strong> - Develop executive-level strategic thinking</li>
-              <li><strong>Executive Presence & Communication</strong> - Speak like a senior leader</li>
-              <li><strong>Influence & Power Dynamics</strong> - Navigate stakeholder relationships</li>
-              <li><strong>Future-Proofing Your Career</strong> - Build a repeatable system for growth</li>
-            </ul>
+            <p style="font-style: italic; color: #666;">This is just the beginning. The full 200K Method program dives deep into 8 comprehensive modules with live coaching, hands-on workshops, and personalized feedback.</p>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center;">
-              <p style="margin: 0 0 15px 0; font-weight: 600;">Ready to accelerate your career?</p>
-              <a href="https://theleadersrow.com/200k-method" style="display: inline-block; background: #D4AF37; color: #1a2332; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600;">Learn About the 200K Method</a>
+            <div style="background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%); padding: 25px; border-radius: 8px; margin: 30px 0; text-align: center;">
+              <p style="margin: 0 0 5px 0; color: #D4AF37; font-weight: 600; font-size: 14px;">READY TO GO DEEPER?</p>
+              <p style="margin: 0 0 15px 0; color: #fff; font-size: 18px;">Join the next 200K Method cohort</p>
+              <a href="https://theleadersrow.com/200k-method" style="display: inline-block; background: #D4AF37; color: #1a2332; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600;">Learn More →</a>
             </div>
             
             <p>Questions? Reply to this email or reach out at <a href="mailto:theleadersrow@gmail.com" style="color: #D4AF37;">theleadersrow@gmail.com</a></p>
