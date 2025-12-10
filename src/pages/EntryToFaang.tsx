@@ -127,7 +127,7 @@ const faqs = [
   },
   {
     question: "What is the refund policy?",
-    answer: "Due to the intensive nature of the program and limited cohort sizes, all payments are final and non-refundable. We recommend reviewing all program details and reaching out with questions before enrolling to ensure it's the right fit for you.",
+    answer: "Due to the time, energy, and investment that goes into curating and delivering each class, we do not offer refunds. All payments are final and non-refundable. We recommend reviewing all program details and reaching out with questions before enrolling to ensure it's the right fit for you.",
   },
   {
     question: "Who is this program for?",
