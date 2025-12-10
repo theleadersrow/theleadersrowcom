@@ -2,6 +2,12 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, Calendar, Clock, Users, Zap } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const careerAssets = [
   {
@@ -53,6 +59,56 @@ const whatsIncluded = [
   "Network with a community that accelerates your growth",
 ];
 
+const howItWorks = [
+  {
+    step: "1",
+    title: "Join the Community",
+    description: "Sign up for your membership and get instant access to our private community of ambitious professionals.",
+  },
+  {
+    step: "2",
+    title: "Attend Live Sessions",
+    description: "Join us every Wednesday at 7pm CT for a 90-minute live session focused on one high-impact skill.",
+  },
+  {
+    step: "3",
+    title: "Apply & Practice",
+    description: "Use the worksheets, templates, and frameworks to apply what you learn directly to your work.",
+  },
+  {
+    step: "4",
+    title: "Grow Weekly",
+    description: "Watch your skills compound over time as you build career assets that make you impossible to overlook.",
+  },
+];
+
+const faqs = [
+  {
+    question: "When are the live sessions?",
+    answer: "Live sessions are held every Wednesday from 7:00 PM to 8:30 PM CT. This includes a 60-minute training session followed by 30 minutes of live Q&A and coaching.",
+  },
+  {
+    question: "What if I can't attend a live session?",
+    answer: "All sessions are recorded and available to members. You'll have access to the replay, along with all worksheets and materials, so you can catch up at your own pace.",
+  },
+  {
+    question: "How is this different from the 200K Method?",
+    answer: "The 200K Method is an intensive 8-week accelerator focused on career repositioning and landing $200K+ roles. Weekly Edge is an ongoing membership for continuous skill building — perfect for professionals who want to grow steadily week over week.",
+  },
+  {
+    question: "Can I cancel my membership anytime?",
+    answer: "Yes! You can cancel your monthly membership at any time. If you've already been billed for a month, you'll retain access until the end of your current billing cycle.",
+  },
+  {
+    question: "Who is Weekly Edge for?",
+    answer: "Weekly Edge is designed for ambitious professionals — especially Product Managers, leaders, and high performers — who want to continuously sharpen their communication, leadership, and influence skills.",
+  },
+  {
+    question: "What skills will I learn?",
+    answer: "Each week focuses on a different high-leverage skill: communication, stakeholder management, storytelling, decision-making, executive presence, and more. These are career assets that compound over time.",
+  },
+];
+
 const WeeklyEdge = () => {
   return (
     <Layout>
@@ -84,6 +140,41 @@ const WeeklyEdge = () => {
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="section-padding bg-muted/30">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                How It Works
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Your journey to continuous growth starts here.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {howItWorks.map((item, index) => (
+                <div key={index} className="relative">
+                  <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 h-full">
+                    <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center mb-4">
+                      <span className="font-serif text-xl font-bold text-secondary">{item.step}</span>
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+                  </div>
+                  {index < howItWorks.length - 1 && (
+                    <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
+                      <ArrowRight className="w-6 h-6 text-secondary/50" />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -208,6 +299,39 @@ const WeeklyEdge = () => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="section-padding bg-muted/30">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Everything you need to know about Weekly Edge.
+              </p>
+            </div>
+
+            <Accordion type="single" collapsible className="space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem 
+                  key={index} 
+                  value={`item-${index}`}
+                  className="bg-card rounded-xl border border-border/50 px-6 shadow-soft"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-foreground hover:text-secondary transition-colors py-5">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
       </section>
