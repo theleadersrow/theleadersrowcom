@@ -6,13 +6,15 @@ const ProgramsSection = () => {
       <div className="container-wide mx-auto">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="text-secondary font-medium mb-3">Our Programs</p>
+          <p className="text-secondary font-medium mb-3">Two Paths. One Destination.</p>
           <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
             Choose Your Path to Leadership
           </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            Whether you're ready for a complete transformation or want to grow 
-            consistently week by week, we have a program designed for your journey.
+          <p className="text-muted-foreground text-lg leading-relaxed mb-4">
+            Both programs get you to the same place: confident, visible, and leading at the top.
+          </p>
+          <p className="text-foreground font-medium">
+            Intensive transformation or steady weekly growth — pick the pace that fits your life.
           </p>
         </div>
 
@@ -21,7 +23,7 @@ const ProgramsSection = () => {
           <ProgramCard
             title="200K Method"
             subtitle="8-Week Accelerator"
-            description="The definitive strategic playbook for experienced Product Managers aiming for high-impact, $200K+ roles. We provide the precise framework to define your next level, engineer an executive-ready personal brand, and negotiate like a CEO."
+            description="The definitive strategic playbook for experienced Product Managers aiming for high-impact, $200K+ roles. You get the precise framework to define your next level, engineer an executive-ready personal brand, and negotiate like a CEO."
             features={[
               "The Strategic Benchmark",
               "Narrative Control: Engineering Your PM Brand",
