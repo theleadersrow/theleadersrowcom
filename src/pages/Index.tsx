@@ -5,6 +5,7 @@ import WhatWeDo from "@/components/home/WhatWeDo";
 import Mission from "@/components/home/Mission";
 import ProgramsSection from "@/components/home/ProgramsSection";
 import WhyItWorks from "@/components/home/WhyItWorks";
+import SuccessStories from "@/components/home/SuccessStories";
 import CTASection from "@/components/home/CTASection";
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
       <Mission />
       <ProgramsSection />
       <WhyItWorks />
+      <SuccessStories />
       <CTASection />
     </Layout>
   );
