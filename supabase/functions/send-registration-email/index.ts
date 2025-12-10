@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification email to The Leader's Row
     const notificationResponse = await resend.emails.send({
-      from: "The Leader's Row <hello@theleadersrow.com>",
+      from: "The Leader's Row <connect@theleadersrow.com>",
       to: ["theleadersrow@gmail.com"],
       subject: `New Registration: ${fullName} - ${programName}`,
       html: `
@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the registrant
     const confirmationResponse = await resend.emails.send({
-      from: "The Leader's Row <hello@theleadersrow.com>",
+      from: "The Leader's Row <connect@theleadersrow.com>",
       to: [email],
       subject: "Registration Received - The Leader's Row",
       html: `
