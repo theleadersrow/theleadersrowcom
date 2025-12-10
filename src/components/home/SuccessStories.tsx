@@ -3,9 +3,9 @@ import journeyAfter from "@/assets/journey-after.jpg";
 
 const testimonials = [
   {
-    name: "Sarah M.",
-    role: "Senior Product Manager",
-    company: "Tech Company",
+    name: "Mona",
+    role: "Jena, Germany",
+    company: "",
     quote: "It has been really positive. I've learned things I can truly apply in my life on a daily basis.",
     outcome: "Weekly Edge Member",
   },
