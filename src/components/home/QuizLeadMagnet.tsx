@@ -346,6 +346,7 @@ const QuizLeadMagnet = () => {
                           checked={isSelected}
                           onCheckedChange={(checked) => handleMultiAnswer(step, option, checked as boolean)}
                           id={`q${step}-${idx}`}
+                          onClick={(e) => e.stopPropagation()}
                         />
                         <Label 
                           htmlFor={`q${step}-${idx}`} 
