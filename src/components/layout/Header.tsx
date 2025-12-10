@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
@@ -7,6 +7,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
 
   useEffect(() => {
@@ -18,10 +19,23 @@ const Header = () => {
   }, []);
 
   const scrollToQuiz = () => {
-    const quizSection = document.querySelector('[data-quiz-section]');
-    if (quizSection) {
-      quizSection.scrollIntoView({ behavior: 'smooth' });
-      setIsMobileMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    
+    if (isHomePage) {
+      // Already on home page, just scroll
+      const quizSection = document.querySelector('[data-quiz-section]');
+      if (quizSection) {
+        quizSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // Navigate to home page, then scroll after a short delay
+      navigate('/');
+      setTimeout(() => {
+        const quizSection = document.querySelector('[data-quiz-section]');
+        if (quizSection) {
+          quizSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     }
   };
 
@@ -71,16 +85,14 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {isHomePage && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={scrollToQuiz}
-                className={`${textColor} hover:text-secondary`}
-              >
-                Take Quiz
-              </Button>
-            )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={scrollToQuiz}
+              className={`${textColor} hover:text-secondary`}
+            >
+              Take Quiz
+            </Button>
             <Link to="/register">
               <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} size="default">
                 Register Now
@@ -116,14 +128,12 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
-              {isHomePage && (
-                <button
-                  onClick={scrollToQuiz}
-                  className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
-                >
-                  Take Career Quiz
-                </button>
-              )}
+              <button
+                onClick={scrollToQuiz}
+                className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
+              >
+                Take Career Quiz
+              </button>
               <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="gold" className="w-full mt-2">
                   Register Now
