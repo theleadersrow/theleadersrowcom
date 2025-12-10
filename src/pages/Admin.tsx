@@ -1,0 +1,254 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { LogOut, Users, RefreshCw } from "lucide-react";
+
+interface Enrollment {
+  id: string;
+  enrolled_at: string;
+  payment_status: string;
+  user_id: string;
+  program_id: string;
+  profiles: {
+    full_name: string | null;
+    email: string;
+  } | null;
+  programs: {
+    name: string;
+    start_date: string | null;
+  } | null;
+}
+
+const Admin = () => {
+  const { user, signOut, loading } = useAuth();
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login");
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+
+      if (error) {
+        console.error("Error checking admin role:", error);
+        setIsAdmin(false);
+        return;
+      }
+
+      setIsAdmin(data);
+      
+      if (!data) {
+        toast.error("Access denied. Admin privileges required.");
+        navigate("/dashboard");
+      }
+    };
+
+    if (user) {
+      checkAdminRole();
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      if (!isAdmin) return;
+
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select(`
+          id,
+          enrolled_at,
+          payment_status,
+          user_id,
+          program_id,
+          profiles!enrollments_user_id_fkey (
+            full_name,
+            email
+          ),
+          programs!enrollments_program_id_fkey (
+            name,
+            start_date
+          )
+        `)
+        .order("enrolled_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching enrollments:", error);
+        toast.error("Failed to load enrollments");
+      } else {
+        setEnrollments(data as unknown as Enrollment[]);
+      }
+      setLoadingData(false);
+    };
+
+    if (isAdmin) {
+      fetchEnrollments();
+    }
+  }, [isAdmin]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
+
+  const refreshData = async () => {
+    setLoadingData(true);
+    const { data, error } = await supabase
+      .from("enrollments")
+      .select(`
+        id,
+        enrolled_at,
+        payment_status,
+        user_id,
+        program_id,
+        profiles!enrollments_user_id_fkey (
+          full_name,
+          email
+        ),
+        programs!enrollments_program_id_fkey (
+          name,
+          start_date
+        )
+      `)
+      .order("enrolled_at", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to refresh data");
+    } else {
+      setEnrollments(data as unknown as Enrollment[]);
+      toast.success("Data refreshed");
+    }
+    setLoadingData(false);
+  };
+
+  if (loading || isAdmin === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-display font-bold text-foreground">
+            Admin Portal
+          </h1>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => navigate("/dashboard")}>
+              Member View
+            </Button>
+            <Button variant="ghost" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="h-6 w-6 text-primary" />
+              <CardTitle>All Enrollments</CardTitle>
+              <Badge variant="secondary">{enrollments.length} total</Badge>
+            </div>
+            <Button variant="outline" size="sm" onClick={refreshData} disabled={loadingData}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loadingData ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {loadingData ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : enrollments.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                No enrollments yet.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Program</TableHead>
+                      <TableHead>Enrolled Date</TableHead>
+                      <TableHead>Program Start</TableHead>
+                      <TableHead>Payment Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {enrollments.map((enrollment) => (
+                      <TableRow key={enrollment.id}>
+                        <TableCell className="font-medium">
+                          {enrollment.profiles?.full_name || "—"}
+                        </TableCell>
+                        <TableCell>{enrollment.profiles?.email || "—"}</TableCell>
+                        <TableCell>{enrollment.programs?.name || "—"}</TableCell>
+                        <TableCell>
+                          {new Date(enrollment.enrolled_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {enrollment.programs?.start_date
+                            ? new Date(enrollment.programs.start_date).toLocaleDateString()
+                            : "—"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              enrollment.payment_status === "paid"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {enrollment.payment_status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+};
+
+export default Admin;
