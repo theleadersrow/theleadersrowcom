@@ -24,12 +24,15 @@ const WhyStuck = () => {
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-2">
               Most professionals don't struggle because they lack ability.
             </p>
-            <p className="text-lg md:text-xl text-foreground font-medium">
-              They struggle because:
+            <p className="text-lg md:text-xl text-foreground font-medium mb-4">
+              They struggle because the game was never explained:
+            </p>
+            <p className="text-base text-muted-foreground italic">
+              It's not fair that hard work isn't enough — and no one shows you how to play the leadership game.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4 mb-12">
+          <div className="grid sm:grid-cols-2 gap-4 mb-8">
             {stuckReasons.map((reason, index) => (
               <div
                 key={index}
@@ -43,12 +46,19 @@ const WhyStuck = () => {
             ))}
           </div>
 
+          {/* Stakes / Consequences */}
+          <div className="text-center mb-12 p-6 border border-destructive/20 rounded-xl bg-destructive/5">
+            <p className="text-lg text-foreground font-medium">
+              Without these skills, you stay stuck — watching peers get promoted, earning less than you deserve, and wondering why opportunities keep passing you by.
+            </p>
+          </div>
+
           <div className="text-center bg-navy rounded-2xl p-8 md:p-12">
             <p className="text-xl md:text-2xl text-cream/80 mb-4">
               You're not behind — you're simply missing the tools.
             </p>
             <p className="text-2xl md:text-3xl font-serif font-semibold text-cream">
-              We give you those tools.
+              Now you can get them.
             </p>
           </div>
         </div>
