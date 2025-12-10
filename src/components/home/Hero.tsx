@@ -26,7 +26,7 @@ const Hero = () => {
           
           {/* Headline */}
           <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-semibold text-cream mb-6 opacity-0 animate-fade-up delay-100">
-            Unlock your leadership <span className="text-gradient-gold">potential today</span>
+            Transforming Professionals into <span className="text-gradient-gold">Inspiring Leaders</span>
           </h1>
           
           {/* Subheadline */}
