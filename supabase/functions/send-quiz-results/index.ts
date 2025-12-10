@@ -288,6 +288,29 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #888; font-size: 13px; margin-top: 12px;">Your next career breakthrough starts with one click.</p>
             </div>
 
+            <!-- Next Steps Section -->
+            <div style="background-color: #fafafa; padding: 25px; border-radius: 12px; margin: 30px 0; text-align: center;">
+              <h3 style="color: #1a1a2e; font-size: 18px; margin: 0 0 20px 0;">Ready to Take the Next Step?</h3>
+              
+              <div style="display: block;">
+                <a href="${baseUrl}/book-call" style="display: inline-block; background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%); color: #f8f7f4; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 8px;">
+                  📞 Book a Discovery Call
+                </a>
+              </div>
+              
+              <div style="display: block;">
+                <a href="${baseUrl}/entry-to-faang" style="display: inline-block; background-color: #ffffff; color: #1a1a2e; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; border: 2px solid #c9a227; margin: 8px;">
+                  🚀 Explore 200K Method
+                </a>
+              </div>
+              
+              <div style="display: block;">
+                <a href="${baseUrl}/contact" style="display: inline-block; color: #c9a227; padding: 14px 28px; text-decoration: none; font-weight: 600; font-size: 14px; margin: 8px;">
+                  ✉️ Contact Us
+                </a>
+              </div>
+            </div>
+
             <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
 
             <!-- Your Responses (Collapsible Feel) -->
