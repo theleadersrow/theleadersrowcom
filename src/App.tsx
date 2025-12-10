@@ -9,6 +9,7 @@ import WeeklyEdge from "./pages/LevelUpWeekly";
 import Register from "./pages/Register";
 import Contact from "./pages/Contact";
 import Newsletter from "./pages/Newsletter";
+import Guide from "./pages/Guide";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import BookCall from "./pages/BookCall";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/guide" element={<Guide />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/book-call" element={<BookCall />} />
