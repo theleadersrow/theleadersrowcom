@@ -78,21 +78,27 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          email: string | null
           enrolled_at: string
+          enrollment_code: string | null
           id: string
           payment_status: string
           program_id: string
           user_id: string
         }
         Insert: {
+          email?: string | null
           enrolled_at?: string
+          enrollment_code?: string | null
           id?: string
           payment_status?: string
           program_id: string
           user_id: string
         }
         Update: {
+          email?: string | null
           enrolled_at?: string
+          enrollment_code?: string | null
           id?: string
           payment_status?: string
           program_id?: string
@@ -195,6 +201,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_enrollment_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
