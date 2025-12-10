@@ -51,7 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
     const baseUrl = "https://kdzwxxnwhmofznbglopk.lovableproject.com";
 
     const emailResponse = await resend.emails.send({
-      from: "The Leader's Row <hello@theleadersrow.com>",
+      from: "The Leader's Row <connect@theleadersrow.com>",
       to: [email],
       subject: `Your Career Assessment Results: ${result.title}`,
       html: `
