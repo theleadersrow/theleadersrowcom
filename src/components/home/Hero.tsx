@@ -30,13 +30,15 @@ const Hero = () => {
           </h1>
           
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-cream/90 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-200">
-            With clarity, confidence, and a proven system.
+          <p className="text-xl md:text-2xl text-cream/90 max-w-2xl mx-auto mb-6 leading-relaxed opacity-0 animate-fade-up delay-200">
+            Clarity. Confidence. A proven system.
           </p>
-          <p className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-4 leading-relaxed opacity-0 animate-fade-up delay-250">
-            Stop guessing your worth. Master the skills that drive promotions, higher pay, and executive presence — through live coaching and a community of ambitious professionals.
-          </p>
-          <p className="text-lg md:text-xl text-secondary font-medium max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
+          <div className="text-base md:text-lg text-cream/70 max-w-2xl mx-auto mb-8 space-y-2 opacity-0 animate-fade-up delay-250">
+            <p>Stop guessing your worth.</p>
+            <p>Master the skills that drive promotions and higher pay.</p>
+            <p>Live coaching. Ambitious community. Real results.</p>
+          </div>
+          <p className="text-lg md:text-xl text-secondary font-semibold max-w-2xl mx-auto mb-10 opacity-0 animate-fade-up delay-300">
             Your career plateau ends here.
           </p>
           
