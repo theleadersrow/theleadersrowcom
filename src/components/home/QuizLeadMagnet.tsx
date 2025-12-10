@@ -19,10 +19,22 @@ const questions = [
       "Communicating with executives",
       "Building my personal brand",
       "Negotiating compensation",
+      "All of the above",
     ],
   },
   {
     id: 2,
+    question: "Which skills do you most want to develop?",
+    options: [
+      "Executive presence & confidence",
+      "Strategic communication & storytelling",
+      "Interview & negotiation mastery",
+      "Leadership identity & influence",
+      "All of the above",
+    ],
+  },
+  {
+    id: 3,
     question: "How long have you been in your current role?",
     options: [
       "Less than 1 year",
@@ -32,16 +44,28 @@ const questions = [
     ],
   },
   {
-    id: 3,
+    id: 4,
     question: "What's holding you back from your next promotion?",
     options: [
-      "Lack of visibility",
-      "Interview skills",
+      "Lack of visibility & recognition",
+      "Interview skills & self-presentation",
       "Not sure what's missing",
-      "Limited network",
+      "Limited network & opportunities",
+      "All of the above",
+    ],
+  },
+  {
+    id: 5,
+    question: "What type of growth are you looking for?",
+    options: [
+      "Intensive transformation (8-week program)",
+      "Steady weekly skill-building",
+      "Both - I want it all",
     ],
   },
 ];
+
+const totalQuestions = questions.length;
 
 const QuizLeadMagnet = () => {
   const [step, setStep] = useState(0); // 0 = intro, 1-3 = questions, 4 = email, 5 = results
@@ -54,7 +78,7 @@ const QuizLeadMagnet = () => {
   };
 
   const handleNext = () => {
-    if (step > 0 && step <= 3 && !answers[step]) {
+    if (step > 0 && step <= totalQuestions && !answers[step]) {
       toast.error("Please select an answer to continue");
       return;
     }
@@ -98,39 +122,47 @@ const QuizLeadMagnet = () => {
 
   const getResultsMessage = () => {
     const challenge = answers[1];
-    if (challenge === "Getting noticed for leadership roles") {
+    const growthType = answers[5];
+    
+    // If they want intensive transformation or selected "all" challenges
+    if (growthType === "Intensive transformation (8-week program)" || 
+        challenge === "All of the above" ||
+        growthType === "Both - I want it all") {
       return {
-        title: "You're Ready for Visibility Coaching",
-        message: "Your skills are there, but your brand isn't broadcasting them. The 200K Method will help you engineer executive-ready positioning.",
+        title: "The 200K Method is Perfect for You",
+        message: "You're ready for a complete career transformation. Our 8-week accelerator will rebuild your brand, sharpen your skills, and position you for senior roles.",
         cta: "Explore 200K Method",
         link: "/200k-method",
       };
     }
-    if (challenge === "Communicating with executives") {
+    
+    if (growthType === "Steady weekly skill-building" || 
+        challenge === "Communicating with executives") {
       return {
-        title: "Executive Presence is Your Next Level",
-        message: "Weekly Edge will sharpen your communication and help you command every room you enter.",
+        title: "Weekly Edge is Your Path Forward",
+        message: "Build your leadership skills week by week. Our ongoing program will help you grow consistently and confidently.",
         cta: "Join Weekly Edge",
         link: "/weekly-edge",
       };
     }
+    
     return {
       title: "You're Closer Than You Think",
-      message: "A few strategic shifts can unlock your next role. Let's identify exactly what's holding you back.",
+      message: "A few strategic shifts can unlock your next role. Let's identify exactly what's holding you back and create your personalized plan.",
       cta: "Book a Strategy Call",
       link: "/contact",
     };
   };
 
   const results = getResultsMessage();
-  const progress = step === 0 ? 0 : Math.min((step / 4) * 100, 100);
+  const progress = step === 0 ? 0 : Math.min((step / (totalQuestions + 1)) * 100, 100);
 
   return (
     <section className="section-padding bg-secondary/5" data-quiz-section>
       <div className="container-narrow mx-auto">
         <div className="bg-card rounded-2xl shadow-elevated p-8 md:p-12 border border-border/50 max-w-2xl mx-auto">
           {/* Progress bar */}
-          {step > 0 && step < 5 && (
+          {step > 0 && step < totalQuestions + 2 && (
             <div className="mb-8">
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
@@ -139,7 +171,7 @@ const QuizLeadMagnet = () => {
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                Step {step} of 4
+                Step {Math.min(step, totalQuestions + 1)} of {totalQuestions + 1}
               </p>
             </div>
           )}
@@ -157,7 +189,7 @@ const QuizLeadMagnet = () => {
                 Discover what's blocking your next promotion
               </p>
               <p className="text-sm text-muted-foreground mb-8">
-                Take this 60-second quiz to get personalized recommendations for accelerating your career.
+                Take this 2-minute quiz to get personalized recommendations for accelerating your career.
               </p>
               <Button onClick={handleNext} className="btn-primary gap-2">
                 Start the Quiz <ArrowRight className="w-4 h-4" />
@@ -166,7 +198,7 @@ const QuizLeadMagnet = () => {
           )}
 
           {/* Questions */}
-          {step >= 1 && step <= 3 && (
+          {step >= 1 && step <= totalQuestions && (
             <div>
               <h3 className="font-serif text-xl md:text-2xl font-semibold text-foreground mb-6">
                 {questions[step - 1].question}
@@ -183,11 +215,11 @@ const QuizLeadMagnet = () => {
                       answers[step] === option
                         ? "border-secondary bg-secondary/5"
                         : "border-border hover:border-secondary/50"
-                    }`}
+                    } ${option.includes("All of") ? "bg-secondary/5" : ""}`}
                     onClick={() => handleAnswer(step, option)}
                   >
                     <RadioGroupItem value={option} id={`q${step}-${idx}`} />
-                    <Label htmlFor={`q${step}-${idx}`} className="flex-1 cursor-pointer text-foreground">
+                    <Label htmlFor={`q${step}-${idx}`} className={`flex-1 cursor-pointer text-foreground ${option.includes("All of") || option.includes("Both") ? "font-medium" : ""}`}>
                       {option}
                     </Label>
                   </div>
@@ -198,14 +230,14 @@ const QuizLeadMagnet = () => {
                   <ArrowLeft className="w-4 h-4" /> Back
                 </Button>
                 <Button onClick={handleNext} className="btn-primary gap-2">
-                  {step === 3 ? "See Results" : "Next"} <ArrowRight className="w-4 h-4" />
+                  {step === totalQuestions ? "See Results" : "Next"} <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
             </div>
           )}
 
           {/* Email capture */}
-          {step === 4 && (
+          {step === totalQuestions + 1 && (
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-8 h-8 text-secondary" />
@@ -243,7 +275,7 @@ const QuizLeadMagnet = () => {
           )}
 
           {/* Results */}
-          {step === 5 && (
+          {step === totalQuestions + 2 && (
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-8 h-8 text-green-500" />
