@@ -49,7 +49,7 @@ const Header = () => {
 
   const headerBg = isScrolled || !isHomePage
     ? "bg-card/95 backdrop-blur-md shadow-soft"
-    : "bg-transparent";
+    : "bg-navy/80 backdrop-blur-sm";
 
   const textColor = isScrolled || !isHomePage
     ? "text-foreground"
