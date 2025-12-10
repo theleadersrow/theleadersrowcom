@@ -16,8 +16,11 @@ const questions = [
     question: "What's your biggest career challenge right now?",
     options: [
       "Getting noticed for leadership roles",
-      "Communicating with executives",
+      "Not getting promoted",
+      "Managing up, down, and laterally",
+      "I'm not valued at work",
       "Building my personal brand",
+      "Communicating with executives",
       "Negotiating compensation",
       "All of the above",
     ],
@@ -56,6 +59,27 @@ const questions = [
   },
   {
     id: 5,
+    question: "What kind of help are you looking for?",
+    options: [
+      "Self-paced learning & resources",
+      "Live coaching & feedback",
+      "Community & accountability",
+      "One-on-one mentorship",
+      "All of the above",
+    ],
+  },
+  {
+    id: 6,
+    question: "How committed are you to accelerating your career?",
+    options: [
+      "Just exploring options",
+      "Ready to invest time weekly",
+      "Fully committed - ready to go all in",
+      "Looking for quick wins first",
+    ],
+  },
+  {
+    id: 7,
     question: "What type of growth are you looking for?",
     options: [
       "Intensive transformation (8-week program)",
@@ -137,10 +161,13 @@ const QuizLeadMagnet = () => {
 
   const getResultsMessage = () => {
     const challenge = answers[1];
-    const growthType = answers[5];
+    const helpType = answers[5];
+    const commitment = answers[6];
+    const growthType = answers[7];
     
-    // If they want intensive transformation or selected "all" challenges
-    if (growthType === "Intensive transformation (8-week program)" || 
+    // Fully committed + wants intensive or all-in
+    if (commitment === "Fully committed - ready to go all in" || 
+        growthType === "Intensive transformation (8-week program)" || 
         challenge === "All of the above" ||
         growthType === "Both - I want it all") {
       return {
@@ -151,8 +178,11 @@ const QuizLeadMagnet = () => {
       };
     }
     
+    // Wants steady growth or coaching/community
     if (growthType === "Steady weekly skill-building" || 
-        challenge === "Communicating with executives") {
+        helpType === "Live coaching & feedback" ||
+        helpType === "Community & accountability" ||
+        commitment === "Ready to invest time weekly") {
       return {
         title: "Weekly Edge is Your Path Forward",
         message: "Build your leadership skills week by week. Our ongoing program will help you grow consistently and confidently.",
@@ -161,9 +191,10 @@ const QuizLeadMagnet = () => {
       };
     }
     
+    // Just exploring or wants quick wins
     return {
-      title: "You're Closer Than You Think",
-      message: "A few strategic shifts can unlock your next role. Let's identify exactly what's holding you back and create your personalized plan.",
+      title: "Let's Find Your Perfect Fit",
+      message: "Based on your responses, a quick conversation will help us identify exactly what you need. Let's create your personalized plan together.",
       cta: "Book a Strategy Call",
       link: "/contact",
     };

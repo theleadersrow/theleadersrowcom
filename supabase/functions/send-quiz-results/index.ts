@@ -40,7 +40,9 @@ const handler = async (req: Request): Promise<Response> => {
           "2": "Skills to develop",
           "3": "Time in current role",
           "4": "What's holding you back",
-          "5": "Type of growth preferred",
+          "5": "Kind of help looking for",
+          "6": "Commitment level",
+          "7": "Type of growth preferred",
         };
         return `<li><strong>${questionLabels[questionNum] || `Question ${questionNum}`}:</strong> ${answer}</li>`;
       })
