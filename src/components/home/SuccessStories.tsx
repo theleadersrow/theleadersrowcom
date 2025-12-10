@@ -1,4 +1,5 @@
 import { Quote } from "lucide-react";
+import professionalsNetworking from "@/assets/professionals-networking.jpg";
 
 const testimonials = [
   {
@@ -28,6 +29,19 @@ const SuccessStories = () => {
   return (
     <section className="section-padding bg-muted/30">
       <div className="container-wide mx-auto">
+        {/* Community Image Banner */}
+        <div className="relative rounded-2xl overflow-hidden mb-12 max-w-5xl mx-auto">
+          <img 
+            src={professionalsNetworking} 
+            alt="Ambitious professionals networking and growing together" 
+            className="w-full h-64 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent flex items-end justify-center pb-6">
+            <p className="text-lg md:text-xl font-medium text-foreground">
+              Join a community of ambitious professionals building their future together
+            </p>
+          </div>
+        </div>
         <div className="text-center max-w-3xl mx-auto mb-12">
           <p className="text-secondary font-medium mb-3">Real Results</p>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-6">

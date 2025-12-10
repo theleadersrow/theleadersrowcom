@@ -1,4 +1,5 @@
 import { Compass } from "lucide-react";
+import leaderPresenting from "@/assets/leader-presenting.jpg";
 
 const Mission = () => {
   return (
@@ -9,25 +10,42 @@ const Mission = () => {
       </div>
       
       <div className="container-wide mx-auto relative z-10">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-2xl bg-secondary/20 flex items-center justify-center mx-auto mb-8">
-            <Compass className="w-8 h-8 text-secondary" />
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Image */}
+          <div className="relative order-2 lg:order-1">
+            <div className="rounded-2xl overflow-hidden shadow-elevated">
+              <img 
+                src={leaderPresenting} 
+                alt="Professional confidently presenting in a boardroom" 
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <div className="absolute -bottom-4 -right-4 bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-semibold shadow-lg">
+              This could be you
+            </div>
           </div>
-          
-          <p className="text-secondary font-medium mb-4">Your Journey</p>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-8">
-            You Deserve to Lead
-          </h2>
-          
-          <p className="text-xl md:text-2xl text-cream/90 leading-relaxed mb-8">
-            You become the most confident, capable, high-impact version of yourself — 
-            <span className="text-secondary font-semibold"> faster and with clarity.</span>
-          </p>
-          
-          <p className="text-lg text-cream/70 leading-relaxed">
-            Whether you want to break into top tech, earn senior-level compensation, grow into leadership, 
-            or simply stop feeling stuck — this is your path forward.
-          </p>
+
+          {/* Content */}
+          <div className="text-center lg:text-left order-1 lg:order-2">
+            <div className="w-16 h-16 rounded-2xl bg-secondary/20 flex items-center justify-center mx-auto lg:mx-0 mb-8">
+              <Compass className="w-8 h-8 text-secondary" />
+            </div>
+            
+            <p className="text-secondary font-medium mb-4">Your Journey</p>
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-8">
+              You Deserve to Lead
+            </h2>
+            
+            <p className="text-xl md:text-2xl text-cream/90 leading-relaxed mb-8">
+              You become the most confident, capable, high-impact version of yourself — 
+              <span className="text-secondary font-semibold"> faster and with clarity.</span>
+            </p>
+            
+            <p className="text-lg text-cream/70 leading-relaxed">
+              Whether you want to break into top tech, earn senior-level compensation, grow into leadership, 
+              or simply stop feeling stuck — this is your path forward.
+            </p>
+          </div>
         </div>
       </div>
     </section>
