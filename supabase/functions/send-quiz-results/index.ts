@@ -299,12 +299,6 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div style="display: block;">
-                <a href="${baseUrl}/entry-to-faang" style="display: inline-block; background-color: #ffffff; color: #1a1a2e; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; border: 2px solid #c9a227; margin: 8px;">
-                  🚀 Explore 200K Method
-                </a>
-              </div>
-              
-              <div style="display: block;">
                 <a href="${baseUrl}/contact" style="display: inline-block; color: #c9a227; padding: 14px 28px; text-decoration: none; font-weight: 600; font-size: 14px; margin: 8px;">
                   ✉️ Contact Us
                 </a>
