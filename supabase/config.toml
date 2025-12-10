@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.send-quiz-results]
 verify_jwt = false
+
+[functions.send-blueprint-email]
+verify_jwt = false
