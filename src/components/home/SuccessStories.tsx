@@ -1,5 +1,5 @@
-import { Quote } from "lucide-react";
-import professionalsNetworking from "@/assets/professionals-networking.jpg";
+import { Quote, ArrowRight } from "lucide-react";
+import journeyAfter from "@/assets/journey-after.jpg";
 
 const testimonials = [
   {
@@ -29,25 +29,44 @@ const SuccessStories = () => {
   return (
     <section className="section-padding bg-muted/30">
       <div className="container-wide mx-auto">
-        {/* Community Image Banner */}
-        <div className="relative rounded-2xl overflow-hidden mb-12 max-w-5xl mx-auto">
-          <img 
-            src={professionalsNetworking} 
-            alt="Ambitious professionals networking and growing together" 
-            className="w-full h-64 object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent flex items-end justify-center pb-6">
-            <p className="text-lg md:text-xl font-medium text-foreground">
-              Join a community of ambitious professionals building their future together
-            </p>
-          </div>
-        </div>
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <p className="text-secondary font-medium mb-3">Real Results</p>
+          <p className="text-secondary font-medium mb-3">The Transformation</p>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-6">
-            Success Stories
+            From Overlooked to Leading
           </h2>
           <p className="text-muted-foreground text-lg">
+            This is where the journey leads — confident leadership, visible impact, and career success.
+          </p>
+        </div>
+
+        {/* After State Hero Image */}
+        <div className="relative rounded-2xl overflow-hidden mb-12 max-w-4xl mx-auto shadow-elevated">
+          <img 
+            src={journeyAfter} 
+            alt="Confident professional leader commanding the room in a boardroom presentation" 
+            className="w-full h-72 md:h-96 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy/80 via-navy/40 to-transparent" />
+          <div className="absolute inset-0 flex items-center p-8 md:p-12">
+            <div className="max-w-md">
+              <p className="text-secondary font-medium mb-2 text-sm">Your Future</p>
+              <h3 className="font-serif text-2xl md:text-3xl text-cream mb-4">
+                Command the Room. Lead with Confidence.
+              </h3>
+              <div className="flex items-center gap-2 text-cream/80">
+                <span className="text-sm">This is where you're headed</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center max-w-3xl mx-auto mb-8">
+          <p className="text-secondary font-medium mb-3">Real Results</p>
+          <h3 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+            Success Stories
+          </h3>
+          <p className="text-muted-foreground">
             Professionals who took action and transformed their careers.
           </p>
         </div>

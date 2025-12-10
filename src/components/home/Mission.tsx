@@ -1,5 +1,5 @@
 import { Compass } from "lucide-react";
-import leaderPresenting from "@/assets/leader-presenting.jpg";
+import guideCoaching from "@/assets/guide-coaching.jpg";
 
 const Mission = () => {
   return (
@@ -11,17 +11,17 @@ const Mission = () => {
       
       <div className="container-wide mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Image */}
+          {/* Image - The Guide */}
           <div className="relative order-2 lg:order-1">
             <div className="rounded-2xl overflow-hidden shadow-elevated">
               <img 
-                src={leaderPresenting} 
-                alt="Professional confidently presenting in a boardroom" 
+                src={guideCoaching} 
+                alt="Expert mentor providing personalized career coaching and guidance" 
                 className="w-full h-auto object-cover"
               />
             </div>
             <div className="absolute -bottom-4 -right-4 bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-semibold shadow-lg">
-              This could be you
+              Your Guide Awaits
             </div>
           </div>
 
@@ -31,19 +31,19 @@ const Mission = () => {
               <Compass className="w-8 h-8 text-secondary" />
             </div>
             
-            <p className="text-secondary font-medium mb-4">Your Journey</p>
+            <p className="text-secondary font-medium mb-4">Meet Your Guide</p>
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-8">
-              You Deserve to Lead
+              You Don't Have to Figure It Out Alone
             </h2>
             
             <p className="text-xl md:text-2xl text-cream/90 leading-relaxed mb-8">
-              You become the most confident, capable, high-impact version of yourself — 
-              <span className="text-secondary font-semibold"> faster and with clarity.</span>
+              The Leader's Row gives you the expert guidance, proven frameworks, and personalized support to
+              <span className="text-secondary font-semibold"> accelerate your transformation.</span>
             </p>
             
             <p className="text-lg text-cream/70 leading-relaxed">
               Whether you want to break into top tech, earn senior-level compensation, grow into leadership, 
-              or simply stop feeling stuck — this is your path forward.
+              or simply stop feeling stuck — we'll guide you every step of the way.
             </p>
           </div>
         </div>
