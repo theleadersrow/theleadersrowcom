@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ const questions = [
   {
     id: 1,
     question: "What's your biggest career challenge right now?",
+    multiSelect: true,
     options: [
       "Getting noticed for leadership roles",
       "Not getting promoted",
@@ -28,6 +30,7 @@ const questions = [
   {
     id: 2,
     question: "Which skills do you most want to develop?",
+    multiSelect: true,
     options: [
       "Executive presence & confidence",
       "Strategic communication & storytelling",
@@ -39,6 +42,7 @@ const questions = [
   {
     id: 3,
     question: "How long have you been in your current role?",
+    multiSelect: false,
     options: [
       "Less than 1 year",
       "1-2 years",
@@ -49,6 +53,7 @@ const questions = [
   {
     id: 4,
     question: "What's holding you back from your next promotion?",
+    multiSelect: true,
     options: [
       "Lack of visibility & recognition",
       "Interview skills & self-presentation",
@@ -60,6 +65,7 @@ const questions = [
   {
     id: 5,
     question: "What kind of help are you looking for?",
+    multiSelect: true,
     options: [
       "Self-paced learning & resources",
       "Live coaching & feedback",
@@ -71,6 +77,7 @@ const questions = [
   {
     id: 6,
     question: "How committed are you to accelerating your career?",
+    multiSelect: false,
     options: [
       "Just exploring options",
       "Ready to invest time weekly",
@@ -81,6 +88,7 @@ const questions = [
   {
     id: 7,
     question: "What type of growth are you looking for?",
+    multiSelect: false,
     options: [
       "Intensive transformation (8-week program)",
       "Steady weekly skill-building",
@@ -91,19 +99,44 @@ const questions = [
 
 const totalQuestions = questions.length;
 
+// Helper to check if an option is an "all" option
+const isAllOption = (option: string) => 
+  option.toLowerCase().includes("all of the above") || 
+  option.toLowerCase() === "both - i want it all";
+
 const QuizLeadMagnet = () => {
-  const [step, setStep] = useState(0); // 0 = intro, 1-3 = questions, 4 = email, 5 = results
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAnswer = (questionId: number, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  const handleMultiAnswer = (questionId: number, option: string, checked: boolean) => {
+    setAnswers((prev) => {
+      const currentAnswers = prev[questionId] || [];
+      
+      if (isAllOption(option)) {
+        // If selecting "All of the above", clear others and only select this
+        return { ...prev, [questionId]: checked ? [option] : [] };
+      }
+      
+      if (checked) {
+        // If selecting a regular option, remove any "all" options and add this one
+        const filtered = currentAnswers.filter(a => !isAllOption(a));
+        return { ...prev, [questionId]: [...filtered, option] };
+      } else {
+        // If deselecting, just remove this option
+        return { ...prev, [questionId]: currentAnswers.filter(a => a !== option) };
+      }
+    });
+  };
+
+  const handleSingleAnswer = (questionId: number, option: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: [option] }));
   };
 
   const handleNext = () => {
-    if (step > 0 && step <= totalQuestions && !answers[step]) {
-      toast.error("Please select an answer to continue");
+    if (step > 0 && step <= totalQuestions && (!answers[step] || answers[step].length === 0)) {
+      toast.error("Please select at least one answer to continue");
       return;
     }
     setStep((prev) => prev + 1);
@@ -117,6 +150,15 @@ const QuizLeadMagnet = () => {
     setStep(0);
     setAnswers({});
     setEmail("");
+  };
+
+  // Convert array answers to string for the edge function
+  const getAnswersAsStrings = () => {
+    const stringAnswers: Record<string, string> = {};
+    Object.entries(answers).forEach(([key, value]) => {
+      stringAnswers[key] = value.join(", ");
+    });
+    return stringAnswers;
   };
 
   const handleSubmit = async () => {
@@ -145,7 +187,7 @@ const QuizLeadMagnet = () => {
       const { error: emailError } = await supabase.functions.invoke("send-quiz-results", {
         body: {
           email: validation.data,
-          answers,
+          answers: getAnswersAsStrings(),
           result,
         },
       });
@@ -170,15 +212,15 @@ const QuizLeadMagnet = () => {
   };
 
   const getResultsMessage = () => {
-    const challenge = answers[1];
-    const helpType = answers[5];
-    const commitment = answers[6];
-    const growthType = answers[7];
+    const challenge = answers[1]?.join(", ") || "";
+    const helpType = answers[5]?.join(", ") || "";
+    const commitment = answers[6]?.[0] || "";
+    const growthType = answers[7]?.[0] || "";
     
     // Fully committed + wants intensive or all-in
     if (commitment === "Fully committed - ready to go all in" || 
         growthType === "Intensive transformation (8-week program)" || 
-        challenge === "All of the above" ||
+        challenge.includes("All of the above") ||
         growthType === "Both - I want it all") {
       return {
         title: "The 200K Method is Perfect for You",
@@ -190,8 +232,8 @@ const QuizLeadMagnet = () => {
     
     // Wants steady growth or coaching/community
     if (growthType === "Steady weekly skill-building" || 
-        helpType === "Live coaching & feedback" ||
-        helpType === "Community & accountability" ||
+        helpType.includes("Live coaching & feedback") ||
+        helpType.includes("Community & accountability") ||
         commitment === "Ready to invest time weekly") {
       return {
         title: "Weekly Edge is Your Path Forward",
@@ -212,6 +254,7 @@ const QuizLeadMagnet = () => {
 
   const results = getResultsMessage();
   const progress = step === 0 ? 0 : Math.min((step / (totalQuestions + 1)) * 100, 100);
+  const currentQuestion = step >= 1 && step <= totalQuestions ? questions[step - 1] : null;
 
   return (
     <section className="section-padding bg-secondary/5" data-quiz-section>
@@ -254,33 +297,88 @@ const QuizLeadMagnet = () => {
           )}
 
           {/* Questions */}
-          {step >= 1 && step <= totalQuestions && (
+          {currentQuestion && (
             <div>
-              <h3 className="font-serif text-xl md:text-2xl font-semibold text-foreground mb-6">
-                {questions[step - 1].question}
+              <h3 className="font-serif text-xl md:text-2xl font-semibold text-foreground mb-2">
+                {currentQuestion.question}
               </h3>
-              <RadioGroup
-                value={answers[step] || ""}
-                onValueChange={(value) => handleAnswer(step, value)}
-                className="space-y-3"
-              >
-                {questions[step - 1].options.map((option, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center space-x-3 p-4 rounded-xl border transition-all cursor-pointer ${
-                      answers[step] === option
-                        ? "border-secondary bg-secondary/5"
-                        : "border-border hover:border-secondary/50"
-                    } ${option.includes("All of") ? "bg-secondary/5" : ""}`}
-                    onClick={() => handleAnswer(step, option)}
-                  >
-                    <RadioGroupItem value={option} id={`q${step}-${idx}`} />
-                    <Label htmlFor={`q${step}-${idx}`} className={`flex-1 cursor-pointer text-foreground ${option.includes("All of") || option.includes("Both") ? "font-medium" : ""}`}>
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {currentQuestion.multiSelect && (
+                <p className="text-sm text-muted-foreground mb-6">
+                  Select all that apply
+                </p>
+              )}
+              {!currentQuestion.multiSelect && (
+                <p className="text-sm text-muted-foreground mb-6">
+                  Select one option
+                </p>
+              )}
+
+              {currentQuestion.multiSelect ? (
+                // Multi-select with checkboxes
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option, idx) => {
+                    const isSelected = answers[step]?.includes(option) || false;
+                    const isAll = isAllOption(option);
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-center space-x-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-secondary bg-secondary/5"
+                            : "border-border hover:border-secondary/50"
+                        } ${isAll ? "bg-secondary/5" : ""}`}
+                        onClick={() => handleMultiAnswer(step, option, !isSelected)}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => handleMultiAnswer(step, option, checked as boolean)}
+                          id={`q${step}-${idx}`}
+                        />
+                        <Label 
+                          htmlFor={`q${step}-${idx}`} 
+                          className={`flex-1 cursor-pointer text-foreground ${isAll ? "font-medium" : ""}`}
+                        >
+                          {option}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Single-select with radio buttons
+                <RadioGroup
+                  value={answers[step]?.[0] || ""}
+                  onValueChange={(value) => handleSingleAnswer(step, value)}
+                  className="space-y-3"
+                >
+                  {currentQuestion.options.map((option, idx) => {
+                    const isSelected = answers[step]?.[0] === option;
+                    const isAll = isAllOption(option);
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-center space-x-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-secondary bg-secondary/5"
+                            : "border-border hover:border-secondary/50"
+                        } ${isAll ? "bg-secondary/5" : ""}`}
+                        onClick={() => handleSingleAnswer(step, option)}
+                      >
+                        <RadioGroupItem value={option} id={`q${step}-${idx}`} />
+                        <Label 
+                          htmlFor={`q${step}-${idx}`} 
+                          className={`flex-1 cursor-pointer text-foreground ${isAll ? "font-medium" : ""}`}
+                        >
+                          {option}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              )}
+
               <div className="flex justify-between mt-8">
                 <Button variant="ghost" onClick={handleBack} className="gap-2">
                   <ArrowLeft className="w-4 h-4" /> Back
