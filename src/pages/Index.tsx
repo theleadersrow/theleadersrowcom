@@ -44,11 +44,11 @@ const Index = () => {
       {/* PLAN - Simple roadmap to success */}
       <HowItWorks />
       
-      {/* CALL TO ACTION - Programs */}
-      <ProgramsSection />
-      
       {/* AUTHORITY - Why this works */}
       <WhyItWorks />
+      
+      {/* CALL TO ACTION - Programs */}
+      <ProgramsSection />
       
       {/* SUCCESS - Transformation stories */}
       <SuccessStories />
