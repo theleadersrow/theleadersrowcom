@@ -113,38 +113,59 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          city: string | null
+          country: string | null
           email: string | null
           enrolled_at: string
           enrollment_code: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
           notes: string | null
+          occupation: string | null
           payment_status: string
+          phone: string | null
           program_id: string
           start_date: string | null
+          state: string | null
           user_id: string
           zoom_link: string | null
         }
         Insert: {
+          city?: string | null
+          country?: string | null
           email?: string | null
           enrolled_at?: string
           enrollment_code?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           notes?: string | null
+          occupation?: string | null
           payment_status?: string
+          phone?: string | null
           program_id: string
           start_date?: string | null
+          state?: string | null
           user_id: string
           zoom_link?: string | null
         }
         Update: {
+          city?: string | null
+          country?: string | null
           email?: string | null
           enrolled_at?: string
           enrollment_code?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           notes?: string | null
+          occupation?: string | null
           payment_status?: string
+          phone?: string | null
           program_id?: string
           start_date?: string | null
+          state?: string | null
           user_id?: string
           zoom_link?: string | null
         }
