@@ -43,8 +43,17 @@ const LeadMagnet = () => {
           throw error;
         }
       } else {
+        // Send the blueprint email
+        const { error: emailError } = await supabase.functions.invoke('send-blueprint-email', {
+          body: { email: email.trim() }
+        });
+
+        if (emailError) {
+          console.error("Error sending email:", emailError);
+        }
+
         setIsSuccess(true);
-        toast.success("Success! Check your email for the guide.");
+        toast.success("Success! Check your email for the Blueprint.");
       }
     } catch (error) {
       console.error("Error subscribing:", error);
