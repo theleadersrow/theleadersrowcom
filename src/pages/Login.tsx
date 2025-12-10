@@ -6,17 +6,14 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-
-type AuthMode = "login" | "signup" | "reset";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<AuthMode>("signup");
+  const [isResetMode, setIsResetMode] = useState(false);
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -25,51 +22,6 @@ const Login = () => {
       navigate("/dashboard");
     }
   }, [user, loading, navigate]);
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password || !fullName) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName.trim(),
-          },
-        },
-      });
-
-      if (error) {
-        if (error.message.includes("already registered")) {
-          toast.error("This email is already registered. Please sign in.");
-          setMode("login");
-        } else {
-          toast.error(error.message);
-        }
-      } else {
-        toast.success("Account created! You can now sign in.");
-        setMode("login");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +41,7 @@ const Login = () => {
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          toast.error("Invalid email or password. Please try again.");
+          toast.error("Invalid email or password. Please contact support if you need access.");
         } else {
           toast.error(error.message);
         }
@@ -123,57 +75,12 @@ const Login = () => {
         toast.error(error.message);
       } else {
         toast.success("Password reset email sent! Check your inbox.");
-        setMode("login");
+        setIsResetMode(false);
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const getSubmitHandler = () => {
-    switch (mode) {
-      case "signup":
-        return handleSignup;
-      case "reset":
-        return handlePasswordReset;
-      default:
-        return handleLogin;
-    }
-  };
-
-  const getTitle = () => {
-    switch (mode) {
-      case "signup":
-        return "Create Account";
-      case "reset":
-        return "Reset Password";
-      default:
-        return "Welcome Back";
-    }
-  };
-
-  const getDescription = () => {
-    switch (mode) {
-      case "signup":
-        return "Sign up to access your programs and resources";
-      case "reset":
-        return "Enter your email to receive a password reset link";
-      default:
-        return "Sign in to access your programs and resources";
-    }
-  };
-
-  const getButtonText = () => {
-    if (isLoading) return "Please wait...";
-    switch (mode) {
-      case "signup":
-        return "Create Account";
-      case "reset":
-        return "Send Reset Link";
-      default:
-        return "Sign In";
     }
   };
 
@@ -205,31 +112,15 @@ const Login = () => {
         {/* Login Card */}
         <div className="bg-card rounded-2xl p-8 shadow-elevated">
           <h2 className="text-2xl font-semibold text-foreground mb-2">
-            {getTitle()}
+            {isResetMode ? "Reset Password" : "Welcome Back"}
           </h2>
           <p className="text-muted-foreground mb-6">
-            {getDescription()}
+            {isResetMode 
+              ? "Enter your email to receive a password reset link" 
+              : "Sign in to access your programs and resources"}
           </p>
 
-          <form onSubmit={getSubmitHandler()} className="space-y-5">
-            {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Your full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10 h-12"
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
+          <form onSubmit={isResetMode ? handlePasswordReset : handleLogin} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -246,7 +137,7 @@ const Login = () => {
               </div>
             </div>
 
-            {mode !== "reset" && (
+            {!isResetMode && (
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -254,7 +145,7 @@ const Login = () => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={mode === "signup" ? "Create a password (min 6 chars)" : "Enter your password"}
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 h-12"
@@ -278,31 +169,31 @@ const Login = () => {
               className="w-full"
               disabled={isLoading}
             >
-              {getButtonText()}
+              {isLoading 
+                ? "Please wait..." 
+                : isResetMode 
+                  ? "Send Reset Link" 
+                  : "Sign In"}
             </Button>
           </form>
 
-          <div className="mt-6 space-y-3 text-center">
-            {mode === "login" && (
-              <button
-                onClick={() => setMode("reset")}
-                className="text-sm text-secondary hover:text-secondary/80 transition-colors block w-full"
-              >
-                Forgot your password?
-              </button>
-            )}
-            
+          <div className="mt-6 text-center">
             <button
-              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setIsResetMode(!isResetMode)}
+              className="text-sm text-secondary hover:text-secondary/80 transition-colors"
             >
-              {mode === "signup" 
-                ? "Already have an account? Sign in" 
-                : mode === "reset"
-                  ? "Back to login"
-                  : "Don't have an account? Sign up"}
+              {isResetMode ? "Back to login" : "Forgot your password?"}
             </button>
           </div>
+
+          {!isResetMode && (
+            <p className="mt-4 text-xs text-muted-foreground text-center">
+              Need access? Contact us at{" "}
+              <a href="mailto:theleadersrow@gmail.com" className="text-secondary hover:underline">
+                theleadersrow@gmail.com
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Back to site link */}
