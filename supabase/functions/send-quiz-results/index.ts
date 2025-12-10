@@ -48,7 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
       })
       .join("");
 
-    const baseUrl = "https://kdzwxxnwhmofznbglopk.lovableproject.com";
+    const baseUrl = "https://theleadersrow.com";
 
     // Determine which program is recommended
     const is200KMethod = result.link.includes("200k-method") || result.link.includes("entry-to-faang");
