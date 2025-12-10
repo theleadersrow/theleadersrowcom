@@ -140,7 +140,7 @@ const The200KMethod = () => {
             <div className="block">
               <Link to="/register">
                 <Button variant="hero" size="xl" className="group">
-                  Register Now
+                  Join Now
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
@@ -400,7 +400,7 @@ const The200KMethod = () => {
             <div className="block">
               <Link to="/register">
                 <Button variant="hero" size="xl" className="group">
-                  Register Now
+                  Join Now
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
