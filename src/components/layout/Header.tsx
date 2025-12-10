@@ -22,18 +22,35 @@ const Header = () => {
     setIsMobileMenuOpen(false);
     
     if (isHomePage) {
-      // Already on home page, just scroll
       const quizSection = document.querySelector('[data-quiz-section]');
       if (quizSection) {
         quizSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      // Navigate to home page, then scroll after a short delay
       navigate('/');
       setTimeout(() => {
         const quizSection = document.querySelector('[data-quiz-section]');
         if (quizSection) {
           quizSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
+  const scrollToBlueprint = () => {
+    setIsMobileMenuOpen(false);
+    
+    if (isHomePage) {
+      const leadMagnetSection = document.getElementById('lead-magnet');
+      if (leadMagnetSection) {
+        leadMagnetSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/');
+      setTimeout(() => {
+        const leadMagnetSection = document.getElementById('lead-magnet');
+        if (leadMagnetSection) {
+          leadMagnetSection.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
     }
@@ -88,6 +105,14 @@ const Header = () => {
             <Button 
               variant="ghost" 
               size="sm" 
+              onClick={scrollToBlueprint}
+              className={`${textColor} hover:text-secondary`}
+            >
+              Free Blueprint
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
               onClick={scrollToQuiz}
               className={`${textColor} hover:text-secondary`}
             >
@@ -128,6 +153,12 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
+              <button
+                onClick={scrollToBlueprint}
+                className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
+              >
+                Free Blueprint
+              </button>
               <button
                 onClick={scrollToQuiz}
                 className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
