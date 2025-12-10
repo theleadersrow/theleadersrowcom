@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -107,6 +108,7 @@ const isAllOption = (option: string) =>
 const QuizLeadMagnet = () => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
+  const [otherText, setOtherText] = useState<Record<number, string>>({});
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -149,14 +151,24 @@ const QuizLeadMagnet = () => {
   const handleRetakeQuiz = () => {
     setStep(0);
     setAnswers({});
+    setOtherText({});
     setEmail("");
+  };
+
+  const handleOtherText = (questionId: number, text: string) => {
+    setOtherText((prev) => ({ ...prev, [questionId]: text }));
   };
 
   // Convert array answers to string for the edge function
   const getAnswersAsStrings = () => {
     const stringAnswers: Record<string, string> = {};
     Object.entries(answers).forEach(([key, value]) => {
-      stringAnswers[key] = value.join(", ");
+      let answer = value.join(", ");
+      const other = otherText[parseInt(key)];
+      if (other && other.trim()) {
+        answer += answer ? ` | Other: ${other.trim()}` : `Other: ${other.trim()}`;
+      }
+      stringAnswers[key] = answer;
     });
     return stringAnswers;
   };
@@ -378,6 +390,21 @@ const QuizLeadMagnet = () => {
                   })}
                 </RadioGroup>
               )}
+
+              {/* Other/Additional input */}
+              <div className="mt-4">
+                <Label htmlFor={`other-${step}`} className="text-sm text-muted-foreground mb-2 block">
+                  Anything else you'd like to share? (optional)
+                </Label>
+                <Textarea
+                  id={`other-${step}`}
+                  placeholder="Type here if there's something not listed above..."
+                  value={otherText[step] || ""}
+                  onChange={(e) => handleOtherText(step, e.target.value)}
+                  className="resize-none"
+                  rows={2}
+                />
+              </div>
 
               <div className="flex justify-between mt-8">
                 <Button variant="ghost" onClick={handleBack} className="gap-2">
