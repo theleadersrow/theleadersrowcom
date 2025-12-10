@@ -149,41 +149,6 @@ const WeeklyEdge = () => {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="section-padding bg-muted/30">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-                How It Works
-              </h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Your journey to continuous growth starts here.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {howItWorks.map((item, index) => (
-                <div key={index} className="relative">
-                  <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 h-full">
-                    <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center mb-4">
-                      <span className="font-serif text-xl font-bold text-secondary">{item.step}</span>
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                  </div>
-                  {index < howItWorks.length - 1 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                      <ArrowRight className="w-6 h-6 text-secondary/50" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* What You'll Build */}
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
@@ -307,8 +272,43 @@ const WeeklyEdge = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* How It Works */}
       <section className="section-padding bg-muted/30">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                How It Works
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Your journey to continuous growth starts here.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {howItWorks.map((item, index) => (
+                <div key={index} className="relative">
+                  <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 h-full">
+                    <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center mb-4">
+                      <span className="font-serif text-xl font-bold text-secondary">{item.step}</span>
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+                  </div>
+                  {index < howItWorks.length - 1 && (
+                    <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
+                      <ArrowRight className="w-6 h-6 text-secondary/50" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
