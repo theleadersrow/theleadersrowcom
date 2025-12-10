@@ -4,10 +4,10 @@ import journeyAfter from "@/assets/journey-after.jpg";
 const testimonials = [
   {
     name: "Sarah M.",
-    role: "Senior Product Manager → Director",
+    role: "Senior Product Manager",
     company: "Tech Company",
-    quote: "Within 6 months, I went from feeling invisible to leading a team of 12. The frameworks and coaching gave me the confidence to advocate for myself.",
-    outcome: "Promoted to Director",
+    quote: "It has been really positive. I've learned things I can truly apply in my life on a daily basis.",
+    outcome: "Weekly Edge Member",
   },
   {
     name: "James K.",
