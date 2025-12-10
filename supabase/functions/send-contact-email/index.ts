@@ -18,7 +18,6 @@ interface ContactEmailRequest {
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-contact-email function called");
   
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -50,6 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send confirmation email to the user
     const confirmationResponse = await resend.emails.send({
       from: "The Leader's Row <connect@theleadersrow.com>",
+      reply_to: "theleadersrow@gmail.com",
       to: [email],
       subject: "We received your message!",
       html: `
@@ -57,10 +57,12 @@ const handler = async (req: Request): Promise<Response> => {
         <p>We have received your message and will get back to you as soon as possible.</p>
         <p>In the meantime, feel free to explore our programs:</p>
         <ul>
-          <li><strong>200K Method</strong> - Our 8-week accelerator program</li>
-          <li><strong>Weekly Edge</strong> - Ongoing membership for continuous growth</li>
+          <li><a href="https://theleadersrow.com/200k-method" style="color: #B8860B;"><strong>200K Method</strong></a> - Our 8-week accelerator program</li>
+          <li><a href="https://theleadersrow.com/weekly-edge" style="color: #B8860B;"><strong>Weekly Edge</strong></a> - Ongoing membership for continuous growth</li>
         </ul>
         <p>Best regards,<br>The Leader's Row Team</p>
+        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e5e5e5;">
+        <p style="font-size: 12px; color: #666;"><a href="https://theleadersrow.com" style="color: #B8860B;">theleadersrow.com</a></p>
       `,
     });
 

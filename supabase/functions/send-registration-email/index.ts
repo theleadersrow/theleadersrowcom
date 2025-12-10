@@ -32,10 +32,20 @@ const getProgramName = (program: string): string => {
   }
 };
 
+const getProgramLink = (program: string): string => {
+  switch (program) {
+    case "200k-method":
+      return "https://theleadersrow.com/200k-method";
+    case "weekly-edge":
+      return "https://theleadersrow.com/weekly-edge";
+    default:
+      return "https://theleadersrow.com";
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-registration-email function called");
   
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -46,6 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Received registration submission:", { fullName, email, program });
 
     const programName = getProgramName(program);
+    const programLink = getProgramLink(program);
     const fullAddress = `${address}, ${city}, ${state} ${zipcode}, ${country}`;
 
     // Send notification email to The Leader's Row
@@ -91,11 +102,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Send confirmation email to the registrant
     const confirmationResponse = await resend.emails.send({
       from: "The Leader's Row <connect@theleadersrow.com>",
+      reply_to: "theleadersrow@gmail.com",
       to: [email],
       subject: "Registration Received - The Leader's Row",
       html: `
         <h1>Thank you for registering, ${fullName}!</h1>
-        <p>We have received your registration for <strong>${programName}</strong>.</p>
+        <p>We have received your registration for <strong><a href="${programLink}" style="color: #B8860B;">${programName}</a></strong>.</p>
         <p>A member of our team will contact you within 24–48 hours to complete your registration and guide you through next steps.</p>
         <h3>Your Registration Details:</h3>
         <ul>
@@ -103,8 +115,10 @@ const handler = async (req: Request): Promise<Response> => {
           <li><strong>Email:</strong> ${email}</li>
           <li><strong>Phone:</strong> ${phone}</li>
         </ul>
-        <p>If you have any questions in the meantime, feel free to reach out to us at <a href="mailto:connect@theleadersrow.com">connect@theleadersrow.com</a>.</p>
+        <p>If you have any questions in the meantime, feel free to <a href="https://theleadersrow.com/contact" style="color: #B8860B;">contact us</a> or reply to this email.</p>
         <p>Best regards,<br>The Leader's Row Team</p>
+        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e5e5e5;">
+        <p style="font-size: 12px; color: #666;"><a href="https://theleadersrow.com" style="color: #B8860B;">theleadersrow.com</a></p>
       `,
     });
 
