@@ -4,7 +4,7 @@ import { Calendar, Clock, Video } from "lucide-react";
 
 const BookCall = () => {
   // Replace with your actual Calendly link
-  const calendlyUrl = "https://calendly.com/theleadersrow/discovery-call";
+  const calendlyUrl = "https://calendly.com/theleadersrow/30min";
 
   useEffect(() => {
     document.title = "Book a Strategic Discovery Call | The Leader's Row";
