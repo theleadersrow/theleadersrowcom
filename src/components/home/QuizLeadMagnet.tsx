@@ -113,6 +113,12 @@ const QuizLeadMagnet = () => {
     setStep((prev) => prev - 1);
   };
 
+  const handleRetakeQuiz = () => {
+    setStep(0);
+    setAnswers({});
+    setEmail("");
+  };
+
   const handleSubmit = async () => {
     const validation = emailSchema.safeParse(email);
     if (!validation.success) {
@@ -337,9 +343,14 @@ const QuizLeadMagnet = () => {
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 {results.message}
               </p>
-              <Button asChild className="btn-primary">
-                <a href={results.link}>{results.cta}</a>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild className="btn-primary">
+                  <a href={results.link}>{results.cta}</a>
+                </Button>
+                <Button variant="outline" onClick={handleRetakeQuiz}>
+                  Retake Quiz
+                </Button>
+              </div>
             </div>
           )}
         </div>
