@@ -13,6 +13,10 @@ interface RegistrationEmailRequest {
   email: string;
   phone: string;
   address: string;
+  city: string;
+  state: string;
+  country: string;
+  zipcode: string;
   occupation: string;
   program: string;
 }
@@ -37,11 +41,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { fullName, email, phone, address, occupation, program }: RegistrationEmailRequest = await req.json();
+    const { fullName, email, phone, address, city, state, country, zipcode, occupation, program }: RegistrationEmailRequest = await req.json();
     
     console.log("Received registration submission:", { fullName, email, program });
 
     const programName = getProgramName(program);
+    const fullAddress = `${address}, ${city}, ${state} ${zipcode}, ${country}`;
 
     // Send notification email to The Leader's Row
     const notificationResponse = await resend.emails.send({
@@ -65,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
           </tr>
           <tr>
             <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Address</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">${address}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">${fullAddress}</td>
           </tr>
           <tr>
             <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Occupation</td>
