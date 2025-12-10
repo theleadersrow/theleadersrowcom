@@ -49,14 +49,14 @@ const Header = () => {
 
   const headerBg = isScrolled || !isHomePage
     ? "bg-card/95 backdrop-blur-md shadow-soft"
-    : "bg-navy/80 backdrop-blur-sm";
+    : "bg-transparent";
 
   const textColor = isScrolled || !isHomePage
     ? "text-foreground"
     : "text-cream";
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${headerBg}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg}`}>
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
