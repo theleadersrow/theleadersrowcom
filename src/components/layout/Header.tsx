@@ -105,14 +105,6 @@ const Header = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={scrollToBlueprint}
-              className={`${textColor} hover:text-secondary`}
-            >
-              Free Blueprint
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
               onClick={scrollToQuiz}
               className={`${textColor} hover:text-secondary`}
             >
@@ -153,12 +145,6 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
-              <button
-                onClick={scrollToBlueprint}
-                className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
-              >
-                Free Blueprint
-              </button>
               <button
                 onClick={scrollToQuiz}
                 className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
