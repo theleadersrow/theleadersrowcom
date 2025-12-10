@@ -232,7 +232,7 @@ const QuizLeadMagnet = () => {
                 Career Readiness Assessment
               </h2>
               <p className="text-muted-foreground mb-2">
-                Discover what's blocking your next promotion
+                Discover what's holding you back from being the top 10%
               </p>
               <p className="text-sm text-muted-foreground mb-8">
                 Take this 2-minute quiz to get personalized recommendations for accelerating your career.
