@@ -344,16 +344,11 @@ const QuizLeadMagnet = () => {
                       >
                         <Checkbox
                           checked={isSelected}
-                          onCheckedChange={(checked) => handleMultiAnswer(step, option, checked as boolean)}
-                          id={`q${step}-${idx}`}
-                          onClick={(e) => e.stopPropagation()}
+                          className="pointer-events-none"
                         />
-                        <Label 
-                          htmlFor={`q${step}-${idx}`} 
-                          className={`flex-1 cursor-pointer text-foreground ${isAll ? "font-medium" : ""}`}
-                        >
+                        <span className={`flex-1 text-foreground ${isAll ? "font-medium" : ""}`}>
                           {option}
-                        </Label>
+                        </span>
                       </div>
                     );
                   })}
