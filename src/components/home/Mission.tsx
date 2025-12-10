@@ -14,19 +14,19 @@ const Mission = () => {
             <Compass className="w-8 h-8 text-secondary" />
           </div>
           
-          <p className="text-secondary font-medium mb-4">Our Mission</p>
+          <p className="text-secondary font-medium mb-4">Your Journey</p>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-8">
-            Our mission is simple:
+            You Deserve to Lead
           </h2>
           
           <p className="text-xl md:text-2xl text-cream/90 leading-relaxed mb-8">
-            To empower you to become the most confident, capable, high-impact version of yourself — 
+            You become the most confident, capable, high-impact version of yourself — 
             <span className="text-secondary font-semibold"> faster and with clarity.</span>
           </p>
           
           <p className="text-lg text-cream/70 leading-relaxed">
             Whether you want to break into top tech, earn senior-level compensation, grow into leadership, 
-            or simply stop feeling stuck — we guide you every step of the way.
+            or simply stop feeling stuck — this is your path forward.
           </p>
         </div>
       </div>
