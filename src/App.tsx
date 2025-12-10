@@ -18,6 +18,8 @@ import Login from "./pages/Login";
 import MemberSignup from "./pages/MemberSignup";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import AdminSignup from "./pages/AdminSignup";
+import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/signup" element={<MemberSignup />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin-signup" element={<AdminSignup />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

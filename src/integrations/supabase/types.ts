@@ -76,33 +76,77 @@ export type Database = {
         }
         Relationships: []
       }
+      enrollment_resources: {
+        Row: {
+          created_at: string
+          enrollment_id: string
+          id: string
+          title: string
+          type: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          title: string
+          type?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          title?: string
+          type?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollment_resources_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           email: string | null
           enrolled_at: string
           enrollment_code: string | null
           id: string
+          notes: string | null
           payment_status: string
           program_id: string
+          start_date: string | null
           user_id: string
+          zoom_link: string | null
         }
         Insert: {
           email?: string | null
           enrolled_at?: string
           enrollment_code?: string | null
           id?: string
+          notes?: string | null
           payment_status?: string
           program_id: string
+          start_date?: string | null
           user_id: string
+          zoom_link?: string | null
         }
         Update: {
           email?: string | null
           enrolled_at?: string
           enrollment_code?: string | null
           id?: string
+          notes?: string | null
           payment_status?: string
           program_id?: string
+          start_date?: string | null
           user_id?: string
+          zoom_link?: string | null
         }
         Relationships: [
           {

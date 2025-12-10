@@ -36,7 +36,16 @@ interface Enrollment {
   program_id: string;
   payment_status: string;
   enrolled_at: string;
+  zoom_link: string | null;
+  start_date: string | null;
   programs: Program;
+}
+
+interface EnrollmentResource {
+  id: string;
+  title: string;
+  url: string;
+  type: string;
 }
 
 interface Content {
@@ -55,6 +64,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [content, setContent] = useState<Content[]>([]);
+  const [enrollmentResources, setEnrollmentResources] = useState<Record<string, EnrollmentResource[]>>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("programs");
 
@@ -96,7 +106,22 @@ const Dashboard = () => {
         `)
         .eq("user_id", user!.id);
       
-      if (enrollmentData) setEnrollments(enrollmentData as unknown as Enrollment[]);
+      if (enrollmentData) {
+        setEnrollments(enrollmentData as unknown as Enrollment[]);
+        
+        // Fetch resources for each enrollment
+        const resourceMap: Record<string, EnrollmentResource[]> = {};
+        for (const e of enrollmentData) {
+          const { data: resources } = await supabase
+            .from("enrollment_resources")
+            .select("id, title, url, type")
+            .eq("enrollment_id", e.id);
+          if (resources) {
+            resourceMap[e.id] = resources;
+          }
+        }
+        setEnrollmentResources(resourceMap);
+      }
 
       // Fetch content for enrolled programs
       const { data: contentData } = await supabase
@@ -252,10 +277,10 @@ const Dashboard = () => {
                             <Calendar className="w-4 h-4 text-secondary" />
                             <span>Enrolled: {formatDate(enrollment.enrolled_at)}</span>
                           </div>
-                          {enrollment.programs.start_date && (
+                          {(enrollment.start_date || enrollment.programs.start_date) && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Calendar className="w-4 h-4 text-secondary" />
-                              <span>Starts: {formatDate(enrollment.programs.start_date)}</span>
+                              <span>Starts: {formatDate(enrollment.start_date || enrollment.programs.start_date)}</span>
                             </div>
                           )}
                           <div className="flex items-center gap-2 text-muted-foreground">
@@ -263,6 +288,19 @@ const Dashboard = () => {
                             <span>Payment: {enrollment.payment_status}</span>
                           </div>
                         </div>
+                        {enrollment.zoom_link && enrollment.payment_status === "paid" && (
+                          <div className="mt-4">
+                            <a
+                              href={enrollment.zoom_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors"
+                            >
+                              <Video className="w-4 h-4" />
+                              Join Zoom Session
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -273,26 +311,25 @@ const Dashboard = () => {
 
           {/* Resources Tab */}
           <TabsContent value="resources" className="space-y-6">
-            {accessibleContent.length === 0 ? (
+            {paidEnrollments.length === 0 ? (
               <div className="bg-card rounded-2xl p-8 text-center border border-border/50">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Resources Available</h3>
                 <p className="text-muted-foreground">
                   {enrollments.length === 0 
                     ? "Enroll in a program to access resources."
-                    : paidEnrollments.length === 0
-                      ? "Resources will be available once your payment is confirmed."
-                      : "No resources have been added yet. Check back soon!"}
+                    : "Resources will be available once your payment is confirmed."}
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-6">
                 {paidEnrollments.map((enrollment) => {
                   const programContent = accessibleContent.filter(
                     c => c.program_id === enrollment.program_id
                   );
+                  const resources = enrollmentResources[enrollment.id] || [];
                   
-                  if (programContent.length === 0) return null;
+                  if (programContent.length === 0 && resources.length === 0) return null;
 
                   return (
                     <div key={enrollment.id} className="space-y-4">
@@ -300,6 +337,29 @@ const Dashboard = () => {
                         {enrollment.programs.name} Resources
                       </h3>
                       <div className="grid gap-3">
+                        {/* Enrollment-specific resources */}
+                        {resources.map((item) => (
+                          <a
+                            key={item.id}
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-card rounded-xl p-4 border border-border/50 hover:border-secondary/50 transition-colors flex items-center gap-4 group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary/20 transition-colors">
+                              {getContentIcon(item.type)}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-foreground group-hover:text-secondary transition-colors">
+                                {item.title}
+                              </h4>
+                            </div>
+                            <span className="text-xs text-muted-foreground capitalize px-2 py-1 bg-muted rounded">
+                              {item.type}
+                            </span>
+                          </a>
+                        ))}
+                        {/* Program content */}
                         {programContent.map((item) => (
                           <a
                             key={item.id}
