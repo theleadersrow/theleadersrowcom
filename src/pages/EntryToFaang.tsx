@@ -14,6 +14,12 @@ import {
   Rocket,
   X
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const modules = [
   {
@@ -104,6 +110,37 @@ const programFormat = [
   "Real-World Practice",
   "End-to-End Career Support",
   "Private Community Support",
+];
+
+const faqs = [
+  {
+    question: "When does the next cohort start?",
+    answer: "The next cohort runs from January 8th to February 26th, 2025. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
+  },
+  {
+    question: "What if I can't attend a live session?",
+    answer: "All sessions are recorded and available to cohort members. You'll have access to the replay, along with all worksheets and materials, so you can catch up at your own pace.",
+  },
+  {
+    question: "How is this different from Weekly Edge?",
+    answer: "The 200K Method is an intensive 8-week accelerator focused on career repositioning, personal branding, interview mastery, and landing $200K+ roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of 200K Method continue with Weekly Edge to maintain momentum.",
+  },
+  {
+    question: "What is the refund policy?",
+    answer: "Due to the intensive nature of the program and limited cohort sizes, all payments are final and non-refundable. We recommend reviewing all program details and reaching out with questions before enrolling to ensure it's the right fit for you.",
+  },
+  {
+    question: "Who is this program for?",
+    answer: "This program is designed for experienced Product Managers (3+ years) who are aiming for GPM, Principal, or Director-level roles. It's ideal for those who feel strategically stuck, undervalued, or need a proven framework for career advancement.",
+  },
+  {
+    question: "What will I achieve by the end of the program?",
+    answer: "You'll have a refined personal brand, an optimized resume and LinkedIn profile, mastery of advanced interview frameworks, executive-level communication skills, and a repeatable system for continuous career growth.",
+  },
+  {
+    question: "Is there ongoing support after the 8 weeks?",
+    answer: "Yes! You'll have access to our private Slack community where you can continue to connect with your cohort, ask questions, and receive support even after the program ends.",
+  },
 ];
 
 const The200KMethod = () => {
@@ -370,6 +407,39 @@ const The200KMethod = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="section-padding bg-muted/30">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Everything you need to know about the 200K Method.
+              </p>
+            </div>
+
+            <Accordion type="single" collapsible className="space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem 
+                  key={index} 
+                  value={`item-${index}`}
+                  className="bg-card rounded-xl border border-border/50 px-6 shadow-soft"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-foreground hover:text-secondary transition-colors py-5">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
       </section>
