@@ -461,14 +461,28 @@ const QuizLeadMagnet = () => {
               <h3 className="font-serif text-xl md:text-2xl font-semibold text-foreground mb-2">
                 {results.title}
               </h3>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 {results.message}
               </p>
+              
+              {/* Discovery Call CTA */}
+              <div className="bg-secondary/10 border border-secondary/20 rounded-xl p-6 mb-8 max-w-md mx-auto">
+                <p className="text-sm font-medium text-foreground mb-2">
+                  Want personalized guidance?
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Book a free 30-minute Strategic Discovery Call to discuss your career goals.
+                </p>
+                <Button asChild className="btn-primary w-full">
+                  <a href="/book-call">Book Your Discovery Call</a>
+                </Button>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild className="btn-primary">
+                <Button asChild variant="outline">
                   <a href={results.link}>{results.cta}</a>
                 </Button>
-                <Button variant="outline" onClick={handleRetakeQuiz}>
+                <Button variant="ghost" onClick={handleRetakeQuiz}>
                   Retake Quiz
                 </Button>
               </div>
