@@ -84,6 +84,10 @@ const howItWorks = [
 
 const faqs = [
   {
+    question: "What exactly is Weekly Edge?",
+    answer: "Weekly Edge is an ongoing membership program — not a course. Think of it as upskilling yourself on a weekly basis. Each week, you build a new career asset that compounds your growth over time. It's designed for professionals who are committed to continuous improvement and want to sharpen their skills consistently.",
+  },
+  {
     question: "When are the live sessions?",
     answer: "Live sessions are held every Wednesday from 7:00 PM to 8:30 PM CT. This includes a 60-minute training session followed by 30 minutes of live Q&A and coaching.",
   },
@@ -96,12 +100,12 @@ const faqs = [
     answer: "The 200K Method is an intensive 8-week accelerator focused on career repositioning and landing $200K+ roles. Weekly Edge is an ongoing membership for continuous skill building — perfect for professionals who want to grow steadily week over week.",
   },
   {
-    question: "Can I cancel my membership anytime?",
-    answer: "Yes! You can cancel your monthly membership at any time. If you've already been billed for a month, you'll retain access until the end of your current billing cycle.",
+    question: "What is the cancellation and refund policy?",
+    answer: "You can cancel your membership at any time — no questions asked. Once you cancel, your next billing cycle will not be charged, and you'll retain full access until the end of your current billing period. Please note: there are no refunds for any payments already made. This is a membership, not a one-time purchase.",
   },
   {
     question: "Who is Weekly Edge for?",
-    answer: "Weekly Edge is designed for ambitious professionals — especially Product Managers, leaders, and high performers — who want to continuously sharpen their communication, leadership, and influence skills.",
+    answer: "Weekly Edge is designed for ambitious professionals — especially Product Managers, leaders, and high performers — who are committed to continuously sharpening their communication, leadership, and influence skills on a weekly basis.",
   },
   {
     question: "What skills will I learn?",
