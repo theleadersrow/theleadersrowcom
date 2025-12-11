@@ -128,7 +128,7 @@ export type Database = {
           program_id: string
           start_date: string | null
           state: string | null
-          user_id: string
+          user_id: string | null
           zip_code: string | null
           zoom_link: string | null
         }
@@ -148,7 +148,7 @@ export type Database = {
           program_id: string
           start_date?: string | null
           state?: string | null
-          user_id: string
+          user_id?: string | null
           zip_code?: string | null
           zoom_link?: string | null
         }
@@ -168,7 +168,7 @@ export type Database = {
           program_id?: string
           start_date?: string | null
           state?: string | null
-          user_id?: string
+          user_id?: string | null
           zip_code?: string | null
           zoom_link?: string | null
         }
