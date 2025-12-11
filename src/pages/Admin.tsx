@@ -110,12 +110,24 @@ const Admin = () => {
 
   // Edit enrollment
   const [editingEnrollment, setEditingEnrollment] = useState<Enrollment | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editState, setEditState] = useState("");
+  const [editCountry, setEditCountry] = useState("");
+  const [editZipCode, setEditZipCode] = useState("");
+  const [editOccupation, setEditOccupation] = useState("");
   const [editPaymentStatus, setEditPaymentStatus] = useState("");
   const [editZoomLink, setEditZoomLink] = useState("");
   const [editStartDate, setEditStartDate] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editProgramId, setEditProgramId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Get states for edit form
+  const editAvailableStates = getStatesForCountry(editCountry);
 
   // Resources
   const [resourceEnrollmentId, setResourceEnrollmentId] = useState<string | null>(null);
@@ -279,6 +291,15 @@ const Admin = () => {
 
   const openEditDialog = (enrollment: Enrollment) => {
     setEditingEnrollment(enrollment);
+    setEditFirstName(enrollment.first_name || "");
+    setEditLastName(enrollment.last_name || "");
+    setEditEmail(enrollment.email || "");
+    setEditPhone(enrollment.phone || "");
+    setEditCity(enrollment.city || "");
+    setEditState(enrollment.state || "");
+    setEditCountry(enrollment.country || "");
+    setEditZipCode(enrollment.zip_code || "");
+    setEditOccupation(enrollment.occupation || "");
     setEditPaymentStatus(enrollment.payment_status);
     setEditZoomLink(enrollment.zoom_link || "");
     setEditStartDate(enrollment.start_date || "");
@@ -288,12 +309,25 @@ const Admin = () => {
 
   const updateEnrollment = async () => {
     if (!editingEnrollment) return;
+    if (!editEmail || !editFirstName || !editLastName) {
+      toast.error("First Name, Last Name, and Email are required");
+      return;
+    }
     
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from("enrollments")
         .update({
+          first_name: editFirstName,
+          last_name: editLastName,
+          email: editEmail,
+          phone: editPhone || null,
+          city: editCity || null,
+          state: editState || null,
+          country: editCountry || null,
+          zip_code: editZipCode || null,
+          occupation: editOccupation || null,
           payment_status: editPaymentStatus,
           zoom_link: editZoomLink || null,
           start_date: editStartDate || null,
@@ -705,57 +739,173 @@ const Admin = () => {
                                       <Edit className="h-4 w-4" />
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent>
+                                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                       <DialogTitle>Edit Enrollment</DialogTitle>
+                                      {editingEnrollment?.enrollment_code && (
+                                        <p className="text-sm text-muted-foreground">
+                                          Enrollment ID: <code className="bg-muted px-2 py-1 rounded">{editingEnrollment.enrollment_code}</code>
+                                        </p>
+                                      )}
                                     </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                      <div className="space-y-2">
-                                        <Label>Program</Label>
-                                        <Select value={editProgramId} onValueChange={setEditProgramId}>
-                                          <SelectTrigger><SelectValue /></SelectTrigger>
-                                          <SelectContent>
-                                            {programs.map((p) => (
-                                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
+                                    <div className="space-y-6 py-4">
+                                      {/* Personal Information */}
+                                      <div className="space-y-3">
+                                        <h4 className="font-medium text-sm text-muted-foreground">Personal Information</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div className="space-y-2">
+                                            <Label>First Name *</Label>
+                                            <Input
+                                              value={editFirstName}
+                                              onChange={(ev) => setEditFirstName(ev.target.value)}
+                                              required
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Last Name *</Label>
+                                            <Input
+                                              value={editLastName}
+                                              onChange={(ev) => setEditLastName(ev.target.value)}
+                                              required
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Email *</Label>
+                                            <Input
+                                              type="email"
+                                              value={editEmail}
+                                              onChange={(ev) => setEditEmail(ev.target.value)}
+                                              required
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Phone</Label>
+                                            <Input
+                                              type="tel"
+                                              value={editPhone}
+                                              onChange={(ev) => setEditPhone(ev.target.value)}
+                                            />
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div className="space-y-2">
-                                        <Label>Payment Status</Label>
-                                        <Select value={editPaymentStatus} onValueChange={setEditPaymentStatus}>
-                                          <SelectTrigger><SelectValue /></SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="paid">Paid</SelectItem>
-                                          </SelectContent>
-                                        </Select>
+
+                                      {/* Address & Occupation */}
+                                      <div className="space-y-3">
+                                        <h4 className="font-medium text-sm text-muted-foreground">Address & Occupation</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                          <div className="space-y-2">
+                                            <Label>Country</Label>
+                                            <Select 
+                                              value={editCountry} 
+                                              onValueChange={(value) => {
+                                                setEditCountry(value);
+                                                setEditState("");
+                                              }}
+                                            >
+                                              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                                              <SelectContent>
+                                                {countries.map((c) => (
+                                                  <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>State/Province</Label>
+                                            {editAvailableStates.length > 0 ? (
+                                              <Select value={editState} onValueChange={setEditState}>
+                                                <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
+                                                <SelectContent>
+                                                  {editAvailableStates.map((s) => (
+                                                    <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                                                  ))}
+                                                </SelectContent>
+                                              </Select>
+                                            ) : (
+                                              <Input
+                                                placeholder="State/Province"
+                                                value={editState}
+                                                onChange={(ev) => setEditState(ev.target.value)}
+                                              />
+                                            )}
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>City</Label>
+                                            <Input
+                                              value={editCity}
+                                              onChange={(ev) => setEditCity(ev.target.value)}
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Zip Code</Label>
+                                            <Input
+                                              value={editZipCode}
+                                              onChange={(ev) => setEditZipCode(ev.target.value)}
+                                            />
+                                          </div>
+                                          <div className="space-y-2 md:col-span-2">
+                                            <Label>Occupation</Label>
+                                            <Input
+                                              value={editOccupation}
+                                              onChange={(ev) => setEditOccupation(ev.target.value)}
+                                            />
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div className="space-y-2">
-                                        <Label>Start Date</Label>
-                                        <Input
-                                          type="date"
-                                          value={editStartDate}
-                                          onChange={(e) => setEditStartDate(e.target.value)}
-                                        />
+
+                                      {/* Program Details */}
+                                      <div className="space-y-3">
+                                        <h4 className="font-medium text-sm text-muted-foreground">Program Details</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div className="space-y-2">
+                                            <Label>Program</Label>
+                                            <Select value={editProgramId} onValueChange={setEditProgramId}>
+                                              <SelectTrigger><SelectValue /></SelectTrigger>
+                                              <SelectContent>
+                                                {programs.map((p) => (
+                                                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Payment Status</Label>
+                                            <Select value={editPaymentStatus} onValueChange={setEditPaymentStatus}>
+                                              <SelectTrigger><SelectValue /></SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="pending">Pending</SelectItem>
+                                                <SelectItem value="paid">Paid</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Start Date</Label>
+                                            <Input
+                                              type="date"
+                                              value={editStartDate}
+                                              onChange={(ev) => setEditStartDate(ev.target.value)}
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Zoom Link</Label>
+                                            <Input
+                                              type="url"
+                                              placeholder="https://zoom.us/j/..."
+                                              value={editZoomLink}
+                                              onChange={(ev) => setEditZoomLink(ev.target.value)}
+                                            />
+                                          </div>
+                                          <div className="space-y-2 md:col-span-2">
+                                            <Label>Notes</Label>
+                                            <Textarea
+                                              placeholder="Any additional notes"
+                                              value={editNotes}
+                                              onChange={(ev) => setEditNotes(ev.target.value)}
+                                            />
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div className="space-y-2">
-                                        <Label>Zoom Link</Label>
-                                        <Input
-                                          type="url"
-                                          placeholder="https://zoom.us/j/..."
-                                          value={editZoomLink}
-                                          onChange={(e) => setEditZoomLink(e.target.value)}
-                                        />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <Label>Notes</Label>
-                                        <Textarea
-                                          placeholder="Any additional notes"
-                                          value={editNotes}
-                                          onChange={(e) => setEditNotes(e.target.value)}
-                                        />
-                                      </div>
+
                                       <Button onClick={updateEnrollment} disabled={isUpdating} className="w-full">
                                         {isUpdating ? "Saving..." : "Save Changes"}
                                       </Button>
