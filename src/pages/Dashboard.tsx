@@ -4,6 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { 
   LogOut, 
   BookOpen, 
@@ -13,7 +18,10 @@ import {
   Video, 
   Download,
   User,
-  Loader2
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,6 +75,8 @@ const Dashboard = () => {
   const [enrollmentResources, setEnrollmentResources] = useState<Record<string, EnrollmentResource[]>>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("programs");
+  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -254,57 +264,136 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="grid gap-6">
-                {enrollments.map((enrollment) => (
-                  <div 
-                    key={enrollment.id}
-                    className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-semibold text-foreground">
-                            {enrollment.programs.name}
-                          </h3>
-                          <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getPaymentStatusBadge(enrollment.payment_status)}`}>
-                            {enrollment.payment_status.charAt(0).toUpperCase() + enrollment.payment_status.slice(1)}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-4">
-                          {enrollment.programs.description}
-                        </p>
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Calendar className="w-4 h-4 text-secondary" />
-                            <span>Enrolled: {formatDate(enrollment.enrolled_at)}</span>
+                {enrollments.map((enrollment) => {
+                  const programContent = content.filter(c => c.program_id === enrollment.program_id);
+                  const isExpanded = expandedProgram === enrollment.id;
+                  const isPaid = enrollment.payment_status === "paid";
+                  
+                  return (
+                    <div 
+                      key={enrollment.id}
+                      className="bg-card rounded-2xl border border-border/50 shadow-soft overflow-hidden"
+                    >
+                      {/* Program Header - Clickable */}
+                      <div 
+                        className={`p-6 ${isPaid ? 'cursor-pointer hover:bg-muted/30' : ''} transition-colors`}
+                        onClick={() => isPaid && setExpandedProgram(isExpanded ? null : enrollment.id)}
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              {isPaid && (
+                                <div className="text-secondary">
+                                  {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                                </div>
+                              )}
+                              <h3 className="text-xl font-semibold text-foreground">
+                                {enrollment.programs.name}
+                              </h3>
+                              <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getPaymentStatusBadge(enrollment.payment_status)}`}>
+                                {enrollment.payment_status.charAt(0).toUpperCase() + enrollment.payment_status.slice(1)}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground text-sm mb-4 ml-8">
+                              {enrollment.programs.description}
+                            </p>
+                            <div className="flex flex-wrap gap-4 text-sm ml-8">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calendar className="w-4 h-4 text-secondary" />
+                                <span>Enrolled: {formatDate(enrollment.enrolled_at)}</span>
+                              </div>
+                              {(enrollment.start_date || enrollment.programs.start_date) && (
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Calendar className="w-4 h-4 text-secondary" />
+                                  <span>Starts: {formatDate(enrollment.start_date || enrollment.programs.start_date)}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <CreditCard className="w-4 h-4 text-secondary" />
+                                <span>Payment: {enrollment.payment_status}</span>
+                              </div>
+                            </div>
+                            {enrollment.zoom_link && isPaid && (
+                              <div className="mt-4 ml-8">
+                                <a
+                                  href={enrollment.zoom_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors"
+                                >
+                                  <Video className="w-4 h-4" />
+                                  Join Zoom Session
+                                </a>
+                              </div>
+                            )}
                           </div>
-                          {(enrollment.start_date || enrollment.programs.start_date) && (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Calendar className="w-4 h-4 text-secondary" />
-                              <span>Starts: {formatDate(enrollment.start_date || enrollment.programs.start_date)}</span>
+                        </div>
+                      </div>
+
+                      {/* Expanded Course Content */}
+                      {isExpanded && isPaid && (
+                        <div className="border-t border-border/50 bg-muted/20 p-6">
+                          <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-secondary" />
+                            Course Modules ({programContent.length})
+                          </h4>
+                          
+                          {programContent.length === 0 ? (
+                            <p className="text-muted-foreground text-center py-4">
+                              Course content coming soon...
+                            </p>
+                          ) : (
+                            <div className="space-y-3">
+                              {programContent.map((module) => (
+                                <Collapsible 
+                                  key={module.id} 
+                                  open={expandedModule === module.id}
+                                  onOpenChange={() => setExpandedModule(expandedModule === module.id ? null : module.id)}
+                                >
+                                  <div className="bg-card rounded-xl border border-border/50 overflow-hidden">
+                                    <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+                                          <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div className="text-left">
+                                          <h5 className="font-medium text-foreground">{module.title}</h5>
+                                          <p className="text-sm text-muted-foreground line-clamp-1">{module.description}</p>
+                                        </div>
+                                      </div>
+                                      {expandedModule === module.id ? (
+                                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                                      ) : (
+                                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                                      )}
+                                    </CollapsibleTrigger>
+                                    
+                                    <CollapsibleContent>
+                                      <div className="px-4 pb-4 pt-2 border-t border-border/30">
+                                        <p className="text-sm text-muted-foreground mb-4">{module.description}</p>
+                                        <a
+                                          href={module.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors text-sm font-medium"
+                                        >
+                                          <Download className="w-4 h-4" />
+                                          Download Course Material
+                                          <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                      </div>
+                                    </CollapsibleContent>
+                                  </div>
+                                </Collapsible>
+                              ))}
                             </div>
                           )}
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <CreditCard className="w-4 h-4 text-secondary" />
-                            <span>Payment: {enrollment.payment_status}</span>
-                          </div>
                         </div>
-                        {enrollment.zoom_link && enrollment.payment_status === "paid" && (
-                          <div className="mt-4">
-                            <a
-                              href={enrollment.zoom_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors"
-                            >
-                              <Video className="w-4 h-4" />
-                              Join Zoom Session
-                            </a>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>
