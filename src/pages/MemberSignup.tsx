@@ -29,32 +29,23 @@ const MemberSignup = () => {
     setIsLoading(true);
 
     try {
+      // Use secure function that only returns validity and ID (no PII exposed)
       const { data, error } = await supabase
-        .from("enrollments")
-        .select("id, email, user_id")
-        .eq("enrollment_code", enrollmentCode.trim().toUpperCase())
-        .maybeSingle();
+        .rpc("check_enrollment_code", { code: enrollmentCode.trim().toUpperCase() });
 
       if (error) {
         toast.error("Error verifying code. Please try again.");
         return;
       }
 
-      if (!data) {
-        toast.error("Invalid enrollment code. Please check and try again.");
+      const result = data?.[0];
+      
+      if (!result?.is_valid) {
+        toast.error("Invalid or already claimed enrollment code. Please check and try again.");
         return;
       }
 
-      if (data.user_id) {
-        toast.error("This enrollment code has already been used. Please login instead.");
-        navigate("/login");
-        return;
-      }
-
-      setEnrollmentId(data.id);
-      if (data.email) {
-        setEmail(data.email);
-      }
+      setEnrollmentId(result.enrollment_id);
       setIsVerified(true);
       toast.success("Enrollment verified! Please complete your registration.");
     } catch (error) {

@@ -266,6 +266,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_enrollment_code: {
+        Args: { code: string }
+        Returns: {
+          enrollment_id: string
+          is_valid: boolean
+        }[]
+      }
       generate_enrollment_code: { Args: never; Returns: string }
       has_role: {
         Args: {
