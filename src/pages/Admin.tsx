@@ -29,9 +29,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, Link, FileText } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User } from "lucide-react";
+import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 
 interface Enrollment {
   id: string;
@@ -50,6 +56,7 @@ interface Enrollment {
   city: string | null;
   state: string | null;
   country: string | null;
+  zip_code: string | null;
   occupation: string | null;
   profiles: {
     full_name: string | null;
@@ -82,6 +89,7 @@ const Admin = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [expandedEnrollment, setExpandedEnrollment] = useState<string | null>(null);
   
   // New enrollment form
   const [newFirstName, setNewFirstName] = useState("");
@@ -91,6 +99,7 @@ const Admin = () => {
   const [newCity, setNewCity] = useState("");
   const [newState, setNewState] = useState("");
   const [newCountry, setNewCountry] = useState("");
+  const [newZipCode, setNewZipCode] = useState("");
   const [newOccupation, setNewOccupation] = useState("");
   const [newProgramId, setNewProgramId] = useState("");
   const [newPaymentStatus, setNewPaymentStatus] = useState("pending");
@@ -115,6 +124,9 @@ const Admin = () => {
   const [newResourceUrl, setNewResourceUrl] = useState("");
   const [newResourceType, setNewResourceType] = useState("link");
   const [isAddingResource, setIsAddingResource] = useState(false);
+
+  // Get states based on selected country
+  const availableStates = getStatesForCountry(newCountry);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -159,7 +171,7 @@ const Admin = () => {
           .select(`
             id, enrolled_at, payment_status, user_id, program_id,
             enrollment_code, email, zoom_link, notes, start_date,
-            first_name, last_name, phone, city, state, country, occupation,
+            first_name, last_name, phone, city, state, country, zip_code, occupation,
             profiles!enrollments_user_id_fkey (full_name, email),
             programs!enrollments_program_id_fkey (name, start_date)
           `)
@@ -191,7 +203,7 @@ const Admin = () => {
       .select(`
         id, enrolled_at, payment_status, user_id, program_id,
         enrollment_code, email, zoom_link, notes, start_date,
-        first_name, last_name, phone, city, state, country, occupation,
+        first_name, last_name, phone, city, state, country, zip_code, occupation,
         profiles!enrollments_user_id_fkey (full_name, email),
         programs!enrollments_program_id_fkey (name, start_date)
       `)
@@ -228,6 +240,7 @@ const Admin = () => {
           city: newCity || null,
           state: newState || null,
           country: newCountry || null,
+          zip_code: newZipCode || null,
           occupation: newOccupation || null,
           payment_status: newPaymentStatus,
           zoom_link: newZoomLink || null,
@@ -249,6 +262,7 @@ const Admin = () => {
         setNewCity("");
         setNewState("");
         setNewCountry("");
+        setNewZipCode("");
         setNewOccupation("");
         setNewProgramId("");
         setNewPaymentStatus("pending");
@@ -360,6 +374,22 @@ const Admin = () => {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
+  const toggleExpandedEnrollment = (id: string) => {
+    setExpandedEnrollment(expandedEnrollment === id ? null : id);
+  };
+
+  const getFullName = (e: Enrollment) => {
+    if (e.first_name && e.last_name) {
+      return `${e.first_name} ${e.last_name}`;
+    }
+    return e.profiles?.full_name || "—";
+  };
+
+  const formatAddress = (e: Enrollment) => {
+    const parts = [e.city, e.state, e.zip_code, e.country].filter(Boolean);
+    return parts.length > 0 ? parts.join(", ") : "—";
+  };
+
   if (loading || isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -442,7 +472,43 @@ const Admin = () => {
                 {/* Address & Occupation */}
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm text-muted-foreground">Address & Occupation</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="space-y-2">
+                      <Label>Country</Label>
+                      <Select 
+                        value={newCountry} 
+                        onValueChange={(value) => {
+                          setNewCountry(value);
+                          setNewState(""); // Reset state when country changes
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                        <SelectContent>
+                          {countries.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>State/Province</Label>
+                      {availableStates.length > 0 ? (
+                        <Select value={newState} onValueChange={setNewState}>
+                          <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
+                          <SelectContent>
+                            {availableStates.map((s) => (
+                              <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          placeholder="State/Province"
+                          value={newState}
+                          onChange={(e) => setNewState(e.target.value)}
+                        />
+                      )}
+                    </div>
                     <div className="space-y-2">
                       <Label>City</Label>
                       <Input
@@ -452,23 +518,15 @@ const Admin = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>State</Label>
+                      <Label>Zip Code</Label>
                       <Input
-                        placeholder="NY"
-                        value={newState}
-                        onChange={(e) => setNewState(e.target.value)}
+                        placeholder="10001"
+                        value={newZipCode}
+                        onChange={(e) => setNewZipCode(e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Country</Label>
-                      <Input
-                        placeholder="USA"
-                        value={newCountry}
-                        onChange={(e) => setNewCountry(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Current Occupation</Label>
+                      <Label>Occupation</Label>
                       <Input
                         placeholder="Product Manager"
                         value={newOccupation}
@@ -578,203 +636,292 @@ const Admin = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Member</TableHead>
+                      <TableHead className="w-8"></TableHead>
+                      <TableHead>Full Name</TableHead>
                       <TableHead>Program</TableHead>
+                      <TableHead>Enrollment ID</TableHead>
                       <TableHead>Start Date</TableHead>
                       <TableHead>Payment</TableHead>
-                      <TableHead>Zoom</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {enrollments.map((e) => (
-                      <TableRow key={e.id}>
-                        <TableCell>
-                          {e.enrollment_code && (
-                            <div className="flex items-center gap-2">
-                              <code className="bg-muted px-2 py-1 rounded text-xs">
-                                {e.enrollment_code}
-                              </code>
-                              <button onClick={() => copyCode(e.enrollment_code!)}>
-                                {copiedCode === e.enrollment_code ? (
-                                  <Check className="h-4 w-4 text-green-500" />
-                                ) : (
-                                  <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                                )}
+                      <Collapsible key={e.id} asChild open={expandedEnrollment === e.id}>
+                        <>
+                          <TableRow className="cursor-pointer hover:bg-muted/50">
+                            <TableCell>
+                              <CollapsibleTrigger asChild>
+                                <button 
+                                  onClick={() => toggleExpandedEnrollment(e.id)}
+                                  className="p-1 hover:bg-muted rounded"
+                                >
+                                  {expandedEnrollment === e.id ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </CollapsibleTrigger>
+                            </TableCell>
+                            <TableCell>
+                              <button 
+                                onClick={() => toggleExpandedEnrollment(e.id)}
+                                className="text-left font-medium hover:text-primary transition-colors"
+                              >
+                                {getFullName(e)}
                               </button>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={e.user_id ? "default" : "secondary"}>
-                            {e.user_id ? "Claimed" : "Pending"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {e.first_name && e.last_name 
-                                ? `${e.first_name} ${e.last_name}` 
-                                : e.profiles?.full_name || "—"}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {e.email || e.profiles?.email || "—"}
-                            </div>
-                            {e.occupation && (
-                              <div className="text-xs text-muted-foreground">{e.occupation}</div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{e.programs?.name || "—"}</TableCell>
-                        <TableCell>
-                          {e.start_date ? new Date(e.start_date).toLocaleDateString() : "—"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={e.payment_status === "paid" ? "default" : "secondary"}>
-                            {e.payment_status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {e.zoom_link ? (
-                            <a href={e.zoom_link} target="_blank" rel="noopener noreferrer">
-                              <Link className="h-4 w-4 text-primary" />
-                            </a>
-                          ) : "—"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm" onClick={() => openEditDialog(e)}>
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Edit Enrollment</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                  <div className="space-y-2">
-                                    <Label>Program</Label>
-                                    <Select value={editProgramId} onValueChange={setEditProgramId}>
-                                      <SelectTrigger><SelectValue /></SelectTrigger>
-                                      <SelectContent>
-                                        {programs.map((p) => (
-                                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Payment Status</Label>
-                                    <Select value={editPaymentStatus} onValueChange={setEditPaymentStatus}>
-                                      <SelectTrigger><SelectValue /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="paid">Paid</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Start Date</Label>
-                                    <Input
-                                      type="date"
-                                      value={editStartDate}
-                                      onChange={(e) => setEditStartDate(e.target.value)}
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Zoom Link</Label>
-                                    <Input
-                                      type="url"
-                                      placeholder="https://zoom.us/j/..."
-                                      value={editZoomLink}
-                                      onChange={(e) => setEditZoomLink(e.target.value)}
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label>Notes</Label>
-                                    <Textarea
-                                      placeholder="Any additional notes"
-                                      value={editNotes}
-                                      onChange={(e) => setEditNotes(e.target.value)}
-                                    />
-                                  </div>
-                                  <Button onClick={updateEnrollment} disabled={isUpdating} className="w-full">
-                                    {isUpdating ? "Saving..." : "Save Changes"}
-                                  </Button>
+                            </TableCell>
+                            <TableCell>{e.programs?.name || "—"}</TableCell>
+                            <TableCell>
+                              {e.enrollment_code && (
+                                <div className="flex items-center gap-2">
+                                  <code className="bg-muted px-2 py-1 rounded text-xs">
+                                    {e.enrollment_code}
+                                  </code>
+                                  <button onClick={() => copyCode(e.enrollment_code!)}>
+                                    {copiedCode === e.enrollment_code ? (
+                                      <Check className="h-4 w-4 text-green-500" />
+                                    ) : (
+                                      <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                    )}
+                                  </button>
                                 </div>
-                              </DialogContent>
-                            </Dialog>
-                            
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm" onClick={() => loadResources(e.id)}>
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>Resources for {e.profiles?.full_name || e.email || "Member"}</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                    <Input
-                                      placeholder="Resource title"
-                                      value={newResourceTitle}
-                                      onChange={(e) => setNewResourceTitle(e.target.value)}
-                                    />
-                                    <Input
-                                      placeholder="URL"
-                                      value={newResourceUrl}
-                                      onChange={(e) => setNewResourceUrl(e.target.value)}
-                                    />
-                                    <div className="flex gap-2">
-                                      <Select value={newResourceType} onValueChange={setNewResourceType}>
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="link">Link</SelectItem>
-                                          <SelectItem value="video">Video</SelectItem>
-                                          <SelectItem value="pdf">PDF</SelectItem>
-                                          <SelectItem value="worksheet">Worksheet</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <Button onClick={addResource} disabled={isAddingResource} size="sm">
-                                        <Plus className="h-4 w-4" />
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {e.start_date ? new Date(e.start_date).toLocaleDateString() : "—"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={e.payment_status === "paid" ? "default" : "secondary"}>
+                                {e.payment_status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(e)}>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Edit Enrollment</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                      <div className="space-y-2">
+                                        <Label>Program</Label>
+                                        <Select value={editProgramId} onValueChange={setEditProgramId}>
+                                          <SelectTrigger><SelectValue /></SelectTrigger>
+                                          <SelectContent>
+                                            {programs.map((p) => (
+                                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>Payment Status</Label>
+                                        <Select value={editPaymentStatus} onValueChange={setEditPaymentStatus}>
+                                          <SelectTrigger><SelectValue /></SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="paid">Paid</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>Start Date</Label>
+                                        <Input
+                                          type="date"
+                                          value={editStartDate}
+                                          onChange={(e) => setEditStartDate(e.target.value)}
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>Zoom Link</Label>
+                                        <Input
+                                          type="url"
+                                          placeholder="https://zoom.us/j/..."
+                                          value={editZoomLink}
+                                          onChange={(e) => setEditZoomLink(e.target.value)}
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label>Notes</Label>
+                                        <Textarea
+                                          placeholder="Any additional notes"
+                                          value={editNotes}
+                                          onChange={(e) => setEditNotes(e.target.value)}
+                                        />
+                                      </div>
+                                      <Button onClick={updateEnrollment} disabled={isUpdating} className="w-full">
+                                        {isUpdating ? "Saving..." : "Save Changes"}
                                       </Button>
                                     </div>
-                                  </div>
-                                  
-                                  {resources.length > 0 ? (
-                                    <div className="space-y-2">
-                                      {resources.map((r) => (
-                                        <div key={r.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                          <div>
-                                            <div className="font-medium">{r.title}</div>
-                                            <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                                              {r.url}
-                                            </a>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <Badge variant="outline">{r.type}</Badge>
-                                            <Button variant="ghost" size="sm" onClick={() => deleteResource(r.id)}>
-                                              ×
-                                            </Button>
-                                          </div>
+                                  </DialogContent>
+                                </Dialog>
+                                
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" onClick={() => loadResources(e.id)}>
+                                      <FileText className="h-4 w-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle>Resources for {getFullName(e)}</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        <Input
+                                          placeholder="Resource title"
+                                          value={newResourceTitle}
+                                          onChange={(ev) => setNewResourceTitle(ev.target.value)}
+                                        />
+                                        <Input
+                                          placeholder="URL"
+                                          value={newResourceUrl}
+                                          onChange={(ev) => setNewResourceUrl(ev.target.value)}
+                                        />
+                                        <div className="flex gap-2">
+                                          <Select value={newResourceType} onValueChange={setNewResourceType}>
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="link">Link</SelectItem>
+                                              <SelectItem value="video">Video</SelectItem>
+                                              <SelectItem value="pdf">PDF</SelectItem>
+                                              <SelectItem value="worksheet">Worksheet</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                          <Button onClick={addResource} disabled={isAddingResource} size="sm">
+                                            <Plus className="h-4 w-4" />
+                                          </Button>
                                         </div>
-                                      ))}
+                                      </div>
+                                      
+                                      {resources.length > 0 ? (
+                                        <div className="space-y-2">
+                                          {resources.map((r) => (
+                                            <div key={r.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                              <div>
+                                                <span className="font-medium">{r.title}</span>
+                                                <span className="text-xs text-muted-foreground ml-2">({r.type})</span>
+                                              </div>
+                                              <div className="flex gap-2">
+                                                <a href={r.url} target="_blank" rel="noopener noreferrer">
+                                                  <Button variant="ghost" size="sm">View</Button>
+                                                </a>
+                                                <Button 
+                                                  variant="ghost" 
+                                                  size="sm" 
+                                                  onClick={() => deleteResource(r.id)}
+                                                  className="text-destructive hover:text-destructive"
+                                                >
+                                                  Delete
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-muted-foreground text-center py-4">
+                                          No resources added yet.
+                                        </p>
+                                      )}
                                     </div>
-                                  ) : (
-                                    <p className="text-muted-foreground text-center py-4">No resources yet.</p>
-                                  )}
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          <CollapsibleContent asChild>
+                            <TableRow className="bg-muted/30">
+                              <TableCell colSpan={7} className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {/* Contact Information */}
+                                  <div className="space-y-3">
+                                    <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                      <User className="h-4 w-4" />
+                                      Contact Information
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                      <div>
+                                        <span className="text-muted-foreground">Email:</span>
+                                        <span className="ml-2">{e.email || e.profiles?.email || "—"}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Phone:</span>
+                                        <span className="ml-2">{e.phone || "—"}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Occupation:</span>
+                                        <span className="ml-2">{e.occupation || "—"}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Address:</span>
+                                        <span className="ml-2">{formatAddress(e)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Portal Status */}
+                                  <div className="space-y-3">
+                                    <h4 className="font-semibold text-sm text-foreground">Portal Status</h4>
+                                    <div className="space-y-2 text-sm">
+                                      <div>
+                                        <span className="text-muted-foreground">Portal Enrolled:</span>
+                                        <span className="ml-2">
+                                          {e.user_id ? (
+                                            <Badge variant="default" className="text-xs">Yes</Badge>
+                                          ) : (
+                                            <Badge variant="secondary" className="text-xs">No</Badge>
+                                          )}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Username (Email):</span>
+                                        <span className="ml-2">{e.profiles?.email || "Not registered"}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Enrolled At:</span>
+                                        <span className="ml-2">{new Date(e.enrolled_at).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Program Details */}
+                                  <div className="space-y-3">
+                                    <h4 className="font-semibold text-sm text-foreground">Program Details</h4>
+                                    <div className="space-y-2 text-sm">
+                                      <div>
+                                        <span className="text-muted-foreground">Zoom Link:</span>
+                                        <span className="ml-2">
+                                          {e.zoom_link ? (
+                                            <a 
+                                              href={e.zoom_link} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer"
+                                              className="text-primary hover:underline"
+                                            >
+                                              Open Link
+                                            </a>
+                                          ) : "—"}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Notes:</span>
+                                        <span className="ml-2">{e.notes || "—"}</span>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                              </TableCell>
+                            </TableRow>
+                          </CollapsibleContent>
+                        </>
+                      </Collapsible>
                     ))}
                   </TableBody>
                 </Table>
