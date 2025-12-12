@@ -11,19 +11,76 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+// Rate limiting configuration - lower limit for AI-powered endpoint
+const RATE_LIMIT = {
+  maxRequests: 3,
+  windowMinutes: 60,
+};
+
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+    || req.headers.get("x-real-ip") 
+    || "unknown";
+}
+
+async function checkRateLimit(identifier: string, endpoint: string, supabase: any): Promise<{ allowed: boolean }> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("*")
+    .eq("identifier", identifier)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart)
+    .single();
+
+  if (existing) {
+    if (existing.request_count >= RATE_LIMIT.maxRequests) {
+      return { allowed: false };
+    }
+    await supabase.from("rate_limits").update({ request_count: existing.request_count + 1 }).eq("id", existing.id);
+    return { allowed: true };
+  }
+  
+  await supabase.from("rate_limits").upsert({
+    identifier, endpoint, request_count: 1, window_start: new Date().toISOString(),
+  }, { onConflict: "identifier,endpoint" });
+  
+  return { allowed: true };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { sessionId } = await req.json();
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    if (!sessionId) {
-      throw new Error("Session ID required");
+  try {
+    const clientIP = getClientIP(req);
+    
+    // Check rate limit first
+    const rateLimit = await checkRateLimit(clientIP, "generate-career-report", supabase);
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for generate-career-report:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "3600", ...corsHeaders } }
+      );
     }
 
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    const { sessionId } = await req.json();
+
+    // Validate sessionId format
+    if (!sessionId || typeof sessionId !== "string" || !UUID_REGEX.test(sessionId)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid session ID format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     // Get session with responses
     const { data: session, error: sessionError } = await supabase

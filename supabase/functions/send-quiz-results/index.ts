@@ -1,11 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Rate limiting configuration
+const RATE_LIMIT = {
+  maxRequests: 5,
+  windowMinutes: 60,
 };
 
 interface QuizResultsRequest {
@@ -19,6 +26,64 @@ interface QuizResultsRequest {
   };
 }
 
+// Check and update rate limit
+async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("*")
+    .eq("identifier", identifier)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart)
+    .single();
+
+  if (existing) {
+    if (existing.request_count >= RATE_LIMIT.maxRequests) {
+      return { allowed: false, remaining: 0 };
+    }
+    
+    await supabase
+      .from("rate_limits")
+      .update({ request_count: existing.request_count + 1 })
+      .eq("id", existing.id);
+    
+    return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
+  }
+  
+  await supabase
+    .from("rate_limits")
+    .upsert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString(),
+    }, { onConflict: "identifier,endpoint" });
+  
+  return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+    || req.headers.get("x-real-ip") 
+    || "unknown";
+}
+
+// Sanitize inputs for HTML
+const sanitize = (str: string) => str.replace(/[<>&"']/g, (c) => ({
+  '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
+}[c] || c));
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Allowed link paths to prevent open redirect
+const ALLOWED_LINK_PATHS = ["/200k-method", "/weekly-edge", "/entry-to-faang", "/book-call"];
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -26,14 +91,69 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const clientIP = getClientIP(req);
+    
+    // Check rate limit
+    const rateLimit = await checkRateLimit(clientIP, "send-quiz-results");
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+
     const { email, answers, result }: QuizResultsRequest = await req.json();
     
+    // Input validation
+    if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email) || email.length > 255) {
+      return new Response(JSON.stringify({ error: "Invalid email" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    if (!answers || typeof answers !== "object") {
+      return new Response(JSON.stringify({ error: "Invalid answers" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    if (!result || typeof result !== "object" || !result.title || !result.link) {
+      return new Response(JSON.stringify({ error: "Invalid result" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    // Validate result link to prevent open redirect
+    const linkPath = result.link.startsWith("/") ? result.link : `/${result.link}`;
+    if (!ALLOWED_LINK_PATHS.some(path => linkPath.startsWith(path))) {
+      return new Response(JSON.stringify({ error: "Invalid result link" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
     console.log("Sending quiz results to:", email);
-    console.log("Quiz answers:", answers);
     console.log("Result recommendation:", result.title);
+
+    // Sanitize result fields
+    const safeTitle = sanitize(result.title);
+    const safeMessage = sanitize(result.message || "");
+    const safeCta = sanitize(result.cta || "Learn More");
 
     // Build answers summary for email
     const answersSummary = Object.entries(answers)
+      .slice(0, 10) // Limit to prevent abuse
       .map(([questionNum, answer]) => {
         const questionLabels: Record<string, string> = {
           "1": "Biggest career challenge",
@@ -44,7 +164,8 @@ const handler = async (req: Request): Promise<Response> => {
           "6": "Commitment level",
           "7": "Type of growth preferred",
         };
-        return `<li><strong>${questionLabels[questionNum] || `Question ${questionNum}`}:</strong> ${answer}</li>`;
+        const safeAnswer = sanitize(String(answer).slice(0, 500));
+        return `<li><strong>${questionLabels[questionNum] || `Question ${questionNum}`}:</strong> ${safeAnswer}</li>`;
       })
       .join("");
 
@@ -55,14 +176,14 @@ const handler = async (req: Request): Promise<Response> => {
     const isWeeklyEdge = result.link.includes("weekly-edge");
     const isBoth = result.title.toLowerCase().includes("both") || result.title.toLowerCase().includes("combination");
 
-    // Extract answers for analysis
-    const challenge = answers["1"] || "";
-    const skills = answers["2"] || "";
-    const tenure = answers["3"] || "";
-    const blocker = answers["4"] || "";
-    const helpType = answers["5"] || "";
-    const commitment = answers["6"] || "";
-    const growthPref = answers["7"] || "";
+    // Extract answers for analysis (with defaults)
+    const challenge = String(answers["1"] || "").slice(0, 500);
+    const skills = String(answers["2"] || "").slice(0, 500);
+    const tenure = String(answers["3"] || "").slice(0, 500);
+    const blocker = String(answers["4"] || "").slice(0, 500);
+    const helpType = String(answers["5"] || "").slice(0, 500);
+    const commitment = String(answers["6"] || "").slice(0, 500);
+    const growthPref = String(answers["7"] || "").slice(0, 500);
 
     // Build smart career profile analysis
     const buildCareerProfile = () => {
@@ -83,7 +204,7 @@ const handler = async (req: Request): Promise<Response> => {
         profile.situation = "You're at a pivotal point in your career where the right investment in yourself can create exponential returns.";
       }
 
-      // Identify their strength based on what they want to develop (implies they recognize its importance)
+      // Identify their strength based on what they want to develop
       if (skills.toLowerCase().includes("communication") || skills.toLowerCase().includes("storytelling")) {
         profile.strength = "You recognize that communication is the key differentiator for leaders — this awareness alone puts you ahead of most professionals.";
       } else if (skills.toLowerCase().includes("influence") || skills.toLowerCase().includes("stakeholder")) {
@@ -117,7 +238,6 @@ const handler = async (req: Request): Promise<Response> => {
       const helps: { title: string; description: string }[] = [];
 
       if (is200KMethod || isBoth) {
-        // Match challenges to specific program outcomes
         if (challenge.toLowerCase().includes("noticed") || blocker.toLowerCase().includes("visibility")) {
           helps.push({
             title: "Build Your Leadership Brand",
@@ -148,7 +268,6 @@ const handler = async (req: Request): Promise<Response> => {
             description: "Master advanced PM interview frameworks from behavioral to product sense to strategy cases. You'll walk into interviews with confidence and a proven system for standout answers."
           });
         }
-        // Default if few matched
         if (helps.length < 2) {
           helps.push({
             title: "Accelerate Your Career Timeline",
@@ -208,7 +327,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <connect@theleadersrow.com>",
       to: [email],
-      subject: `Your Career Assessment Results: ${result.title}`,
+      subject: `Your Career Assessment Results: ${safeTitle}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -225,9 +344,9 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #ffffff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             
             <!-- Result Title -->
-            <h2 style="color: #c9a227; margin-top: 0; font-size: 24px; text-align: center;">${result.title}</h2>
+            <h2 style="color: #c9a227; margin-top: 0; font-size: 24px; text-align: center;">${safeTitle}</h2>
             <p style="font-size: 16px; color: #4a4a4a; margin-bottom: 30px; text-align: center;">
-              ${result.message}
+              ${safeMessage}
             </p>
 
             <!-- Smart Career Profile Section -->
@@ -238,17 +357,17 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div style="margin-bottom: 18px;">
                 <p style="color: #c9a227; font-size: 13px; font-weight: 600; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Where You Are</p>
-                <p style="color: #4a4a4a; font-size: 15px; margin: 0;">${careerProfile.situation}</p>
+                <p style="color: #4a4a4a; font-size: 15px; margin: 0;">${sanitize(careerProfile.situation)}</p>
               </div>
               
               <div style="margin-bottom: 18px;">
                 <p style="color: #c9a227; font-size: 13px; font-weight: 600; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">What's Working For You</p>
-                <p style="color: #4a4a4a; font-size: 15px; margin: 0;">${careerProfile.strength}</p>
+                <p style="color: #4a4a4a; font-size: 15px; margin: 0;">${sanitize(careerProfile.strength)}</p>
               </div>
               
               <div>
                 <p style="color: #c9a227; font-size: 13px; font-weight: 600; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">The Gap Holding You Back</p>
-                <p style="color: #4a4a4a; font-size: 15px; margin: 0;">${careerProfile.gap}</p>
+                <p style="color: #4a4a4a; font-size: 15px; margin: 0;">${sanitize(careerProfile.gap)}</p>
               </div>
             </div>
 
@@ -257,11 +376,11 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%); padding: 25px; border-radius: 12px; margin: 25px 0; color: #f8f7f4;">
               <div style="text-align: center; margin-bottom: 15px;">
                 <p style="color: #c9a227; margin: 0; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Our Recommendation</p>
-                <h3 style="color: #f8f7f4; margin: 8px 0 4px 0; font-size: 24px; font-weight: 700;">${programDetails.name}</h3>
-                <p style="color: #c9a227; margin: 0; font-style: italic; font-size: 15px;">${programDetails.tagline}</p>
+                <h3 style="color: #f8f7f4; margin: 8px 0 4px 0; font-size: 24px; font-weight: 700;">${sanitize(programDetails.name)}</h3>
+                <p style="color: #c9a227; margin: 0; font-style: italic; font-size: 15px;">${sanitize(programDetails.tagline)}</p>
               </div>
               <div style="display: flex; justify-content: center; gap: 30px; font-size: 13px; opacity: 0.9;">
-                <span>📅 ${programDetails.duration}</span>
+                <span>📅 ${sanitize(programDetails.duration)}</span>
               </div>
             </div>
             ` : ''}
@@ -272,18 +391,18 @@ const handler = async (req: Request): Promise<Response> => {
                 <span style="margin-right: 10px;">🎯</span> How ${programDetails?.name || 'This Program'} Will Help You
               </h3>
               
-              ${howItHelps.map((help, index) => `
+              ${howItHelps.map((help) => `
                 <div style="background-color: #fafafa; padding: 18px 20px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #c9a227;">
-                  <h4 style="color: #1a1a2e; margin: 0 0 8px 0; font-size: 16px;">${help.title}</h4>
-                  <p style="color: #4a4a4a; margin: 0; font-size: 14px; line-height: 1.6;">${help.description}</p>
+                  <h4 style="color: #1a1a2e; margin: 0 0 8px 0; font-size: 16px;">${sanitize(help.title)}</h4>
+                  <p style="color: #4a4a4a; margin: 0; font-size: 14px; line-height: 1.6;">${sanitize(help.description)}</p>
                 </div>
               `).join('')}
             </div>
 
             <!-- CTA Button -->
             <div style="text-align: center; margin: 35px 0;">
-              <a href="${baseUrl}${result.link}" style="display: inline-block; background: linear-gradient(135deg, #c9a227 0%, #d4af37 100%); color: #1a1a2e; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(201, 162, 39, 0.35);">
-                ${result.cta}
+              <a href="${baseUrl}${linkPath}" style="display: inline-block; background: linear-gradient(135deg, #c9a227 0%, #d4af37 100%); color: #1a1a2e; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(201, 162, 39, 0.35);">
+                ${safeCta}
               </a>
               <p style="color: #888; font-size: 13px; margin-top: 12px;">Your next career breakthrough starts with one click.</p>
             </div>
@@ -307,7 +426,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
 
-            <!-- Your Responses (Collapsible Feel) -->
+            <!-- Your Responses -->
             <details style="margin: 20px 0;">
               <summary style="color: #1a1a2e; font-size: 14px; cursor: pointer; font-weight: 600;">📋 View Your Quiz Responses</summary>
               <div style="background-color: #fafafa; padding: 15px; border-radius: 8px; margin-top: 10px;">
@@ -330,12 +449,11 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; padding: 20px; color: #888;">
-            <p style="font-size: 12px; margin: 0;">
-              © ${new Date().getFullYear()} The Leader's Row. All rights reserved.
+            <p style="margin: 0 0 10px 0; font-size: 12px;">
+              <a href="${baseUrl}" style="color: #c9a227; text-decoration: none;">The Leader's Row</a>
             </p>
-            <p style="font-size: 12px; margin: 10px 0 0 0;">
-              <a href="${baseUrl}/privacy" style="color: #888; text-decoration: underline;">Privacy Policy</a> | 
-              <a href="${baseUrl}/terms" style="color: #888; text-decoration: underline;">Terms of Service</a>
+            <p style="margin: 0; font-size: 11px; color: #aaa;">
+              Helping ambitious professionals rise to the top.
             </p>
           </div>
         </body>
@@ -343,21 +461,18 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Quiz results email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true, emailResponse }), {
+    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error sending quiz results email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 };
 
