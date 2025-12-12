@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Target, BarChart3, Briefcase, Brain, Compass, 
-  ArrowRight, Clock, FileText, Zap, CheckCircle 
+  ArrowRight, Clock, FileText, Zap, CheckCircle, Sparkles 
 } from "lucide-react";
 
 interface AssessmentLandingProps {
@@ -10,6 +12,8 @@ interface AssessmentLandingProps {
 }
 
 export function AssessmentLanding({ onStart }: AssessmentLandingProps) {
+  const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
+
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 animate-fade-up">
       {/* Hero */}
@@ -55,6 +59,27 @@ export function AssessmentLanding({ onStart }: AssessmentLandingProps) {
         </Button>
       </div>
 
+      {/* Interview Prep Card */}
+      <button
+        onClick={() => setShowInterviewPrepDialog(true)}
+        className="w-full max-w-md bg-card border border-border rounded-xl p-4 hover:border-primary/50 hover:bg-card/80 transition-all group text-left mb-8"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-colors">
+            <Sparkles className="w-5 h-5 text-secondary" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">AI Interview Prep</span>
+              <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Practice mock interviews with AI feedback and coaching
+            </p>
+          </div>
+        </div>
+      </button>
+
       {/* Trust indicators */}
       <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
@@ -83,6 +108,34 @@ export function AssessmentLanding({ onStart }: AssessmentLandingProps) {
           to calibrate their career positioning, identify high-ROI skill gaps, and build a concrete path to their next level.
         </p>
       </div>
+
+      {/* Interview Prep Coming Soon Dialog */}
+      <Dialog open={showInterviewPrepDialog} onOpenChange={setShowInterviewPrepDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              AI Interview Prep
+            </DialogTitle>
+            <DialogDescription className="pt-4 space-y-4">
+              <p>
+                Our AI-powered Interview Prep tool will help you practice and prepare for real interviews with personalized mock sessions, feedback, and coaching.
+              </p>
+              <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  This premium feature will be launching in a few months. Stay tuned!
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center mt-4">
+            <Button onClick={() => setShowInterviewPrepDialog(false)}>
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
