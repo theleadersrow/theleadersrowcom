@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Star, Send, CheckCircle2, Quote } from "lucide-react";
+import { Star, Send, CheckCircle2, Quote, MapPin } from "lucide-react";
 import { z } from "zod";
+import { countries } from "@/lib/locationData";
 
 const reviewSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
@@ -37,6 +38,8 @@ const Review = () => {
     email: "",
     role: "",
     company: "",
+    location: "",
+    country: "",
     quote: "",
     outcome: "",
     program: "",
@@ -211,6 +214,42 @@ const Review = () => {
                     value={formData.company}
                     onChange={(e) => handleChange("company", e.target.value)}
                   />
+                </div>
+              </div>
+
+              {/* Location & Country */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="location" className="text-sm font-medium mb-2 block">
+                    <MapPin className="w-3.5 h-3.5 inline mr-1" />
+                    City / Location
+                  </Label>
+                  <Input
+                    id="location"
+                    placeholder="San Francisco"
+                    value={formData.location}
+                    onChange={(e) => handleChange("location", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="country" className="text-sm font-medium mb-2 block">
+                    Country
+                  </Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) => handleChange("country", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50 max-h-[300px]">
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.name}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
