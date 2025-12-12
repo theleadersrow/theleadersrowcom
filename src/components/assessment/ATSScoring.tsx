@@ -99,8 +99,9 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
       }
 
       const data = await response.json();
+      console.log("ATS Result:", data);
       setResult(data);
-      onComplete?.(data);
+      // Don't auto-advance - let user see results first
     } catch (error) {
       console.error("ATS analysis error:", error);
       toast({
@@ -137,7 +138,7 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
             {result.ats_score}
             <span className="text-2xl text-muted-foreground">/100</span>
           </div>
-          <p className="text-muted-foreground mt-2">{result.summary}</p>
+          <p className="text-muted-foreground mt-2 max-w-xl mx-auto">{result.summary}</p>
         </div>
 
         {/* Score Breakdown */}
@@ -157,29 +158,52 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
           ))}
         </div>
 
+        {/* Strengths */}
+        {result.strengths && result.strengths.length > 0 && (
+          <Card className="p-4">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              Your Strengths
+            </h3>
+            <ul className="space-y-2">
+              {result.strengths.slice(0, 4).map((strength, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-green-500 mt-0.5">✓</span>
+                  {strength}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
         {/* Keywords */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-4">
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              Matched Keywords ({result.matched_keywords.length})
+              Matched Keywords ({result.matched_keywords?.length || 0})
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {result.matched_keywords.slice(0, 10).map((kw, i) => (
-                <span key={i} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              {result.matched_keywords?.slice(0, 15).map((kw, i) => (
+                <span key={i} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
                   {kw}
                 </span>
               ))}
+              {(result.matched_keywords?.length || 0) > 15 && (
+                <span className="px-2 py-1 text-muted-foreground text-xs">
+                  +{result.matched_keywords.length - 15} more
+                </span>
+              )}
             </div>
           </Card>
           <Card className="p-4">
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-orange-500" />
-              Missing Keywords ({result.missing_keywords.length})
+              Missing Keywords ({result.missing_keywords?.length || 0})
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {result.missing_keywords.slice(0, 10).map((kw, i) => (
-                <span key={i} className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              {result.missing_keywords?.slice(0, 15).map((kw, i) => (
+                <span key={i} className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900/30 dark:text-orange-300">
                   {kw}
                 </span>
               ))}
@@ -188,20 +212,49 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
         </div>
 
         {/* High Priority Improvements */}
-        {result.improvements.length > 0 && (
+        {result.improvements && result.improvements.length > 0 && (
           <Card className="p-4">
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
               Priority Improvements
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {result.improvements.slice(0, 3).map((imp, i) => (
                 <div key={i} className="border-l-2 border-primary/50 pl-3">
-                  <div className="font-medium text-foreground">{imp.issue}</div>
-                  <div className="text-sm text-muted-foreground">{imp.fix}</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      imp.priority === 'high' 
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' 
+                        : imp.priority === 'medium'
+                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                    }`}>
+                      {imp.priority}
+                    </span>
+                  </div>
+                  <div className="font-medium text-foreground text-sm">{imp.issue}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{imp.fix}</div>
                 </div>
               ))}
             </div>
+          </Card>
+        )}
+
+        {/* Experience Gaps */}
+        {result.experience_gaps && result.experience_gaps.length > 0 && (
+          <Card className="p-4">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-yellow-500" />
+              Experience Gaps to Address
+            </h3>
+            <ul className="space-y-2">
+              {result.experience_gaps.map((gap, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-yellow-500 mt-0.5">⚠</span>
+                  {gap}
+                </li>
+              ))}
+            </ul>
           </Card>
         )}
 
@@ -211,8 +264,26 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
             <Target className="w-4 h-4 text-primary" />
             Role Fit Assessment
           </h3>
-          <p className="text-muted-foreground">{result.role_fit_assessment}</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">{result.role_fit_assessment}</p>
         </Card>
+
+        {/* Recommended Additions */}
+        {result.recommended_additions && result.recommended_additions.length > 0 && (
+          <Card className="p-4">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-secondary" />
+              Recommended Additions
+            </h3>
+            <ul className="space-y-2">
+              {result.recommended_additions.map((rec, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-secondary mt-0.5">+</span>
+                  {rec}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
         {/* Continue Button */}
         <div className="flex justify-center pt-4">
