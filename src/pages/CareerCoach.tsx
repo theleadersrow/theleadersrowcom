@@ -268,15 +268,6 @@ const CareerCoach = () => {
                 <span className="font-semibold text-foreground">AI Career Coach</span>
               </div>
               <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowInterviewPrepDialog(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Interview Prep
-                </Button>
                 <span className="text-sm text-muted-foreground">
                   Step {step} of 6
                 </span>
@@ -304,6 +295,30 @@ const CareerCoach = () => {
 
         {/* Chat Area */}
         <div className="container max-w-3xl mx-auto px-4 pb-40">
+          {/* Interview Prep Card - shown at the start */}
+          {messages.length <= 2 && (
+            <div className="py-4">
+              <button
+                onClick={() => setShowInterviewPrepDialog(true)}
+                className="w-full bg-card border border-border rounded-xl p-4 hover:border-primary/50 hover:bg-card/80 transition-all group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-colors">
+                    <Sparkles className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground">AI Interview Prep</span>
+                      <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Practice mock interviews with AI feedback and coaching
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
           <div className="py-6 space-y-6">
             {messages.map((message, index) => (
               <div
