@@ -39,6 +39,7 @@ const StrategicBenchmark = () => {
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasSeenEmailGate, setHasSeenEmailGate] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Reset to hub when navigating to this page (e.g., clicking header link)
   useEffect(() => {
@@ -76,7 +77,8 @@ const StrategicBenchmark = () => {
   };
 
   const handleAnswer = async (response: { question_id: string; selected_option_id?: string; numeric_value?: number; text_value?: string }) => {
-    saveResponse(response);
+    await saveResponse(response);
+    setLastSaved(new Date());
     
     // Check if this is the calibration question and extract level
     const question = questions.find(q => q.id === response.question_id);
@@ -189,6 +191,8 @@ const StrategicBenchmark = () => {
             modules={modules}
             currentModuleIndex={currentModuleIndex}
             progress={progress}
+            isSaving={isSaving}
+            lastSaved={lastSaved}
           />
         )}
 
