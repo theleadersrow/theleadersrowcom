@@ -185,6 +185,12 @@ const CareerReport = () => {
     business_ownership: "Business Ownership",
     visibility: "Visibility & Brand",
     general: "Overall Readiness",
+    customer_empathy: "Customer Empathy",
+    prioritization: "Prioritization",
+    technical_fluency: "Technical Fluency",
+    stakeholder_mgmt: "Stakeholder Management",
+    product_sense: "Product Sense",
+    collaboration: "Cross-functional Collaboration",
   };
 
   // Fallback blocker descriptions if not provided by API
