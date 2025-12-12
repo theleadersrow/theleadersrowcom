@@ -138,7 +138,7 @@ const WeeklyEdge = () => {
             </div>
             
             <div className="block">
-              <Link to="/register">
+              <Link to="/register?program=weekly-edge">
                 <Button variant="hero" size="xl" className="group">
                   Join Membership
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -351,11 +351,20 @@ const WeeklyEdge = () => {
               <span className="font-serif text-5xl md:text-6xl font-semibold text-cream">$100</span>
               <span className="text-cream/60 text-xl">/month</span>
             </div>
+            
+            {/* Prominent Cancellation Policy */}
+            <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-5 mb-8 border border-cream/20">
+              <p className="text-cream font-semibold mb-2">Cancel Anytime — No Strings Attached</p>
+              <p className="text-cream/80 text-sm leading-relaxed">
+                Send us an email to cancel and you will <span className="text-secondary font-medium">not be charged for the next billing cycle</span>. 
+                You'll retain full access until the end of your current period. No questions asked, no hassle.
+              </p>
+            </div>
+            
             <p className="text-cream/70 mb-8 text-lg leading-relaxed max-w-xl mx-auto">
-              Invest in continuous growth and stay ahead of the curve. 
-              Cancel anytime if it's not the right fit.
+              Invest in continuous growth and stay ahead of the curve.
             </p>
-            <Link to="/register">
+            <Link to="/register?program=weekly-edge">
               <Button variant="hero" size="xl" className="group">
                 Join Membership
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
