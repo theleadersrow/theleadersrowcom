@@ -28,63 +28,63 @@ const testimonials = [
 const SuccessStories = () => {
   return (
     <section className="section-padding bg-muted/30">
-      <div className="container-wide mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <p className="text-secondary font-medium mb-3">The Transformation</p>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-6">
+      <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+          <p className="text-secondary font-medium mb-2 sm:mb-3 text-sm sm:text-base">The Transformation</p>
+          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-foreground mb-4 sm:mb-6">
             From Overlooked to Leading
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             This is where the journey leads — confident leadership, visible impact, and career success.
           </p>
         </div>
 
         {/* After State Hero Image */}
-        <div className="relative rounded-2xl overflow-hidden mb-12 max-w-4xl mx-auto shadow-elevated">
+        <div className="relative rounded-xl sm:rounded-2xl overflow-hidden mb-8 sm:mb-12 max-w-4xl mx-auto shadow-elevated">
           <img 
             src={journeyAfter} 
             alt="Confident professional leader commanding the room in a boardroom presentation" 
-            className="w-full h-72 md:h-96 object-cover"
+            className="w-full h-56 sm:h-72 lg:h-96 object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-navy/80 via-navy/40 to-transparent" />
-          <div className="absolute inset-0 flex items-center p-8 md:p-12">
-            <div className="max-w-md">
-              <p className="text-secondary font-medium mb-2 text-sm">Your Future</p>
-              <h3 className="font-serif text-2xl md:text-3xl text-cream mb-4">
+          <div className="absolute inset-0 flex items-center p-4 sm:p-8 lg:p-12">
+            <div className="max-w-xs sm:max-w-md">
+              <p className="text-secondary font-medium mb-1.5 sm:mb-2 text-xs sm:text-sm">Your Future</p>
+              <h3 className="font-serif text-lg sm:text-2xl lg:text-3xl text-cream mb-2 sm:mb-4">
                 Command the Room. Lead with Confidence.
               </h3>
               <div className="flex items-center gap-2 text-cream/80">
-                <span className="text-sm">This is where you're headed</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="text-xs sm:text-sm">This is where you're headed</span>
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="text-center max-w-3xl mx-auto mb-8">
-          <p className="text-secondary font-medium mb-3">Real Results</p>
-          <h3 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
+          <p className="text-secondary font-medium mb-2 sm:mb-3 text-sm sm:text-base">Real Results</p>
+          <h3 className="font-serif text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-3 sm:mb-4">
             Success Stories
           </h3>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Professionals who took action and transformed their careers.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-card rounded-2xl p-6 shadow-soft flex flex-col"
+              className="bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-soft flex flex-col"
             >
-              <Quote className="w-8 h-8 text-secondary/30 mb-4" />
-              <p className="text-foreground leading-relaxed mb-6 flex-grow">
+              <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-secondary/30 mb-3 sm:mb-4" />
+              <p className="text-foreground leading-relaxed mb-4 sm:mb-6 flex-grow text-sm sm:text-base">
                 "{testimonial.quote}"
               </p>
-              <div className="border-t border-border pt-4">
-                <p className="font-semibold text-foreground">{testimonial.name}</p>
-                <p className="text-sm text-muted-foreground mb-2">{testimonial.role}</p>
-                <span className="inline-block text-xs font-medium text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+              <div className="border-t border-border pt-3 sm:pt-4">
+                <p className="font-semibold text-foreground text-sm sm:text-base">{testimonial.name}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2">{testimonial.role}</p>
+                <span className="inline-block text-[10px] sm:text-xs font-medium text-secondary bg-secondary/10 px-2.5 sm:px-3 py-1 rounded-full">
                   {testimonial.outcome}
                 </span>
               </div>
@@ -92,7 +92,7 @@ const SuccessStories = () => {
           ))}
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-8 italic">
+        <p className="text-center text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8 italic">
           * Names and details have been changed. Replace with your real testimonials.
         </p>
       </div>

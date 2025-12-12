@@ -3,23 +3,23 @@ import ProgramCard from "./ProgramCard";
 const ProgramsSection = () => {
   return (
     <section id="programs" className="section-padding bg-background">
-      <div className="container-wide mx-auto">
+      <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="text-secondary font-medium mb-3">Two Paths. One Destination.</p>
-          <h2 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+          <p className="text-secondary font-medium mb-2 sm:mb-3 text-sm sm:text-base">Two Paths. One Destination.</p>
+          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-foreground mb-4 sm:mb-6">
             Choose Your Path to Leadership
           </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed mb-4">
+          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-3 sm:mb-4 px-2">
             Both programs get you to the same place: confident, visible, and leading at the top.
           </p>
-          <p className="text-foreground font-medium">
+          <p className="text-foreground font-medium text-sm sm:text-base">
             Intensive transformation or steady weekly growth — pick the pace that fits your life.
           </p>
         </div>
 
         {/* Program Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
           <ProgramCard
             title="200K Method"
             subtitle="8-Week Accelerator"
