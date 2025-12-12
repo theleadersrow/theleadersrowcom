@@ -43,6 +43,7 @@ export type Database = {
       }
       assessment_questions: {
         Row: {
+          branch_condition: Json | null
           created_at: string
           help_text: string | null
           id: string
@@ -54,9 +55,11 @@ export type Database = {
           order_index: number
           prompt: string
           question_type: Database["public"]["Enums"]["question_type"]
+          skill_dimensions: string[] | null
           weight: number | null
         }
         Insert: {
+          branch_condition?: Json | null
           created_at?: string
           help_text?: string | null
           id?: string
@@ -68,9 +71,11 @@ export type Database = {
           order_index?: number
           prompt: string
           question_type?: Database["public"]["Enums"]["question_type"]
+          skill_dimensions?: string[] | null
           weight?: number | null
         }
         Update: {
+          branch_condition?: Json | null
           created_at?: string
           help_text?: string | null
           id?: string
@@ -82,6 +87,7 @@ export type Database = {
           order_index?: number
           prompt?: string
           question_type?: Database["public"]["Enums"]["question_type"]
+          skill_dimensions?: string[] | null
           weight?: number | null
         }
         Relationships: [
