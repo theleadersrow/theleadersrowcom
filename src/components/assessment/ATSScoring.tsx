@@ -28,9 +28,10 @@ interface ATSResult {
 interface ATSScoringProps {
   onComplete?: (result: ATSResult) => void;
   onSkip?: () => void;
+  onBack?: () => void;
 }
 
-export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
+export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -285,8 +286,13 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
           </Card>
         )}
 
-        {/* Continue Button */}
-        <div className="flex justify-center pt-4">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+          {onBack && (
+            <Button size="lg" variant="outline" onClick={onBack}>
+              Back to Rimo
+            </Button>
+          )}
           <Button size="lg" onClick={onSkip}>
             Continue to Assessment
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -360,6 +366,11 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        {onBack && (
+          <Button size="lg" variant="outline" onClick={onBack}>
+            Back to Rimo
+          </Button>
+        )}
         <Button
           size="lg"
           onClick={handleAnalyze}
@@ -376,9 +387,6 @@ export function ATSScoring({ onComplete, onSkip }: ATSScoringProps) {
               Analyze My Resume
             </>
           )}
-        </Button>
-        <Button size="lg" variant="outline" onClick={onSkip}>
-          Skip for now
         </Button>
       </div>
 

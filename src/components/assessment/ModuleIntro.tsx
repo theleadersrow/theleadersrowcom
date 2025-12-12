@@ -8,6 +8,7 @@ interface ModuleIntroProps {
   totalModules: number;
   questionCount: number;
   onStart: () => void;
+  onBack?: () => void;
 }
 
 const moduleIcons: Record<number, React.ReactNode> = {
@@ -18,7 +19,7 @@ const moduleIcons: Record<number, React.ReactNode> = {
   5: <Compass className="w-8 h-8" />,
 };
 
-export function ModuleIntro({ module, moduleNumber, totalModules, questionCount, onStart }: ModuleIntroProps) {
+export function ModuleIntro({ module, moduleNumber, totalModules, questionCount, onStart, onBack }: ModuleIntroProps) {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="max-w-lg w-full text-center animate-fade-up">
@@ -47,11 +48,18 @@ export function ModuleIntro({ module, moduleNumber, totalModules, questionCount,
           {questionCount} questions • Approximately {Math.ceil(questionCount * 0.5)} minutes
         </p>
 
-        {/* Start button */}
-        <Button size="lg" onClick={onStart} className="px-8">
-          Begin Module
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {onBack && (
+            <Button size="lg" variant="outline" onClick={onBack}>
+              Back to Rimo
+            </Button>
+          )}
+          <Button size="lg" onClick={onStart} className="px-8">
+            Begin Module
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
 
         {/* Coaching tip */}
         <p className="text-xs text-muted-foreground mt-8 max-w-sm mx-auto">
