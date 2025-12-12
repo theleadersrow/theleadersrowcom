@@ -32,8 +32,8 @@ export function QuestionCard({
   const [selectedOption, setSelectedOption] = useState<string>(
     currentResponse?.selected_option_id || ""
   );
-  const [numericValue, setNumericValue] = useState<number>(
-    currentResponse?.numeric_value || 3
+  const [numericValue, setNumericValue] = useState<number | null>(
+    currentResponse?.numeric_value ?? null
   );
   const [textValue, setTextValue] = useState<string>(
     currentResponse?.text_value || ""
@@ -43,7 +43,7 @@ export function QuestionCard({
   // Update local state when response changes
   useEffect(() => {
     setSelectedOption(currentResponse?.selected_option_id || "");
-    setNumericValue(currentResponse?.numeric_value || 3);
+    setNumericValue(currentResponse?.numeric_value ?? null);
     setTextValue(currentResponse?.text_value || "");
   }, [currentResponse, question.id]);
 
@@ -55,11 +55,11 @@ export function QuestionCard({
     });
   };
 
-  const handleNumericChange = (value: number[]) => {
-    setNumericValue(value[0]);
+  const handleNumericChange = (value: number) => {
+    setNumericValue(value);
     onAnswer({
       question_id: question.id,
-      numeric_value: value[0],
+      numeric_value: value,
     });
   };
 
@@ -83,11 +83,11 @@ export function QuestionCard({
       case "forced_choice":
         return !!selectedOption;
       case "scale_1_5":
-        return true; // Always has a value
+        return numericValue !== null;
       case "short_text":
         return !!textValue.trim();
       case "confidence":
-        return true;
+        return numericValue !== null;
       default:
         return false;
     }
@@ -160,27 +160,21 @@ export function QuestionCard({
         
         return (
           <div className="space-y-6 py-4">
-            <Slider
-              value={[numericValue]}
-              onValueChange={handleNumericChange}
-              min={1}
-              max={5}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between gap-2">
               {labels.map((label, i) => (
-                <span 
-                  key={i} 
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleNumericChange(i + 1)}
                   className={cn(
-                    "text-center max-w-[80px]",
-                    numericValue === i + 1 
-                      ? "text-primary font-medium" 
-                      : "text-muted-foreground"
+                    "flex-1 py-3 px-2 rounded-lg border-2 text-sm font-medium transition-all text-center",
+                    numericValue === i + 1
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary/30 hover:bg-muted/30 text-muted-foreground"
                   )}
                 >
                   {label}
-                </span>
+                </button>
               ))}
             </div>
           </div>
