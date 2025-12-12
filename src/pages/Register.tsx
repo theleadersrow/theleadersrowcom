@@ -18,7 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 const PRICE_IDS = {
   "200k-method": "price_1SdcR1CD119gx37UY1m7KYal",
+  "weekly-edge": "price_1Sdcl3CD119gx37ULkCEOI1Z",
 };
+
+const SUBSCRIPTION_PROGRAMS = ["weekly-edge"];
 
 const registerSchema = z.object({
   fullName: z
@@ -128,12 +131,15 @@ const Register = () => {
       const priceId = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
       
       if (priceId) {
+        const isSubscription = SUBSCRIPTION_PROGRAMS.includes(formData.program);
+        
         // Redirect to Stripe checkout with all customer data
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
           body: {
             priceId,
-            productName: formData.program === "200k-method" ? "200K Method" : formData.program,
+            productName: formData.program === "200k-method" ? "200K Method" : "Weekly Edge Membership",
             program: formData.program,
+            mode: isSubscription ? "subscription" : "payment",
             customerEmail: formData.email,
             customerName: formData.fullName,
             customerPhone: formData.phone,

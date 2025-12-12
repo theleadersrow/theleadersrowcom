@@ -37,10 +37,11 @@ serve(async (req) => {
       customerCountry,
       customerZipcode,
       customerOccupation,
-      program
+      program,
+      mode = "payment"
     } = await req.json();
     
-    logStep("Request body parsed", { priceId, productName, customerEmail });
+    logStep("Request body parsed", { priceId, productName, customerEmail, mode });
 
     // Create Supabase client
     const supabaseClient = createClient(
@@ -77,6 +78,11 @@ serve(async (req) => {
     // Get origin for success/cancel URLs
     const origin = req.headers.get("origin") || "https://theleadersrow.com";
 
+    // Determine cancel URL based on program
+    const cancelUrl = program === "weekly-edge" 
+      ? `${origin}/weekly-edge` 
+      : `${origin}/200k-method`;
+
     // Create checkout session with customer metadata
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -87,9 +93,9 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: mode === "subscription" ? "subscription" : "payment",
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/200k-method`,
+      cancel_url: cancelUrl,
       metadata: {
         product_name: productName || "200K Method",
         program: program || "200k-method",
