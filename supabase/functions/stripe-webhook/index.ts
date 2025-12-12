@@ -114,7 +114,8 @@ serve(async (req) => {
 
       logStep("Enrollment created", { enrollmentId: enrollment.id, enrollmentCode: enrollment.enrollment_code });
 
-      // Send confirmation email
+      // Send confirmation email with enrollment code and signup link
+      const signupLink = "https://theleadersrow.com/signup";
       const emailHtml = `
         <!DOCTYPE html>
         <html>
@@ -126,35 +127,70 @@ serve(async (req) => {
             .header h1 { margin: 0; font-size: 28px; color: #d4a853; }
             .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; }
             .highlight-box { background: #f8f9fa; border-left: 4px solid #d4a853; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
-            .cta-button { display: inline-block; background: #d4a853; color: #1a1f2e; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .code-box { background: #1a1f2e; color: #d4a853; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; }
+            .code-box .code { font-size: 24px; font-weight: bold; letter-spacing: 2px; margin: 10px 0; }
+            .cta-button { display: inline-block; background: #d4a853; color: #1a1f2e !important; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; font-size: 16px; }
             .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+            .step { display: flex; align-items: flex-start; margin: 15px 0; }
+            .step-number { background: #d4a853; color: #1a1f2e; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to The Leader's Row!</h1>
+              <h1>🎉 Congratulations!</h1>
+              <p style="margin: 10px 0 0 0; font-size: 16px;">You're now enrolled in ${productName}</p>
             </div>
             <div class="content">
               <p>Hi ${firstName || "there"},</p>
               
-              <p>Thank you for enrolling in <strong>${productName}</strong>! Your payment has been successfully processed.</p>
+              <p>Welcome to <strong>The Leader's Row</strong>! Your payment has been successfully processed and you're now officially enrolled in <strong>${productName}</strong>.</p>
+              
+              <div class="code-box">
+                <p style="margin: 0; font-size: 14px; color: #888;">YOUR ENROLLMENT CODE</p>
+                <p class="code">${enrollment.enrollment_code}</p>
+                <p style="margin: 0; font-size: 12px; color: #888;">Keep this code safe - you'll need it to create your account</p>
+              </div>
               
               <div class="highlight-box">
-                <h3 style="margin-top: 0; color: #1a1f2e;">What Happens Next?</h3>
+                <h3 style="margin-top: 0; color: #1a1f2e;">📋 Create Your Member Account</h3>
+                <p style="margin-bottom: 15px;">Follow these simple steps to access your member portal:</p>
+                
+                <div class="step">
+                  <span class="step-number">1</span>
+                  <span>Click the button below to go to the member signup page</span>
+                </div>
+                <div class="step">
+                  <span class="step-number">2</span>
+                  <span>Enter your enrollment code: <strong>${enrollment.enrollment_code}</strong></span>
+                </div>
+                <div class="step">
+                  <span class="step-number">3</span>
+                  <span>Create your account with your email and password</span>
+                </div>
+                <div class="step">
+                  <span class="step-number">4</span>
+                  <span>Access your dashboard, resources, and program content</span>
+                </div>
+              </div>
+              
+              <div style="text-align: center;">
+                <a href="${signupLink}" class="cta-button">Create Your Member Account →</a>
+              </div>
+              
+              <div class="highlight-box" style="background: #fff9e6;">
+                <h3 style="margin-top: 0; color: #1a1f2e;">🚀 What's Included</h3>
                 <ul style="margin: 0; padding-left: 20px;">
-                  <li>Our team will reach out within <strong>24-48 hours</strong> with your program details</li>
-                  <li>You'll receive access to our private Slack community</li>
-                  <li>Calendar invites for all live sessions will be sent shortly</li>
+                  <li>Access to your member dashboard with all program content</li>
+                  <li>Zoom links for live sessions</li>
+                  <li>Downloadable resources and worksheets</li>
+                  <li>Access to our private community</li>
                 </ul>
               </div>
               
-              <p>Your enrollment code is: <strong style="color: #d4a853; font-size: 18px;">${enrollment.enrollment_code}</strong></p>
-              <p style="font-size: 14px; color: #666;">Keep this code safe - you'll need it to access your member dashboard.</p>
+              <p>If you have any questions, don't hesitate to reach out to us at <a href="mailto:theleadersrow@gmail.com">theleadersrow@gmail.com</a>.</p>
               
-              <p>If you have any questions in the meantime, don't hesitate to reach out to us at <a href="mailto:theleadersrow@gmail.com">theleadersrow@gmail.com</a>.</p>
-              
-              <p>We're excited to have you on this journey!</p>
+              <p>We're thrilled to have you on this journey to becoming a top-tier leader!</p>
               
               <p>Best regards,<br><strong>The Leader's Row Team</strong></p>
             </div>
@@ -170,29 +206,37 @@ serve(async (req) => {
       const emailResponse = await resend.emails.send({
         from: "The Leader's Row <hello@theleadersrow.com>",
         to: [customerEmail],
-        subject: `Welcome to ${productName}! Your enrollment is confirmed`,
+        subject: `🎉 Congratulations! You're enrolled in ${productName}`,
         html: emailHtml,
       });
 
       logStep("Confirmation email sent", { response: emailResponse });
 
-      // Also send notification to admin
+      // Also send notification to admin with account status
       const adminEmailHtml = `
-        <h2>New Enrollment - ${productName}</h2>
-        <p><strong>Customer:</strong> ${customerName}</p>
-        <p><strong>Email:</strong> ${customerEmail}</p>
-        <p><strong>Phone:</strong> ${metadata.customer_phone || "Not provided"}</p>
-        <p><strong>Location:</strong> ${metadata.customer_city || ""}, ${metadata.customer_state || ""}, ${metadata.customer_country || ""}</p>
-        <p><strong>Occupation:</strong> ${metadata.customer_occupation || "Not provided"}</p>
-        <p><strong>Enrollment Code:</strong> ${enrollment.enrollment_code}</p>
-        <p><strong>Payment Amount:</strong> $${session.amount_total ? (session.amount_total / 100).toFixed(2) : "N/A"}</p>
-        <p><strong>Stripe Session:</strong> ${session.id}</p>
+        <h2>🎉 New Enrollment - ${productName}</h2>
+        <table style="border-collapse: collapse; width: 100%;">
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerName}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerEmail}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.customer_phone || "Not provided"}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Location:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.customer_city || ""}, ${metadata.customer_state || ""}, ${metadata.customer_country || ""}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Occupation:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.customer_occupation || "Not provided"}</td></tr>
+          <tr style="background: #f8f9fa;"><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Enrollment Code:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; color: #d4a853; font-weight: bold;">${enrollment.enrollment_code}</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Payment Status:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; color: green;">✓ Paid</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Account Created:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; color: orange;">⏳ Pending (code sent)</td></tr>
+          <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Payment Amount:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">$${session.amount_total ? (session.amount_total / 100).toFixed(2) : "N/A"}</td></tr>
+          <tr><td style="padding: 8px;"><strong>Stripe Session:</strong></td><td style="padding: 8px; font-size: 12px; color: #666;">${session.id}</td></tr>
+        </table>
+        <p style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px;">
+          ✅ Enrollment created in admin portal<br>
+          ✅ Confirmation email sent to customer with enrollment code and signup link
+        </p>
       `;
 
       await resend.emails.send({
         from: "The Leader's Row <hello@theleadersrow.com>",
         to: ["theleadersrow@gmail.com"],
-        subject: `New Enrollment: ${customerName} - ${productName}`,
+        subject: `✅ New Enrollment: ${customerName} - ${productName}`,
         html: adminEmailHtml,
       });
 
