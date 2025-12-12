@@ -360,6 +360,40 @@ Create entries for weeks 1, 2, 3, 4, 6, 8, 10, 12. Focus on practical, specific 
       .update({ status: "scored", scored_at: new Date().toISOString() })
       .eq("id", sessionId);
 
+    // Send email report if email exists
+    if (session.email) {
+      try {
+        const emailPayload = {
+          email: session.email,
+          currentLevel: currentLevelInferred,
+          overallScore: overallScore,
+          blockerArchetype: blockerArchetype || undefined,
+          blockerDescription: blockerDescription || undefined,
+          marketReadinessScore: marketReadinessScore || undefined,
+          thirtyDayActions: limitedActions,
+          topStrength: skillHeatmap.strengths[0],
+          topGap: skillHeatmap.gaps[0],
+        };
+
+        const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-career-report-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify(emailPayload),
+        });
+
+        if (!emailResponse.ok) {
+          console.error("Failed to send career report email:", await emailResponse.text());
+        } else {
+          console.log("Career report email sent successfully to:", session.email);
+        }
+      } catch (emailError) {
+        console.error("Error sending career report email:", emailError);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         score: {
