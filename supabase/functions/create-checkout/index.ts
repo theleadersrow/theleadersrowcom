@@ -25,8 +25,22 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    const { priceId, productName } = await req.json();
-    logStep("Request body parsed", { priceId, productName });
+    const { 
+      priceId, 
+      productName,
+      customerEmail,
+      customerName,
+      customerPhone,
+      customerAddress,
+      customerCity,
+      customerState,
+      customerCountry,
+      customerZipcode,
+      customerOccupation,
+      program
+    } = await req.json();
+    
+    logStep("Request body parsed", { priceId, productName, customerEmail });
 
     // Create Supabase client
     const supabaseClient = createClient(
@@ -35,7 +49,7 @@ serve(async (req) => {
     );
 
     // Check for authenticated user (optional for one-time payments)
-    let userEmail: string | undefined;
+    let userEmail = customerEmail;
     let customerId: string | undefined;
 
     const authHeader = req.headers.get("Authorization");
@@ -63,7 +77,7 @@ serve(async (req) => {
     // Get origin for success/cancel URLs
     const origin = req.headers.get("origin") || "https://theleadersrow.com";
 
-    // Create checkout session
+    // Create checkout session with customer metadata
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
@@ -75,9 +89,19 @@ serve(async (req) => {
       ],
       mode: "payment",
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/entry-to-faang`,
+      cancel_url: `${origin}/200k-method`,
       metadata: {
         product_name: productName || "200K Method",
+        program: program || "200k-method",
+        customer_name: customerName || "",
+        customer_email: customerEmail || userEmail || "",
+        customer_phone: customerPhone || "",
+        customer_address: customerAddress || "",
+        customer_city: customerCity || "",
+        customer_state: customerState || "",
+        customer_country: customerCountry || "",
+        customer_zipcode: customerZipcode || "",
+        customer_occupation: customerOccupation || "",
       },
     });
 
