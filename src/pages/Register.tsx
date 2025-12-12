@@ -128,13 +128,21 @@ const Register = () => {
       const priceId = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
       
       if (priceId) {
-        // Redirect to Stripe checkout
+        // Redirect to Stripe checkout with all customer data
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
           body: {
             priceId,
             productName: formData.program === "200k-method" ? "200K Method" : formData.program,
+            program: formData.program,
             customerEmail: formData.email,
             customerName: formData.fullName,
+            customerPhone: formData.phone,
+            customerAddress: formData.address,
+            customerCity: formData.city,
+            customerState: formData.state,
+            customerCountry: formData.country,
+            customerZipcode: formData.zipcode,
+            customerOccupation: formData.occupation,
           }
         });
 
