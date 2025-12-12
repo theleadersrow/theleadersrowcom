@@ -58,10 +58,10 @@ export function EmailGate({ onSubmit, isLoading }: EmailGateProps) {
 
         {/* Heading */}
         <h2 className="text-2xl md:text-3xl font-serif font-bold text-center text-foreground mb-3">
-          You're Making Great Progress!
+          Where Should We Send Your Results?
         </h2>
         <p className="text-center text-muted-foreground mb-8">
-          Enter your email to unlock your full Career Intelligence Report with personalized insights and your 90-day growth plan.
+          We'll email you your personalized Career Intelligence Report with detailed insights and your 90-day growth plan once you complete the assessment.
         </p>
 
         {/* Form */}
