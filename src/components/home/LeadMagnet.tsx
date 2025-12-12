@@ -60,41 +60,41 @@ const LeadMagnet = () => {
   };
 
   return (
-    <section id="lead-magnet" className="py-16 bg-gradient-to-br from-navy via-navy-dark to-navy relative overflow-hidden">
+    <section id="lead-magnet" className="py-10 sm:py-12 lg:py-16 bg-gradient-to-br from-navy via-navy-dark to-navy relative overflow-hidden">
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-10 right-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-48 h-48 bg-secondary rounded-full blur-3xl" />
+        <div className="absolute top-5 sm:top-10 right-5 sm:right-10 w-48 sm:w-72 h-48 sm:h-72 bg-secondary rounded-full blur-3xl" />
+        <div className="absolute bottom-5 sm:bottom-10 left-5 sm:left-10 w-32 sm:w-48 h-32 sm:h-48 bg-secondary rounded-full blur-3xl" />
       </div>
 
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
             {/* Content */}
-            <div>
-              <span className="inline-block text-xs font-bold text-secondary bg-secondary/20 px-3 py-1 rounded-full mb-4">
+            <div className="text-center md:text-left">
+              <span className="inline-block text-[10px] sm:text-xs font-bold text-secondary bg-secondary/20 px-2.5 sm:px-3 py-1 rounded-full mb-3 sm:mb-4">
                 FREE GUIDE
               </span>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
+              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-cream mb-3 sm:mb-4">
                 200K Method Quick Start Guide
               </h2>
-              <p className="text-cream/70 mb-6">
+              <p className="text-cream/70 mb-4 sm:mb-6 text-sm sm:text-base">
                 Discover the 3 key strategies that separate $200K+ Product Leaders from everyone else. A quick preview of what's possible.
               </p>
 
-              <ul className="space-y-3">
+              <ul className="space-y-2.5 sm:space-y-3">
                 {teaserPoints.map((point, index) => (
-                  <li key={index} className="flex items-center gap-3 text-cream/80">
-                    <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                      <point.icon className="w-4 h-4 text-secondary" />
+                  <li key={index} className="flex items-center gap-2.5 sm:gap-3 text-cream/80 justify-center md:justify-start">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                      <point.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-secondary" />
                     </div>
-                    <span>{point.text}</span>
+                    <span className="text-sm sm:text-base">{point.text}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* Form */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-elevated">
+            <div className="bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 shadow-elevated">
               {isSuccess ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
