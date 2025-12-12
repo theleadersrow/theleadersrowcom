@@ -1,9 +1,63 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Rate limiting configuration - stricter for AI endpoints
+const RATE_LIMIT = {
+  maxRequests: 20,
+  windowMinutes: 60,
+};
+
+// Check and update rate limit
+async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("*")
+    .eq("identifier", identifier)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart)
+    .single();
+
+  if (existing) {
+    if (existing.request_count >= RATE_LIMIT.maxRequests) {
+      return { allowed: false, remaining: 0 };
+    }
+    
+    await supabase
+      .from("rate_limits")
+      .update({ request_count: existing.request_count + 1 })
+      .eq("id", existing.id);
+    
+    return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
+  }
+  
+  await supabase
+    .from("rate_limits")
+    .upsert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString(),
+    }, { onConflict: "identifier,endpoint" });
+  
+  return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+    || req.headers.get("x-real-ip") 
+    || "unknown";
+}
 
 const SYSTEM_PROMPT = `You are an expert AI Career Coach for The Leader's Row. You help ambitious professionals across all industries assess their career readiness and provide actionable recommendations.
 
@@ -218,7 +272,46 @@ serve(async (req) => {
   }
 
   try {
+    const clientIP = getClientIP(req);
+    
+    // Check rate limit
+    const rateLimit = await checkRateLimit(clientIP, "career-coach");
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+    
     const { messages, resumeText } = await req.json();
+    
+    // Input validation
+    if (!messages || !Array.isArray(messages)) {
+      return new Response(JSON.stringify({ error: "Invalid messages format" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Limit message history to prevent abuse
+    if (messages.length > 50) {
+      return new Response(JSON.stringify({ error: "Conversation too long. Please start a new session." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Limit resume text size
+    const safeResumeText = resumeText ? String(resumeText).slice(0, 50000) : null;
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -226,8 +319,8 @@ serve(async (req) => {
     }
 
     // Build the conversation with resume context if available
-    const systemMessage = resumeText 
-      ? `${SYSTEM_PROMPT}\n\n--- USER'S RESUME ---\n${resumeText}\n--- END RESUME ---\n\nIMPORTANT: You have their resume. Reference specific details from it in your questions and assessment. Acknowledge what you see and ask clarifying questions about gaps or interesting points.`
+    const systemMessage = safeResumeText 
+      ? `${SYSTEM_PROMPT}\n\n--- USER'S RESUME ---\n${safeResumeText}\n--- END RESUME ---\n\nIMPORTANT: You have their resume. Reference specific details from it in your questions and assessment. Acknowledge what you see and ask clarifying questions about gaps or interesting points.`
       : SYSTEM_PROMPT;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

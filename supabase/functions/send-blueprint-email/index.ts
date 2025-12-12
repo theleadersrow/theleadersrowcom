@@ -1,16 +1,69 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Rate limiting configuration
+const RATE_LIMIT = {
+  maxRequests: 3,
+  windowMinutes: 60,
 };
 
 interface BlueprintEmailRequest {
   email: string;
+}
+
+// Check and update rate limit
+async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("*")
+    .eq("identifier", identifier)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart)
+    .single();
+
+  if (existing) {
+    if (existing.request_count >= RATE_LIMIT.maxRequests) {
+      return { allowed: false, remaining: 0 };
+    }
+    
+    await supabase
+      .from("rate_limits")
+      .update({ request_count: existing.request_count + 1 })
+      .eq("id", existing.id);
+    
+    return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
+  }
+  
+  await supabase
+    .from("rate_limits")
+    .upsert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString(),
+    }, { onConflict: "identifier,endpoint" });
+  
+  return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+    || req.headers.get("x-real-ip") 
+    || "unknown";
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +74,34 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const clientIP = getClientIP(req);
+    
+    // Check rate limit
+    const rateLimit = await checkRateLimit(clientIP, "send-blueprint-email");
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+    
     const { email }: BlueprintEmailRequest = await req.json();
+    
+    // Input validation
+    if (!email || typeof email !== "string" || !email.includes("@") || email.length > 255) {
+      return new Response(JSON.stringify({ error: "Invalid email address" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
     
     console.log("Sending quick start guide email to:", email);
 
