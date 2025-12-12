@@ -143,6 +143,9 @@ export function QuestionCard({
           if (prompt.includes("how often") || prompt.includes("frequency")) {
             return ["Never", "Rarely", "Sometimes", "Often", "Always"];
           }
+          if (prompt.includes("how much experience") || prompt.includes("experience with")) {
+            return ["None", "Limited", "Moderate", "Significant", "Extensive"];
+          }
           if (prompt.includes("rate your") || prompt.includes("ability")) {
             return ["Poor", "Below Average", "Average", "Good", "Excellent"];
           }
