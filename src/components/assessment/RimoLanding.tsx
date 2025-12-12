@@ -45,25 +45,25 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
           {/* Strategic Assessment Tool */}
           <button
             onClick={onStartAssessment}
-            className="w-full bg-card border border-border rounded-xl p-5 hover:border-primary hover:shadow-lg transition-all group text-left"
+            className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                <Target className="w-6 h-6 text-primary" />
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                <Target className="w-7 h-7 text-primary" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-lg text-foreground">Strategic Level Assessment</span>
-                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg text-foreground">Strategic Level Assessment</h3>
+                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
-                <p className="text-muted-foreground mb-3">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   Get a clear, honest assessment of where you operate today and what's blocking your next leap.
                 </p>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 8-10 min</span>
-                  <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> Skill analysis</span>
-                  <span className="flex items-center gap-1"><Brain className="w-3 h-3" /> Blocker diagnosis</span>
-                  <span className="flex items-center gap-1"><Compass className="w-3 h-3" /> Role fit</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 8-10 min</span>
+                  <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Skill analysis</span>
+                  <span className="flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Blocker diagnosis</span>
+                  <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Role fit</span>
                 </div>
               </div>
             </div>
