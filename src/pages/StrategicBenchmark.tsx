@@ -5,15 +5,25 @@ import { useAssessment } from "@/hooks/useAssessment";
 import { AssessmentProgress } from "@/components/assessment/AssessmentProgress";
 import { QuestionCard } from "@/components/assessment/QuestionCard";
 import { ModuleIntro } from "@/components/assessment/ModuleIntro";
+import { ModuleComplete } from "@/components/assessment/ModuleComplete";
 import { EmailGate } from "@/components/assessment/EmailGate";
 import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
 import { ATSScoring } from "@/components/assessment/ATSScoring";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { RimoLanding } from "@/components/assessment/RimoLanding";
+import { EngagementIndicator, EncouragementBanner } from "@/components/assessment/EngagementIndicator";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "hub" | "assessment_landing" | "ats" | "intro" | "questions" | "email_gate" | "generating" | "complete";
+type AssessmentView = "hub" | "assessment_landing" | "ats" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
+
+const moduleInsights = [
+  "Your strategic calibration is taking shape. We're identifying your current level and growth potential.",
+  "Your skill profile is emerging. We can see your unique strengths and areas for development.",
+  "Your experience landscape is clear. We've identified key gaps and opportunities.",
+  "Your blocker patterns are revealed. These insights will guide your growth plan.",
+  "Your market fit is calculated. You'll see exactly where you stand and where to aim.",
+];
 
 const StrategicBenchmark = () => {
   const navigate = useNavigate();
@@ -40,6 +50,8 @@ const StrategicBenchmark = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasSeenEmailGate, setHasSeenEmailGate] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [answerStreak, setAnswerStreak] = useState(0);
+  const [completedModuleIndex, setCompletedModuleIndex] = useState<number | null>(null);
 
   // Reset to hub when navigating to this page (e.g., clicking header link)
   useEffect(() => {
@@ -79,6 +91,7 @@ const StrategicBenchmark = () => {
   const handleAnswer = async (response: { question_id: string; selected_option_id?: string; numeric_value?: number; text_value?: string }) => {
     await saveResponse(response);
     setLastSaved(new Date());
+    setAnswerStreak(prev => prev + 1);
     
     // Check if this is the calibration question and extract level
     const question = questions.find(q => q.id === response.question_id);
@@ -90,6 +103,23 @@ const StrategicBenchmark = () => {
           await saveInferredLevel(levelMap.level);
         }
       }
+    }
+  };
+
+  const handleModuleCompleteContinue = () => {
+    if (completedModuleIndex !== null && completedModuleIndex < modules.length - 1) {
+      // Move to next module intro
+      const nextModuleIndex = completedModuleIndex + 1;
+      setCurrentModuleIndex(nextModuleIndex);
+      setCurrentQuestionIndex(0);
+      setCurrentView("intro");
+      setCompletedModuleIndex(null);
+      updateProgress(nextModuleIndex, 0);
+    } else {
+      // Assessment complete
+      submitAssessment();
+      setCurrentView("generating");
+      setCompletedModuleIndex(null);
     }
   };
 
@@ -106,19 +136,9 @@ const StrategicBenchmark = () => {
       setCurrentQuestionIndex(nextIndex);
       await updateProgress(currentModuleIndex, nextIndex);
     } else {
-      // End of module
-      if (currentModuleIndex < modules.length - 1) {
-        // Move to next module
-        const nextModuleIndex = currentModuleIndex + 1;
-        setCurrentModuleIndex(nextModuleIndex);
-        setCurrentQuestionIndex(0);
-        setCurrentView("intro");
-        await updateProgress(nextModuleIndex, 0);
-      } else {
-        // Assessment complete
-        await submitAssessment();
-        setCurrentView("generating");
-      }
+      // End of module - show module complete celebration
+      setCompletedModuleIndex(currentModuleIndex);
+      setCurrentView("module_complete");
     }
   };
 
@@ -185,8 +205,8 @@ const StrategicBenchmark = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background pt-20">
-        {/* Progress bar - hide during hub, assessment_landing, ats, email gate, generating, and complete */}
-        {!["hub", "assessment_landing", "ats", "email_gate", "generating", "complete"].includes(currentView) && (
+        {/* Progress bar - hide during hub, assessment_landing, ats, module_complete, email gate, generating, and complete */}
+        {!["hub", "assessment_landing", "ats", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
@@ -230,14 +250,32 @@ const StrategicBenchmark = () => {
             />
           )}
 
+          {currentView === "module_complete" && completedModuleIndex !== null && modules[completedModuleIndex] && (
+            <ModuleComplete
+              module={modules[completedModuleIndex]}
+              moduleNumber={completedModuleIndex + 1}
+              totalModules={modules.length}
+              quickInsight={moduleInsights[completedModuleIndex % moduleInsights.length]}
+              onContinue={handleModuleCompleteContinue}
+            />
+          )}
+
           {currentView === "questions" && currentQuestion && (
             <div>
-              {/* Question counter */}
-              <div className="text-center mb-6">
-                <span className="text-sm text-muted-foreground">
-                  Question {currentQuestionIndex + 1} of {moduleQuestions.length}
-                </span>
-              </div>
+              {/* Engagement indicators */}
+              <EngagementIndicator
+                currentQuestionIndex={currentQuestionIndex}
+                totalQuestions={moduleQuestions.length}
+                moduleNumber={currentModuleIndex + 1}
+                streak={answerStreak}
+              />
+
+              {/* Encouragement banner at milestones */}
+              <EncouragementBanner
+                currentQuestionIndex={currentQuestionIndex}
+                totalQuestions={moduleQuestions.length}
+                moduleNumber={currentModuleIndex + 1}
+              />
 
               <QuestionCard
                 question={currentQuestion}
