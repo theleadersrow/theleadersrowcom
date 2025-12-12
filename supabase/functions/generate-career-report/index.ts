@@ -385,6 +385,15 @@ Each month should have exactly 2-3 actions. Actions must be concrete and complet
           console.error("Failed to send career report email:", await emailResponse.text());
         } else {
           console.log("Career report email sent successfully to:", session.email);
+          
+          // Note: Testimonial request email should be sent 3 days after via scheduled job
+          // For now, log the session for future testimonial outreach
+          console.log("Testimonial follow-up candidate:", { 
+            email: session.email, 
+            sessionId, 
+            currentLevel: currentLevelInferred, 
+            overallScore 
+          });
         }
       } catch (emailError) {
         console.error("Error sending career report email:", emailError);
