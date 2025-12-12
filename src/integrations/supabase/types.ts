@@ -793,6 +793,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      save_assessment_response: {
+        Args: {
+          p_numeric_value?: number
+          p_question_id: string
+          p_selected_option_id?: string
+          p_session_token: string
+          p_text_value?: string
+        }
+        Returns: string
+      }
       update_session_by_token: {
         Args: {
           p_current_module_index?: number

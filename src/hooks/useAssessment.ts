@@ -285,23 +285,19 @@ export function useAssessment() {
     init();
   }, [loadAssessmentData, loadOrCreateSession]);
 
-  // Save a response
+  // Save a response using secure RPC function
   const saveResponse = useCallback(async (response: Response) => {
     if (!session) return;
     
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("assessment_responses")
-        .upsert({
-          session_id: session.id,
-          question_id: response.question_id,
-          selected_option_id: response.selected_option_id || null,
-          numeric_value: response.numeric_value || null,
-          text_value: response.text_value || null,
-        }, {
-          onConflict: "session_id,question_id",
-        });
+      const { error } = await supabase.rpc("save_assessment_response", {
+        p_session_token: session.session_token,
+        p_question_id: response.question_id,
+        p_selected_option_id: response.selected_option_id || null,
+        p_numeric_value: response.numeric_value || null,
+        p_text_value: response.text_value || null,
+      });
 
       if (error) throw error;
 
