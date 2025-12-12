@@ -114,7 +114,7 @@ const Header = () => {
                 size="sm" 
                 className={`${textColor} hover:text-secondary`}
               >
-                AI Career Coach
+                Rimo AI Coach
               </Button>
             </Link>
             <Link to="/register">
@@ -187,7 +187,7 @@ const Header = () => {
                 className="text-base font-medium py-2 text-secondary hover:text-secondary/80"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                AI Career Coach
+                Rimo AI Coach
               </Link>
               <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="gold" className="w-full mt-2">
