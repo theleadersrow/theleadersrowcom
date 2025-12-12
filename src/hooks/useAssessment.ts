@@ -91,12 +91,17 @@ export function useAssessment() {
       if (questionsError) throw questionsError;
       
       // Sort options within each question and cast to our types
-      const sortedQuestions = (questionsData || []).map(q => ({
-        ...q,
-        weight: Number(q.weight) || 1,
-        options: ((q.options || []) as QuestionOption[]).sort((a, b) => a.order_index - b.order_index)
-      })) as Question[];
+      const sortedQuestions = (questionsData || []).map(q => {
+        const options = ((q.options || []) as QuestionOption[]).sort((a, b) => a.order_index - b.order_index);
+        console.log(`Question "${q.prompt.substring(0, 40)}..." has ${options.length} options`);
+        return {
+          ...q,
+          weight: Number(q.weight) || 1,
+          options
+        };
+      }) as Question[];
       
+      console.log("Loaded questions:", sortedQuestions.length);
       setQuestions(sortedQuestions);
     } catch (error) {
       console.error("Error loading assessment data:", error);
