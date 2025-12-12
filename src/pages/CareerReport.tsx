@@ -486,11 +486,11 @@ const CareerReport = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="insights" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-              <TabsTrigger value="insights" className="py-3">Key Insights</TabsTrigger>
-              <TabsTrigger value="skills" className="py-3">Skill Analysis</TabsTrigger>
-              <TabsTrigger value="plan" className="py-3">90-Day Plan</TabsTrigger>
-              <TabsTrigger value="accelerate" className="py-3">Accelerate</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto p-1 gap-1">
+              <TabsTrigger value="insights" className="py-2.5 text-xs md:text-sm">Key Insights</TabsTrigger>
+              <TabsTrigger value="skills" className="py-2.5 text-xs md:text-sm">Skills</TabsTrigger>
+              <TabsTrigger value="plan" className="py-2.5 text-xs md:text-sm">90-Day Plan</TabsTrigger>
+              <TabsTrigger value="accelerate" className="py-2.5 text-xs md:text-sm">Accelerate</TabsTrigger>
             </TabsList>
 
             {/* Key Insights Tab */}
