@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -201,9 +201,9 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <a href="/" className="font-serif text-xl font-semibold text-cream">
+              <Link to="/" className="font-serif text-xl font-semibold text-cream">
                 The Leader's Row
-              </a>
+              </Link>
               <span className="text-cream/40">|</span>
               <span className="text-cream/60 text-sm">Member Portal</span>
             </div>
@@ -259,7 +259,7 @@ const Dashboard = () => {
                   You haven't been enrolled in any programs yet.
                 </p>
                 <Button variant="gold" asChild>
-                  <a href="/">Explore Programs</a>
+                  <Link to="/">Explore Programs</Link>
                 </Button>
               </div>
             ) : (
