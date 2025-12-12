@@ -216,7 +216,10 @@ export function useAssessment() {
       const { data: existingSessionData, error: fetchError } = await supabase
         .rpc("get_session_by_token", { p_session_token: token });
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching session:", fetchError);
+        throw fetchError;
+      }
 
       const existingSession = existingSessionData?.[0];
 
@@ -229,7 +232,10 @@ export function useAssessment() {
           .select("*")
           .eq("session_id", existingSession.id);
 
-        if (responsesError) throw responsesError;
+        if (responsesError) {
+          console.error("Error loading responses:", responsesError);
+          throw responsesError;
+        }
 
         const responseMap = new Map<string, Response>();
         (existingResponses || []).forEach(r => {
@@ -242,24 +248,27 @@ export function useAssessment() {
         });
         setResponses(responseMap);
       } else {
-        // Create new session
-        const { data: newSession, error: createError } = await supabase
-          .from("assessment_sessions")
-          .insert({
-            session_token: token,
-            status: "in_progress",
-          })
-          .select()
-          .single();
+        // Create new session using secure RPC function
+        const { data: newSessionData, error: createError } = await supabase
+          .rpc("create_session_by_token", { p_session_token: token });
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error("Error creating session:", createError);
+          throw createError;
+        }
+
+        const newSession = newSessionData?.[0];
+        if (!newSession) {
+          throw new Error("Failed to create session - no data returned");
+        }
+        
         setSession(newSession as AssessmentSession);
       }
     } catch (error) {
       console.error("Error with session:", error);
       toast({
         title: "Error",
-        description: "Failed to start assessment. Please refresh.",
+        description: "Failed to start assessment. Please refresh the page.",
         variant: "destructive",
       });
     }

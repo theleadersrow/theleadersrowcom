@@ -157,9 +157,11 @@ const CareerReport = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [score, setScore] = useState<Score | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPDF = async () => {
@@ -187,83 +189,121 @@ const CareerReport = () => {
     }
   };
 
-  useEffect(() => {
-    const loadReport = async () => {
-      try {
-        const sessionToken = localStorage.getItem("assessment_session_token");
-        if (!sessionToken) {
-          navigate("/career-coach");
-          return;
-        }
-
-        // Use secure RPC function to get session
-        const { data: sessionData, error: sessionError } = await supabase
-          .rpc("get_session_by_token", { p_session_token: sessionToken });
-
-        const session = sessionData?.[0];
-        if (sessionError || !session) {
-          setError("Session not found");
-          return;
-        }
-
-        const { data: scoreData } = await supabase
-          .from("assessment_scores")
-          .select("*")
-          .eq("session_id", session.id)
-          .maybeSingle();
-
-        const { data: reportData } = await supabase
-          .from("assessment_reports")
-          .select("*")
-          .eq("session_id", session.id)
-          .maybeSingle();
-
-        if (scoreData && reportData) {
-          setScore({
-            overall_score: Number(scoreData.overall_score),
-            current_level_inferred: scoreData.current_level_inferred || "",
-            level_gap: Number(scoreData.level_gap),
-            dimension_scores: (scoreData.dimension_scores as Record<string, number>) || {},
-            skill_heatmap: (scoreData.skill_heatmap as { strengths: string[]; gaps: string[] }) || { strengths: [], gaps: [] },
-            experience_gaps: (scoreData.experience_gaps as string[]) || [],
-            blocker_archetype: scoreData.blocker_archetype || "",
-            market_fit: (scoreData.market_fit as { role_types: string[]; company_types: string[] }) || { role_types: [], company_types: [] },
-          });
-          setReport({
-            report_markdown: reportData.report_markdown || "",
-            growth_plan_json: (reportData.growth_plan_json as Report["growth_plan_json"]) || [],
-          });
-        } else {
-          const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-career-report`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              },
-              body: JSON.stringify({ sessionId: session.id }),
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("Failed to generate report");
-          }
-
-          const data = await response.json();
-          setScore(data.score);
-          setReport(data.report);
-        }
-      } catch (err) {
-        console.error("Error loading report:", err);
-        setError("Failed to load your report. Please try again.");
-      } finally {
-        setIsLoading(false);
+  const loadReport = async (isRetry = false) => {
+    try {
+      if (isRetry) {
+        setIsRetrying(true);
+        setError(null);
+        setErrorDetails(null);
       }
-    };
+      
+      const sessionToken = localStorage.getItem("assessment_session_token");
+      if (!sessionToken) {
+        setError("No assessment session found");
+        setErrorDetails("Please complete the assessment first to generate your report.");
+        navigate("/career-coach");
+        return;
+      }
 
+      // Use secure RPC function to get session
+      const { data: sessionData, error: sessionError } = await supabase
+        .rpc("get_session_by_token", { p_session_token: sessionToken });
+
+      if (sessionError) {
+        console.error("Session fetch error:", sessionError);
+        setError("Unable to retrieve your session");
+        setErrorDetails("There was a problem connecting to our servers. Please check your internet connection and try again.");
+        return;
+      }
+
+      const session = sessionData?.[0];
+      if (!session) {
+        setError("Session not found");
+        setErrorDetails("Your assessment session may have expired. Please start a new assessment.");
+        return;
+      }
+
+      if (session.status !== "submitted" && session.status !== "scored") {
+        setError("Assessment not complete");
+        setErrorDetails("Please complete all assessment questions before viewing your report.");
+        return;
+      }
+
+      const { data: scoreData, error: scoreError } = await supabase
+        .from("assessment_scores")
+        .select("*")
+        .eq("session_id", session.id)
+        .maybeSingle();
+
+      const { data: reportData, error: reportError } = await supabase
+        .from("assessment_reports")
+        .select("*")
+        .eq("session_id", session.id)
+        .maybeSingle();
+
+      if (scoreData && reportData) {
+        setScore({
+          overall_score: Number(scoreData.overall_score),
+          current_level_inferred: scoreData.current_level_inferred || "",
+          level_gap: Number(scoreData.level_gap),
+          dimension_scores: (scoreData.dimension_scores as Record<string, number>) || {},
+          skill_heatmap: (scoreData.skill_heatmap as { strengths: string[]; gaps: string[] }) || { strengths: [], gaps: [] },
+          experience_gaps: (scoreData.experience_gaps as string[]) || [],
+          blocker_archetype: scoreData.blocker_archetype || "",
+          market_fit: (scoreData.market_fit as { role_types: string[]; company_types: string[] }) || { role_types: [], company_types: [] },
+        });
+        setReport({
+          report_markdown: reportData.report_markdown || "",
+          growth_plan_json: (reportData.growth_plan_json as Report["growth_plan_json"]) || [],
+        });
+        setError(null);
+      } else {
+        // Generate report
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-career-report`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ sessionId: session.id }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Report generation failed:", response.status, errorText);
+          throw new Error(`Report generation failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setScore(data.score);
+        setReport(data.report);
+        setError(null);
+      }
+    } catch (err) {
+      console.error("Error loading report:", err);
+      setError("Failed to generate your report");
+      setErrorDetails("Our AI is experiencing high demand. Please wait a moment and try again.");
+    } finally {
+      setIsLoading(false);
+      setIsRetrying(false);
+    }
+  };
+
+  useEffect(() => {
     loadReport();
   }, [navigate]);
+
+  const handleRetry = () => {
+    loadReport(true);
+  };
+
+  const handleStartOver = () => {
+    localStorage.removeItem("assessment_session_token");
+    navigate("/career-coach");
+  };
 
   if (isLoading) {
     return (
@@ -272,6 +312,7 @@ const CareerReport = () => {
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <p className="text-muted-foreground">Loading your report...</p>
+            <p className="text-sm text-muted-foreground/70">This may take a few seconds</p>
           </div>
         </div>
       </Layout>
@@ -283,15 +324,37 @@ const CareerReport = () => {
       <Layout>
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="text-center max-w-md">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
+            </div>
             <h2 className="text-2xl font-serif font-bold text-foreground mb-4">
-              Report Not Found
+              {error || "Report Not Found"}
             </h2>
             <p className="text-muted-foreground mb-6">
-              {error || "We couldn't find your report. Please complete the assessment first."}
+              {errorDetails || "We couldn't find your report. Please complete the assessment first."}
             </p>
-            <Button onClick={() => navigate("/career-coach")}>
-              Take Assessment
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={handleRetry} 
+                disabled={isRetrying}
+                className="gap-2"
+              >
+                {isRetrying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <ArrowRight className="w-4 h-4" />
+                    Try Again
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" onClick={handleStartOver}>
+                Start New Assessment
+              </Button>
+            </div>
           </div>
         </div>
       </Layout>
