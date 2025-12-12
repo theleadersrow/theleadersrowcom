@@ -133,9 +133,27 @@ export function QuestionCard({
 
       case "scale_1_5":
       case "confidence":
-        const labels = question.question_type === "confidence" 
-          ? ["Not confident", "Somewhat", "Confident", "Very confident", "Extremely confident"]
-          : ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
+        // Dynamic labels based on question content
+        const getScaleLabels = () => {
+          const prompt = question.prompt.toLowerCase();
+          
+          if (prompt.includes("comfortable") || prompt.includes("comfort")) {
+            return ["Very Uncomfortable", "Uncomfortable", "Neutral", "Comfortable", "Very Comfortable"];
+          }
+          if (prompt.includes("how often") || prompt.includes("frequency")) {
+            return ["Never", "Rarely", "Sometimes", "Often", "Always"];
+          }
+          if (prompt.includes("rate your") || prompt.includes("ability")) {
+            return ["Poor", "Below Average", "Average", "Good", "Excellent"];
+          }
+          if (prompt.includes("confident") || question.question_type === "confidence") {
+            return ["Not confident", "Somewhat", "Confident", "Very confident", "Extremely confident"];
+          }
+          // Default to agree/disagree for statement-based questions
+          return ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
+        };
+        
+        const labels = getScaleLabels();
         
         return (
           <div className="space-y-6 py-4">
