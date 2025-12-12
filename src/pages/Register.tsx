@@ -18,10 +18,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 const PRICE_IDS = {
   "200k-method": "price_1SdcR1CD119gx37UY1m7KYal",
-  "weekly-edge": "price_1Sdcl3CD119gx37ULkCEOI1Z",
 };
 
-const SUBSCRIPTION_PROGRAMS = ["weekly-edge"];
+// Weekly Edge uses a direct Stripe Payment Link
+const PAYMENT_LINKS = {
+  "weekly-edge": "https://buy.stripe.com/28E8wO6i562u7oH5sD9sk08",
+};
 
 const registerSchema = z.object({
   fullName: z
@@ -127,19 +129,31 @@ const Register = () => {
         throw error;
       }
 
-      // Check if this program has a Stripe price
+      // Check if this program has a direct Payment Link (Weekly Edge)
+      const paymentLink = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
+      
+      if (paymentLink) {
+        // Open Stripe Payment Link in new tab
+        window.open(paymentLink, '_blank');
+        toast({
+          title: "Payment page opened",
+          description: "Complete your subscription in the new tab to finalize registration.",
+        });
+        setIsSubmitted(true);
+        return;
+      }
+
+      // Check if this program has a Stripe price (200K Method)
       const priceId = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
       
       if (priceId) {
-        const isSubscription = SUBSCRIPTION_PROGRAMS.includes(formData.program);
-        
         // Redirect to Stripe checkout with all customer data
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
           body: {
             priceId,
-            productName: formData.program === "200k-method" ? "200K Method" : "Weekly Edge Membership",
+            productName: "200K Method",
             program: formData.program,
-            mode: isSubscription ? "subscription" : "payment",
+            mode: "payment",
             customerEmail: formData.email,
             customerName: formData.fullName,
             customerPhone: formData.phone,
@@ -175,7 +189,7 @@ const Register = () => {
         }
       }
 
-      // For programs without Stripe price (like weekly-edge), just show success
+      // For programs without Stripe price, just show success
       setIsSubmitted(true);
     } catch (error: any) {
       console.error("Error sending registration:", error);
