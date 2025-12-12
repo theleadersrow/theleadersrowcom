@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,8 +14,8 @@ export interface QuestionOption {
   question_id: string;
   option_label: string;
   option_text: string;
-  score_map: unknown;
-  level_map: unknown;
+  score_map: Record<string, number> | null;
+  level_map: Record<string, string> | null;
   order_index: number;
 }
 
@@ -31,6 +31,13 @@ export interface Question {
   min_level?: string | null;
   max_level?: string | null;
   is_calibration?: boolean;
+  skill_dimensions?: string[];
+  branch_condition?: {
+    requires_dimension?: string;
+    min_score?: number;
+    max_score?: number;
+    requires_response_pattern?: string;
+  } | null;
 }
 
 export interface Response {
@@ -58,6 +65,38 @@ function getLevelIndex(level: string | null | undefined): number {
   return LEVEL_ORDER.indexOf(level);
 }
 
+// Calculate cumulative dimension scores from responses
+function calculateDimensionScores(
+  responses: Map<string, Response>,
+  questions: Question[]
+): Record<string, number> {
+  const scores: Record<string, number> = {};
+  
+  responses.forEach((response, questionId) => {
+    const question = questions.find(q => q.id === questionId);
+    if (!question) return;
+    
+    // For multiple choice, get score from selected option
+    if (response.selected_option_id && question.options) {
+      const option = question.options.find(o => o.id === response.selected_option_id);
+      if (option?.score_map) {
+        Object.entries(option.score_map).forEach(([dimension, score]) => {
+          scores[dimension] = (scores[dimension] || 0) + (score as number);
+        });
+      }
+    }
+    
+    // For scale questions, distribute to dimensions
+    if (response.numeric_value && question.skill_dimensions) {
+      question.skill_dimensions.forEach(dimension => {
+        scores[dimension] = (scores[dimension] || 0) + (response.numeric_value! * 2);
+      });
+    }
+  });
+  
+  return scores;
+}
+
 function isQuestionForLevel(question: Question, userLevel: string | null): boolean {
   // Calibration question is always shown
   if (question.is_calibration) return true;
@@ -77,6 +116,26 @@ function isQuestionForLevel(question: Question, userLevel: string | null): boole
   
   // Check max level (user must be at or below)
   if (question.max_level && userLevelIdx > maxLevelIdx) return false;
+  
+  return true;
+}
+
+// Dynamic branching - check if question should be shown based on previous responses
+function shouldShowDynamicQuestion(
+  question: Question,
+  dimensionScores: Record<string, number>,
+  responses: Map<string, Response>
+): boolean {
+  if (!question.branch_condition) return true;
+  
+  const condition = question.branch_condition;
+  
+  // Check dimension score requirements
+  if (condition.requires_dimension) {
+    const score = dimensionScores[condition.requires_dimension] || 0;
+    if (condition.min_score && score < condition.min_score) return false;
+    if (condition.max_score && score > condition.max_score) return false;
+  }
   
   return true;
 }
@@ -331,15 +390,27 @@ export function useAssessment() {
     }
   }, [session, toast]);
 
-  // Filter questions based on user level
-  const questions = allQuestions.filter(q => isQuestionForLevel(q, session?.inferred_level));
+  // Calculate dimension scores for dynamic filtering
+  const dimensionScores = useMemo(() => 
+    calculateDimensionScores(responses, allQuestions),
+    [responses, allQuestions]
+  );
 
-  // Get questions for a module (filtered by level)
+  // Filter questions based on user level AND dynamic conditions
+  const questions = useMemo(() => 
+    allQuestions
+      .filter(q => isQuestionForLevel(q, session?.inferred_level))
+      .filter(q => shouldShowDynamicQuestion(q, dimensionScores, responses)),
+    [allQuestions, session?.inferred_level, dimensionScores, responses]
+  );
+
+  // Get questions for a module (filtered by level and dynamic conditions)
   const getQuestionsForModule = useCallback((moduleId: string) => {
     return allQuestions
       .filter(q => q.module_id === moduleId)
-      .filter(q => isQuestionForLevel(q, session?.inferred_level));
-  }, [allQuestions, session?.inferred_level]);
+      .filter(q => isQuestionForLevel(q, session?.inferred_level))
+      .filter(q => shouldShowDynamicQuestion(q, dimensionScores, responses));
+  }, [allQuestions, session?.inferred_level, dimensionScores, responses]);
 
   // Calculate progress percentage
   const getProgress = useCallback(() => {
@@ -380,6 +451,7 @@ export function useAssessment() {
     responses,
     isLoading,
     isSaving,
+    dimensionScores,
     saveResponse,
     updateProgress,
     saveEmail,
