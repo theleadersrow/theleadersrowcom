@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.parse-resume]
 verify_jwt = false
+
+[functions.generate-career-report]
+verify_jwt = false
+
+[functions.ats-score-resume]
+verify_jwt = false
