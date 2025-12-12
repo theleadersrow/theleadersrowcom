@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.send-blueprint-email]
 verify_jwt = false
+
+[functions.career-coach]
+verify_jwt = false
+
+[functions.parse-resume]
+verify_jwt = false
