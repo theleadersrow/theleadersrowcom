@@ -47,6 +47,9 @@ export type Database = {
           help_text: string | null
           id: string
           is_active: boolean | null
+          is_calibration: boolean | null
+          max_level: string | null
+          min_level: string | null
           module_id: string
           order_index: number
           prompt: string
@@ -58,6 +61,9 @@ export type Database = {
           help_text?: string | null
           id?: string
           is_active?: boolean | null
+          is_calibration?: boolean | null
+          max_level?: string | null
+          min_level?: string | null
           module_id: string
           order_index?: number
           prompt: string
@@ -69,6 +75,9 @@ export type Database = {
           help_text?: string | null
           id?: string
           is_active?: boolean | null
+          is_calibration?: boolean | null
+          max_level?: string | null
+          min_level?: string | null
           module_id?: string
           order_index?: number
           prompt?: string
@@ -226,6 +235,7 @@ export type Database = {
           current_question_index: number | null
           email: string | null
           id: string
+          inferred_level: string | null
           scored_at: string | null
           session_token: string | null
           started_at: string | null
@@ -239,6 +249,7 @@ export type Database = {
           current_question_index?: number | null
           email?: string | null
           id?: string
+          inferred_level?: string | null
           scored_at?: string | null
           session_token?: string | null
           started_at?: string | null
@@ -252,6 +263,7 @@ export type Database = {
           current_question_index?: number | null
           email?: string | null
           id?: string
+          inferred_level?: string | null
           scored_at?: string | null
           session_token?: string | null
           started_at?: string | null

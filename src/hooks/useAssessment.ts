@@ -28,6 +28,9 @@ export interface Question {
   order_index: number;
   weight: number;
   options?: QuestionOption[];
+  min_level?: string | null;
+  max_level?: string | null;
+  is_calibration?: boolean;
 }
 
 export interface Response {
@@ -44,11 +47,43 @@ export interface AssessmentSession {
   current_module_index: number;
   current_question_index: number;
   email: string | null;
+  inferred_level: string | null;
+}
+
+// Level hierarchy for filtering questions
+const LEVEL_ORDER = ['aspiring', 'junior', 'PM', 'Senior', 'Principal', 'Director'];
+
+function getLevelIndex(level: string | null | undefined): number {
+  if (!level) return -1;
+  return LEVEL_ORDER.indexOf(level);
+}
+
+function isQuestionForLevel(question: Question, userLevel: string | null): boolean {
+  // Calibration question is always shown
+  if (question.is_calibration) return true;
+  
+  // If no level filtering, show to everyone
+  if (!question.min_level && !question.max_level) return true;
+  
+  // If user level not yet determined, show questions without min_level
+  if (!userLevel) return !question.min_level;
+  
+  const userLevelIdx = getLevelIndex(userLevel);
+  const minLevelIdx = getLevelIndex(question.min_level);
+  const maxLevelIdx = getLevelIndex(question.max_level);
+  
+  // Check min level (user must be at or above)
+  if (question.min_level && userLevelIdx < minLevelIdx) return false;
+  
+  // Check max level (user must be at or below)
+  if (question.max_level && userLevelIdx > maxLevelIdx) return false;
+  
+  return true;
 }
 
 export function useAssessment() {
   const [modules, setModules] = useState<Module[]>([]);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [session, setSession] = useState<AssessmentSession | null>(null);
   const [responses, setResponses] = useState<Map<string, Response>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +137,7 @@ export function useAssessment() {
       }) as Question[];
       
       console.log("Loaded questions:", sortedQuestions.length);
-      setQuestions(sortedQuestions);
+      setAllQuestions(sortedQuestions);
     } catch (error) {
       console.error("Error loading assessment data:", error);
       toast({
@@ -296,22 +331,47 @@ export function useAssessment() {
     }
   }, [session, toast]);
 
-  // Get questions for a module
+  // Filter questions based on user level
+  const questions = allQuestions.filter(q => isQuestionForLevel(q, session?.inferred_level));
+
+  // Get questions for a module (filtered by level)
   const getQuestionsForModule = useCallback((moduleId: string) => {
-    return questions.filter(q => q.module_id === moduleId);
-  }, [questions]);
+    return allQuestions
+      .filter(q => q.module_id === moduleId)
+      .filter(q => isQuestionForLevel(q, session?.inferred_level));
+  }, [allQuestions, session?.inferred_level]);
 
   // Calculate progress percentage
   const getProgress = useCallback(() => {
     const totalQuestions = questions.length;
     const answeredQuestions = responses.size;
     return totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
-  }, [questions, responses]);
+  }, [questions.length, responses.size]);
 
   // Check if signup gate should show (after 6 questions)
   const shouldShowSignupGate = useCallback(() => {
     return responses.size >= 6 && !session?.email;
   }, [responses.size, session?.email]);
+
+  // Save inferred level to session
+  const saveInferredLevel = useCallback(async (level: string) => {
+    if (!session) return false;
+    
+    try {
+      const { error } = await supabase
+        .from("assessment_sessions")
+        .update({ inferred_level: level })
+        .eq("id", session.id);
+
+      if (error) throw error;
+
+      setSession(prev => prev ? { ...prev, inferred_level: level } : null);
+      return true;
+    } catch (error) {
+      console.error("Error saving inferred level:", error);
+      return false;
+    }
+  }, [session]);
 
   return {
     modules,
@@ -323,6 +383,7 @@ export function useAssessment() {
     saveResponse,
     updateProgress,
     saveEmail,
+    saveInferredLevel,
     submitAssessment,
     getQuestionsForModule,
     getProgress,

@@ -26,6 +26,7 @@ const StrategicBenchmark = () => {
     saveResponse,
     updateProgress,
     saveEmail,
+    saveInferredLevel,
     submitAssessment,
     getQuestionsForModule,
     getProgress,
@@ -60,8 +61,20 @@ const StrategicBenchmark = () => {
     setCurrentView("questions");
   };
 
-  const handleAnswer = (response: { question_id: string; selected_option_id?: string; numeric_value?: number; text_value?: string }) => {
+  const handleAnswer = async (response: { question_id: string; selected_option_id?: string; numeric_value?: number; text_value?: string }) => {
     saveResponse(response);
+    
+    // Check if this is the calibration question and extract level
+    const question = questions.find(q => q.id === response.question_id);
+    if (question?.is_calibration && response.selected_option_id) {
+      const option = question.options?.find(o => o.id === response.selected_option_id);
+      if (option?.level_map) {
+        const levelMap = option.level_map as { level?: string };
+        if (levelMap.level) {
+          await saveInferredLevel(levelMap.level);
+        }
+      }
+    }
   };
 
   const handleNext = async () => {
