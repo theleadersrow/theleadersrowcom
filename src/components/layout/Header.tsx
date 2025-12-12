@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
 import {
@@ -14,7 +14,6 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
 
   useEffect(() => {
@@ -24,25 +23,6 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const scrollToQuiz = () => {
-    setIsMobileMenuOpen(false);
-    
-    if (isHomePage) {
-      const quizSection = document.querySelector('[data-quiz-section]');
-      if (quizSection) {
-        quizSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate('/');
-      setTimeout(() => {
-        const quizSection = document.querySelector('[data-quiz-section]');
-        if (quizSection) {
-          quizSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    }
-  };
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -128,14 +108,15 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={scrollToQuiz}
-              className={`${textColor} hover:text-secondary`}
-            >
-              Take Quiz
-            </Button>
+            <Link to="/career-coach">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`${textColor} hover:text-secondary`}
+              >
+                Free Assessment
+              </Button>
+            </Link>
             <Link to="/register">
               <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} size="default">
                 Register Now
@@ -201,12 +182,13 @@ const Header = () => {
                 )}
               </div>
               
-              <button
-                onClick={scrollToQuiz}
-                className="text-base font-medium py-2 text-secondary hover:text-secondary/80 text-left"
+              <Link
+                to="/career-coach"
+                className="text-base font-medium py-2 text-secondary hover:text-secondary/80"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                Take Career Quiz
-              </button>
+                Free Assessment
+              </Link>
               <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="gold" className="w-full mt-2">
                   Register Now
