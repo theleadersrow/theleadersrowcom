@@ -31,7 +31,7 @@ const StrategicBenchmark = () => {
     saveInferredLevel,
     submitAssessment,
     getQuestionsForModule,
-    getProgress,
+    progress,
     shouldShowSignupGate,
   } = useAssessment();
 
@@ -188,7 +188,7 @@ const StrategicBenchmark = () => {
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
-            progress={getProgress()}
+            progress={progress}
           />
         )}
 
