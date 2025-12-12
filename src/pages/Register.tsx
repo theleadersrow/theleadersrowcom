@@ -16,12 +16,9 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
-const PRICE_IDS = {
-  "200k-method": "price_1SdcR1CD119gx37UY1m7KYal",
-};
-
-// Weekly Edge uses a direct Stripe Payment Link
+// Direct Stripe Payment Links for both programs
 const PAYMENT_LINKS = {
+  "200k-method": "https://buy.stripe.com/28EaEWdKxduW24n2gr9sk09",
   "weekly-edge": "https://buy.stripe.com/28E8wO6i562u7oH5sD9sk08",
 };
 
@@ -143,53 +140,7 @@ const Register = () => {
         return;
       }
 
-      // Check if this program has a Stripe price (200K Method)
-      const priceId = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
-      
-      if (priceId) {
-        // Redirect to Stripe checkout with all customer data
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
-          body: {
-            priceId,
-            productName: "200K Method",
-            program: formData.program,
-            mode: "payment",
-            customerEmail: formData.email,
-            customerName: formData.fullName,
-            customerPhone: formData.phone,
-            customerAddress: formData.address,
-            customerCity: formData.city,
-            customerState: formData.state,
-            customerCountry: formData.country,
-            customerZipcode: formData.zipcode,
-            customerOccupation: formData.occupation,
-          }
-        });
-
-        if (checkoutError) {
-          console.error("Checkout error:", checkoutError);
-          // Still show success but notify about payment
-          toast({
-            title: "Registration received!",
-            description: "We'll contact you to complete payment.",
-          });
-          setIsSubmitted(true);
-          return;
-        }
-
-        if (checkoutData?.url) {
-          // Open Stripe checkout in new tab (required - Stripe cannot be embedded)
-          window.open(checkoutData.url, '_blank');
-          toast({
-            title: "Payment page opened",
-            description: "Complete your payment in the new tab to finalize registration.",
-          });
-          setIsSubmitted(true);
-          return;
-        }
-      }
-
-      // For programs without Stripe price, just show success
+      // For programs without payment links, just show success
       setIsSubmitted(true);
     } catch (error: any) {
       console.error("Error sending registration:", error);
@@ -204,7 +155,7 @@ const Register = () => {
   };
 
   if (isSubmitted) {
-    const hasPaidProgram = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
+    const hasPaidProgram = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
     
     return (
       <Layout>
