@@ -57,7 +57,9 @@ serve(async (req) => {
 
     const firstName = enrollment.first_name || "there";
     const productName = enrollment.programs?.name || "200K Method";
-    const signupLink = "https://theleadersrow.com/signup";
+    // Use the production domain - ensure it's properly configured in Lovable settings
+    const baseUrl = "https://8c83af2e-8298-4d6e-a553-b1420fc68883.lovableproject.com";
+    const signupLink = `${baseUrl}/signup`;
 
     // Send confirmation email with enrollment code and signup link
     const emailHtml = `
