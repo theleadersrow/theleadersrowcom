@@ -5,9 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { 
   Upload, FileText, Loader2, CheckCircle, AlertCircle, 
-  TrendingUp, Target, Zap, ArrowRight 
+  TrendingUp, Target, Zap, ArrowRight, RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ATSResult {
   ats_score: number;
@@ -37,6 +38,7 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ATSResult | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [isParsingResume, setIsParsingResume] = useState(false);
   const { toast } = useToast();
 
   const handleReset = () => {
@@ -65,15 +67,63 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
     if (file.type === "text/plain") {
       const text = await file.text();
       setResumeText(text);
+      toast({
+        title: "Resume loaded",
+        description: "Your resume text has been extracted.",
+      });
       return;
     }
 
-    // For PDFs, we'll need to parse via edge function
+    // For PDFs, parse via edge function
     if (file.type === "application/pdf") {
+      setIsParsingResume(true);
       toast({
-        title: "PDF uploaded",
-        description: "Paste your resume text below or we'll analyze the file directly.",
+        title: "Processing PDF",
+        description: "Extracting text from your resume...",
       });
+
+      try {
+        // Read file as base64
+        const arrayBuffer = await file.arrayBuffer();
+        const base64 = btoa(
+          new Uint8Array(arrayBuffer).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          )
+        );
+
+        // Call the Supabase function to parse resume
+        const { data, error } = await supabase.functions.invoke('parse-resume', {
+          body: {
+            fileBase64: base64,
+            fileName: file.name,
+            fileType: file.type,
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.resumeText) {
+          setResumeText(data.resumeText);
+          toast({
+            title: "Resume parsed successfully",
+            description: "Your resume text has been extracted and is ready for analysis.",
+          });
+        } else {
+          throw new Error("No text extracted from resume");
+        }
+      } catch (error) {
+        console.error("PDF parsing error:", error);
+        toast({
+          title: "Could not parse PDF",
+          description: "Please paste your resume text manually below.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsParsingResume(false);
+      }
     }
   };
 
@@ -332,30 +382,50 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
               <FileText className="w-4 h-4" />
               Your Resume
             </h3>
-            <label className="cursor-pointer">
+            <label className={`cursor-pointer ${isParsingResume ? 'pointer-events-none opacity-50' : ''}`}>
               <input
                 type="file"
                 accept=".txt,.pdf,.doc,.docx"
                 className="hidden"
                 onChange={handleFileUpload}
+                disabled={isParsingResume}
               />
               <span className="text-sm text-primary hover:underline flex items-center gap-1">
-                <Upload className="w-3 h-3" />
-                Upload
+                {isParsingResume ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Parsing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3 h-3" />
+                    Upload PDF
+                  </>
+                )}
               </span>
             </label>
           </div>
           {resumeFile && (
-            <div className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-              <FileText className="w-3 h-3" />
-              {resumeFile.name}
+            <div className="text-sm mb-2 flex items-center gap-2">
+              <FileText className="w-3 h-3 text-muted-foreground" />
+              <span className="text-muted-foreground">{resumeFile.name}</span>
+              {isParsingResume && (
+                <span className="text-xs text-primary flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Extracting text...
+                </span>
+              )}
+              {!isParsingResume && resumeText && (
+                <CheckCircle className="w-3 h-3 text-green-500" />
+              )}
             </div>
           )}
           <Textarea
-            placeholder="Paste your resume text here..."
+            placeholder={isParsingResume ? "Parsing your resume..." : "Upload a PDF or paste your resume text here..."}
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             className="min-h-[200px] text-sm"
+            disabled={isParsingResume}
           />
         </Card>
 
