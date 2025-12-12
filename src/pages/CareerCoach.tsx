@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Send, Bot, User, Loader2, FileText, MessageCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Upload, Send, Bot, User, Loader2, FileText, MessageCircle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
@@ -22,6 +23,7 @@ const CareerCoach = () => {
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+  const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -265,9 +267,20 @@ const CareerCoach = () => {
                 <MessageCircle className="w-5 h-5 text-primary" />
                 <span className="font-semibold text-foreground">AI Career Coach</span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                Step {step} of 6
-              </span>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowInterviewPrepDialog(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Interview Prep
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Step {step} of 6
+                </span>
+              </div>
             </div>
             {/* Progress Bar */}
             <div className="flex gap-1">
@@ -452,6 +465,34 @@ const CareerCoach = () => {
             </p>
           </div>
         </div>
+
+        {/* Interview Prep Coming Soon Dialog */}
+        <Dialog open={showInterviewPrepDialog} onOpenChange={setShowInterviewPrepDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                AI Interview Prep
+              </DialogTitle>
+              <DialogDescription className="pt-4 space-y-4">
+                <p>
+                  Our AI-powered Interview Prep tool will help you practice and prepare for real interviews with personalized mock sessions, feedback, and coaching.
+                </p>
+                <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                  <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    This premium feature will be launching in a few months. Stay tuned!
+                  </p>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center mt-4">
+              <Button onClick={() => setShowInterviewPrepDialog(false)}>
+                Got it
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
