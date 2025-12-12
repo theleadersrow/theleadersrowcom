@@ -21,9 +21,11 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Receipt
 } from "lucide-react";
 import { toast } from "sonner";
+import InvoiceList from "@/components/InvoiceList";
 
 interface Profile {
   id: string;
@@ -246,6 +248,10 @@ const Dashboard = () => {
             <TabsTrigger value="resources" className="gap-2">
               <FileText className="w-4 h-4" />
               Resources
+            </TabsTrigger>
+            <TabsTrigger value="invoices" className="gap-2">
+              <Receipt className="w-4 h-4" />
+              Invoices
             </TabsTrigger>
           </TabsList>
 
@@ -479,6 +485,23 @@ const Dashboard = () => {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          {/* Invoices Tab */}
+          <TabsContent value="invoices" className="space-y-6">
+            <div className="bg-card rounded-2xl p-6 border border-border/50">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-secondary" />
+                Payment History
+              </h3>
+              {profile?.email ? (
+                <InvoiceList customerEmail={profile.email} />
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  Unable to load invoices. Please try again later.
+                </p>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </main>

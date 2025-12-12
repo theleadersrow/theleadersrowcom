@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.send-cancellation-request]
 verify_jwt = false
+
+[functions.get-invoices]
+verify_jwt = false
