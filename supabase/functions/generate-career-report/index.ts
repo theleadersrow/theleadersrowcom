@@ -119,27 +119,80 @@ serve(async (req) => {
       }
     }
 
-    // Determine blocker archetype
-    let blockerArchetype = "";
-    const execution = dimensionScores.execution || 50;
-    const visibility = dimensionScores.visibility || 50;
-
-    if (execution > 70 && visibility < 50) {
-      blockerArchetype = "Invisible Expert";
-    } else if (execution > 70 && strategy < 50) {
-      blockerArchetype = "Execution Hero";
-    } else if (strategy > 60 && influence < 50) {
-      blockerArchetype = "Strategic Thinker Without Voice";
-    } else if (overallScore > 60 && narrative < 45) {
-      blockerArchetype = "Over-Deliverer";
-    }
-
-    // Build skill heatmap
+    // Build skill heatmap FIRST (needed for blocker and actions logic)
     const sortedDimensions = Object.entries(dimensionScores).sort((a, b) => b[1] - a[1]);
     const skillHeatmap = {
       strengths: sortedDimensions.slice(0, 3).map(([dim]) => dim),
       gaps: sortedDimensions.slice(-3).map(([dim]) => dim),
     };
+
+    // Determine blocker archetype with description
+    let blockerArchetype = "";
+    let blockerDescription = "";
+    let marketReadinessScore = "";
+    const execution = dimensionScores.execution || 50;
+    const visibility = dimensionScores.visibility || 50;
+
+    if (execution > 70 && visibility < 50) {
+      blockerArchetype = "Invisible Expert";
+      blockerDescription = "You consistently deliver exceptional work, yet your contributions remain unseen by decision-makers. You've mastered the craft of product management but haven't learned to amplify your impact through strategic visibility. Your work speaks—but not loudly enough. Until you learn to narrate your wins and position yourself as a leader (not just a doer), promotions and opportunities will go to less capable but more visible peers.";
+    } else if (execution > 70 && strategy < 50) {
+      blockerArchetype = "Execution Hero";
+      blockerDescription = "You're the person everyone counts on to get things done—reliable, thorough, and tireless. But this very strength has become your ceiling. By being so good at execution, you've trained your organization to see you as a doer, not a thinker. The path forward isn't working harder; it's stepping back to lead strategy, delegate execution, and let others do the work you've been hoarding.";
+    } else if (strategy > 60 && influence < 50) {
+      blockerArchetype = "Strategic Thinker Without Voice";
+      blockerDescription = "You see what others miss—the patterns, the opportunities, the right path forward. But your insights die in your head or get lost in meetings where louder voices dominate. Your strategic capability is wasted without the influence skills to make people listen, buy in, and act. Developing executive presence and persuasion isn't optional—it's the unlock that makes your thinking matter.";
+    } else if (overallScore > 60 && narrative < 45) {
+      blockerArchetype = "Over-Deliverer";
+      blockerDescription = "You hold yourself to impossibly high standards, polishing every deliverable until it shines. This perfectionism feels like quality—but it's actually fear dressed up as excellence. You're slow when the market rewards speed, and you're invisible while peers who ship 'good enough' work build track records. The uncomfortable truth: done is better than perfect, and your career is stalling while you polish.";
+    } else if (overallScore > 50 && ambiguity < 40) {
+      blockerArchetype = "Certainty Seeker";
+      blockerDescription = "You thrive when the path is clear, but freeze or over-analyze when facing ambiguity. In senior roles, the map disappears—you become the one who must create clarity for others. Your need for certainty is limiting your scope and keeping you in roles where someone else defines the direction. Building comfort with incomplete information is your gateway to leadership.";
+    }
+
+    // Generate market readiness score
+    if (overallScore >= 80) {
+      marketReadinessScore = "You're ready to compete for senior roles now—your gaps are refinements, not blockers.";
+    } else if (overallScore >= 65) {
+      marketReadinessScore = "You're close but have 1-2 critical gaps that hiring managers will notice—fix them in the next 60 days.";
+    } else if (overallScore >= 50) {
+      marketReadinessScore = "You have foundational strengths but need 3-6 months of focused development before targeting your next level.";
+    } else {
+      marketReadinessScore = "Focus on building core competencies first—rushing to apply will waste opportunities.";
+    }
+
+    // Generate 30-day action list
+    const thirtyDayActions: string[] = [];
+    
+    // Based on top gap
+    const topGap = skillHeatmap.gaps[0];
+    if (topGap === "visibility" || topGap === "narrative") {
+      thirtyDayActions.push("Write and share one LinkedIn post about a recent win or lesson learned");
+      thirtyDayActions.push("Schedule a 1:1 with your skip-level to share what you're working on");
+    } else if (topGap === "influence") {
+      thirtyDayActions.push("Identify one stakeholder you need to influence and set up a relationship-building coffee chat");
+      thirtyDayActions.push("Practice your 'executive summary' pitch for your current project");
+    } else if (topGap === "strategy") {
+      thirtyDayActions.push("Block 2 hours to write a one-page strategy doc for your product area");
+      thirtyDayActions.push("Study one competitor's product strategy and document what they're betting on");
+    } else {
+      thirtyDayActions.push("Document your top 3 wins from the past quarter with measurable impact");
+    }
+
+    // Based on blocker
+    if (blockerArchetype === "Invisible Expert") {
+      thirtyDayActions.push("Send a weekly 'wins' update to your manager highlighting your impact");
+    } else if (blockerArchetype === "Execution Hero") {
+      thirtyDayActions.push("Delegate one task you normally do yourself and coach someone else to own it");
+    } else if (blockerArchetype === "Strategic Thinker Without Voice") {
+      thirtyDayActions.push("Speak up in the first 5 minutes of your next cross-functional meeting with a prepared POV");
+    }
+
+    // Always add networking
+    thirtyDayActions.push("Reach out to 2 PMs at your target level/company for informational conversations");
+
+    // Limit to 5
+    const limitedActions = thirtyDayActions.slice(0, 5);
 
     // Generate experience gaps based on level gap
     const experienceGaps = [];
@@ -317,6 +370,9 @@ Create entries for weeks 1, 2, 3, 4, 6, 8, 10, 12. Focus on practical, specific 
           skill_heatmap: skillHeatmap,
           experience_gaps: experienceGaps,
           blocker_archetype: blockerArchetype,
+          blocker_description: blockerDescription,
+          market_readiness_score: marketReadinessScore,
+          thirty_day_actions: limitedActions,
           market_fit: marketFit,
         },
         report: {
