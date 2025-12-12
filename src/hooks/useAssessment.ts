@@ -407,8 +407,8 @@ export function useAssessment() {
       .filter(q => shouldShowDynamicQuestion(q, dimensionScores, responses));
   }, [allQuestions, session?.inferred_level, dimensionScores, responses]);
 
-  // Calculate progress percentage
-  const getProgress = useCallback(() => {
+  // Calculate progress percentage - use useMemo instead of useCallback for derived value
+  const progress = useMemo(() => {
     const totalQuestions = questions.length;
     const answeredQuestions = responses.size;
     return totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
@@ -447,13 +447,13 @@ export function useAssessment() {
     isLoading,
     isSaving,
     dimensionScores,
+    progress,
     saveResponse,
     updateProgress,
     saveEmail,
     saveInferredLevel,
     submitAssessment,
     getQuestionsForModule,
-    getProgress,
     shouldShowSignupGate,
   };
 }
