@@ -158,9 +158,8 @@ const Register = () => {
         }
 
         if (checkoutData?.url) {
-          // Open Stripe checkout in new tab
-          window.open(checkoutData.url, '_blank');
-          setIsSubmitted(true);
+          // Redirect to Stripe checkout in same window
+          window.location.href = checkoutData.url;
           return;
         }
       }
