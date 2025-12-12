@@ -37,7 +37,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 import { LeadsTab } from "@/components/admin/LeadsTab";
 import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
@@ -702,6 +702,7 @@ const Admin = () => {
                       <TableHead>Enrollment ID</TableHead>
                       <TableHead>Start Date</TableHead>
                       <TableHead>Payment</TableHead>
+                      <TableHead>Account</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -756,6 +757,17 @@ const Admin = () => {
                               <Badge variant={e.payment_status === "paid" ? "default" : "secondary"}>
                                 {e.payment_status}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {e.user_id ? (
+                                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                  ✓ Enrolled
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-orange-500 border-orange-500">
+                                  ⏳ Pending
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
