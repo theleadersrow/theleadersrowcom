@@ -290,25 +290,22 @@ Keep the tone direct, specific, and actionable. No fluff. No generic advice. Wri
     const aiData = await aiResponse.json();
     const reportMarkdown = aiData.choices?.[0]?.message?.content || "";
 
-    // Generate growth plan
-    const planPrompt = `Based on this Career Intelligence Report, create a 12-week growth plan as a JSON array.
+    // Generate growth plan - simplified 90-day version
+    const planPrompt = `Create a simple, actionable 90-day growth plan for a ${currentLevelInferred}-level Product Manager.
 
-Current Level: ${currentLevelInferred}
 Key Gaps: ${skillHeatmap.gaps.join(", ")}
 Blocker: ${blockerArchetype || "None"}
 
-Return ONLY a valid JSON array (no markdown, no explanation) with this structure:
+Return ONLY a valid JSON array with 3 monthly phases. Keep it simple and actionable:
 [
   {
-    "week": 1,
-    "focus": "Week theme in 3-5 words",
-    "exercises": ["Exercise 1", "Exercise 2"],
-    "visibility_actions": ["Action 1"],
-    "deliverables": ["Deliverable 1"]
+    "month": 1,
+    "theme": "Month theme in 3-4 words",
+    "actions": ["One specific action", "Another specific action"]
   }
 ]
 
-Create entries for weeks 1, 2, 3, 4, 6, 8, 10, 12. Focus on practical, specific actions.`;
+Each month should have exactly 2-3 actions. Actions must be concrete and completable. No vague advice.`;
 
     const planResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
