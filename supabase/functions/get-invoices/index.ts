@@ -7,70 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Rate limiting configuration
-const RATE_LIMIT = {
-  maxRequests: 10,
-  windowMinutes: 60,
-};
-
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[GET-INVOICES] ${step}${detailsStr}`);
 };
-
-// Check and update rate limit
-async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
-  
-  const { data: existing } = await supabase
-    .from("rate_limits")
-    .select("*")
-    .eq("identifier", identifier)
-    .eq("endpoint", endpoint)
-    .gte("window_start", windowStart)
-    .single();
-
-  if (existing) {
-    if (existing.request_count >= RATE_LIMIT.maxRequests) {
-      return { allowed: false, remaining: 0 };
-    }
-    
-    await supabase
-      .from("rate_limits")
-      .update({ request_count: existing.request_count + 1 })
-      .eq("id", existing.id);
-    
-    return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
-  }
-  
-  await supabase
-    .from("rate_limits")
-    .upsert({
-      identifier,
-      endpoint,
-      request_count: 1,
-      window_start: new Date().toISOString(),
-    }, { onConflict: "identifier,endpoint" });
-  
-  return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
-}
-
-function getClientIP(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
-    || req.headers.get("x-real-ip") 
-    || "unknown";
-}
-
-// Email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-interface InvoiceRequest {
-  customerEmail: string;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -80,47 +20,49 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const clientIP = getClientIP(req);
-    
-    // Check rate limit
-    const rateLimit = await checkRateLimit(clientIP, "get-invoices");
-    if (!rateLimit.allowed) {
-      logStep("Rate limit exceeded", { clientIP });
-      return new Response(
-        JSON.stringify({ error: "Too many requests. Please try again later." }),
-        {
-          status: 429,
-          headers: { 
-            "Content-Type": "application/json", 
-            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
-            ...corsHeaders 
-          },
-        }
-      );
+    // Authenticate user via JWT
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      logStep("No authorization header");
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData.user) {
+      logStep("Authentication failed", { error: userError?.message });
+      return new Response(JSON.stringify({ error: "Invalid authentication token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const authenticatedEmail = userData.user.email;
+    if (!authenticatedEmail) {
+      logStep("User has no email");
+      return new Response(JSON.stringify({ error: "User email not found" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    logStep("User authenticated", { userId: userData.user.id, email: authenticatedEmail });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    const { customerEmail }: InvoiceRequest = await req.json();
-    
-    // Input validation
-    if (!customerEmail || typeof customerEmail !== "string") {
-      return new Response(JSON.stringify({ error: "Customer email is required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-    
-    if (!EMAIL_REGEX.test(customerEmail) || customerEmail.length > 255) {
-      return new Response(JSON.stringify({ error: "Invalid email format" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-    
-    logStep("Request parsed", { customerEmail });
+    // Use the authenticated user's email - ignore any email in request body
+    const customerEmail = authenticatedEmail;
+    logStep("Using authenticated user email for invoice lookup", { customerEmail });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
