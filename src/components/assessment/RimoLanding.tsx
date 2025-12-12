@@ -72,24 +72,24 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
           {/* ATS Resume Score Tool */}
           <button
             onClick={onStartATS}
-            className="w-full bg-card border border-border rounded-xl p-5 hover:border-primary hover:shadow-lg transition-all group text-left"
+            className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                <FileText className="w-6 h-6 text-primary" />
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                <FileText className="w-7 h-7 text-primary" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-lg text-foreground">ATS Resume Score</span>
-                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg text-foreground">ATS Resume Score</h3>
+                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
-                <p className="text-muted-foreground mb-3">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   Upload your resume and job description to see how well you match and get actionable improvements.
                 </p>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Keyword match</span>
-                  <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" /> Experience fit</span>
-                  <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Instant feedback</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Keyword match</span>
+                  <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Experience fit</span>
+                  <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Instant feedback</span>
                 </div>
               </div>
             </div>
@@ -98,24 +98,24 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
           {/* LinkedIn Profile Signal Score - Coming Soon */}
           <button
             onClick={() => setShowLinkedInDialog(true)}
-            className="w-full bg-card border border-border rounded-xl p-5 hover:border-secondary/50 transition-all group text-left opacity-80"
+            className="w-full bg-card border border-border rounded-xl p-6 hover:border-secondary/50 transition-all group text-left opacity-75"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors flex-shrink-0">
-                <Linkedin className="w-6 h-6 text-secondary" />
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors flex-shrink-0">
+                <Linkedin className="w-7 h-7 text-secondary" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-lg text-foreground">LinkedIn Profile Signal Score</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg text-foreground">LinkedIn Profile Signal Score</h3>
                   <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
                 </div>
-                <p className="text-muted-foreground mb-3">
-                  Get your profile scored on headline clarity, role positioning, impact language, and leadership signal — optimized for what recruiters actually see.
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Get your profile scored on headline clarity, role positioning, impact language, and leadership signal.
                 </p>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Recruiter view</span>
-                  <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Headline rewrites</span>
-                  <span className="flex items-center gap-1"><Target className="w-3 h-3" /> Leadership signals</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Recruiter view</span>
+                  <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Headline rewrites</span>
+                  <span className="flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Leadership signals</span>
                 </div>
               </div>
             </div>
@@ -124,24 +124,24 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
           {/* Interview Prep Tool - Coming Soon */}
           <button
             onClick={() => setShowInterviewPrepDialog(true)}
-            className="w-full bg-card border border-border rounded-xl p-5 hover:border-secondary/50 transition-all group text-left opacity-80"
+            className="w-full bg-card border border-border rounded-xl p-6 hover:border-secondary/50 transition-all group text-left opacity-75"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors flex-shrink-0">
-                <Sparkles className="w-6 h-6 text-secondary" />
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors flex-shrink-0">
+                <Sparkles className="w-7 h-7 text-secondary" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-lg text-foreground">AI Interview Prep</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg text-foreground">AI Interview Prep</h3>
                   <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
                 </div>
-                <p className="text-muted-foreground mb-3">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   Practice mock interviews with personalized AI feedback, coaching, and real-time guidance.
                 </p>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Brain className="w-3 h-3" /> Mock interviews</span>
-                  <span className="flex items-center gap-1"><Target className="w-3 h-3" /> Personalized coaching</span>
-                  <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> Performance insights</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Mock interviews</span>
+                  <span className="flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Personalized coaching</span>
+                  <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Performance insights</span>
                 </div>
               </div>
             </div>

@@ -39,6 +39,13 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const { toast } = useToast();
 
+  const handleReset = () => {
+    setResult(null);
+    setResumeText("");
+    setJobDescription("");
+    setResumeFile(null);
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -288,6 +295,9 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+          <Button size="lg" variant="ghost" onClick={handleReset}>
+            Try Another Resume
+          </Button>
           {onBack && (
             <Button size="lg" variant="outline" onClick={onBack}>
               Back to Rimo
