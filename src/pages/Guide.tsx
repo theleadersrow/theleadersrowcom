@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,7 +114,7 @@ const Guide = () => {
                       Check your email for the Quick Start Guide. Ready to go deeper?
                     </p>
                     <Button variant="gold" asChild>
-                      <a href="/200k-method">Explore 200K Method</a>
+                      <Link to="/200k-method">Explore 200K Method</Link>
                     </Button>
                   </div>
                 ) : (
@@ -206,7 +207,7 @@ const Guide = () => {
               that gives you the complete system to land your next senior role.
             </p>
             <Button variant="gold" size="lg" asChild>
-              <a href="/200k-method">Learn About 200K Method</a>
+              <Link to="/200k-method">Learn About 200K Method</Link>
             </Button>
           </div>
         </div>
