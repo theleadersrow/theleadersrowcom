@@ -205,6 +205,7 @@ const StrategicBenchmark = () => {
             <ATSScoring
               onComplete={handleATSComplete}
               onSkip={handleATSComplete}
+              onBack={handleBackToHub}
             />
           )}
 
@@ -215,6 +216,7 @@ const StrategicBenchmark = () => {
               totalModules={modules.length}
               questionCount={moduleQuestions.length}
               onStart={handleStartModule}
+              onBack={handleBackToHub}
             />
           )}
 
