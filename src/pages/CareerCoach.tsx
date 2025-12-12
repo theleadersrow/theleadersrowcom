@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Upload, Send, Bot, User, Loader2, FileText } from "lucide-react";
+import { Upload, Send, Bot, User, Loader2, FileText, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
 
 type Message = {
   role: "user" | "assistant";
@@ -228,17 +230,37 @@ const CareerCoach = () => {
     }
   };
 
+  // Custom link renderer for markdown
+  const renderLink = (href: string | undefined, children: React.ReactNode) => {
+    if (href?.startsWith('/')) {
+      return (
+        <Link to={href} className="text-primary hover:underline font-medium">
+          {children}
+        </Link>
+      );
+    }
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+        {children}
+      </a>
+    );
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24 pb-12">
         <div className="container max-w-4xl mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+              <Sparkles className="w-4 h-4" />
+              Free AI-Powered Assessment
+            </div>
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-              AI Career Coach
+              Career Readiness Assessment
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Get a personalized assessment of your career readiness. Upload your resume and have a conversation about your goals.
+              Get a personalized analysis of your PM career in minutes. Upload your resume and chat with our AI coach to discover your gaps and get actionable recommendations.
             </p>
           </div>
 
@@ -260,15 +282,48 @@ const CareerCoach = () => {
                       </div>
                     )}
                     <div
-                      className={`max-w-[80%] rounded-xl px-4 py-3 ${
+                      className={`max-w-[85%] rounded-xl px-4 py-3 ${
                         message.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap text-sm">
-                        {message.content}
-                      </div>
+                      {message.role === "assistant" ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              a: ({ href, children }) => renderLink(href, children),
+                              h2: ({ children }) => (
+                                <h2 className="text-lg font-semibold mt-4 mb-2 first:mt-0">{children}</h2>
+                              ),
+                              h3: ({ children }) => (
+                                <h3 className="text-base font-semibold mt-3 mb-1">{children}</h3>
+                              ),
+                              p: ({ children }) => (
+                                <p className="mb-2 last:mb-0">{children}</p>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold">{children}</strong>
+                              ),
+                              hr: () => (
+                                <hr className="my-4 border-border" />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-wrap text-sm">
+                          {message.content}
+                        </div>
+                      )}
                     </div>
                     {message.role === "user" && (
                       <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
@@ -348,8 +403,27 @@ const CareerCoach = () => {
 
           {/* Info */}
           <p className="text-center text-xs text-muted-foreground mt-4">
-            Your data is kept private and used only for this assessment.
+            100% free. Your data is kept private and used only for this assessment.
           </p>
+
+          {/* Quick Links */}
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <Link to="/200k-method">
+              <Button variant="outline" size="sm">
+                Learn about 200K Method
+              </Button>
+            </Link>
+            <Link to="/weekly-edge">
+              <Button variant="outline" size="sm">
+                Learn about Weekly Edge
+              </Button>
+            </Link>
+            <Link to="/book-call">
+              <Button variant="gold" size="sm">
+                Book Discovery Call
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </Layout>
