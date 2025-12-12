@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -13,8 +12,7 @@ import {
   MessageSquare,
   Briefcase,
   Rocket,
-  X,
-  Loader2
+  X
 } from "lucide-react";
 import {
   Accordion,
@@ -22,8 +20,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const modules = [
   {
@@ -147,36 +143,7 @@ const faqs = [
   },
 ];
 
-const PRICE_ID = "price_1SdcR1CD119gx37UY1m7KYal";
-
 const The200KMethod = () => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleCheckout = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          priceId: PRICE_ID,
-          productName: "200K Method"
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error("No checkout URL returned");
-      }
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error("Failed to start checkout. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <Layout>
       {/* Hero */}
@@ -208,25 +175,12 @@ const The200KMethod = () => {
             </div>
             
             <div className="block">
-              <Button 
-                variant="hero" 
-                size="xl" 
-                className="group"
-                onClick={handleCheckout}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Join Now
-                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </Button>
+              <Link to="/register?program=200k-method">
+                <Button variant="hero" size="xl" className="group">
+                  Join Now
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -514,25 +468,12 @@ const The200KMethod = () => {
             </div>
             
             <div className="block">
-              <Button 
-                variant="hero" 
-                size="xl" 
-                className="group"
-                onClick={handleCheckout}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Join Now
-                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </Button>
+              <Link to="/register?program=200k-method">
+                <Button variant="hero" size="xl" className="group">
+                  Join Now
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

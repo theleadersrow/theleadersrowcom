@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+
+const PRICE_IDS = {
+  "200k-method": "price_1SdcR1CD119gx37UY1m7KYal",
+};
 
 const registerSchema = z.object({
   fullName: z
@@ -60,6 +65,9 @@ type FormData = z.infer<typeof registerSchema>;
 
 const Register = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const preselectedProgram = searchParams.get("program") || "";
+  
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -73,7 +81,7 @@ const Register = () => {
     country: "",
     zipcode: "",
     occupation: "",
-    program: "",
+    program: preselectedProgram,
   });
 
   const handleChange = (field: keyof FormData, value: string) => {
@@ -107,6 +115,7 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
+      // Send registration email first
       const { error } = await supabase.functions.invoke("send-registration-email", {
         body: formData,
       });
@@ -115,6 +124,40 @@ const Register = () => {
         throw error;
       }
 
+      // Check if this program has a Stripe price
+      const priceId = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
+      
+      if (priceId) {
+        // Redirect to Stripe checkout
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-checkout", {
+          body: {
+            priceId,
+            productName: formData.program === "200k-method" ? "200K Method" : formData.program,
+            customerEmail: formData.email,
+            customerName: formData.fullName,
+          }
+        });
+
+        if (checkoutError) {
+          console.error("Checkout error:", checkoutError);
+          // Still show success but notify about payment
+          toast({
+            title: "Registration received!",
+            description: "We'll contact you to complete payment.",
+          });
+          setIsSubmitted(true);
+          return;
+        }
+
+        if (checkoutData?.url) {
+          // Open Stripe checkout in new tab
+          window.open(checkoutData.url, '_blank');
+          setIsSubmitted(true);
+          return;
+        }
+      }
+
+      // For programs without Stripe price (like weekly-edge), just show success
       setIsSubmitted(true);
     } catch (error: any) {
       console.error("Error sending registration:", error);
@@ -129,6 +172,8 @@ const Register = () => {
   };
 
   if (isSubmitted) {
+    const hasPaidProgram = PRICE_IDS[formData.program as keyof typeof PRICE_IDS];
+    
     return (
       <Layout>
         <section className="pt-32 pb-20 min-h-screen bg-background">
@@ -141,8 +186,10 @@ const Register = () => {
                 Thank You!
               </h1>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Thank you for your interest! A member of our team will contact you within 
-                24–48 hours to complete your registration and guide you through next steps.
+                {hasPaidProgram 
+                  ? "Your registration has been received and a payment window has opened. Please complete your payment to secure your spot. If the window didn't open, please contact us."
+                  : "Thank you for your interest! A member of our team will contact you within 24–48 hours to complete your registration and guide you through next steps."
+                }
               </p>
             </div>
           </div>
@@ -355,7 +402,14 @@ const Register = () => {
 
                 {/* Submit */}
                 <Button type="submit" variant="gold" size="xl" className="w-full mt-4" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Registration"}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Submit Registration"
+                  )}
                 </Button>
               </div>
             </form>
