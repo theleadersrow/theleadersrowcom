@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -7,6 +8,12 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+};
+
+// Rate limiting configuration
+const RATE_LIMIT = {
+  maxRequests: 5,
+  windowMinutes: 60,
 };
 
 interface ReportEmailRequest {
@@ -21,6 +28,64 @@ interface ReportEmailRequest {
   topStrength?: string;
   topGap?: string;
 }
+
+// Check and update rate limit
+async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("*")
+    .eq("identifier", identifier)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart)
+    .single();
+
+  if (existing) {
+    if (existing.request_count >= RATE_LIMIT.maxRequests) {
+      return { allowed: false, remaining: 0 };
+    }
+    
+    await supabase
+      .from("rate_limits")
+      .update({ request_count: existing.request_count + 1 })
+      .eq("id", existing.id);
+    
+    return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
+  }
+  
+  await supabase
+    .from("rate_limits")
+    .upsert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString(),
+    }, { onConflict: "identifier,endpoint" });
+  
+  return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+    || req.headers.get("x-real-ip") 
+    || "unknown";
+}
+
+// Sanitize inputs for HTML
+const sanitize = (str: string) => str.replace(/[<>&"']/g, (c) => ({
+  '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
+}[c] || c));
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Valid levels
+const VALID_LEVELS = ["PM", "Senior", "Principal", "GPM", "Director"];
 
 const dimensionLabels: Record<string, string> = {
   strategy: "Strategic Thinking",
@@ -48,6 +113,25 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const clientIP = getClientIP(req);
+    
+    // Check rate limit
+    const rateLimit = await checkRateLimit(clientIP, "send-career-report-email");
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+
     const { 
       email, 
       firstName,
@@ -61,16 +145,45 @@ const handler = async (req: Request): Promise<Response> => {
       topGap
     }: ReportEmailRequest = await req.json();
     
+    // Input validation
+    if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email) || email.length > 255) {
+      return new Response(JSON.stringify({ error: "Invalid email" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    if (!currentLevel || typeof currentLevel !== "string" || !VALID_LEVELS.includes(currentLevel)) {
+      return new Response(JSON.stringify({ error: "Invalid current level" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    if (typeof overallScore !== "number" || overallScore < 0 || overallScore > 100) {
+      return new Response(JSON.stringify({ error: "Invalid overall score" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
     console.log("Sending career report email to:", email);
 
-    const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
-    const strengthLabel = topStrength ? (dimensionLabels[topStrength] || topStrength) : "Not determined";
-    const gapLabel = topGap ? (dimensionLabels[topGap] || topGap) : "Not determined";
+    // Sanitize inputs
+    const safeFirstName = firstName ? sanitize(firstName.slice(0, 50)) : null;
+    const safeBlockerArchetype = blockerArchetype ? sanitize(blockerArchetype.slice(0, 100)) : null;
+    const safeBlockerDescription = blockerDescription ? sanitize(blockerDescription.slice(0, 1000)) : null;
+    const safeMarketReadinessScore = marketReadinessScore ? sanitize(marketReadinessScore.slice(0, 500)) : null;
+    const safeActions = thirtyDayActions?.slice(0, 10).map(a => sanitize(String(a).slice(0, 300))) || [];
+
+    const greeting = safeFirstName ? `Hi ${safeFirstName},` : "Hi there,";
+    const strengthLabel = topStrength ? (dimensionLabels[topStrength] || sanitize(topStrength)) : "Not determined";
+    const gapLabel = topGap ? (dimensionLabels[topGap] || sanitize(topGap)) : "Not determined";
 
     // Build actions HTML
     let actionsHtml = "";
-    if (thirtyDayActions && thirtyDayActions.length > 0) {
-      actionsHtml = thirtyDayActions.map((action, i) => 
+    if (safeActions.length > 0) {
+      actionsHtml = safeActions.map((action, i) => 
         `<tr>
           <td style="padding: 12px 15px; background: ${i % 2 === 0 ? '#f8f9fa' : '#ffffff'}; border-left: 3px solid #B8860B;">
             <strong style="color: #B8860B;">${i + 1}.</strong> ${action}
@@ -94,18 +207,18 @@ YOUR LEVEL: ${currentLevel} Product Manager
 READINESS SCORE: ${Math.round(overallScore)}/100
 TOP STRENGTH: ${strengthLabel}
 PRIORITY GAP: ${gapLabel}
-${blockerArchetype ? `BLOCKER PATTERN: ${blockerArchetype}` : ''}
+${safeBlockerArchetype ? `BLOCKER PATTERN: ${safeBlockerArchetype}` : ''}
 
-${marketReadinessScore ? `MARKET READINESS: ${marketReadinessScore}` : ''}
+${safeMarketReadinessScore ? `MARKET READINESS: ${safeMarketReadinessScore}` : ''}
 
-${blockerArchetype && blockerDescription ? `
+${safeBlockerArchetype && safeBlockerDescription ? `
 ABOUT YOUR BLOCKER PATTERN:
-${blockerDescription}
+${safeBlockerDescription}
 ` : ''}
 
-${thirtyDayActions && thirtyDayActions.length > 0 ? `
+${safeActions.length > 0 ? `
 YOUR 30-DAY ACTION PLAN:
-${thirtyDayActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
+${safeActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
 ` : ''}
 
 ---
@@ -187,32 +300,32 @@ The Leader's Row Team
           </tr>
         </table>
         
-        ${blockerArchetype ? `
+        ${safeBlockerArchetype ? `
         <!-- Blocker Pattern -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background: #faf5ff; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #9333ea;">
           <tr>
             <td style="padding: 20px;">
               <p style="color: #9333ea; font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Your Blocker Pattern</p>
-              <p style="color: #1a2332; font-size: 18px; margin: 0 0 10px 0; font-weight: bold;">${blockerArchetype}</p>
-              <p style="color: #4a5568; font-size: 14px; margin: 0; line-height: 1.6;">${blockerDescription || ''}</p>
+              <p style="color: #1a2332; font-size: 18px; margin: 0 0 10px 0; font-weight: bold;">${safeBlockerArchetype}</p>
+              <p style="color: #4a5568; font-size: 14px; margin: 0; line-height: 1.6;">${safeBlockerDescription || ''}</p>
             </td>
           </tr>
         </table>
         ` : ''}
         
-        ${marketReadinessScore ? `
+        ${safeMarketReadinessScore ? `
         <!-- Market Readiness -->
         <table width="100%" cellpadding="0" cellspacing="0" style="background: #f0fdf4; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #10b981;">
           <tr>
             <td style="padding: 20px;">
               <p style="color: #10b981; font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Market Readiness</p>
-              <p style="color: #1a2332; font-size: 14px; margin: 0; line-height: 1.6;">${marketReadinessScore}</p>
+              <p style="color: #1a2332; font-size: 14px; margin: 0; line-height: 1.6;">${safeMarketReadinessScore}</p>
             </td>
           </tr>
         </table>
         ` : ''}
         
-        ${thirtyDayActions && thirtyDayActions.length > 0 ? `
+        ${safeActions.length > 0 ? `
         <!-- 30-Day Actions -->
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px;">
           <tr>
