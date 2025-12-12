@@ -377,55 +377,15 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Resume Input */}
         <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Your Resume
-            </h3>
-            <label className={`cursor-pointer ${isParsingResume ? 'pointer-events-none opacity-50' : ''}`}>
-              <input
-                type="file"
-                accept=".txt,.pdf,.doc,.docx"
-                className="hidden"
-                onChange={handleFileUpload}
-                disabled={isParsingResume}
-              />
-              <span className="text-sm text-primary hover:underline flex items-center gap-1">
-                {isParsingResume ? (
-                  <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Parsing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-3 h-3" />
-                    Upload PDF
-                  </>
-                )}
-              </span>
-            </label>
-          </div>
-          {resumeFile && (
-            <div className="text-sm mb-2 flex items-center gap-2">
-              <FileText className="w-3 h-3 text-muted-foreground" />
-              <span className="text-muted-foreground">{resumeFile.name}</span>
-              {isParsingResume && (
-                <span className="text-xs text-primary flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Extracting text...
-                </span>
-              )}
-              {!isParsingResume && resumeText && (
-                <CheckCircle className="w-3 h-3 text-green-500" />
-              )}
-            </div>
-          )}
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Your Resume
+          </h3>
           <Textarea
-            placeholder={isParsingResume ? "Parsing your resume..." : "Upload a PDF or paste your resume text here..."}
+            placeholder="Paste your resume text here..."
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             className="min-h-[200px] text-sm"
-            disabled={isParsingResume}
           />
         </Card>
 
