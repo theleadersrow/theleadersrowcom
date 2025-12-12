@@ -1,31 +1,71 @@
-import { Quote, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Quote, ArrowRight, Star } from "lucide-react";
 import journeyAfter from "@/assets/journey-after.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
-const testimonials = [
+interface Testimonial {
+  id: string;
+  name: string;
+  role: string | null;
+  company: string | null;
+  quote: string;
+  outcome: string | null;
+  rating: number | null;
+}
+
+// Fallback testimonials for when database is empty
+const fallbackTestimonials = [
   {
+    id: "1",
     name: "Mona",
     role: "Jena, Germany",
     company: "",
     quote: "It has been really positive. I've learned things I can truly apply in my life on a daily basis. Thank you so much for making me a stronger person and making my belief even stronger.",
     outcome: "200K Method Member",
+    rating: 5,
   },
   {
+    id: "2",
     name: "James K.",
     role: "Product Manager → Senior PM",
     company: "Fortune 500",
     quote: "I was stuck at the same level for 3 years. After the 200K Method, I landed a senior role with a 40% salary increase.",
     outcome: "$45K salary increase",
+    rating: 5,
   },
   {
+    id: "3",
     name: "Priya R.",
     role: "Associate PM → Product Manager",
     company: "Startup → FAANG",
     quote: "The interview frameworks and personal branding work completely changed how I show up. I got offers from 3 top tech companies.",
     outcome: "Landed FAANG offer",
+    rating: 5,
   },
 ];
 
 const SuccessStories = () => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(fallbackTestimonials);
+  const [isUsingFallback, setIsUsingFallback] = useState(true);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      const { data, error } = await supabase
+        .from("testimonials")
+        .select("id, name, role, company, quote, outcome, rating")
+        .eq("is_published", true)
+        .order("published_at", { ascending: false })
+        .limit(6);
+
+      if (!error && data && data.length > 0) {
+        setTestimonials(data as Testimonial[]);
+        setIsUsingFallback(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
   return (
     <section className="section-padding bg-muted/30">
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,29 +112,52 @@ const SuccessStories = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
-          {testimonials.map((testimonial, index) => (
+          {testimonials.slice(0, 3).map((testimonial, index) => (
             <div
-              key={index}
+              key={testimonial.id}
               className="bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-soft flex flex-col"
             >
-              <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-secondary/30 mb-3 sm:mb-4" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-secondary/30" />
+                {testimonial.rating && (
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                          star <= testimonial.rating!
+                            ? "text-secondary fill-secondary"
+                            : "text-muted-foreground/30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
               <p className="text-foreground leading-relaxed mb-4 sm:mb-6 flex-grow text-sm sm:text-base">
                 "{testimonial.quote}"
               </p>
               <div className="border-t border-border pt-3 sm:pt-4">
                 <p className="font-semibold text-foreground text-sm sm:text-base">{testimonial.name}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-2">{testimonial.role}</p>
-                <span className="inline-block text-[10px] sm:text-xs font-medium text-secondary bg-secondary/10 px-2.5 sm:px-3 py-1 rounded-full">
-                  {testimonial.outcome}
-                </span>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                  {testimonial.role}
+                  {testimonial.company && ` at ${testimonial.company}`}
+                </p>
+                {testimonial.outcome && (
+                  <span className="inline-block text-[10px] sm:text-xs font-medium text-secondary bg-secondary/10 px-2.5 sm:px-3 py-1 rounded-full">
+                    {testimonial.outcome}
+                  </span>
+                )}
               </div>
             </div>
           ))}
         </div>
 
-        <p className="text-center text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8 italic">
-          * Names and details have been changed. Replace with your real testimonials.
-        </p>
+        {isUsingFallback && (
+          <p className="text-center text-xs sm:text-sm text-muted-foreground mt-6 sm:mt-8 italic">
+            * Names and details have been changed. Replace with your real testimonials.
+          </p>
+        )}
       </div>
     </section>
   );

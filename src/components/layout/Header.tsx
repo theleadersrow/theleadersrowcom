@@ -34,6 +34,7 @@ const Header = () => {
   const resourceLinks = [
     { href: "/newsletter", label: "Newsletter" },
     { href: "/guide", label: "Free Guide" },
+    { href: "/review", label: "Leave a Review" },
   ];
 
   const isResourcesActive = resourceLinks.some(link => location.pathname === link.href);
