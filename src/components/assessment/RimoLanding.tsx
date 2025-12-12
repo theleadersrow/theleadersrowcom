@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Target, BarChart3, Briefcase, Brain, Compass, 
-  ArrowRight, Clock, FileText, Zap, CheckCircle, Sparkles 
+  ArrowRight, Clock, FileText, Zap, CheckCircle, Sparkles,
+  Linkedin, Eye, MessageSquare
 } from "lucide-react";
 
 interface RimoLandingProps {
@@ -13,6 +14,7 @@ interface RimoLandingProps {
 
 export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps) {
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
+  const [showLinkedInDialog, setShowLinkedInDialog] = useState(false);
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 animate-fade-up">
@@ -93,6 +95,32 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
             </div>
           </button>
 
+          {/* LinkedIn Profile Signal Score - Coming Soon */}
+          <button
+            onClick={() => setShowLinkedInDialog(true)}
+            className="w-full bg-card border border-border rounded-xl p-5 hover:border-secondary/50 transition-all group text-left opacity-80"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors flex-shrink-0">
+                <Linkedin className="w-6 h-6 text-secondary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-lg text-foreground">LinkedIn Profile Signal Score</span>
+                  <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
+                </div>
+                <p className="text-muted-foreground mb-3">
+                  Get your profile scored on headline clarity, role positioning, impact language, and leadership signal — optimized for what recruiters actually see.
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Recruiter view</span>
+                  <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Headline rewrites</span>
+                  <span className="flex items-center gap-1"><Target className="w-3 h-3" /> Leadership signals</span>
+                </div>
+              </div>
+            </div>
+          </button>
+
           {/* Interview Prep Tool - Coming Soon */}
           <button
             onClick={() => setShowInterviewPrepDialog(true)}
@@ -149,6 +177,48 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
           to calibrate career positioning, optimize resumes, and prepare for high-stakes opportunities.
         </p>
       </div>
+
+      {/* LinkedIn Profile Coming Soon Dialog */}
+      <Dialog open={showLinkedInDialog} onOpenChange={setShowLinkedInDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Linkedin className="w-5 h-5 text-primary" />
+              LinkedIn Profile Signal Score
+            </DialogTitle>
+            <DialogDescription className="pt-4 space-y-4">
+              <p>
+                LinkedIn is the #1 inbound channel for career opportunities, yet most tools ignore it. Rimo will analyze your profile the way human recruiters do.
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">Profile Score</strong> — Headline clarity, role positioning, impact language & leadership signal</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">3 Headline Rewrites</strong> — AI-generated alternatives optimized for visibility</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">"What Recruiters Actually See"</strong> — First-impression breakdown</span>
+                </li>
+              </ul>
+              <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  This feature is in development. Stay tuned!
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center mt-4">
+            <Button onClick={() => setShowLinkedInDialog(false)}>
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Interview Prep Coming Soon Dialog */}
       <Dialog open={showInterviewPrepDialog} onOpenChange={setShowInterviewPrepDialog}>
