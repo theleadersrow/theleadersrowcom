@@ -22,6 +22,7 @@ import AdminSignup from "./pages/AdminSignup";
 import AdminLogin from "./pages/AdminLogin";
 import StrategicBenchmark from "./pages/StrategicBenchmark";
 import CareerReport from "./pages/CareerReport";
+import Review from "./pages/Review";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/newsletter" element={<Newsletter />} />
             <Route path="/guide" element={<Guide />} />
+            <Route path="/review" element={<Review />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/book-call" element={<BookCall />} />

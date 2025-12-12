@@ -34,10 +34,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
+import { LeadsTab } from "@/components/admin/LeadsTab";
+import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
+import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
 
 interface Enrollment {
   id: string;
@@ -451,6 +455,27 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6">
+        <Tabs defaultValue="enrollments" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="enrollments" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Enrollments</span>
+            </TabsTrigger>
+            <TabsTrigger value="leads" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              <span className="hidden sm:inline">Leads</span>
+            </TabsTrigger>
+            <TabsTrigger value="assessments" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">Assessments</span>
+            </TabsTrigger>
+            <TabsTrigger value="testimonials" className="flex items-center gap-2">
+              <Quote className="h-4 w-4" />
+              <span className="hidden sm:inline">Testimonials</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="enrollments" className="space-y-6">
         {/* Create Enrollment Form */}
         {showForm && (
           <Card>
@@ -1079,6 +1104,20 @@ const Admin = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="leads">
+            <LeadsTab />
+          </TabsContent>
+
+          <TabsContent value="assessments">
+            <AssessmentsTab />
+          </TabsContent>
+
+          <TabsContent value="testimonials">
+            <TestimonialsTab />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

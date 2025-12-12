@@ -594,6 +594,51 @@ export type Database = {
           },
         ]
       }
+      testimonials: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          is_published: boolean
+          name: string
+          outcome: string | null
+          program: string | null
+          published_at: string | null
+          quote: string
+          rating: number | null
+          role: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          is_published?: boolean
+          name: string
+          outcome?: string | null
+          program?: string | null
+          published_at?: string | null
+          quote: string
+          rating?: number | null
+          role?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_published?: boolean
+          name?: string
+          outcome?: string | null
+          program?: string | null
+          published_at?: string | null
+          quote?: string
+          rating?: number | null
+          role?: string | null
+        }
+        Relationships: []
+      }
       user_career_profiles: {
         Row: {
           blockers_self_report: string | null
