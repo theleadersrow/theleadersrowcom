@@ -26,7 +26,6 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/career-coach", label: "AI Career Coach" },
     { href: "/200k-method", label: "200K Method" },
     { href: "/weekly-edge", label: "Weekly Edge" },
     { href: "/contact", label: "Contact" },
