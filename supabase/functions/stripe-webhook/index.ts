@@ -115,7 +115,7 @@ serve(async (req) => {
       logStep("Enrollment created", { enrollmentId: enrollment.id, enrollmentCode: enrollment.enrollment_code });
 
       // Send confirmation email with enrollment code and signup link
-      const baseUrl = "https://8c83af2e-8298-4d6e-a553-b1420fc68883.lovableproject.com";
+      const baseUrl = "https://theleadersrowcom.lovable.app";
       const signupLink = `${baseUrl}/signup`;
       const emailHtml = `
         <!DOCTYPE html>
