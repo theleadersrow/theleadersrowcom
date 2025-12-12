@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import { 
   Loader2, Target, BarChart3, Brain, Compass, 
   Calendar, ArrowRight, Phone, TrendingUp, Zap,
-  CheckCircle2, AlertTriangle, Sparkles
+  CheckCircle2, AlertTriangle, Sparkles, Mail, Send
 } from "lucide-react";
 
 interface Score {
@@ -43,6 +46,127 @@ interface Report {
     why: string;
     program: "200K Method" | "Weekly Edge";
   }>;
+}
+
+// Email Report Card Component
+function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLabels: Record<string, string> }) {
+  const [email, setEmail] = useState("");
+  const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSendReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      // Save to email_leads if opted in
+      if (subscribeNewsletter) {
+        await supabase.from("email_leads").upsert(
+          { email: email.trim(), lead_magnet: "career-report-email" },
+          { onConflict: "email" }
+        );
+      }
+
+      // Send the report email
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-career-report-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            currentLevel: score.current_level_inferred,
+            overallScore: score.overall_score,
+            blockerArchetype: score.blocker_archetype || undefined,
+            blockerDescription: score.blocker_description || undefined,
+            marketReadinessScore: score.market_readiness_score || undefined,
+            thirtyDayActions: score.thirty_day_actions || [],
+            topStrength: score.skill_heatmap.strengths?.[0],
+            topGap: score.skill_heatmap.gaps?.[0],
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to send email");
+
+      setSent(true);
+      toast.success("Report sent! Check your inbox.");
+    } catch (err) {
+      console.error("Failed to send report:", err);
+      toast.error("Failed to send report. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="bg-gradient-to-r from-emerald-500/10 to-primary/10 rounded-xl border border-emerald-500/20 p-5 mb-8">
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+          <div>
+            <p className="font-semibold text-foreground">Report Sent!</p>
+            <p className="text-sm text-muted-foreground">Check your inbox for your Career Intelligence Report summary.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card rounded-xl border border-border p-5 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Mail className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground text-sm">Email this report</p>
+            <p className="text-xs text-muted-foreground">Get a summary delivered to your inbox</p>
+          </div>
+        </div>
+        <form onSubmit={handleSendReport} className="flex flex-col md:flex-row gap-3 flex-1">
+          <div className="flex-1">
+            <Input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-10"
+            />
+          </div>
+          <Button type="submit" disabled={isSending} size="sm" className="h-10">
+            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+            {isSending ? "Sending..." : "Send"}
+          </Button>
+        </form>
+      </div>
+      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+        <Checkbox
+          id="newsletter-report"
+          checked={subscribeNewsletter}
+          onCheckedChange={(checked) => setSubscribeNewsletter(checked === true)}
+        />
+        <label htmlFor="newsletter-report" className="text-xs text-muted-foreground cursor-pointer">
+          Also subscribe to The Leader's Row newsletter for weekly career tips
+        </label>
+      </div>
+    </div>
+  );
 }
 
 const CareerReport = () => {
@@ -275,6 +399,9 @@ const CareerReport = () => {
               Based on your Strategic Benchmark Assessment
             </p>
           </div>
+
+          {/* Email Report CTA */}
+          <EmailReportCard score={score} dimensionLabels={dimensionLabels} />
 
           {/* Hero Snapshot */}
           <div className="bg-card rounded-2xl border border-border overflow-hidden mb-8">
