@@ -27,11 +27,9 @@ interface Score {
 interface Report {
   report_markdown: string;
   growth_plan_json: Array<{
-    week: number;
-    focus: string;
-    exercises: string[];
-    visibility_actions: string[];
-    deliverables: string[];
+    month: number;
+    theme: string;
+    actions: string[];
   }>;
   key_insights?: {
     executive_summary: string;
@@ -514,75 +512,32 @@ const CareerReport = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">Your 90-Day Leadership Lift</h3>
-                    <p className="text-sm text-muted-foreground">A personalized roadmap to close your gaps</p>
+                    <p className="text-sm text-muted-foreground">Simple, actionable steps to close your gaps</p>
                   </div>
                 </div>
                 
-                <div className="relative">
-                  {/* Timeline line */}
-                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
-                  
-                  <div className="space-y-8">
-                    {report.growth_plan_json.map((week, index) => (
-                      <div key={week.week} className="relative pl-12">
-                        {/* Timeline dot */}
-                        <div className={`absolute left-2 w-5 h-5 rounded-full border-2 ${
-                          index === 0 ? "bg-primary border-primary" : "bg-background border-border"
-                        }`} />
-                        
-                        <div className="bg-muted/30 rounded-lg p-5 border border-border/50">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
-                              Week {week.week}
-                            </span>
-                            <h4 className="font-semibold text-foreground">{week.focus}</h4>
-                          </div>
-                          
-                          <div className="grid md:grid-cols-3 gap-4 text-sm">
-                            {week.exercises?.length > 0 && (
-                              <div>
-                                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Exercises</p>
-                                <ul className="space-y-1">
-                                  {week.exercises.map((ex, i) => (
-                                    <li key={i} className="text-foreground flex items-start gap-2">
-                                      <span className="text-primary mt-1">•</span>
-                                      {ex}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {week.visibility_actions?.length > 0 && (
-                              <div>
-                                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Visibility</p>
-                                <ul className="space-y-1">
-                                  {week.visibility_actions.map((action, i) => (
-                                    <li key={i} className="text-foreground flex items-start gap-2">
-                                      <span className="text-primary mt-1">•</span>
-                                      {action}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {week.deliverables?.length > 0 && (
-                              <div>
-                                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Deliverables</p>
-                                <ul className="space-y-1">
-                                  {week.deliverables.map((del, i) => (
-                                    <li key={i} className="text-foreground flex items-start gap-2">
-                                      <span className="text-primary mt-1">•</span>
-                                      {del}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {report.growth_plan_json.map((month, index) => (
+                    <div key={month.month} className="bg-muted/30 rounded-xl p-5 border border-border/50">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                          index === 0 ? "bg-primary" : index === 1 ? "bg-amber-500" : "bg-emerald-500"
+                        }`}>
+                          {month.month}
                         </div>
+                        <h4 className="font-semibold text-foreground">{month.theme}</h4>
                       </div>
-                    ))}
-                  </div>
+                      
+                      <ul className="space-y-3">
+                        {month.actions?.map((action, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm">
+                            <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <span className="text-foreground">{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               </div>
             </TabsContent>
