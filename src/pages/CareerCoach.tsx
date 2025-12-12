@@ -2,9 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Upload, Send, Bot, User, Loader2, FileText, Sparkles } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload, Send, Bot, User, Loader2, FileText, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
@@ -22,19 +21,28 @@ const CareerCoach = () => {
   const [resumeText, setResumeText] = useState<string | null>(null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(1);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Count conversation turns to estimate step
+  useEffect(() => {
+    const userMessages = messages.filter(m => m.role === "user").length;
+    if (userMessages <= 1) setStep(1);
+    else if (userMessages <= 2) setStep(2);
+    else if (userMessages <= 3) setStep(3);
+    else if (userMessages <= 4) setStep(4);
+    else if (userMessages <= 5) setStep(5);
+    else setStep(6);
+  }, [messages]);
 
   // Initialize session and get first message
   useEffect(() => {
     const initSession = async () => {
-      // Create assessment record
       await supabase.from("career_assessments").insert({
         session_id: sessionId,
       });
-
-      // Get initial greeting from AI
       sendMessage([], true);
     };
     initSession();
@@ -42,12 +50,7 @@ const CareerCoach = () => {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = async (currentMessages: Message[], isInit = false) => {
@@ -123,7 +126,6 @@ const CareerCoach = () => {
         }
       }
 
-      // Save conversation to database
       await supabase
         .from("career_assessments")
         .update({
@@ -192,20 +194,18 @@ const CareerCoach = () => {
       if (data.resumeText) {
         setResumeText(data.resumeText);
         
-        // Send a message to the AI that resume was uploaded
         const userMessage: Message = { 
           role: "user", 
-          content: `I've uploaded my resume: ${file.name}` 
+          content: `I have uploaded my resume: ${file.name}` 
         };
         const newMessages = [...messages, userMessage];
         setMessages(newMessages);
         
-        // Trigger AI response with resume context
         await sendMessage(newMessages);
         
         toast({
           title: "Resume uploaded",
-          description: "Your resume has been analyzed successfully",
+          description: "Your resume has been analyzed",
         });
       } else {
         throw new Error("Failed to parse resume");
@@ -230,9 +230,8 @@ const CareerCoach = () => {
     }
   };
 
-  // Custom link renderer for markdown
   const renderLink = (href: string | undefined, children: React.ReactNode) => {
-    if (href?.startsWith('/')) {
+    if (href?.startsWith("/")) {
       return (
         <Link to={href} className="text-primary hover:underline font-medium">
           {children}
@@ -246,183 +245,211 @@ const CareerCoach = () => {
     );
   };
 
+  const stepLabels = [
+    "Current Role",
+    "Background",
+    "Goals",
+    "Skills",
+    "Challenges",
+    "Assessment"
+  ];
+
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24 pb-12">
-        <div className="container max-w-4xl mx-auto px-4">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-              <Sparkles className="w-4 h-4" />
-              Free AI-Powered Assessment
-            </div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-              Career Readiness Assessment
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Get a personalized, in-depth analysis of your career in minutes. Our AI coach will guide you through a series of questions to understand your unique situation and provide actionable recommendations.
-            </p>
-          </div>
-
-          {/* Chat Container */}
-          <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
-            {/* Messages Area */}
-            <ScrollArea ref={scrollAreaRef} className="h-[500px] p-4">
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex gap-3 ${
-                      message.role === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    {message.role === "assistant" && (
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-4 h-4 text-primary" />
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[85%] rounded-xl px-4 py-3 ${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
-                    >
-                      {message.role === "assistant" ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <ReactMarkdown
-                            components={{
-                              a: ({ href, children }) => renderLink(href, children),
-                              h2: ({ children }) => (
-                                <h2 className="text-lg font-semibold mt-4 mb-2 first:mt-0">{children}</h2>
-                              ),
-                              h3: ({ children }) => (
-                                <h3 className="text-base font-semibold mt-3 mb-1">{children}</h3>
-                              ),
-                              p: ({ children }) => (
-                                <p className="mb-2 last:mb-0">{children}</p>
-                              ),
-                              ul: ({ children }) => (
-                                <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>
-                              ),
-                              ol: ({ children }) => (
-                                <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>
-                              ),
-                              strong: ({ children }) => (
-                                <strong className="font-semibold">{children}</strong>
-                              ),
-                              hr: () => (
-                                <hr className="my-4 border-border" />
-                              ),
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
-                      ) : (
-                        <div className="whitespace-pre-wrap text-sm">
-                          {message.content}
-                        </div>
-                      )}
-                    </div>
-                    {message.role === "user" && (
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                        <User className="w-4 h-4 text-secondary-foreground" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="bg-muted rounded-xl px-4 py-3">
-                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                    </div>
-                  </div>
-                )}
+      <div className="min-h-screen bg-background pt-20">
+        {/* Top Bar with Progress */}
+        <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-20 z-10">
+          <div className="container max-w-4xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-primary" />
+                <span className="font-semibold text-foreground">AI Career Coach</span>
               </div>
-            </ScrollArea>
+              <span className="text-sm text-muted-foreground">
+                Step {step} of 6
+              </span>
+            </div>
+            {/* Progress Bar */}
+            <div className="flex gap-1">
+              {stepLabels.map((label, i) => (
+                <div key={i} className="flex-1">
+                  <div 
+                    className={`h-1.5 rounded-full transition-colors ${
+                      i + 1 <= step ? "bg-primary" : "bg-muted"
+                    }`}
+                  />
+                  <span className={`text-[10px] mt-1 block text-center ${
+                    i + 1 <= step ? "text-primary" : "text-muted-foreground"
+                  }`}>
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-            {/* Resume Status */}
-            {resumeFileName && (
-              <div className="px-4 py-2 bg-primary/5 border-t border-border">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  <span>Resume: {resumeFileName}</span>
+        {/* Chat Area */}
+        <div className="container max-w-3xl mx-auto px-4 pb-40">
+          <div className="py-6 space-y-6">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex gap-4 ${
+                  message.role === "user" ? "flex-row-reverse" : ""
+                }`}
+              >
+                {/* Avatar */}
+                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                  message.role === "assistant" 
+                    ? "bg-primary/10 text-primary" 
+                    : "bg-secondary text-secondary-foreground"
+                }`}>
+                  {message.role === "assistant" ? (
+                    <Bot className="w-5 h-5" />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
+                </div>
+
+                {/* Message Bubble */}
+                <div className={`flex-1 max-w-[85%] ${
+                  message.role === "user" ? "text-right" : ""
+                }`}>
+                  <div className={`inline-block text-left rounded-2xl px-5 py-4 ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card border border-border shadow-sm"
+                  }`}>
+                    {message.role === "assistant" ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            a: ({ href, children }) => renderLink(href, children),
+                            h2: ({ children }) => (
+                              <h2 className="text-lg font-bold mt-6 mb-3 first:mt-0 text-foreground">{children}</h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
+                            ),
+                            p: ({ children }) => (
+                              <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="list-disc pl-5 mb-3 space-y-2">{children}</ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="list-decimal pl-5 mb-3 space-y-2">{children}</ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className="leading-relaxed">{children}</li>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground">{children}</strong>
+                            ),
+                            hr: () => (
+                              <hr className="my-6 border-border" />
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Loading indicator */}
+            {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-primary" />
+                </div>
+                <div className="bg-card border border-border rounded-2xl px-5 py-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Input Area */}
-            <div className="p-4 border-t border-border bg-background/50">
-              <div className="flex gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx"
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingResume || isLoading}
-                  title="Upload Resume"
-                >
-                  {isUploadingResume ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                </Button>
-                <Input
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Fixed Input Area */}
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border">
+          <div className="container max-w-3xl mx-auto px-4 py-4">
+            {/* Resume Status */}
+            {resumeFileName && (
+              <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                <FileText className="w-4 h-4 text-primary" />
+                <span>Resume uploaded: {resumeFileName}</span>
+              </div>
+            )}
+
+            <div className="flex gap-3 items-end">
+              {/* Upload Button */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx"
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingResume || isLoading}
+                title="Upload Resume (PDF or Word)"
+                className="flex-shrink-0 h-12 w-12"
+              >
+                {isUploadingResume ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Upload className="w-5 h-5" />
+                )}
+              </Button>
+
+              {/* Text Input */}
+              <div className="flex-1 relative">
+                <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
+                  placeholder="Type your response..."
                   disabled={isLoading}
-                  className="flex-1"
+                  className="min-h-[48px] max-h-32 resize-none pr-12"
+                  rows={1}
                 />
-                <Button
-                  onClick={handleSend}
-                  disabled={!input.trim() || isLoading}
-                  size="icon"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
               </div>
+
+              {/* Send Button */}
+              <Button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                size="icon"
+                className="flex-shrink-0 h-12 w-12"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </Button>
             </div>
-          </div>
 
-          {/* Info */}
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            100% free. Your data is kept private and used only for this assessment.
-          </p>
-
-          {/* Quick Links */}
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link to="/200k-method">
-              <Button variant="outline" size="sm">
-                Learn about 200K Method
-              </Button>
-            </Link>
-            <Link to="/weekly-edge">
-              <Button variant="outline" size="sm">
-                Learn about Weekly Edge
-              </Button>
-            </Link>
-            <Link to="/book-call">
-              <Button variant="gold" size="sm">
-                Book Discovery Call
-              </Button>
-            </Link>
+            <p className="text-center text-xs text-muted-foreground mt-3">
+              100% free • Your data is private
+            </p>
           </div>
         </div>
       </div>
