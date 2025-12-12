@@ -10,9 +10,10 @@ import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
 import { ATSScoring } from "@/components/assessment/ATSScoring";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
+import { RimoLanding } from "@/components/assessment/RimoLanding";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "landing" | "ats" | "intro" | "questions" | "email_gate" | "generating" | "complete";
+type AssessmentView = "hub" | "assessment_landing" | "ats" | "intro" | "questions" | "email_gate" | "generating" | "complete";
 
 const StrategicBenchmark = () => {
   const navigate = useNavigate();
@@ -33,28 +34,35 @@ const StrategicBenchmark = () => {
     shouldShowSignupGate,
   } = useAssessment();
 
-  const [currentView, setCurrentView] = useState<AssessmentView>("landing");
+  const [currentView, setCurrentView] = useState<AssessmentView>("hub");
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasSeenEmailGate, setHasSeenEmailGate] = useState(false);
-  const [wantsATSCheck, setWantsATSCheck] = useState(false);
 
   const currentModule = modules[currentModuleIndex];
   const moduleQuestions = currentModule ? getQuestionsForModule(currentModule.id) : [];
   const currentQuestion = moduleQuestions[currentQuestionIndex];
   const totalQuestionsAnswered = responses.size;
 
-  const handleStartAssessment = (withATS: boolean) => {
-    setWantsATSCheck(withATS);
-    if (withATS) {
-      setCurrentView("ats");
-    } else {
-      setCurrentView("intro");
-    }
+  const handleGoToAssessmentLanding = () => {
+    setCurrentView("assessment_landing");
+  };
+
+  const handleGoToATS = () => {
+    setCurrentView("ats");
+  };
+
+  const handleBackToHub = () => {
+    setCurrentView("hub");
+  };
+
+  const handleStartAssessment = () => {
+    setCurrentView("intro");
   };
 
   const handleATSComplete = () => {
-    setCurrentView("intro");
+    // After ATS, go back to hub so user can choose next action
+    setCurrentView("hub");
   };
 
   const handleStartModule = () => {
@@ -169,8 +177,8 @@ const StrategicBenchmark = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background pt-20">
-        {/* Progress bar - hide during landing, ats, email gate, generating, and complete */}
-        {!["landing", "ats", "email_gate", "generating", "complete"].includes(currentView) && (
+        {/* Progress bar - hide during hub, assessment_landing, ats, email gate, generating, and complete */}
+        {!["hub", "assessment_landing", "ats", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
@@ -178,10 +186,19 @@ const StrategicBenchmark = () => {
           />
         )}
 
-        {/* Main content */}
         <div className="container max-w-3xl mx-auto px-4 py-8">
-          {currentView === "landing" && (
-            <AssessmentLanding onStart={handleStartAssessment} />
+          {currentView === "hub" && (
+            <RimoLanding 
+              onStartAssessment={handleGoToAssessmentLanding} 
+              onStartATS={handleGoToATS}
+            />
+          )}
+
+          {currentView === "assessment_landing" && (
+            <AssessmentLanding 
+              onStart={handleStartAssessment} 
+              onBack={handleBackToHub}
+            />
           )}
 
           {currentView === "ats" && (
