@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useAssessment } from "@/hooks/useAssessment";
 import { AssessmentProgress } from "@/components/assessment/AssessmentProgress";
@@ -17,6 +17,7 @@ type AssessmentView = "hub" | "assessment_landing" | "ats" | "intro" | "question
 
 const StrategicBenchmark = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     modules,
     questions,
@@ -38,6 +39,11 @@ const StrategicBenchmark = () => {
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasSeenEmailGate, setHasSeenEmailGate] = useState(false);
+
+  // Reset to hub when navigating to this page (e.g., clicking header link)
+  useEffect(() => {
+    setCurrentView("hub");
+  }, [location.key]);
 
   const currentModule = modules[currentModuleIndex];
   const moduleQuestions = currentModule ? getQuestionsForModule(currentModule.id) : [];
