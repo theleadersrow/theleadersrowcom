@@ -429,6 +429,8 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          cancellation_effective_at: string | null
+          cancellation_requested_at: string | null
           city: string | null
           country: string | null
           email: string | null
@@ -444,11 +446,15 @@ export type Database = {
           program_id: string
           start_date: string | null
           state: string | null
+          stripe_subscription_id: string | null
+          subscription_type: string | null
           user_id: string | null
           zip_code: string | null
           zoom_link: string | null
         }
         Insert: {
+          cancellation_effective_at?: string | null
+          cancellation_requested_at?: string | null
           city?: string | null
           country?: string | null
           email?: string | null
@@ -464,11 +470,15 @@ export type Database = {
           program_id: string
           start_date?: string | null
           state?: string | null
+          stripe_subscription_id?: string | null
+          subscription_type?: string | null
           user_id?: string | null
           zip_code?: string | null
           zoom_link?: string | null
         }
         Update: {
+          cancellation_effective_at?: string | null
+          cancellation_requested_at?: string | null
           city?: string | null
           country?: string | null
           email?: string | null
@@ -484,6 +494,8 @@ export type Database = {
           program_id?: string
           start_date?: string | null
           state?: string | null
+          stripe_subscription_id?: string | null
+          subscription_type?: string | null
           user_id?: string | null
           zip_code?: string | null
           zoom_link?: string | null
