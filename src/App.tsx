@@ -23,6 +23,7 @@ import AdminLogin from "./pages/AdminLogin";
 import StrategicBenchmark from "./pages/StrategicBenchmark";
 import CareerReport from "./pages/CareerReport";
 import Review from "./pages/Review";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/career-coach" element={<StrategicBenchmark />} />
             <Route path="/career-report" element={<CareerReport />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
