@@ -18,6 +18,9 @@ interface Score {
   skill_heatmap: { strengths: string[]; gaps: string[] };
   experience_gaps: string[];
   blocker_archetype: string;
+  blocker_description?: string;
+  market_readiness_score?: string;
+  thirty_day_actions?: string[];
   market_fit: { role_types: string[]; company_types: string[] };
 }
 
@@ -182,6 +185,18 @@ const CareerReport = () => {
     business_ownership: "Business Ownership",
     visibility: "Visibility & Brand",
     general: "Overall Readiness",
+  };
+
+  // Fallback blocker descriptions if not provided by API
+  const getBlockerDescription = (archetype: string) => {
+    const descriptions: Record<string, string> = {
+      "Invisible Expert": "You consistently deliver exceptional work, yet your contributions remain unseen by decision-makers. You've mastered the craft of product management but haven't learned to amplify your impact through strategic visibility.",
+      "Execution Hero": "You're the person everyone counts on to get things done—reliable, thorough, and tireless. But this very strength has become your ceiling. The path forward isn't working harder; it's stepping back to lead strategy.",
+      "Strategic Thinker Without Voice": "You see what others miss—the patterns, the opportunities, the right path forward. But your insights die in your head or get lost in meetings where louder voices dominate.",
+      "Over-Deliverer": "You hold yourself to impossibly high standards, polishing every deliverable until it shines. This perfectionism feels like quality—but it's actually fear dressed up as excellence.",
+      "Certainty Seeker": "You thrive when the path is clear, but freeze or over-analyze when facing ambiguity. Building comfort with incomplete information is your gateway to leadership.",
+    };
+    return descriptions[archetype] || "A pattern has been identified that may be limiting your career growth.";
   };
 
   // Map gaps to Leader's Row programs
@@ -352,30 +367,56 @@ const CareerReport = () => {
                 </div>
               </div>
 
-              {/* Blocker Pattern */}
+              {/* Blocker Pattern - Enhanced */}
               {score.blocker_archetype && (
                 <div className="bg-gradient-to-br from-purple-500/5 to-purple-500/10 rounded-xl border border-purple-500/20 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
                       <Brain className="w-6 h-6 text-purple-500" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold text-foreground mb-2">Your Blocker Pattern: {score.blocker_archetype}</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        {score.blocker_archetype === "Invisible Expert" && 
-                          "You deliver exceptional work but struggle with visibility. Your impact goes unnoticed because you don't proactively share wins or build your narrative."
-                        }
-                        {score.blocker_archetype === "Execution Hero" && 
-                          "You're the go-to person for getting things done, but this keeps you stuck in tactical work. You need to shift from executing to orchestrating."
-                        }
-                        {score.blocker_archetype === "Strategic Thinker Without Voice" && 
-                          "You have strong strategic instincts but struggle to influence decisions. Building executive presence and persuasion skills is your unlock."
-                        }
-                        {score.blocker_archetype === "Over-Deliverer" && 
-                          "You hold yourself to perfectionist standards, which slows you down. Learning to ship 'good enough' work faster will accelerate your growth."
-                        }
+                        {score.blocker_description || getBlockerDescription(score.blocker_archetype)}
                       </p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Market Readiness Score */}
+              {score.market_readiness_score && (
+                <div className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 rounded-xl border border-emerald-500/20 p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Target className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-2">Market Readiness</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {score.market_readiness_score}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 30-Day Action List */}
+              {score.thirty_day_actions && score.thirty_day_actions.length > 0 && (
+                <div className="bg-card rounded-xl border border-border p-6">
+                  <div className="flex items-center gap-2 mb-5">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold text-foreground">Your 30-Day Action Plan</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {score.thirty_day_actions.map((action, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                        <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0 mt-0.5">
+                          {i + 1}
+                        </div>
+                        <span className="text-foreground text-sm leading-relaxed">{action}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
