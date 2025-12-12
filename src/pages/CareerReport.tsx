@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { PDFReport } from "@/components/report/PDFReport";
 import { 
   Loader2, Target, BarChart3, Brain, Compass, 
   Calendar, ArrowRight, Phone, TrendingUp, Zap,
-  CheckCircle2, AlertTriangle, Sparkles, Mail, Send
+  CheckCircle2, AlertTriangle, Sparkles, Mail, Send,
+  Download, FileText, Award
 } from "lucide-react";
 
 interface Score {
@@ -48,7 +50,7 @@ interface Report {
   }>;
 }
 
-// Email Report Card Component
+// Email Report Card Component - Inline version
 function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLabels: Record<string, string> }) {
   const [email, setEmail] = useState("");
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
@@ -70,7 +72,6 @@ function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLa
 
     setIsSending(true);
     try {
-      // Save to email_leads if opted in
       if (subscribeNewsletter) {
         await supabase.from("email_leads").upsert(
           { email: email.trim(), lead_magnet: "career-report-email" },
@@ -78,7 +79,6 @@ function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLa
         );
       }
 
-      // Send the report email
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-career-report-email`,
         {
@@ -102,7 +102,6 @@ function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLa
       );
 
       if (!response.ok) throw new Error("Failed to send email");
-
       setSent(true);
       toast.success("Report sent! Check your inbox.");
     } catch (err) {
@@ -115,54 +114,39 @@ function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLa
 
   if (sent) {
     return (
-      <div className="bg-gradient-to-r from-emerald-500/10 to-primary/10 rounded-xl border border-emerald-500/20 p-5 mb-8">
-        <div className="flex items-center gap-3">
-          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-          <div>
-            <p className="font-semibold text-foreground">Report Sent!</p>
-            <p className="text-sm text-muted-foreground">Check your inbox for your Career Intelligence Report summary.</p>
-          </div>
-        </div>
+      <div className="flex items-center gap-3">
+        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+        <p className="text-sm text-foreground">Report sent to your inbox!</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 mb-8">
-      <div className="flex flex-col md:flex-row md:items-center gap-4">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Mail className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground text-sm">Email this report</p>
-            <p className="text-xs text-muted-foreground">Get a summary delivered to your inbox</p>
-          </div>
-        </div>
-        <form onSubmit={handleSendReport} className="flex flex-col md:flex-row gap-3 flex-1">
-          <div className="flex-1">
-            <Input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-10"
-            />
-          </div>
-          <Button type="submit" disabled={isSending} size="sm" className="h-10">
-            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-            {isSending ? "Sending..." : "Send"}
-          </Button>
-        </form>
+    <div className="flex flex-col md:flex-row md:items-center gap-4">
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <Mail className="w-5 h-5 text-primary" />
+        <span className="text-sm font-medium text-foreground">Email me a copy:</span>
       </div>
-      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+      <form onSubmit={handleSendReport} className="flex flex-1 gap-2">
+        <Input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="h-9 flex-1"
+        />
+        <Button type="submit" disabled={isSending} size="sm" className="h-9">
+          {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+        </Button>
+      </form>
+      <div className="flex items-center gap-2">
         <Checkbox
-          id="newsletter-report"
+          id="newsletter-inline"
           checked={subscribeNewsletter}
           onCheckedChange={(checked) => setSubscribeNewsletter(checked === true)}
         />
-        <label htmlFor="newsletter-report" className="text-xs text-muted-foreground cursor-pointer">
-          Also subscribe to The Leader's Row newsletter for weekly career tips
+        <label htmlFor="newsletter-inline" className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
+          Subscribe to newsletter
         </label>
       </div>
     </div>
@@ -172,9 +156,36 @@ function EmailReportCard({ score, dimensionLabels }: { score: Score; dimensionLa
 const CareerReport = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [score, setScore] = useState<Score | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current || !score) return;
+    
+    setIsDownloading(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      
+      const opt = {
+        margin: 0,
+        filename: `Career-Intelligence-Report-${score.current_level_inferred}-PM.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      };
+
+      await html2pdf().set(opt).from(pdfRef.current).save();
+      toast.success("Report downloaded successfully!");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to download PDF. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const loadReport = async () => {
@@ -386,22 +397,45 @@ const CareerReport = () => {
     <Layout>
       <div className="min-h-screen bg-background pt-20 pb-16">
         <div className="container max-w-5xl mx-auto px-4">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
-              <Sparkles className="w-4 h-4" />
+          {/* Premium Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-primary/20 to-amber-500/20 text-primary rounded-full text-sm font-medium mb-4 border border-primary/20">
+              <Award className="w-4 h-4" />
               Your Results Are Ready
             </div>
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3">
+            <h1 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-3">
               Career Intelligence Report
             </h1>
-            <p className="text-muted-foreground">
-              Based on your Strategic Benchmark Assessment
+            <p className="text-muted-foreground text-lg mb-6">
+              Powered by The Leader's Row Strategic Benchmark
             </p>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button 
+                onClick={handleDownloadPDF} 
+                disabled={isDownloading}
+                className="gap-2"
+                size="lg"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                {isDownloading ? "Generating PDF..." : "Download Full Report"}
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => navigate("/book-call")} className="gap-2">
+                <Phone className="w-4 h-4" />
+                Book Strategy Call
+              </Button>
+            </div>
           </div>
 
-          {/* Email Report CTA */}
-          <EmailReportCard score={score} dimensionLabels={dimensionLabels} />
+          {/* Email Report CTA - Streamlined */}
+          <div className="bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl border border-border p-4 mb-8">
+            <EmailReportCard score={score} dimensionLabels={dimensionLabels} />
+          </div>
 
           {/* Hero Snapshot */}
           <div className="bg-card rounded-2xl border border-border overflow-hidden mb-8">
@@ -768,6 +802,16 @@ const CareerReport = () => {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+
+      {/* Hidden PDF Report for Download */}
+      <div className="fixed left-[-9999px] top-0">
+        <PDFReport
+          ref={pdfRef}
+          score={score}
+          report={report}
+          dimensionLabels={dimensionLabels}
+        />
       </div>
     </Layout>
   );
