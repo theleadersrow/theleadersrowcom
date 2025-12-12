@@ -8,9 +8,11 @@ import { ModuleIntro } from "@/components/assessment/ModuleIntro";
 import { EmailGate } from "@/components/assessment/EmailGate";
 import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
+import { ATSScoring } from "@/components/assessment/ATSScoring";
+import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "intro" | "questions" | "email_gate" | "generating" | "complete";
+type AssessmentView = "landing" | "ats" | "intro" | "questions" | "email_gate" | "generating" | "complete";
 
 const StrategicBenchmark = () => {
   const navigate = useNavigate();
@@ -30,24 +32,29 @@ const StrategicBenchmark = () => {
     shouldShowSignupGate,
   } = useAssessment();
 
-  const [currentView, setCurrentView] = useState<AssessmentView>("intro");
+  const [currentView, setCurrentView] = useState<AssessmentView>("landing");
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [hasSeenEmailGate, setHasSeenEmailGate] = useState(false);
+  const [wantsATSCheck, setWantsATSCheck] = useState(false);
 
   const currentModule = modules[currentModuleIndex];
   const moduleQuestions = currentModule ? getQuestionsForModule(currentModule.id) : [];
   const currentQuestion = moduleQuestions[currentQuestionIndex];
   const totalQuestionsAnswered = responses.size;
 
-  // Calculate overall question index for email gate
-  const getOverallQuestionIndex = useCallback(() => {
-    let count = 0;
-    for (let i = 0; i < currentModuleIndex; i++) {
-      count += getQuestionsForModule(modules[i]?.id || "").length;
+  const handleStartAssessment = (withATS: boolean) => {
+    setWantsATSCheck(withATS);
+    if (withATS) {
+      setCurrentView("ats");
+    } else {
+      setCurrentView("intro");
     }
-    return count + currentQuestionIndex;
-  }, [currentModuleIndex, currentQuestionIndex, modules, getQuestionsForModule]);
+  };
+
+  const handleATSComplete = () => {
+    setCurrentView("intro");
+  };
 
   const handleStartModule = () => {
     setCurrentView("questions");
@@ -149,8 +156,8 @@ const StrategicBenchmark = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background pt-20">
-        {/* Progress bar - hide during email gate and generating */}
-        {currentView !== "email_gate" && currentView !== "generating" && currentView !== "complete" && (
+        {/* Progress bar - hide during landing, ats, email gate, generating, and complete */}
+        {!["landing", "ats", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
@@ -160,6 +167,17 @@ const StrategicBenchmark = () => {
 
         {/* Main content */}
         <div className="container max-w-3xl mx-auto px-4 py-8">
+          {currentView === "landing" && (
+            <AssessmentLanding onStart={handleStartAssessment} />
+          )}
+
+          {currentView === "ats" && (
+            <ATSScoring
+              onComplete={handleATSComplete}
+              onSkip={handleATSComplete}
+            />
+          )}
+
           {currentView === "intro" && currentModule && (
             <ModuleIntro
               module={currentModule}
