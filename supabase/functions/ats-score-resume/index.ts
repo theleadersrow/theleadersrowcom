@@ -7,6 +7,59 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Rate limiting configuration - stricter for AI endpoints
+const RATE_LIMIT = {
+  maxRequests: 10,
+  windowMinutes: 60,
+};
+
+// Check and update rate limit
+async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
+  
+  const { data: existing } = await supabase
+    .from("rate_limits")
+    .select("*")
+    .eq("identifier", identifier)
+    .eq("endpoint", endpoint)
+    .gte("window_start", windowStart)
+    .single();
+
+  if (existing) {
+    if (existing.request_count >= RATE_LIMIT.maxRequests) {
+      return { allowed: false, remaining: 0 };
+    }
+    
+    await supabase
+      .from("rate_limits")
+      .update({ request_count: existing.request_count + 1 })
+      .eq("id", existing.id);
+    
+    return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
+  }
+  
+  await supabase
+    .from("rate_limits")
+    .upsert({
+      identifier,
+      endpoint,
+      request_count: 1,
+      window_start: new Date().toISOString(),
+    }, { onConflict: "identifier,endpoint" });
+  
+  return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+    || req.headers.get("x-real-ip") 
+    || "unknown";
+}
+
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -17,11 +70,45 @@ serve(async (req) => {
   }
 
   try {
+    const clientIP = getClientIP(req);
+    
+    // Check rate limit
+    const rateLimit = await checkRateLimit(clientIP, "ats-score-resume");
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+    
     const { resumeText, jobDescription, sessionId } = await req.json();
 
-    if (!resumeText || !jobDescription) {
-      throw new Error("Resume text and job description are required");
+    // Input validation
+    if (!resumeText || typeof resumeText !== "string") {
+      return new Response(JSON.stringify({ error: "Resume text is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    
+    if (!jobDescription || typeof jobDescription !== "string") {
+      return new Response(JSON.stringify({ error: "Job description is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Limit input sizes
+    const safeResumeText = resumeText.slice(0, 50000);
+    const safeJobDescription = jobDescription.slice(0, 20000);
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -32,10 +119,10 @@ Be direct, specific, and helpful. Focus on concrete improvements.`;
     const userPrompt = `Analyze this resume against the job description and provide an ATS compatibility score.
 
 **RESUME:**
-${resumeText}
+${safeResumeText}
 
 **JOB DESCRIPTION:**
-${jobDescription}
+${safeJobDescription}
 
 Provide your analysis in this exact JSON format (no markdown, just JSON):
 {

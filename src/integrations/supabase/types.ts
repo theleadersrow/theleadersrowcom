@@ -600,6 +600,33 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          identifier: string
+          request_count: number | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          identifier: string
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          identifier?: string
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           company: string | null
@@ -723,6 +750,7 @@ export type Database = {
           is_valid: boolean
         }[]
       }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
       generate_enrollment_code: { Args: never; Returns: string }
       get_session_by_token: {
         Args: { p_session_token: string }
