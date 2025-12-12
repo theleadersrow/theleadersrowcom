@@ -37,11 +37,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 import { LeadsTab } from "@/components/admin/LeadsTab";
 import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
 import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
+import InvoiceList from "@/components/InvoiceList";
 
 interface Enrollment {
   id: string;
@@ -1092,6 +1093,20 @@ const Admin = () => {
                                     </div>
                                   </div>
                                 </div>
+                                
+                                {/* Invoices Section */}
+                                {(e.email || e.profiles?.email) && (
+                                  <div className="mt-6 pt-6 border-t border-border">
+                                    <h4 className="font-semibold text-sm text-foreground flex items-center gap-2 mb-4">
+                                      <Receipt className="h-4 w-4" />
+                                      Invoices & Payments
+                                    </h4>
+                                    <InvoiceList 
+                                      customerEmail={e.email || e.profiles?.email || ""} 
+                                      compact 
+                                    />
+                                  </div>
+                                )}
                               </TableCell>
                             </TableRow>
                           </CollapsibleContent>
