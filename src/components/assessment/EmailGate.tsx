@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, ArrowRight, Shield, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmailGateProps {
-  onSubmit: (email: string) => Promise<boolean>;
+  onSubmit: (email: string, subscribeNewsletter: boolean) => Promise<boolean>;
   isLoading: boolean;
 }
 
 export function EmailGate({ onSubmit, isLoading }: EmailGateProps) {
   const [email, setEmail] = useState("");
+  const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +30,19 @@ export function EmailGate({ onSubmit, isLoading }: EmailGateProps) {
       return;
     }
 
-    const success = await onSubmit(email);
+    // If user opts in to newsletter, save to email_leads
+    if (subscribeNewsletter) {
+      try {
+        await supabase.from("email_leads").upsert(
+          { email: email.trim(), lead_magnet: "assessment-newsletter" },
+          { onConflict: "email" }
+        );
+      } catch (err) {
+        console.error("Failed to save newsletter subscription:", err);
+      }
+    }
+
+    const success = await onSubmit(email, subscribeNewsletter);
     if (!success) {
       setError("Something went wrong. Please try again.");
     }
@@ -60,6 +75,19 @@ export function EmailGate({ onSubmit, isLoading }: EmailGateProps) {
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 h-12"
             />
+          </div>
+
+          {/* Newsletter opt-in */}
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="newsletter"
+              checked={subscribeNewsletter}
+              onCheckedChange={(checked) => setSubscribeNewsletter(checked === true)}
+              className="mt-0.5"
+            />
+            <label htmlFor="newsletter" className="text-sm text-muted-foreground cursor-pointer">
+              Send me weekly career tips and insights from The Leader's Row newsletter
+            </label>
           </div>
           
           {error && (

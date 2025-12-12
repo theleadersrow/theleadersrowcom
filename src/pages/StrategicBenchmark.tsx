@@ -119,7 +119,7 @@ const StrategicBenchmark = () => {
     }
   };
 
-  const handleEmailSubmit = async (email: string) => {
+  const handleEmailSubmit = async (email: string, _subscribeNewsletter: boolean) => {
     const success = await saveEmail(email);
     if (success) {
       setHasSeenEmailGate(true);
