@@ -260,7 +260,7 @@ const CareerCoach = () => {
               Career Readiness Assessment
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Get a personalized analysis of your PM career in minutes. Upload your resume and chat with our AI coach to discover your gaps and get actionable recommendations.
+              Get a personalized, in-depth analysis of your career in minutes. Our AI coach will guide you through a series of questions to understand your unique situation and provide actionable recommendations.
             </p>
           </div>
 
