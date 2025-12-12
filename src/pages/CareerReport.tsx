@@ -196,12 +196,11 @@ const CareerReport = () => {
           return;
         }
 
-        const { data: session, error: sessionError } = await supabase
-          .from("assessment_sessions")
-          .select("id, status")
-          .eq("session_token", sessionToken)
-          .maybeSingle();
+        // Use secure RPC function to get session
+        const { data: sessionData, error: sessionError } = await supabase
+          .rpc("get_session_by_token", { p_session_token: sessionToken });
 
+        const session = sessionData?.[0];
         if (sessionError || !session) {
           setError("Session not found");
           return;
