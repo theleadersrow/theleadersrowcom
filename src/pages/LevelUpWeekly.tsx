@@ -101,7 +101,7 @@ const faqs = [
   },
   {
     question: "What is the cancellation and refund policy?",
-    answer: "You can cancel your membership at any time — no questions asked. Once you cancel, your next billing cycle will not be charged, and you'll retain full access until the end of your current billing period. Please note: there are no refunds for any payments already made. This is a membership, not a one-time purchase.",
+    answer: "You can cancel your membership at any time — no questions asked. Simply go to our cancellation page to submit your request. Once cancelled, your next billing cycle will not be charged, and you'll retain full access until the end of your current billing period. Please note: there are no refunds for any payments already made. This is a membership, not a one-time purchase.",
   },
   {
     question: "Who is Weekly Edge for?",
@@ -331,7 +331,17 @@ const WeeklyEdge = () => {
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
-                    {faq.answer}
+                    {faq.question === "What is the cancellation and refund policy?" ? (
+                      <>
+                        You can cancel your membership at any time — no questions asked. Simply{" "}
+                        <Link to="/cancel-membership" className="text-secondary hover:underline font-medium">
+                          go to our cancellation page
+                        </Link>{" "}
+                        to submit your request. Once cancelled, your next billing cycle will not be charged, and you'll retain full access until the end of your current billing period. Please note: there are no refunds for any payments already made. This is a membership, not a one-time purchase.
+                      </>
+                    ) : (
+                      faq.answer
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -355,10 +365,14 @@ const WeeklyEdge = () => {
             {/* Prominent Cancellation Policy */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-5 mb-8 border border-cream/20">
               <p className="text-cream font-semibold mb-2">Cancel Anytime — No Strings Attached</p>
-              <p className="text-cream/80 text-sm leading-relaxed">
-                Send us an email to cancel and you will <span className="text-secondary font-medium">not be charged for the next billing cycle</span>. 
-                You'll retain full access until the end of your current period. No questions asked, no hassle.
+              <p className="text-cream/80 text-sm leading-relaxed mb-3">
+                To cancel, <Link to="/cancel-membership" className="text-secondary hover:underline font-medium">go to our cancellation page</Link> and submit your request. 
+                You will <span className="text-secondary font-medium">not be charged for the next billing cycle</span> and you'll retain full access until the end of your current period.
               </p>
+              <Link to="/cancel-membership" className="inline-flex items-center gap-2 text-secondary text-sm font-medium hover:underline">
+                Cancel Membership
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
             
             <p className="text-cream/70 mb-8 text-lg leading-relaxed max-w-xl mx-auto">
