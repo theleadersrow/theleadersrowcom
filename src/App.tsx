@@ -20,7 +20,8 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import AdminSignup from "./pages/AdminSignup";
 import AdminLogin from "./pages/AdminLogin";
-import CareerCoach from "./pages/CareerCoach";
+import StrategicBenchmark from "./pages/StrategicBenchmark";
+import CareerReport from "./pages/CareerReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,7 +50,8 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin-signup" element={<AdminSignup />} />
             <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/career-coach" element={<CareerCoach />} />
+            <Route path="/career-coach" element={<StrategicBenchmark />} />
+            <Route path="/career-report" element={<CareerReport />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
