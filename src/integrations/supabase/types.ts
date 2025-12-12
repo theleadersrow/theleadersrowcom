@@ -724,12 +724,41 @@ export type Database = {
         }[]
       }
       generate_enrollment_code: { Args: never; Returns: string }
+      get_session_by_token: {
+        Args: { p_session_token: string }
+        Returns: {
+          created_at: string
+          current_module_index: number
+          current_question_index: number
+          email: string
+          id: string
+          inferred_level: string
+          scored_at: string
+          session_token: string
+          started_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          submitted_at: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      update_session_by_token: {
+        Args: {
+          p_current_module_index?: number
+          p_current_question_index?: number
+          p_email?: string
+          p_inferred_level?: string
+          p_session_token: string
+          p_status?: Database["public"]["Enums"]["session_status"]
+          p_submitted_at?: string
+        }
+        Returns: string
       }
     }
     Enums: {

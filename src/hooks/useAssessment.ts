@@ -212,14 +212,13 @@ export function useAssessment() {
     const token = getSessionToken();
     
     try {
-      // Check for existing session
-      const { data: existingSession, error: fetchError } = await supabase
-        .from("assessment_sessions")
-        .select("*")
-        .eq("session_token", token)
-        .maybeSingle();
+      // Check for existing session using secure RPC function
+      const { data: existingSessionData, error: fetchError } = await supabase
+        .rpc("get_session_by_token", { p_session_token: token });
 
       if (fetchError) throw fetchError;
+
+      const existingSession = existingSessionData?.[0];
 
       if (existingSession) {
         setSession(existingSession as AssessmentSession);
@@ -314,18 +313,16 @@ export function useAssessment() {
     }
   }, [session, toast]);
 
-  // Update session progress
+  // Update session progress using secure RPC function
   const updateProgress = useCallback(async (moduleIndex: number, questionIndex: number) => {
     if (!session) return;
     
     try {
-      await supabase
-        .from("assessment_sessions")
-        .update({
-          current_module_index: moduleIndex,
-          current_question_index: questionIndex,
-        })
-        .eq("id", session.id);
+      await supabase.rpc("update_session_by_token", {
+        p_session_token: session.session_token,
+        p_current_module_index: moduleIndex,
+        p_current_question_index: questionIndex,
+      });
 
       setSession(prev => prev ? {
         ...prev,
@@ -337,15 +334,15 @@ export function useAssessment() {
     }
   }, [session]);
 
-  // Save email
+  // Save email using secure RPC function
   const saveEmail = useCallback(async (email: string) => {
     if (!session) return false;
     
     try {
-      const { error } = await supabase
-        .from("assessment_sessions")
-        .update({ email })
-        .eq("id", session.id);
+      const { error } = await supabase.rpc("update_session_by_token", {
+        p_session_token: session.session_token,
+        p_email: email,
+      });
 
       if (error) throw error;
 
@@ -362,18 +359,16 @@ export function useAssessment() {
     }
   }, [session, toast]);
 
-  // Submit assessment
+  // Submit assessment using secure RPC function
   const submitAssessment = useCallback(async () => {
     if (!session) return false;
     
     try {
-      const { error } = await supabase
-        .from("assessment_sessions")
-        .update({
-          status: "submitted",
-          submitted_at: new Date().toISOString(),
-        })
-        .eq("id", session.id);
+      const { error } = await supabase.rpc("update_session_by_token", {
+        p_session_token: session.session_token,
+        p_status: "submitted",
+        p_submitted_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
 
@@ -424,15 +419,15 @@ export function useAssessment() {
     return responses.size >= 6 && !session?.email;
   }, [responses.size, session?.email]);
 
-  // Save inferred level to session
+  // Save inferred level to session using secure RPC function
   const saveInferredLevel = useCallback(async (level: string) => {
     if (!session) return false;
     
     try {
-      const { error } = await supabase
-        .from("assessment_sessions")
-        .update({ inferred_level: level })
-        .eq("id", session.id);
+      const { error } = await supabase.rpc("update_session_by_token", {
+        p_session_token: session.session_token,
+        p_inferred_level: level,
+      });
 
       if (error) throw error;
 
