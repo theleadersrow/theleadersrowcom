@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      career_assessments: {
+        Row: {
+          ai_assessment: Json | null
+          career_goals: string | null
+          conversation_history: Json | null
+          created_at: string
+          current_level: string | null
+          id: string
+          job_description: string | null
+          resume_text: string | null
+          resume_url: string | null
+          session_id: string
+          skills: Json | null
+          target_companies: string[] | null
+          target_level: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_assessment?: Json | null
+          career_goals?: string | null
+          conversation_history?: Json | null
+          created_at?: string
+          current_level?: string | null
+          id?: string
+          job_description?: string | null
+          resume_text?: string | null
+          resume_url?: string | null
+          session_id: string
+          skills?: Json | null
+          target_companies?: string[] | null
+          target_level?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_assessment?: Json | null
+          career_goals?: string | null
+          conversation_history?: Json | null
+          created_at?: string
+          current_level?: string | null
+          id?: string
+          job_description?: string | null
+          resume_text?: string | null
+          resume_url?: string | null
+          session_id?: string
+          skills?: Json | null
+          target_companies?: string[] | null
+          target_level?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content: {
         Row: {
           created_at: string
