@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Target, BarChart3, Briefcase, Brain, Compass, 
   ArrowRight, Clock, FileText, Zap, CheckCircle, Sparkles,
-  Linkedin, Eye, MessageSquare, Wand2, Palette, Type
+  Linkedin, Eye, MessageSquare, Wand2, Palette, Type, Lock, CreditCard
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 interface RimoLandingProps {
   onStartAssessment: () => void;
@@ -13,9 +17,75 @@ interface RimoLandingProps {
   onStartResumeEnhancer: () => void;
 }
 
+const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
+
 export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhancer }: RimoLandingProps) {
+  const [searchParams] = useSearchParams();
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showLinkedInDialog, setShowLinkedInDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [pendingTool, setPendingTool] = useState<"ats" | "enhancer" | null>(null);
+  const [email, setEmail] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+
+  useEffect(() => {
+    // Check for successful purchase
+    if (searchParams.get("purchase") === "success") {
+      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+      localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify({ expiry }));
+      setHasAccess(true);
+      toast.success("Payment successful! You now have access to the Resume Intelligence Suite for 1 month.");
+    }
+
+    // Check existing access
+    const stored = localStorage.getItem(RESUME_SUITE_ACCESS_KEY);
+    if (stored) {
+      const { expiry } = JSON.parse(stored);
+      if (Date.now() < expiry) {
+        setHasAccess(true);
+      } else {
+        localStorage.removeItem(RESUME_SUITE_ACCESS_KEY);
+      }
+    }
+  }, [searchParams]);
+
+  const handlePaidToolClick = (tool: "ats" | "enhancer") => {
+    if (hasAccess) {
+      if (tool === "ats") {
+        onStartATS();
+      } else {
+        onStartResumeEnhancer();
+      }
+    } else {
+      setPendingTool(tool);
+      setShowPaymentDialog(true);
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
+        body: { customerEmail: email },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 animate-fade-up">
@@ -43,7 +113,7 @@ export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhanc
         <h2 className="text-center text-sm font-medium text-muted-foreground mb-4">AI-POWERED TOOLS</h2>
         
         <div className="grid gap-4">
-          {/* Strategic Assessment Tool */}
+          {/* Strategic Assessment Tool - FREE */}
           <button
             onClick={onStartAssessment}
             className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
@@ -55,6 +125,7 @@ export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhanc
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold text-lg text-foreground">Strategic Level Assessment</h3>
+                  <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full">Free</span>
                   <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -70,58 +141,77 @@ export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhanc
             </div>
           </button>
 
-          {/* ATS Resume Score Tool */}
-          <button
-            onClick={onStartATS}
-            className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
-          >
-            <div className="flex items-start gap-5">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                <FileText className="w-7 h-7 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-lg text-foreground">ATS Resume Score</h3>
-                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+          {/* Resume Intelligence Suite - PAID */}
+          <div className="border-2 border-primary/30 rounded-xl bg-gradient-to-r from-primary/5 to-transparent p-1">
+            <div className="bg-card rounded-lg p-4 mb-2">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground">Resume Intelligence Suite</span>
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">$19.99</span>
+                  <span className="text-xs text-muted-foreground">• 1 month access</span>
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Upload your resume and job description to see how well you match and get actionable improvements.
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Keyword match</span>
-                  <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Experience fit</span>
-                  <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Instant feedback</span>
-                </div>
+                {hasAccess && (
+                  <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Active
+                  </span>
+                )}
               </div>
-            </div>
-          </button>
 
-          {/* Resume Enhancer Tool */}
-          <button
-            onClick={onStartResumeEnhancer}
-            className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
-          >
-            <div className="flex items-start gap-5">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                <Wand2 className="w-7 h-7 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-lg text-foreground">AI Resume Enhancer</h3>
-                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">New</span>
-                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+              {/* Resume Transformation Pro Tool */}
+              <button
+                onClick={() => handlePaidToolClick("enhancer")}
+                className="w-full bg-background border border-border rounded-xl p-5 hover:border-primary hover:shadow-lg transition-all group text-left mb-3"
+              >
+                <div className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                    <Wand2 className="w-7 h-7 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-lg text-foreground">Resume Transformation Pro</h3>
+                      {!hasAccess && <Lock className="w-4 h-4 text-muted-foreground" />}
+                      <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                      Transform your resume with AI-powered formatting, better sectioning, enhanced text, and professional styling that gets noticed.
+                    </p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5"><Palette className="w-3.5 h-3.5" /> Color schemes</span>
+                      <span className="flex items-center gap-1.5"><Type className="w-3.5 h-3.5" /> Font suggestions</span>
+                      <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Enhanced text</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Transform your resume with AI-powered formatting, better sectioning, enhanced text, and professional styling.
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><Palette className="w-3.5 h-3.5" /> Color schemes</span>
-                  <span className="flex items-center gap-1.5"><Type className="w-3.5 h-3.5" /> Font suggestions</span>
-                  <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Enhanced text</span>
+              </button>
+
+              {/* ATS Resume Score Tool */}
+              <button
+                onClick={() => handlePaidToolClick("ats")}
+                className="w-full bg-background border border-border rounded-xl p-5 hover:border-primary hover:shadow-lg transition-all group text-left"
+              >
+                <div className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                    <FileText className="w-7 h-7 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-lg text-foreground">ATS Resume Score</h3>
+                      {!hasAccess && <Lock className="w-4 h-4 text-muted-foreground" />}
+                      <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                      Upload your resume and job description to see how well you match and get actionable improvements.
+                    </p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Keyword match</span>
+                      <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Experience fit</span>
+                      <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Instant feedback</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </button>
             </div>
-          </button>
+          </div>
 
           {/* LinkedIn Profile Signal Score - Coming Soon */}
           <button
@@ -185,7 +275,7 @@ export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhanc
         </span>
         <span className="flex items-center gap-1">
           <CheckCircle className="w-4 h-4 text-green-500" />
-          100% free
+          Strategic Assessment free
         </span>
         <span className="flex items-center gap-1">
           <CheckCircle className="w-4 h-4 text-green-500" />
@@ -205,6 +295,56 @@ export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhanc
           to calibrate career positioning, optimize resumes, and prepare for high-stakes opportunities.
         </p>
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              Resume Intelligence Suite
+            </DialogTitle>
+            <DialogDescription className="pt-4 space-y-4">
+              <p>
+                Get full access to our premium resume tools for just <strong className="text-foreground">$19.99</strong> with 1 month of unlimited use.
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">Resume Transformation Pro</strong> — AI-powered formatting, sectioning, color schemes & enhanced text</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">ATS Resume Score</strong> — Keyword matching, experience fit analysis & actionable improvements</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">Unlimited use</strong> — Run as many analyses as you need for 30 days</span>
+                </li>
+              </ul>
+              <div className="space-y-3 pt-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full"
+                />
+                <Button 
+                  onClick={handleCheckout} 
+                  className="w-full"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? "Processing..." : "Get Access for $19.99"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Secure payment via Stripe • One-time payment • 30-day access
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
       {/* LinkedIn Profile Coming Soon Dialog */}
       <Dialog open={showLinkedInDialog} onOpenChange={setShowLinkedInDialog}>
