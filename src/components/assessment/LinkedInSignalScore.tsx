@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Linkedin, ArrowLeft, ArrowRight, Sparkles, CheckCircle, 
-  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw
+  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -56,7 +56,7 @@ interface ImprovementSuggestions {
   }>;
 }
 
-type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "rescore-input" | "rescoring";
+type Step = "input" | "fetching" | "analyzing" | "score" | "improving" | "suggestions" | "rescore-input" | "rescoring";
 
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
@@ -69,6 +69,103 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [previousAnalysis, setPreviousAnalysis] = useState<ScoreAnalysis | null>(null);
   const [suggestions, setSuggestions] = useState<ImprovementSuggestions | null>(null);
   const [updatedProfileText, setUpdatedProfileText] = useState("");
+  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const resumeFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFetchLinkedInProfile = async () => {
+    if (!linkedinUrl.trim() || !linkedinUrl.includes("linkedin.com")) {
+      toast.error("Please enter a valid LinkedIn URL");
+      return;
+    }
+
+    setIsFetchingProfile(true);
+    setStep("fetching");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
+        body: { linkedinUrl },
+      });
+
+      if (error) throw error;
+
+      if (data.profileContent) {
+        setProfileText(data.profileContent);
+        toast.success("Profile content loaded! Please review and edit if needed.");
+      }
+      
+      if (data.note) {
+        toast.info(data.note, { duration: 5000 });
+      }
+    } catch (error) {
+      console.error("Error fetching LinkedIn profile:", error);
+      toast.error("Could not fetch profile. Please paste your profile content manually.");
+    } finally {
+      setIsFetchingProfile(false);
+      setStep("input");
+    }
+  };
+
+  const handleResumeFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please upload a PDF, DOC, DOCX, or TXT file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingResume(true);
+
+    try {
+      // For text files, read directly
+      if (file.type === 'text/plain') {
+        const text = await file.text();
+        setResumeText(text);
+        toast.success("Resume loaded successfully!");
+        setIsUploadingResume(false);
+        return;
+      }
+
+      // For PDF/DOC files, use parse-resume edge function
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data, error } = await supabase.functions.invoke("parse-resume", {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      if (data.text) {
+        setResumeText(data.text);
+        toast.success("Resume parsed successfully!");
+      } else {
+        toast.error("Could not extract text from resume. Please paste manually.");
+      }
+    } catch (error) {
+      console.error("Error uploading resume:", error);
+      toast.error("Failed to process resume. Please paste the content manually.");
+    } finally {
+      setIsUploadingResume(false);
+      // Reset file input
+      if (resumeFileInputRef.current) {
+        resumeFileInputRef.current.value = "";
+      }
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!profileText.trim() || !targetIndustry.trim() || !targetRole.trim()) {
@@ -180,6 +277,22 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     return "from-red-500 to-red-600";
   };
 
+  if (step === "fetching") {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center animate-fade-up">
+        <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-6">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+        </div>
+        <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
+          Fetching LinkedIn Profile
+        </h2>
+        <p className="text-muted-foreground">
+          Extracting your profile content from LinkedIn...
+        </p>
+      </div>
+    );
+  }
+
   if (step === "input") {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-up">
@@ -207,17 +320,37 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <CardHeader>
             <CardTitle>Your LinkedIn Profile</CardTitle>
             <CardDescription>
-              Paste your LinkedIn profile content and optionally your resume for better experience bullet suggestions.
+              Enter your LinkedIn URL to auto-fetch your profile, or paste your content manually.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">LinkedIn URL (optional)</label>
-              <Input
-                placeholder="https://linkedin.com/in/yourprofile"
-                value={linkedinUrl}
-                onChange={(e) => setLinkedinUrl(e.target.value)}
-              />
+              <label className="text-sm font-medium mb-2 block">LinkedIn URL</label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleFetchLinkedInProfile} 
+                  variant="outline"
+                  disabled={isFetchingProfile || !linkedinUrl.includes("linkedin.com")}
+                >
+                  {isFetchingProfile ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Link className="w-4 h-4 mr-2" />
+                      Fetch Profile
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Click "Fetch Profile" to auto-load your LinkedIn content
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -242,13 +375,13 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             <div>
               <label className="text-sm font-medium mb-2 block">Profile Content *</label>
               <Textarea
-                placeholder="Paste your LinkedIn headline, about section, and experience bullets here..."
+                placeholder="Your LinkedIn content will appear here after fetching, or paste manually..."
                 value={profileText}
                 onChange={(e) => setProfileText(e.target.value)}
                 className="min-h-[180px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Tip: Copy text from your LinkedIn profile page and paste it here
+                Review and edit the content if needed before analyzing
               </p>
             </div>
 
@@ -257,11 +390,50 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 <FileText className="w-4 h-4 text-blue-600" />
                 Your Resume (optional but recommended)
               </label>
+              
+              {/* File Upload Option */}
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="file"
+                  ref={resumeFileInputRef}
+                  onChange={handleResumeFileUpload}
+                  accept=".pdf,.doc,.docx,.txt"
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => resumeFileInputRef.current?.click()}
+                  disabled={isUploadingResume}
+                  className="flex-1"
+                >
+                  {isUploadingResume ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Resume (PDF, DOC, DOCX, TXT)
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">or paste text</span>
+                </div>
+              </div>
+
               <Textarea
-                placeholder="Paste your resume text here. This helps AI pick the best work experience bullets for LinkedIn suggestions..."
+                placeholder="Paste your resume text here..."
                 value={resumeText}
                 onChange={(e) => setResumeText(e.target.value)}
-                className="min-h-[150px]"
+                className="min-h-[120px] mt-2"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Including your resume enables AI to suggest specific experience bullets from your actual work history
