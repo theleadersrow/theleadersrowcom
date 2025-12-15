@@ -3,9 +3,11 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, BookOpen, Star, CheckCircle2, TrendingUp, Target, Award, Zap } from "lucide-react";
 import { executiveCommunicationCourse } from "@/data/courses/executive-communication";
+import { emotionalIntelligenceCourse } from "@/data/courses/emotional-intelligence";
 
 const Courses = () => {
-  const course = executiveCommunicationCourse;
+  const featuredCourse = executiveCommunicationCourse;
+  const courses = [executiveCommunicationCourse, emotionalIntelligenceCourse];
 
   return (
     <Layout>
@@ -57,75 +59,90 @@ const Courses = () => {
         </div>
       </section>
 
-      {/* Featured Course */}
+      {/* All Courses */}
       <section id="courses" className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="relative rounded-2xl overflow-hidden bg-card shadow-elevated">
-              {course.badge && (
-                <div className="absolute top-4 left-4 bg-secondary text-secondary-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 z-10">
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  {course.badge}
-                </div>
-              )}
+          <div className="text-center mb-10">
+            <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+              Our Courses
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Skill-building courses designed for ambitious professionals ready to level up.
+            </p>
+          </div>
 
-              <div className="p-6 sm:p-8 lg:p-10">
-                <div className="flex flex-wrap items-center gap-3 mb-3 text-muted-foreground text-sm">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {course.duration}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <BookOpen className="w-4 h-4" />
-                    {course.modules} Modules
-                  </span>
-                </div>
-                
-                <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground mb-2">
-                  {course.title}
-                </h2>
-                <p className="text-secondary font-medium mb-3">{course.subtitle}</p>
-                <p className="text-muted-foreground mb-8 max-w-2xl">{course.description}</p>
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {courses.map((course) => {
+              const isComingSoon = course.badge === "Coming Soon";
+              
+              return (
+                <div 
+                  key={course.id} 
+                  className={`relative rounded-2xl overflow-hidden bg-card shadow-elevated ${isComingSoon ? 'opacity-80' : ''}`}
+                >
+                  {course.badge && (
+                    <div className={`absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 z-10 ${
+                      isComingSoon 
+                        ? 'bg-muted text-muted-foreground' 
+                        : 'bg-secondary text-secondary-foreground'
+                    }`}>
+                      {!isComingSoon && <Star className="w-3.5 h-3.5 fill-current" />}
+                      {course.badge}
+                    </div>
+                  )}
 
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-3">What You'll Learn</h3>
-                    <ul className="space-y-2">
-                      {course.outcomes.slice(0, 4).map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-3">What's Included</h3>
-                    <ul className="space-y-2">
-                      {course.includes.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                  <div className="p-6 sm:p-8">
+                    <div className="flex flex-wrap items-center gap-3 mb-3 text-muted-foreground text-sm">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" />
+                        {course.duration}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <BookOpen className="w-4 h-4" />
+                        {course.modules} Modules
+                      </span>
+                    </div>
+                    
+                    <h3 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-2">
+                      {course.title}
+                    </h3>
+                    <p className="text-secondary font-medium mb-3">{course.subtitle}</p>
+                    <p className="text-muted-foreground text-sm mb-6 line-clamp-2">{course.description}</p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border">
-                  <div>
-                    <span className="font-serif text-3xl font-semibold text-foreground">{course.price}</span>
-                    <span className="text-muted-foreground text-sm ml-2">one-time</span>
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-foreground text-sm mb-2">What You'll Learn</h4>
+                      <ul className="space-y-1.5">
+                        {course.outcomes.slice(0, 3).map((item, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
+                      <div>
+                        <span className="font-serif text-2xl font-semibold text-foreground">{course.price}</span>
+                        <span className="text-muted-foreground text-sm ml-2">one-time</span>
+                      </div>
+                      {isComingSoon ? (
+                        <Button variant="outline" size="default" disabled className="w-full sm:w-auto">
+                          Coming Soon
+                        </Button>
+                      ) : (
+                        <Link to={`/courses/${course.id}`}>
+                          <Button variant="gold" size="default" className="group w-full sm:w-auto">
+                            Start Learning
+                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                  <Link to={`/courses/${course.id}`}>
-                    <Button variant="gold" size="lg" className="group w-full sm:w-auto">
-                      Start Learning
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </Link>
                 </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -134,7 +151,7 @@ const Courses = () => {
       <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif text-2xl font-semibold text-foreground text-center mb-8">
-            Coming Soon
+            More Coming Soon
           </h2>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
