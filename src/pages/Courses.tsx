@@ -213,28 +213,28 @@ const Courses = () => {
             <Accordion type="single" collapsible className="w-full space-y-4">
               <AccordionItem value="item-1" className="bg-card rounded-xl border border-border px-6">
                 <AccordionTrigger className="text-left font-medium text-foreground hover:text-secondary">
-                  How can I get my questions answered?
+                  When do I get access to the course?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Write to us and we will reply within 1-2 business days. You can also join our monthly AMA (Ask Me Anything) session with a coach to get any of your questions answered live.
+                  You get immediate access as soon as you complete your signup. No waiting—start learning right away!
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-2" className="bg-card rounded-xl border border-border px-6">
                 <AccordionTrigger className="text-left font-medium text-foreground hover:text-secondary">
-                  How many courses can I take?
+                  Can I access courses from anywhere?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  You can take as many courses as you want! Each course is a separate purchase, giving you the flexibility to build your skill set at your own pace and budget.
+                  Yes! Our courses are fully online and accessible from anywhere in the world. All you need is an internet connection and you can learn from your laptop, tablet, or phone.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-3" className="bg-card rounded-xl border border-border px-6">
                 <AccordionTrigger className="text-left font-medium text-foreground hover:text-secondary">
-                  Can I access courses from anywhere?
+                  How many courses can I take?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  Yes! Our courses are fully online and accessible from anywhere in the world. All you need is an internet connection and you can learn from your laptop, tablet, or phone.
+                  You can take as many courses as you want! Each course is a separate purchase, giving you the flexibility to build your skill set at your own pace and budget.
                 </AccordionContent>
               </AccordionItem>
 
@@ -249,10 +249,10 @@ const Courses = () => {
 
               <AccordionItem value="item-5" className="bg-card rounded-xl border border-border px-6">
                 <AccordionTrigger className="text-left font-medium text-foreground hover:text-secondary">
-                  When do I get access to the course?
+                  How can I get my questions answered?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  You get immediate access as soon as you complete your signup. No waiting—start learning right away!
+                  Write to us and we will reply within 1-2 business days. You can also join our monthly AMA (Ask Me Anything) session with a coach to get any of your questions answered live.
                 </AccordionContent>
               </AccordionItem>
 
@@ -265,6 +265,26 @@ const Courses = () => {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+          </div>
+
+          {/* CTA Below FAQ */}
+          <div className="text-center mt-12 pt-8 border-t border-border max-w-3xl mx-auto">
+            <p className="text-muted-foreground mb-6">
+              Ready to invest in your growth? Start learning today.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="#courses">
+                <Button variant="gold" size="lg" className="group">
+                  Browse Courses
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </a>
+              <Link to="/book-call">
+                <Button variant="outline" size="lg">
+                  Book a Strategy Call
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
