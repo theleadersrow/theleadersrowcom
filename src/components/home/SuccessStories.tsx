@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Quote, ArrowRight, Star, PenLine } from "lucide-react";
+import { Quote, ArrowRight, Star, PenLine, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import journeyAfter from "@/assets/journey-after.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface Testimonial {
   id: string;
@@ -49,6 +50,35 @@ const fallbackTestimonials = [
 const SuccessStories = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>(fallbackTestimonials);
   const [isUsingFallback, setIsUsingFallback] = useState(true);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: "start",
+    slidesToScroll: 1,
+  });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
+    };
+  }, [emblaApi, onSelect]);
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -113,46 +143,88 @@ const SuccessStories = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
-          {testimonials.slice(0, 3).map((testimonial, index) => (
-            <div
-              key={testimonial.id}
-              className="bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-soft flex flex-col"
-            >
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-secondary/30" />
-                {testimonial.rating && (
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-3 h-3 sm:w-4 sm:h-4 ${
-                          star <= testimonial.rating!
-                            ? "text-secondary fill-secondary"
-                            : "text-muted-foreground/30"
-                        }`}
-                      />
-                    ))}
+        {/* Testimonials Carousel */}
+        <div className="max-w-6xl mx-auto relative">
+          {/* Navigation Buttons */}
+          <button
+            onClick={scrollPrev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-4 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-card shadow-elevated flex items-center justify-center text-foreground hover:text-secondary transition-colors disabled:opacity-50"
+            disabled={!canScrollPrev}
+            aria-label="Previous testimonial"
+          >
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+          <button
+            onClick={scrollNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-4 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-card shadow-elevated flex items-center justify-center text-foreground hover:text-secondary transition-colors disabled:opacity-50"
+            disabled={!canScrollNext}
+            aria-label="Next testimonial"
+          >
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+
+          {/* Carousel Container */}
+          <div className="overflow-hidden mx-6 sm:mx-10" ref={emblaRef}>
+            <div className="flex">
+              {testimonials.map((testimonial) => (
+                <div
+                  key={testimonial.id}
+                  className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] px-2 sm:px-3"
+                >
+                  <div className="bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-soft flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-secondary/30" />
+                      {testimonial.rating && (
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                                star <= testimonial.rating!
+                                  ? "text-secondary fill-secondary"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-foreground leading-relaxed mb-4 sm:mb-6 flex-grow text-sm sm:text-base">
+                      "{testimonial.quote}"
+                    </p>
+                    <div className="border-t border-border pt-3 sm:pt-4">
+                      <p className="font-semibold text-foreground text-sm sm:text-base">{testimonial.name}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                        {testimonial.role}
+                        {testimonial.company && ` at ${testimonial.company}`}
+                      </p>
+                      {testimonial.outcome && (
+                        <span className="inline-block text-[10px] sm:text-xs font-medium text-secondary bg-secondary/10 px-2.5 sm:px-3 py-1 rounded-full">
+                          {testimonial.outcome}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-              <p className="text-foreground leading-relaxed mb-4 sm:mb-6 flex-grow text-sm sm:text-base">
-                "{testimonial.quote}"
-              </p>
-              <div className="border-t border-border pt-3 sm:pt-4">
-                <p className="font-semibold text-foreground text-sm sm:text-base">{testimonial.name}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                  {testimonial.role}
-                  {testimonial.company && ` at ${testimonial.company}`}
-                </p>
-                {testimonial.outcome && (
-                  <span className="inline-block text-[10px] sm:text-xs font-medium text-secondary bg-secondary/10 px-2.5 sm:px-3 py-1 rounded-full">
-                    {testimonial.outcome}
-                  </span>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Pagination Dots */}
+          <div className="flex justify-center gap-2 mt-6">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === selectedIndex
+                    ? "bg-secondary w-6"
+                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                }`}
+                aria-label={`Go to testimonial ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
 
         {isUsingFallback && (
@@ -166,7 +238,7 @@ const SuccessStories = () => {
           <p className="text-muted-foreground text-sm mb-4">
             Been through one of our programs? We'd love to hear about your experience.
           </p>
-          <Link to="/review">
+          <Link to="/contact">
             <Button variant="outline" className="group">
               <PenLine className="w-4 h-4 mr-2" />
               Write a Review
