@@ -27,8 +27,12 @@ serve(async (req) => {
     const { customerEmail, successParam } = await req.json();
     logStep("Request body parsed", { customerEmail, successParam });
 
-    // Determine tool type from successParam
+    // Determine tool type and price from successParam
     const toolType = successParam === "linkedin_success" ? "linkedin_signal" : "resume_suite";
+    // Use different prices for each tool
+    const priceId = successParam === "linkedin_success" 
+      ? "price_1SelWOCD119gx37UqjCdenCV"  // LinkedIn Signal Score price
+      : "price_1SekgICD119gx37UNn9lbGiY"; // Resume Intelligence Suite price
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -49,7 +53,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : customerEmail,
       line_items: [
         {
-          price: "price_1SekgICD119gx37UNn9lbGiY",
+          price: priceId,
           quantity: 1,
         },
       ],
