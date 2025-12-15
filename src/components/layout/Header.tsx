@@ -193,18 +193,17 @@ const Header = () => {
           </nav>
 
           {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3 ml-4">
             <Link to="/career-coach">
               <Button 
                 variant="outline" 
-                size="lg" 
-                className={`${isScrolled || !isHomePage ? '' : 'border-cream/30 text-cream hover:bg-cream/10 hover:border-cream'}`}
+                className={`h-10 px-5 ${isScrolled || !isHomePage ? '' : 'border-cream/30 text-cream hover:bg-cream/10 hover:border-cream'}`}
               >
                 Rimo AI Coach
               </Button>
             </Link>
             <Link to="/register">
-              <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} size="lg">
+              <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} className="h-10 px-5">
                 Register Now
               </Button>
             </Link>
