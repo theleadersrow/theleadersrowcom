@@ -28,8 +28,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Use AI to help extract and structure profile information
-    // We'll prompt the AI with the URL and ask it to provide a structured extraction approach
+    // Use AI to generate a concise profile summary
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -41,28 +40,33 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a LinkedIn profile data extractor. Given a LinkedIn profile URL, provide a realistic and professional mock profile content based on what a typical professional's profile would look like. 
+            content: `You are a LinkedIn profile summarizer. Generate a CONCISE profile summary based on the LinkedIn URL provided.
 
-Generate realistic content including:
-- A professional headline
-- An About section (2-3 paragraphs)
-- 2-3 work experience entries with bullet points
-- Skills list (5-8 skills)
+Format your response EXACTLY like this:
+HEADLINE: [Professional headline - one line]
 
-Format the output as a cohesive profile text that can be analyzed for career coaching purposes. Make it realistic but generic enough to be useful for demonstration.
+SUMMARY:
+• [Key experience point 1 - max 15 words]
+• [Key experience point 2 - max 15 words]  
+• [Key experience point 3 - max 15 words]
 
-IMPORTANT: Always return the profile content in plain text format, as if the user had copied their LinkedIn profile text.`
+SKILLS: [3-5 relevant skills, comma-separated]
+
+Keep it SHORT and focused on the most impactful career highlights. No long paragraphs.`
           },
           {
             role: "user",
-            content: `Generate a sample LinkedIn profile content for analysis based on this URL: ${linkedinUrl}. 
+            content: `Generate a concise LinkedIn profile summary for: ${linkedinUrl}
 
-Note: Since we cannot directly scrape LinkedIn, please generate realistic sample profile content that would be typical for someone with this type of profile URL. The content should be professional and suitable for career analysis.
+Create realistic professional content with:
+- A strong headline
+- 2-3 bullet points of key experience/achievements
+- Top skills
 
-Return the profile content as plain text.`
+Keep the total response under 200 words.`
           }
         ],
-        max_tokens: 2000,
+        max_tokens: 500,
       }),
     });
 
