@@ -74,6 +74,37 @@ const Header = () => {
               Home
             </Link>
 
+            {/* Programs Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger 
+                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
+                  isProgramsActive ? "text-secondary" : textColor
+                }`}
+              >
+                Programs
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="start" 
+                className="bg-card border border-border shadow-elevated z-50 min-w-[160px]"
+              >
+                {programLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      to={link.href}
+                      className={`w-full cursor-pointer ${
+                        location.pathname === link.href
+                          ? "text-secondary"
+                          : "text-foreground hover:text-secondary"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link
               to="/courses"
               className={`text-sm font-medium transition-colors hover:text-secondary ${
@@ -82,8 +113,6 @@ const Header = () => {
             >
               Courses
             </Link>
-
-            {/* Programs Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger 
                 className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
@@ -234,16 +263,6 @@ const Header = () => {
               Home
               </Link>
 
-              <Link
-                to="/courses"
-                className={`text-base font-medium py-2 transition-colors ${
-                  location.pathname === "/courses" ? "text-secondary" : "text-foreground hover:text-secondary"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Courses
-              </Link>
-
               {/* Mobile Programs Section */}
               <div className="border-t border-border pt-4">
                 <button
@@ -272,6 +291,16 @@ const Header = () => {
                   </div>
                 )}
               </div>
+
+              <Link
+                to="/courses"
+                className={`text-base font-medium py-2 transition-colors border-t border-border pt-4 ${
+                  location.pathname === "/courses" ? "text-secondary" : "text-foreground hover:text-secondary"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Courses
+              </Link>
 
               {/* Mobile Content Section */}
               <div className="border-t border-border pt-4">
