@@ -64,7 +64,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-6">
             <Link
               to="/"
               className={`text-sm font-medium transition-colors hover:text-secondary ${
@@ -193,7 +193,7 @@ const Header = () => {
           </nav>
 
           {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <Link to="/career-coach">
               <Button 
                 variant="ghost" 
@@ -212,7 +212,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className={`md:hidden p-2 ${textColor}`}
+            className={`lg:hidden p-2 ${textColor}`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -222,7 +222,7 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-card rounded-2xl mt-2 p-6 shadow-elevated animate-scale-in">
+          <div className="lg:hidden bg-card rounded-2xl mt-2 p-6 shadow-elevated animate-scale-in">
             <nav className="flex flex-col gap-4">
               <Link
                 to="/"
