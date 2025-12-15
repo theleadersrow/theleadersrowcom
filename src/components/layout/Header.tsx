@@ -12,6 +12,8 @@ import {
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProgramsOpen, setIsProgramsOpen] = useState(false);
+  const [isContentOpen, setIsContentOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
@@ -24,21 +26,24 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { href: "/", label: "Home" },
+  const programLinks = [
     { href: "/200k-method", label: "200K Method" },
     { href: "/weekly-edge", label: "Weekly Edge" },
-    { href: "/contact", label: "Contact" },
+  ];
+
+  const contentLinks = [
+    { href: "/courses", label: "Self Paced Courses (Coming Soon)" },
   ];
 
   const resourceLinks = [
-    { href: "/courses", label: "Self Paced Courses (Coming Soon)" },
     { href: "/newsletter", label: "Newsletter" },
     { href: "/guide", label: "Free Guide" },
     { href: "/review", label: "Leave a Review" },
     { href: "#", label: "Books (Coming Soon)", disabled: true },
   ];
 
+  const isProgramsActive = programLinks.some(link => location.pathname === link.href);
+  const isContentActive = contentLinks.some(link => location.pathname === link.href);
   const isResourcesActive = resourceLinks.some(link => location.pathname === link.href);
 
   const headerBg = isScrolled || !isHomePage
@@ -62,19 +67,76 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                className={`text-sm font-medium transition-colors hover:text-secondary ${
-                  location.pathname === link.href
-                    ? "text-secondary"
-                    : textColor
+            <Link
+              to="/"
+              className={`text-sm font-medium transition-colors hover:text-secondary ${
+                location.pathname === "/" ? "text-secondary" : textColor
+              }`}
+            >
+              Home
+            </Link>
+
+            {/* Programs Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger 
+                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
+                  isProgramsActive ? "text-secondary" : textColor
                 }`}
               >
-                {link.label}
-              </Link>
-            ))}
+                Programs
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="start" 
+                className="bg-card border border-border shadow-elevated z-50 min-w-[160px]"
+              >
+                {programLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      to={link.href}
+                      className={`w-full cursor-pointer ${
+                        location.pathname === link.href
+                          ? "text-secondary"
+                          : "text-foreground hover:text-secondary"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Content Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger 
+                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
+                  isContentActive ? "text-secondary" : textColor
+                }`}
+              >
+                Content
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="start" 
+                className="bg-card border border-border shadow-elevated z-50 min-w-[160px]"
+              >
+                {contentLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      to={link.href}
+                      className={`w-full cursor-pointer ${
+                        location.pathname === link.href
+                          ? "text-secondary"
+                          : "text-foreground hover:text-secondary"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {/* Resources Dropdown */}
             <DropdownMenu>
@@ -112,6 +174,15 @@ const Header = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Link
+              to="/contact"
+              className={`text-sm font-medium transition-colors hover:text-secondary ${
+                location.pathname === "/contact" ? "text-secondary" : textColor
+              }`}
+            >
+              Contact
+            </Link>
           </nav>
 
           {/* CTA Buttons */}
@@ -146,23 +217,76 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-card rounded-2xl mt-2 p-6 shadow-elevated animate-scale-in">
             <nav className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={`text-base font-medium py-2 transition-colors ${
-                    location.pathname === link.href
-                      ? "text-secondary"
-                      : "text-foreground hover:text-secondary"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+              <Link
+                to="/"
+                className={`text-base font-medium py-2 transition-colors ${
+                  location.pathname === "/" ? "text-secondary" : "text-foreground hover:text-secondary"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+
+              {/* Mobile Programs Section */}
+              <div className="border-t border-border pt-4">
+                <button
+                  onClick={() => setIsProgramsOpen(!isProgramsOpen)}
+                  className="flex items-center justify-between w-full text-base font-medium py-2 text-foreground"
                 >
-                  {link.label}
-                </Link>
-              ))}
+                  Programs
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isProgramsOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isProgramsOpen && (
+                  <div className="pl-4 flex flex-col gap-2 mt-2">
+                    {programLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        className={`text-base py-2 transition-colors ${
+                          location.pathname === link.href
+                            ? "text-secondary"
+                            : "text-muted-foreground hover:text-secondary"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Content Section */}
+              <div className="border-t border-border pt-4">
+                <button
+                  onClick={() => setIsContentOpen(!isContentOpen)}
+                  className="flex items-center justify-between w-full text-base font-medium py-2 text-foreground"
+                >
+                  Content
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isContentOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isContentOpen && (
+                  <div className="pl-4 flex flex-col gap-2 mt-2">
+                    {contentLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        className={`text-base py-2 transition-colors ${
+                          location.pathname === link.href
+                            ? "text-secondary"
+                            : "text-muted-foreground hover:text-secondary"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
               
               {/* Mobile Resources Section */}
-              <div className="border-t border-border pt-4 mt-2">
+              <div className="border-t border-border pt-4">
                 <button
                   onClick={() => setIsResourcesOpen(!isResourcesOpen)}
                   className="flex items-center justify-between w-full text-base font-medium py-2 text-foreground"
@@ -198,6 +322,16 @@ const Header = () => {
                   </div>
                 )}
               </div>
+
+              <Link
+                to="/contact"
+                className={`text-base font-medium py-2 transition-colors border-t border-border pt-4 ${
+                  location.pathname === "/contact" ? "text-secondary" : "text-foreground hover:text-secondary"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </Link>
               
               <Link
                 to="/career-coach"
