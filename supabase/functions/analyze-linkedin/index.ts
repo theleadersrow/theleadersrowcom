@@ -11,18 +11,22 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedinUrl, targetIndustry, targetRole, profileText, resumeText, requestType } = await req.json();
+    const { linkedinUrl, targetIndustry, targetRole, targetJobDescription, profileText, resumeText, requestType } = await req.json();
     
-    console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType, hasResume: !!resumeText });
+    console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType, hasResume: !!resumeText, hasJobDesc: !!targetJobDescription });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const jobContext = targetJobDescription 
+      ? `\n\nThe user is specifically targeting this job:\n${targetJobDescription}\n\nUse this job description to tailor your analysis and suggestions to match the specific requirements.`
+      : "";
+
     if (requestType === "score") {
       // Initial scoring analysis
-      const systemPrompt = `You are an expert LinkedIn profile analyst and recruiter. Analyze LinkedIn profiles from the perspective of recruiters and hiring managers in the ${targetIndustry} industry looking for ${targetRole} candidates.
+      const systemPrompt = `You are an expert LinkedIn profile analyst and recruiter. Analyze LinkedIn profiles from the perspective of recruiters and hiring managers in the ${targetIndustry} industry looking for ${targetRole} candidates.${jobContext}
 
 IMPORTANT: All scores MUST be between 0 and 100. Never exceed 100.
 
@@ -112,14 +116,22 @@ RESUME CONTENT:
 ${resumeText}` 
         : "";
 
-      const systemPrompt = `You are an expert LinkedIn profile optimizer and career coach. Your job is to provide specific, actionable suggestions to improve a LinkedIn profile for someone targeting ${targetRole} positions in ${targetIndustry}.
+      const jobDescContext = targetJobDescription
+        ? `\n\nThe user is specifically targeting this job:\n${targetJobDescription}\n\nTailor ALL suggestions to match the keywords, requirements, and language from this job description.`
+        : "";
+
+      const systemPrompt = `You are an expert LinkedIn profile optimizer and career coach. Your job is to provide specific, actionable suggestions to improve a LinkedIn profile for someone targeting ${targetRole} positions in ${targetIndustry}.${jobDescContext}
+
+ORGANIZE YOUR SUGGESTIONS BY LINKEDIN SECTION so users can easily copy-paste changes.
 
 Focus on:
-1. OUTCOME-FOCUSED CONTENT: Transform generic descriptions into quantified achievements
-2. KEYWORD OPTIMIZATION: Add industry and role-specific keywords that recruiters search for
-3. HEADLINE REWRITE: Create a compelling headline that positions them for ${targetRole}
-4. ABOUT SECTION: Craft a powerful summary that tells their career story
-5. EXPERIENCE BULLETS: Rewrite key bullets with STAR format and metrics${resumeText ? " - USE THE RESUME to pull real achievements and metrics" : ""}
+1. HEADLINE: Create a compelling headline that positions them for ${targetRole}
+2. ABOUT SECTION: Craft a powerful summary that tells their career story
+3. EXPERIENCE BULLETS: Rewrite key bullets with STAR format and metrics${resumeText ? " - USE THE RESUME to pull real achievements and metrics" : ""}
+
+CRITICAL FOR EXPERIENCE REWRITES:
+- ALWAYS include "companyRole" field with the format "Company Name — Job Title" so users know EXACTLY which experience to update
+- If the company/role is not clear from the profile, make your best guess or label as "Most Recent Role", "Previous Role", etc.
 
 Return your suggestions as valid JSON with this exact structure:
 {
@@ -128,6 +140,7 @@ Return your suggestions as valid JSON with this exact structure:
   "keywordAdditions": ["<keyword 1>", "<keyword 2>", "<keyword 3>", "<keyword 4>", "<keyword 5>"],
   "experienceRewrites": [
     {
+      "companyRole": "<Company Name — Job Title>",
       "original": "<original bullet or section>",
       "improved": "<rewritten with metrics and impact${resumeText ? " - incorporate specific achievements from resume" : ""}>",
       "whyBetter": "<explanation>"
@@ -135,13 +148,13 @@ Return your suggestions as valid JSON with this exact structure:
   ],
   "skillsToAdd": ["<skill 1>", "<skill 2>", "<skill 3>"],
   "projectedScoreIncrease": {
-    "headlineClarity": <points increase>,
-    "rolePositioning": <points increase>,
-    "impactLanguage": <points increase>,
-    "leadershipSignal": <points increase>,
-    "industryAlignment": <points increase>,
-    "visibilityScore": <points increase>,
-    "projectedOverallScore": <new projected overall score>
+    "headlineClarity": <projected score after changes, max 100>,
+    "rolePositioning": <projected score after changes, max 100>,
+    "impactLanguage": <projected score after changes, max 100>,
+    "leadershipSignal": <projected score after changes, max 100>,
+    "industryAlignment": <projected score after changes, max 100>,
+    "visibilityScore": <projected score after changes, max 100>,
+    "projectedOverallScore": <new projected overall score, max 100>
   },
   "priorityActions": [
     { "action": "<specific action>", "impact": "high|medium", "timeToComplete": "<time estimate>" }
@@ -153,7 +166,8 @@ Return your suggestions as valid JSON with this exact structure:
 Current LinkedIn Profile:
 ${profileText}${resumeContext}
 
-Provide detailed, specific suggestions that will significantly improve their profile visibility and appeal to recruiters.${resumeText ? " Make sure to leverage their actual resume achievements in your experience rewrites." : ""}`;
+Provide detailed, specific suggestions that will significantly improve their profile visibility and appeal to recruiters.${resumeText ? " Make sure to leverage their actual resume achievements in your experience rewrites." : ""}
+${targetJobDescription ? "IMPORTANT: Tailor all suggestions to match the provided target job description." : ""}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
