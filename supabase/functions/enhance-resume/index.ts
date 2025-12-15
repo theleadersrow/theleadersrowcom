@@ -6,76 +6,83 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { resumeText } = await req.json();
+    const { resumeText, jobDescription, missingKeywords, improvements, experienceGaps } = await req.json();
 
-    if (!resumeText || typeof resumeText !== "string") {
-      return new Response(
-        JSON.stringify({ error: "Resume text is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (resumeText.length > 15000) {
-      return new Response(
-        JSON.stringify({ error: "Resume text is too long. Please limit to 15,000 characters." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!resumeText) {
+      return new Response(JSON.stringify({ error: "Resume text is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
-      return new Response(
-        JSON.stringify({ error: "AI service is not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Enhancing resume with AI...");
+    const systemPrompt = `You are an expert resume writer and ATS optimization specialist. Your job is to transform resumes to pass ATS systems and impress hiring managers.
 
-    const systemPrompt = `You are an expert resume writer and career coach specializing in Product Management and tech careers. Your task is to analyze and enhance resumes.
+CRITICAL RULES:
+1. Add missing keywords naturally into the content - don't just list them
+2. Quantify EVERY achievement with specific numbers, percentages, or dollar amounts
+3. Use strong action verbs that demonstrate leadership and impact
+4. Structure bullet points as: [Action Verb] + [What you did] + [Result/Impact with numbers]
+5. Make the summary/objective specifically target the job description
+6. Ensure all improvements sound natural, not keyword-stuffed
 
-When given a resume, you must:
-1. Analyze the current structure and content
-2. Identify areas for improvement
-3. Rewrite and enhance the content with:
-   - Stronger action verbs (Led, Drove, Spearheaded, Orchestrated, etc.)
-   - Quantified achievements (percentages, dollar amounts, team sizes)
-   - Impact-focused bullet points (STAR format: Situation, Task, Action, Result)
-   - Professional tone and consistent formatting
-4. Recommend optimal section ordering
-5. Suggest a professional color scheme
-6. Recommend appropriate fonts
-
-You MUST respond with a valid JSON object in exactly this format:
+Return your response as valid JSON with this exact structure:
 {
-  "suggestions": [
-    "Specific improvement made #1",
-    "Specific improvement made #2",
-    "Specific improvement made #3",
-    "Specific improvement made #4",
-    "Specific improvement made #5"
+  "enhancedContent": "The full enhanced resume in markdown format",
+  "contentImprovements": [
+    {
+      "section": "Section name (e.g., Experience, Summary)",
+      "original": "Original text that was changed",
+      "improved": "New improved text",
+      "reason": "Why this change improves ATS score and appeal"
+    }
   ],
-  "enhancedContent": "The full enhanced resume content in markdown format with proper headings (## for sections), bullet points, and formatting",
-  "formatting": {
-    "sections": ["Section1", "Section2", "Section3", "Section4", "Section5"],
-    "colorScheme": "Recommended color palette description (e.g., 'Navy blue (#1E3A5F) for headers with charcoal (#333333) for body text')",
-    "fontRecommendation": "Font pairing recommendation (e.g., 'Calibri for body text, Cambria for headers')"
-  }
-}
+  "addedKeywords": ["keyword1", "keyword2"],
+  "quantifiedAchievements": ["Achievement 1 with numbers", "Achievement 2 with metrics"],
+  "actionVerbUpgrades": [
+    {"original": "helped", "improved": "spearheaded"}
+  ],
+  "summaryRewrite": "The new professional summary",
+  "bulletPointImprovements": ["Improved bullet 1", "Improved bullet 2"]
+}`;
 
-Make the enhanced content significantly better than the original with:
-- Clear section headers
-- Consistent bullet point formatting
-- Professional language throughout
-- Quantified achievements where possible
-- Action-oriented language`;
+    const userPrompt = `Transform this resume to maximize ATS score and hiring manager appeal for the target role.
+
+ORIGINAL RESUME:
+${resumeText}
+
+${jobDescription ? `TARGET JOB DESCRIPTION:
+${jobDescription}` : ''}
+
+${missingKeywords?.length > 0 ? `MISSING KEYWORDS TO ADD (integrate naturally):
+${missingKeywords.join(', ')}` : ''}
+
+${improvements?.length > 0 ? `SPECIFIC IMPROVEMENTS NEEDED:
+${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''}
+
+${experienceGaps?.length > 0 ? `EXPERIENCE GAPS TO ADDRESS:
+${experienceGaps.join('\n')}` : ''}
+
+IMPORTANT:
+- Rewrite the professional summary to directly address the job requirements
+- For EVERY bullet point, add specific metrics (e.g., "increased by 40%", "saved $50K", "managed team of 8")
+- Replace weak verbs with powerful action verbs
+- Naturally incorporate ALL missing keywords
+- Make achievements outcome-focused, not task-focused
+- Keep the resume concise but impactful
+
+Return the enhanced resume as JSON with the structure specified.`;
+
+    console.log("Calling Lovable AI for resume enhancement...");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -87,9 +94,8 @@ Make the enhanced content significantly better than the original with:
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Please enhance this resume:\n\n${resumeText}` }
+          { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
       }),
     });
 
@@ -98,81 +104,77 @@ Make the enhanced content significantly better than the original with:
       console.error("AI gateway error:", response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Payment required. AI service unavailable." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       
-      return new Response(
-        JSON.stringify({ error: "AI service error. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.error("No content in AI response");
-      return new Response(
-        JSON.stringify({ error: "Failed to generate enhanced resume" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new Error("No content in AI response");
     }
 
-    console.log("AI response received, parsing...");
+    console.log("AI response received, parsing JSON...");
 
-    // Try to parse the JSON response
-    let result;
+    // Extract JSON from the response (handle markdown code blocks)
+    let jsonContent = content;
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      jsonContent = jsonMatch[1].trim();
+    }
+
     try {
-      // Extract JSON from the response (it might be wrapped in markdown code blocks)
-      let jsonStr = content;
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) {
-        jsonStr = jsonMatch[1].trim();
-      }
+      const result = JSON.parse(jsonContent);
       
-      result = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", parseError);
-      console.log("Raw content:", content.substring(0, 500));
-      
-      // Fallback: create a structured response from raw content
-      result = {
-        suggestions: [
-          "Enhanced professional language and tone",
-          "Added stronger action verbs throughout",
-          "Improved bullet point structure",
-          "Optimized section organization",
-          "Enhanced readability and formatting"
-        ],
-        enhancedContent: content,
-        formatting: {
-          sections: ["Contact", "Summary", "Experience", "Education", "Skills"],
-          colorScheme: "Navy blue (#1E3A5F) for headers with charcoal (#333333) for body text",
-          fontRecommendation: "Calibri for body text, Cambria for headers"
-        }
+      // Ensure all required fields exist with defaults
+      const enhancedResult = {
+        enhancedContent: result.enhancedContent || resumeText,
+        contentImprovements: result.contentImprovements || [],
+        addedKeywords: result.addedKeywords || missingKeywords || [],
+        quantifiedAchievements: result.quantifiedAchievements || [],
+        actionVerbUpgrades: result.actionVerbUpgrades || [],
+        summaryRewrite: result.summaryRewrite || "",
+        bulletPointImprovements: result.bulletPointImprovements || [],
       };
+
+      return new Response(JSON.stringify(enhancedResult), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (parseError) {
+      console.error("JSON parse error, returning raw content");
+      
+      // Fallback if JSON parsing fails
+      return new Response(JSON.stringify({
+        enhancedContent: content,
+        contentImprovements: [],
+        addedKeywords: missingKeywords || [],
+        quantifiedAchievements: [],
+        actionVerbUpgrades: [],
+        summaryRewrite: "",
+        bulletPointImprovements: [],
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-
-    console.log("Resume enhancement complete");
-
-    return new Response(JSON.stringify(result), {
+  } catch (error) {
+    console.error("Error in enhance-resume:", error);
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : "Unknown error" 
+    }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
-  } catch (error) {
-    console.error("Error in enhance-resume function:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   }
 });
