@@ -56,7 +56,7 @@ interface ImprovementSuggestions {
   }>;
 }
 
-type Step = "input" | "fetching" | "analyzing" | "score" | "improving" | "suggestions" | "rescore-input" | "rescoring";
+type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "rescore-input" | "rescoring";
 
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
@@ -69,7 +69,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [previousAnalysis, setPreviousAnalysis] = useState<ScoreAnalysis | null>(null);
   const [suggestions, setSuggestions] = useState<ImprovementSuggestions | null>(null);
   const [updatedProfileText, setUpdatedProfileText] = useState("");
-  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,31 +78,14 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       return;
     }
 
-    setIsFetchingProfile(true);
-    setStep("fetching");
-
-    try {
-      const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
-        body: { linkedinUrl },
-      });
-
-      if (error) throw error;
-
-      if (data.profileContent) {
-        setProfileText(data.profileContent);
-        toast.success("Profile content loaded! Please review and edit if needed.");
-      }
-      
-      if (data.note) {
-        toast.info(data.note, { duration: 5000 });
-      }
-    } catch (error) {
-      console.error("Error fetching LinkedIn profile:", error);
-      toast.error("Could not fetch profile. Please paste your profile content manually.");
-    } finally {
-      setIsFetchingProfile(false);
-      setStep("input");
-    }
+    // LinkedIn doesn't allow direct scraping - inform user to paste content manually
+    toast.info(
+      "LinkedIn profiles require manual copying. Please copy your profile content from LinkedIn and paste it below.",
+      { duration: 5000 }
+    );
+    
+    // Open LinkedIn profile in new tab so user can copy
+    window.open(linkedinUrl, "_blank");
   };
 
   const handleResumeFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,21 +259,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     return "from-red-500 to-red-600";
   };
 
-  if (step === "fetching") {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center animate-fade-up">
-        <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-6">
-          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-        </div>
-        <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
-          Fetching LinkedIn Profile
-        </h2>
-        <p className="text-muted-foreground">
-          Extracting your profile content from LinkedIn...
-        </p>
-      </div>
-    );
-  }
 
   if (step === "input") {
     return (
@@ -336,20 +303,14 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 <Button 
                   onClick={handleFetchLinkedInProfile} 
                   variant="outline"
-                  disabled={isFetchingProfile || !linkedinUrl.includes("linkedin.com")}
+                  disabled={!linkedinUrl.includes("linkedin.com")}
                 >
-                  {isFetchingProfile ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Link className="w-4 h-4 mr-2" />
-                      Fetch Profile
-                    </>
-                  )}
+                  <Link className="w-4 h-4 mr-2" />
+                  Open Profile
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Click "Fetch Profile" to auto-load your LinkedIn content
+                Opens your LinkedIn profile so you can copy the content
               </p>
             </div>
 

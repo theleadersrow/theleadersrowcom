@@ -201,7 +201,7 @@ const StrategicBenchmark = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background pt-20">
-        {!["hub", "assessment_landing", "resume_suite", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
+        {!["hub", "assessment_landing", "resume_suite", "linkedin", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
