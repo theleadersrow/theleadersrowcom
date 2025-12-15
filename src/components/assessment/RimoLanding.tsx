@@ -85,7 +85,24 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    // Record the email for tracking before opening payment link
+    try {
+      await supabase.from("tool_purchases").insert({
+        email,
+        tool_type: "resume_suite",
+        status: "pending",
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+    } catch (error) {
+      console.error("Failed to record purchase intent:", error);
+    }
+
     // Open direct Stripe Payment Link
     window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
     setShowPaymentDialog(false);
@@ -358,11 +375,19 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </li>
               </ul>
               <div className="space-y-3 pt-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full"
+                />
                 <Button 
                   onClick={handleCheckout} 
                   className="w-full"
+                  disabled={isProcessing}
                 >
-                  Get Access for $19.99
+                  {isProcessing ? "Processing..." : "Get Access for $19.99"}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
                   Secure payment via Stripe • One-time payment • 30-day access
