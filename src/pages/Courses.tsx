@@ -144,6 +144,8 @@ const Courses = () => {
               { title: "Build Resilience", subtitle: "Navigating Change" },
               { title: "Decision-Making", subtitle: "Leading with Conviction" },
               { title: "Innovation & Creativity", subtitle: "Push Your Boundaries" },
+              { title: "Negotiation", subtitle: "Winning the Game" },
+              { title: "Conflict Management", subtitle: "Keeping the Peace" },
             ].map((c, i) => (
               <div key={i} className="bg-card rounded-xl p-5 border border-border/50 opacity-70">
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Soon</span>
