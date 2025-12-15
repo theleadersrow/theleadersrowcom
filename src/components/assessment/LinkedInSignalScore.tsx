@@ -17,6 +17,8 @@ interface LinkedInSignalScoreProps {
 
 interface ScoreAnalysis {
   overallScore: number;
+  potentialImprovement?: number;
+  projectedScoreAfterChanges?: number;
   dimensions: {
     headlineClarity: { score: number; analysis: string };
     rolePositioning: { score: number; analysis: string };
@@ -556,10 +558,27 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         {/* Overall Score */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-serif font-bold text-foreground mb-4">Your LinkedIn Signal Score</h1>
-          <div className={`text-7xl font-bold bg-gradient-to-r ${getScoreGradient(analysis.overallScore)} bg-clip-text text-transparent`}>
-            {analysis.overallScore}
+          <div className={`text-7xl font-bold bg-gradient-to-r ${getScoreGradient(Math.min(analysis.overallScore, 100))} bg-clip-text text-transparent`}>
+            {Math.min(analysis.overallScore, 100)}
           </div>
           <p className="text-muted-foreground mt-2">out of 100</p>
+          
+          {/* Potential Improvement Badge */}
+          {analysis.potentialImprovement && analysis.potentialImprovement > 0 && !previousAnalysis && (
+            <div className="mt-4 inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 px-4 py-2 rounded-full">
+              <TrendingUp className="w-4 h-4" />
+              <span className="font-semibold">
+                +{analysis.potentialImprovement}% improvement possible
+                {analysis.projectedScoreAfterChanges && (
+                  <span className="text-blue-500 ml-1">
+                    → {Math.min(analysis.projectedScoreAfterChanges, 100)}/100
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          
+          {/* Score improvement after re-scoring */}
           {scoreImprovement !== null && scoreImprovement > 0 && (
             <div className="mt-3 inline-flex items-center gap-2 bg-green-500/10 text-green-600 px-4 py-2 rounded-full">
               <TrendingUp className="w-4 h-4" />
@@ -568,7 +587,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           )}
           {previousAnalysis && (
             <p className="text-sm text-muted-foreground mt-2">
-              Previous score: {previousAnalysis.overallScore}
+              Previous score: {Math.min(previousAnalysis.overallScore, 100)}
             </p>
           )}
         </div>
