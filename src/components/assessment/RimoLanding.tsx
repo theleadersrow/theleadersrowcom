@@ -160,32 +160,34 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         
         <div className="grid gap-4">
           {/* Strategic Assessment Tool - FREE */}
-          <button
-            onClick={onStartAssessment}
-            className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
-          >
-            <div className="flex items-start gap-5">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                <Target className="w-7 h-7 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-lg text-foreground">Strategic Level Assessment</h3>
-                  <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full">Free</span>
-                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+          <div className="border-2 border-emerald-500/30 rounded-xl bg-gradient-to-r from-emerald-500/5 to-transparent overflow-hidden">
+            <button
+              onClick={onStartAssessment}
+              className="w-full p-6 hover:bg-emerald-500/5 transition-all group text-left"
+            >
+              <div className="flex items-start gap-5">
+                <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
+                  <Target className="w-7 h-7 text-emerald-600" />
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Get a clear, honest assessment of where you operate today and what's blocking your next leap.
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 8-10 min</span>
-                  <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Skill analysis</span>
-                  <span className="flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Blocker diagnosis</span>
-                  <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Role fit</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-lg text-foreground">Strategic Level Assessment</h3>
+                    <span className="text-xs bg-emerald-500/20 text-emerald-600 px-2 py-0.5 rounded-full font-medium">Free</span>
+                    <ArrowRight className="w-4 h-4 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    Get a clear, honest assessment of where you operate today and what's blocking your next leap.
+                  </p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 8-10 min</span>
+                    <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Skill analysis</span>
+                    <span className="flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Blocker diagnosis</span>
+                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Role fit</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </button>
+            </button>
+          </div>
 
           {/* Resume Intelligence Suite - PAID */}
           <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent overflow-hidden">
