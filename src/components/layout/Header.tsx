@@ -57,8 +57,8 @@ const Header = () => {
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <span className={`font-serif text-xl md:text-2xl font-semibold tracking-tight transition-colors ${textColor}`}>
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+            <span className={`font-serif text-xl md:text-2xl font-semibold tracking-tight transition-colors whitespace-nowrap ${textColor}`}>
               The Leader's Row
             </span>
           </Link>
