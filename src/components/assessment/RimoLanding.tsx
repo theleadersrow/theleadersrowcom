@@ -85,28 +85,11 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     }
   };
 
-  const handleCheckout = async () => {
-    if (!email) {
-      toast.error("Please enter your email address");
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
-        body: { customerEmail: email, successParam: "resume_success" },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error("Failed to start checkout. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleCheckout = () => {
+    // Open direct Stripe Payment Link
+    window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
+    setShowPaymentDialog(false);
+    toast.info("Complete your purchase in the new tab. Return here after payment.");
   };
 
   const handleLinkedInCheckout = async () => {
@@ -375,19 +358,11 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </li>
               </ul>
               <div className="space-y-3 pt-2">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full"
-                />
                 <Button 
                   onClick={handleCheckout} 
                   className="w-full"
-                  disabled={isProcessing}
                 >
-                  {isProcessing ? "Processing..." : "Get Access for $19.99"}
+                  Get Access for $19.99
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
                   Secure payment via Stripe • One-time payment • 30-day access
