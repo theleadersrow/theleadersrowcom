@@ -684,6 +684,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tool_purchases: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          last_used_at: string | null
+          purchased_at: string
+          results_summary: Json | null
+          status: string
+          stripe_session_id: string | null
+          tool_type: string
+          usage_count: number
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          last_used_at?: string | null
+          purchased_at?: string
+          results_summary?: Json | null
+          status?: string
+          stripe_session_id?: string | null
+          tool_type: string
+          usage_count?: number
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          last_used_at?: string | null
+          purchased_at?: string
+          results_summary?: Json | null
+          status?: string
+          stripe_session_id?: string | null
+          tool_type?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
       user_career_profiles: {
         Row: {
           blockers_self_report: string | null
