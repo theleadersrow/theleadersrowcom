@@ -32,7 +32,6 @@ const Header = () => {
   ];
 
   const contentLinks = [
-    { href: "/courses", label: "Self Paced Courses (Coming Soon)" },
     { href: "/newsletter", label: "Newsletter" },
     { href: "#", label: "Book (Coming Soon)", disabled: true },
   ];
@@ -73,6 +72,15 @@ const Header = () => {
               }`}
             >
               Home
+            </Link>
+
+            <Link
+              to="/courses"
+              className={`text-sm font-medium transition-colors hover:text-secondary ${
+                location.pathname === "/courses" ? "text-secondary" : textColor
+              }`}
+            >
+              Courses
             </Link>
 
             {/* Programs Dropdown */}
@@ -223,7 +231,17 @@ const Header = () => {
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Home
+              Home
+              </Link>
+
+              <Link
+                to="/courses"
+                className={`text-base font-medium py-2 transition-colors ${
+                  location.pathname === "/courses" ? "text-secondary" : "text-foreground hover:text-secondary"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Courses
               </Link>
 
               {/* Mobile Programs Section */}
