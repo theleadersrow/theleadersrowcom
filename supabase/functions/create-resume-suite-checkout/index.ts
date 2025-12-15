@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,8 +24,11 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    const { customerEmail } = await req.json();
-    logStep("Request body parsed", { customerEmail });
+    const { customerEmail, successParam } = await req.json();
+    logStep("Request body parsed", { customerEmail, successParam });
+
+    // Determine tool type from successParam
+    const toolType = successParam === "linkedin_success" ? "linkedin_signal" : "resume_suite";
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -50,15 +54,46 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/career-coach?purchase=success`,
+      success_url: `${origin}/career-coach?purchase=${successParam || "resume_success"}`,
       cancel_url: `${origin}/career-coach`,
       metadata: {
-        product_name: "Resume Intelligence Suite",
+        product_name: toolType === "linkedin_signal" ? "LinkedIn Signal Score" : "Resume Intelligence Suite",
         access_duration: "1 month",
+        tool_type: toolType,
+        customer_email: customerEmail,
       },
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
+
+    // Record the purchase in database after successful checkout creation
+    // Note: This records as pending, and should be confirmed via webhook in production
+    // For now, we'll record it when user returns to success page
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Calculate expiry date (1 month from now)
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+
+    // Insert purchase record
+    const { error: insertError } = await supabaseClient
+      .from("tool_purchases")
+      .insert({
+        email: customerEmail,
+        tool_type: toolType,
+        stripe_session_id: session.id,
+        expires_at: expiresAt.toISOString(),
+        status: "active",
+      });
+
+    if (insertError) {
+      logStep("Warning: Failed to record purchase", { error: insertError.message });
+    } else {
+      logStep("Purchase recorded in database", { toolType, email: customerEmail });
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
