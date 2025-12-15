@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 
 interface LinkedInSignalScoreProps {
   onBack: () => void;
@@ -592,6 +593,73 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           )}
         </div>
 
+        {/* Visual Comparison Chart */}
+        {suggestions?.projectedScoreIncrease && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+                Current vs Projected Scores
+              </CardTitle>
+              <CardDescription>
+                See how your profile could improve with AI suggestions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={Object.entries(analysis.dimensions).map(([key, value]) => ({
+                      name: key.replace(/([A-Z])/g, ' $1').trim().replace('Score', ''),
+                      current: value.score,
+                      projected: Math.min(suggestions.projectedScoreIncrease[key as keyof typeof suggestions.projectedScoreIncrease] || value.score, 100),
+                    }))}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 11 }} 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                    <Tooltip 
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          const current = payload[0]?.value as number;
+                          const projected = payload[1]?.value as number;
+                          const improvement = projected - current;
+                          return (
+                            <div className="bg-background border rounded-lg p-3 shadow-lg">
+                              <p className="font-medium text-sm mb-2">{label}</p>
+                              <p className="text-sm text-muted-foreground">Current: <span className="font-bold text-foreground">{current}</span></p>
+                              <p className="text-sm text-muted-foreground">Projected: <span className="font-bold text-green-600">{projected}</span></p>
+                              {improvement > 0 && (
+                                <p className="text-xs text-green-600 mt-1">+{improvement} improvement</p>
+                              )}
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="current" name="Current Score" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="projected" name="Projected Score" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Potential overall improvement: <span className="font-bold text-green-600">+{Math.round(suggestions.projectedScoreIncrease.projectedOverallScore - analysis.overallScore)} points</span>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Dimension Scores */}
         <Card className="mb-6">
           <CardHeader>
@@ -601,20 +669,44 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Object.entries(analysis.dimensions).map(([key, value]) => (
-              <div key={key}>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                  <span className={`text-sm font-bold ${getScoreColor(value.score)}`}>
-                    {value.score}
-                  </span>
+            {Object.entries(analysis.dimensions).map(([key, value]) => {
+              const projectedScore = suggestions?.projectedScoreIncrease?.[key as keyof typeof suggestions.projectedScoreIncrease];
+              const improvement = projectedScore ? Math.min(projectedScore, 100) - value.score : 0;
+              
+              return (
+                <div key={key}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-bold ${getScoreColor(value.score)}`}>
+                        {value.score}
+                      </span>
+                      {improvement > 0 && (
+                        <span className="text-xs text-green-600 flex items-center gap-0.5">
+                          <TrendingUp className="w-3 h-3" />
+                          +{improvement}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Progress value={value.score} className="h-2 mb-1" />
+                    {improvement > 0 && (
+                      <div 
+                        className="absolute top-0 h-2 bg-green-500/30 rounded-full"
+                        style={{ 
+                          left: `${value.score}%`, 
+                          width: `${improvement}%` 
+                        }}
+                      />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{value.analysis}</p>
                 </div>
-                <Progress value={value.score} className="h-2 mb-1" />
-                <p className="text-xs text-muted-foreground">{value.analysis}</p>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
 
