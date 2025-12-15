@@ -9,14 +9,13 @@ import { ModuleComplete } from "@/components/assessment/ModuleComplete";
 import { EmailGate } from "@/components/assessment/EmailGate";
 import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
-import { ATSScoring } from "@/components/assessment/ATSScoring";
-import { ResumeEnhancer } from "@/components/assessment/ResumeEnhancer";
+import { ResumeIntelligenceSuite } from "@/components/assessment/ResumeIntelligenceSuite";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { RimoLanding } from "@/components/assessment/RimoLanding";
 import { EngagementIndicator, EncouragementBanner } from "@/components/assessment/EngagementIndicator";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "hub" | "assessment_landing" | "ats" | "resume_enhancer" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
+type AssessmentView = "hub" | "assessment_landing" | "resume_suite" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
 
 const moduleInsights = [
   "Your strategic calibration is taking shape. We're identifying your current level and growth potential.",
@@ -54,7 +53,6 @@ const StrategicBenchmark = () => {
   const [answerStreak, setAnswerStreak] = useState(0);
   const [completedModuleIndex, setCompletedModuleIndex] = useState<number | null>(null);
 
-  // Reset to hub when navigating to this page (e.g., clicking header link)
   useEffect(() => {
     setCurrentView("hub");
   }, [location.key]);
@@ -68,12 +66,8 @@ const StrategicBenchmark = () => {
     setCurrentView("assessment_landing");
   };
 
-  const handleGoToATS = () => {
-    setCurrentView("ats");
-  };
-
-  const handleGoToResumeEnhancer = () => {
-    setCurrentView("resume_enhancer");
+  const handleGoToResumeSuite = () => {
+    setCurrentView("resume_suite");
   };
 
   const handleBackToHub = () => {
@@ -84,11 +78,7 @@ const StrategicBenchmark = () => {
     setCurrentView("intro");
   };
 
-  const handleATSComplete = () => {
-    setCurrentView("hub");
-  };
-
-  const handleResumeEnhancerComplete = () => {
+  const handleResumeSuiteComplete = () => {
     setCurrentView("hub");
   };
 
@@ -101,7 +91,6 @@ const StrategicBenchmark = () => {
     setLastSaved(new Date());
     setAnswerStreak(prev => prev + 1);
     
-    // Check if this is the calibration question and extract level
     const question = questions.find(q => q.id === response.question_id);
     if (question?.is_calibration && response.selected_option_id) {
       const option = question.options?.find(o => o.id === response.selected_option_id);
@@ -116,7 +105,6 @@ const StrategicBenchmark = () => {
 
   const handleModuleCompleteContinue = () => {
     if (completedModuleIndex !== null && completedModuleIndex < modules.length - 1) {
-      // Move to next module intro
       const nextModuleIndex = completedModuleIndex + 1;
       setCurrentModuleIndex(nextModuleIndex);
       setCurrentQuestionIndex(0);
@@ -124,7 +112,6 @@ const StrategicBenchmark = () => {
       setCompletedModuleIndex(null);
       updateProgress(nextModuleIndex, 0);
     } else {
-      // Assessment complete
       submitAssessment();
       setCurrentView("generating");
       setCompletedModuleIndex(null);
@@ -132,19 +119,16 @@ const StrategicBenchmark = () => {
   };
 
   const handleNext = async () => {
-    // Check email gate (after 6 questions)
     if (!hasSeenEmailGate && totalQuestionsAnswered >= 6 && shouldShowSignupGate()) {
       setCurrentView("email_gate");
       return;
     }
 
-    // Move to next question
     if (currentQuestionIndex < moduleQuestions.length - 1) {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
       await updateProgress(currentModuleIndex, nextIndex);
     } else {
-      // End of module - show module complete celebration
       setCompletedModuleIndex(currentModuleIndex);
       setCurrentView("module_complete");
     }
@@ -154,7 +138,6 @@ const StrategicBenchmark = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else if (currentModuleIndex > 0) {
-      // Go back to previous module's last question
       const prevModuleIndex = currentModuleIndex - 1;
       const prevModuleQuestions = getQuestionsForModule(modules[prevModuleIndex]?.id || "");
       setCurrentModuleIndex(prevModuleIndex);
@@ -213,8 +196,7 @@ const StrategicBenchmark = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background pt-20">
-        {/* Progress bar - hide during hub, assessment_landing, ats, module_complete, email gate, generating, and complete */}
-        {!["hub", "assessment_landing", "ats", "resume_enhancer", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
+        {!["hub", "assessment_landing", "resume_suite", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
@@ -228,8 +210,7 @@ const StrategicBenchmark = () => {
           {currentView === "hub" && (
             <RimoLanding 
               onStartAssessment={handleGoToAssessmentLanding} 
-              onStartATS={handleGoToATS}
-              onStartResumeEnhancer={handleGoToResumeEnhancer}
+              onStartResumeSuite={handleGoToResumeSuite}
             />
           )}
 
@@ -240,18 +221,10 @@ const StrategicBenchmark = () => {
             />
           )}
 
-          {currentView === "ats" && (
-            <ATSScoring
-              onComplete={handleATSComplete}
-              onSkip={handleATSComplete}
+          {currentView === "resume_suite" && (
+            <ResumeIntelligenceSuite
               onBack={handleBackToHub}
-            />
-          )}
-
-          {currentView === "resume_enhancer" && (
-            <ResumeEnhancer
-              onBack={handleBackToHub}
-              onComplete={handleResumeEnhancerComplete}
+              onComplete={handleResumeSuiteComplete}
             />
           )}
 
@@ -278,7 +251,6 @@ const StrategicBenchmark = () => {
 
           {currentView === "questions" && currentQuestion && (
             <div>
-              {/* Engagement indicators */}
               <EngagementIndicator
                 currentQuestionIndex={currentQuestionIndex}
                 totalQuestions={moduleQuestions.length}
@@ -286,7 +258,6 @@ const StrategicBenchmark = () => {
                 streak={answerStreak}
               />
 
-              {/* Encouragement banner at milestones */}
               <EncouragementBanner
                 currentQuestionIndex={currentQuestionIndex}
                 totalQuestions={moduleQuestions.length}
