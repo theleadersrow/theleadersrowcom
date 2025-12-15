@@ -36,6 +36,7 @@ const Header = () => {
     { href: "/newsletter", label: "Newsletter" },
     { href: "/guide", label: "Free Guide" },
     { href: "/review", label: "Leave a Review" },
+    { href: "#", label: "Books (Coming Soon)", disabled: true },
   ];
 
   const isResourcesActive = resourceLinks.some(link => location.pathname === link.href);
@@ -90,17 +91,23 @@ const Header = () => {
                 className="bg-card border border-border shadow-elevated z-50 min-w-[160px]"
               >
                 {resourceLinks.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      to={link.href}
-                      className={`w-full cursor-pointer ${
-                        location.pathname === link.href
-                          ? "text-secondary"
-                          : "text-foreground hover:text-secondary"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
+                  <DropdownMenuItem key={link.href + link.label} asChild={!link.disabled} disabled={link.disabled}>
+                    {link.disabled ? (
+                      <span className="w-full text-muted-foreground cursor-not-allowed">
+                        {link.label}
+                      </span>
+                    ) : (
+                      <Link
+                        to={link.href}
+                        className={`w-full cursor-pointer ${
+                          location.pathname === link.href
+                            ? "text-secondary"
+                            : "text-foreground hover:text-secondary"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -166,18 +173,27 @@ const Header = () => {
                 {isResourcesOpen && (
                   <div className="pl-4 flex flex-col gap-2 mt-2">
                     {resourceLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        to={link.href}
-                        className={`text-base py-2 transition-colors ${
-                          location.pathname === link.href
-                            ? "text-secondary"
-                            : "text-muted-foreground hover:text-secondary"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {link.label}
-                      </Link>
+                      link.disabled ? (
+                        <span
+                          key={link.href + link.label}
+                          className="text-base py-2 text-muted-foreground/60 cursor-not-allowed"
+                        >
+                          {link.label}
+                        </span>
+                      ) : (
+                        <Link
+                          key={link.href}
+                          to={link.href}
+                          className={`text-base py-2 transition-colors ${
+                            location.pathname === link.href
+                              ? "text-secondary"
+                              : "text-muted-foreground hover:text-secondary"
+                          }`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {link.label}
+                        </Link>
+                      )
                     ))}
                   </div>
                 )}
