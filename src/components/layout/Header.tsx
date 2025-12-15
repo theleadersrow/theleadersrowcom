@@ -113,35 +113,6 @@ const Header = () => {
             >
               Courses
             </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
-                  isProgramsActive ? "text-secondary" : textColor
-                }`}
-              >
-                Programs
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[160px]"
-              >
-                {programLinks.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      to={link.href}
-                      className={`w-full cursor-pointer ${
-                        location.pathname === link.href
-                          ? "text-secondary"
-                          : "text-foreground hover:text-secondary"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             {/* Content Dropdown */}
             <DropdownMenu>
