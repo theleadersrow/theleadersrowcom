@@ -10,12 +10,13 @@ import { EmailGate } from "@/components/assessment/EmailGate";
 import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
 import { ResumeIntelligenceSuite } from "@/components/assessment/ResumeIntelligenceSuite";
+import { LinkedInSignalScore } from "@/components/assessment/LinkedInSignalScore";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { RimoLanding } from "@/components/assessment/RimoLanding";
 import { EngagementIndicator, EncouragementBanner } from "@/components/assessment/EngagementIndicator";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "hub" | "assessment_landing" | "resume_suite" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
+type AssessmentView = "hub" | "assessment_landing" | "resume_suite" | "linkedin" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
 
 const moduleInsights = [
   "Your strategic calibration is taking shape. We're identifying your current level and growth potential.",
@@ -68,6 +69,10 @@ const StrategicBenchmark = () => {
 
   const handleGoToResumeSuite = () => {
     setCurrentView("resume_suite");
+  };
+
+  const handleGoToLinkedIn = () => {
+    setCurrentView("linkedin");
   };
 
   const handleBackToHub = () => {
@@ -211,7 +216,12 @@ const StrategicBenchmark = () => {
             <RimoLanding 
               onStartAssessment={handleGoToAssessmentLanding} 
               onStartResumeSuite={handleGoToResumeSuite}
+              onStartLinkedIn={handleGoToLinkedIn}
             />
+          )}
+
+          {currentView === "linkedin" && (
+            <LinkedInSignalScore onBack={handleBackToHub} />
           )}
 
           {currentView === "assessment_landing" && (
