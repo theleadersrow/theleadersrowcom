@@ -211,16 +211,16 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                     <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                    Complete resume transformation with AI-powered content optimization.
+                    Your resume transformed for your target job + your unique professional identity. AI uses your self-description to create authentic, personalized content that gets through ATS and impresses hiring managers.
                   </p>
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
                       <BarChart3 className="w-4 h-4 text-primary" />
-                      <span><strong>ATS Score</strong> — See how you rank</span>
+                      <span><strong>ATS Score</strong> — Job-specific analysis</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
                       <Sparkles className="w-4 h-4 text-primary" />
-                      <span><strong>AI Rewrite</strong> — Get optimized content</span>
+                      <span><strong>AI Rewrite</strong> — Personalized to you</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
@@ -232,7 +232,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               </div>
             </button>
             <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20">
-              <span className="font-medium">You get:</span> Initial ATS Score → AI Content Rewrite → Missing Keywords → Quantified Achievements → New ATS Score
+              <span className="font-medium">You provide:</span> Resume + Job Description + How you want to be perceived → <span className="font-medium">You get:</span> ATS Score + Personalized AI Rewrite + New Score
             </div>
           </div>
 

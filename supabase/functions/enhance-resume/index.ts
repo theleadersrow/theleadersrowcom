@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText, jobDescription, missingKeywords, improvements, experienceGaps } = await req.json();
+    const { resumeText, jobDescription, selfProjection, missingKeywords, improvements, experienceGaps } = await req.json();
 
     if (!resumeText) {
       return new Response(JSON.stringify({ error: "Resume text is required" }), {
@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert resume writer and ATS optimization specialist. Your job is to transform resumes to pass ATS systems and impress hiring managers.
+    const systemPrompt = `You are an expert resume writer, personal branding specialist, and ATS optimization expert. Your job is to transform resumes to pass ATS systems, impress hiring managers, and authentically represent the candidate's professional identity.
 
 CRITICAL RULES:
 1. Add missing keywords naturally into the content - don't just list them
@@ -34,6 +34,7 @@ CRITICAL RULES:
 4. Structure bullet points as: [Action Verb] + [What you did] + [Result/Impact with numbers]
 5. Make the summary/objective specifically target the job description
 6. Ensure all improvements sound natural, not keyword-stuffed
+7. MOST IMPORTANTLY: Incorporate the candidate's self-projection to make the resume authentic and personalized. Their voice, strengths, and desired perception should shine through.
 
 Return your response as valid JSON with this exact structure:
 {
@@ -55,13 +56,22 @@ Return your response as valid JSON with this exact structure:
   "bulletPointImprovements": ["Improved bullet 1", "Improved bullet 2"]
 }`;
 
-    const userPrompt = `Transform this resume to maximize ATS score and hiring manager appeal for the target role.
+    const userPrompt = `Transform this resume to maximize ATS score and hiring manager appeal for the target role. Make it authentically represent the candidate.
 
 ORIGINAL RESUME:
 ${resumeText}
 
 ${jobDescription ? `TARGET JOB DESCRIPTION:
 ${jobDescription}` : ''}
+
+${selfProjection ? `CANDIDATE'S SELF-PROJECTION (USE THIS TO PERSONALIZE THE RESUME):
+The candidate wants to be perceived as: "${selfProjection}"
+
+IMPORTANT: Use this self-projection to:
+- Craft a professional summary that reflects their identity and desired perception
+- Choose language and framing that matches how they see themselves
+- Highlight achievements that align with their stated strengths
+- Make the resume feel authentic to who they are, not generic` : ''}
 
 ${missingKeywords?.length > 0 ? `MISSING KEYWORDS TO ADD (integrate naturally):
 ${missingKeywords.join(', ')}` : ''}
@@ -72,12 +82,13 @@ ${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''
 ${experienceGaps?.length > 0 ? `EXPERIENCE GAPS TO ADDRESS:
 ${experienceGaps.join('\n')}` : ''}
 
-IMPORTANT:
-- Rewrite the professional summary to directly address the job requirements
+CRITICAL INSTRUCTIONS:
+- Rewrite the professional summary to directly address the job requirements AND reflect the candidate's self-projection
 - For EVERY bullet point, add specific metrics (e.g., "increased by 40%", "saved $50K", "managed team of 8")
 - Replace weak verbs with powerful action verbs
 - Naturally incorporate ALL missing keywords
 - Make achievements outcome-focused, not task-focused
+- The resume should feel personal and authentic to this specific candidate
 - Keep the resume concise but impactful
 
 Return the enhanced resume as JSON with the structure specified.`;
