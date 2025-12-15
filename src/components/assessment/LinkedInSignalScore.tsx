@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Linkedin, ArrowLeft, ArrowRight, Sparkles, CheckCircle, 
-  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2
+  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -56,16 +56,19 @@ interface ImprovementSuggestions {
   }>;
 }
 
-type Step = "input" | "analyzing" | "score" | "improving" | "suggestions";
+type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "rescore-input" | "rescoring";
 
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [profileText, setProfileText] = useState("");
+  const [resumeText, setResumeText] = useState("");
   const [targetIndustry, setTargetIndustry] = useState("");
   const [targetRole, setTargetRole] = useState("");
   const [analysis, setAnalysis] = useState<ScoreAnalysis | null>(null);
+  const [previousAnalysis, setPreviousAnalysis] = useState<ScoreAnalysis | null>(null);
   const [suggestions, setSuggestions] = useState<ImprovementSuggestions | null>(null);
+  const [updatedProfileText, setUpdatedProfileText] = useState("");
 
   const handleAnalyze = async () => {
     if (!profileText.trim() || !targetIndustry.trim() || !targetRole.trim()) {
@@ -82,6 +85,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           targetIndustry,
           targetRole,
           profileText,
+          resumeText,
           requestType: "score",
         },
       });
@@ -106,6 +110,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           targetIndustry,
           targetRole,
           profileText,
+          resumeText,
           requestType: "improve",
         },
       });
@@ -117,6 +122,44 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       console.error("Error getting suggestions:", error);
       toast.error("Failed to generate suggestions. Please try again.");
       setStep("score");
+    }
+  };
+
+  const handleStartRescore = () => {
+    setUpdatedProfileText(profileText);
+    setPreviousAnalysis(analysis);
+    setStep("rescore-input");
+  };
+
+  const handleRescore = async () => {
+    if (!updatedProfileText.trim()) {
+      toast.error("Please paste your updated LinkedIn profile");
+      return;
+    }
+
+    setStep("rescoring");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
+        body: {
+          linkedinUrl,
+          targetIndustry,
+          targetRole,
+          profileText: updatedProfileText,
+          resumeText,
+          requestType: "score",
+        },
+      });
+
+      if (error) throw error;
+      setProfileText(updatedProfileText);
+      setAnalysis(data.analysis);
+      setStep("score");
+      toast.success("Profile re-scored successfully!");
+    } catch (error) {
+      console.error("Error re-analyzing LinkedIn:", error);
+      toast.error("Failed to re-analyze profile. Please try again.");
+      setStep("suggestions");
     }
   };
 
@@ -149,8 +192,8 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </button>
 
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Linkedin className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+            <Linkedin className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
             LinkedIn Profile Signal Score
@@ -164,7 +207,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <CardHeader>
             <CardTitle>Your LinkedIn Profile</CardTitle>
             <CardDescription>
-              Paste your LinkedIn profile content below. Include your headline, about section, and experience.
+              Paste your LinkedIn profile content and optionally your resume for better experience bullet suggestions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -202,10 +245,26 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 placeholder="Paste your LinkedIn headline, about section, and experience bullets here..."
                 value={profileText}
                 onChange={(e) => setProfileText(e.target.value)}
-                className="min-h-[200px]"
+                className="min-h-[180px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Tip: Copy text from your LinkedIn profile page and paste it here
+              </p>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                Your Resume (optional but recommended)
+              </label>
+              <Textarea
+                placeholder="Paste your resume text here. This helps AI pick the best work experience bullets for LinkedIn suggestions..."
+                value={resumeText}
+                onChange={(e) => setResumeText(e.target.value)}
+                className="min-h-[150px]"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Including your resume enables AI to suggest specific experience bullets from your actual work history
               </p>
             </div>
 
@@ -219,25 +278,80 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     );
   }
 
-  if (step === "analyzing" || step === "improving") {
+  if (step === "analyzing" || step === "improving" || step === "rescoring") {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center animate-fade-up">
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+        <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-6">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
         </div>
         <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
-          {step === "analyzing" ? "Analyzing Your Profile" : "Generating AI Suggestions"}
+          {step === "analyzing" ? "Analyzing Your Profile" : step === "improving" ? "Generating AI Suggestions" : "Re-Scoring Your Profile"}
         </h2>
         <p className="text-muted-foreground">
           {step === "analyzing" 
             ? "Our AI is reviewing your profile through the lens of a recruiter..."
-            : "Creating personalized recommendations to boost your visibility..."}
+            : step === "improving"
+            ? "Creating personalized recommendations to boost your visibility..."
+            : "Comparing your updated profile against the previous version..."}
         </p>
       </div>
     );
   }
 
+  if (step === "rescore-input") {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-up">
+        <button
+          onClick={() => setStep("suggestions")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Suggestions
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+            <RefreshCw className="w-8 h-8 text-green-600" />
+          </div>
+          <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+            Re-Score Your Updated Profile
+          </h1>
+          <p className="text-muted-foreground">
+            Paste your updated LinkedIn profile to see your new score and improvement.
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Updated Profile Content</CardTitle>
+            <CardDescription>
+              After updating your LinkedIn with the suggestions, paste your new profile content here to see your improved score.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Updated Profile Content *</label>
+              <Textarea
+                placeholder="Paste your updated LinkedIn headline, about section, and experience bullets here..."
+                value={updatedProfileText}
+                onChange={(e) => setUpdatedProfileText(e.target.value)}
+                className="min-h-[250px]"
+              />
+            </div>
+
+            <Button onClick={handleRescore} className="w-full" size="lg">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Re-Score My Profile
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (step === "score" && analysis) {
+    const scoreImprovement = previousAnalysis ? analysis.overallScore - previousAnalysis.overallScore : null;
+    
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
         <button
@@ -255,13 +369,24 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             {analysis.overallScore}
           </div>
           <p className="text-muted-foreground mt-2">out of 100</p>
+          {scoreImprovement !== null && scoreImprovement > 0 && (
+            <div className="mt-3 inline-flex items-center gap-2 bg-green-500/10 text-green-600 px-4 py-2 rounded-full">
+              <TrendingUp className="w-4 h-4" />
+              <span className="font-semibold">+{scoreImprovement} points improvement!</span>
+            </div>
+          )}
+          {previousAnalysis && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Previous score: {previousAnalysis.overallScore}
+            </p>
+          )}
         </div>
 
         {/* Dimension Scores */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
+              <Target className="w-5 h-5 text-blue-600" />
               Profile Dimensions
             </CardTitle>
           </CardHeader>
@@ -325,10 +450,10 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </div>
 
         {/* Recruiter Perspective */}
-        <Card className="mb-6 border-primary/30 bg-primary/5">
+        <Card className="mb-6 border-blue-500/30 bg-blue-500/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Eye className="w-4 h-4 text-primary" />
+              <Eye className="w-4 h-4 text-blue-600" />
               Recruiter Perspective
             </CardTitle>
           </CardHeader>
@@ -338,13 +463,14 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </Card>
 
         {/* Get AI Help CTA */}
-        <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
+        <Card className="border-2 border-blue-500/30 bg-gradient-to-r from-blue-500/5 to-transparent">
           <CardContent className="py-6 text-center">
-            <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
+            <Sparkles className="w-8 h-8 text-blue-600 mx-auto mb-3" />
             <h3 className="font-semibold text-lg mb-2">Want to Improve Your Score?</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Get AI-powered suggestions including a new headline, about section rewrites, 
               and keyword optimizations tailored to your target role.
+              {resumeText && " Your resume will be used to suggest specific experience bullets."}
             </p>
             <Button onClick={handleGetSuggestions} size="lg">
               <Sparkles className="w-4 h-4 mr-2" />
@@ -370,7 +496,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </button>
 
         {/* Projected Score Improvement */}
-        <div className="text-center mb-8 p-6 rounded-xl bg-gradient-to-r from-green-500/10 to-primary/10 border border-green-500/20">
+        <div className="text-center mb-8 p-6 rounded-xl bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20">
           <h1 className="text-xl font-serif font-bold text-foreground mb-4">Projected Score After Changes</h1>
           <div className="flex items-center justify-center gap-4">
             <div className="text-center">
@@ -394,7 +520,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
+              <Target className="w-5 h-5 text-blue-600" />
               Priority Actions
             </CardTitle>
           </CardHeader>
@@ -422,7 +548,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
+                <MessageSquare className="w-4 h-4 text-blue-600" />
                 Suggested Headline
               </span>
               <Button 
@@ -444,7 +570,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
+                <MessageSquare className="w-4 h-4 text-blue-600" />
                 Suggested About Section
               </span>
               <Button 
@@ -469,7 +595,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {suggestions.keywordAdditions.map((keyword, i) => (
-                <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                <span key={i} className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full">
                   {keyword}
                 </span>
               ))}
@@ -481,6 +607,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-sm">Experience Rewrites</CardTitle>
+            <CardDescription>
+              {resumeText ? "Based on your resume and LinkedIn profile" : "Based on your LinkedIn profile"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {suggestions.experienceRewrites.map((rewrite, i) => (
@@ -525,13 +654,29 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           </CardContent>
         </Card>
 
-        {/* Re-analyze Button */}
+        {/* Re-Score CTA */}
+        <Card className="mb-6 border-2 border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent">
+          <CardContent className="py-6 text-center">
+            <RefreshCw className="w-8 h-8 text-green-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-lg mb-2">Updated Your LinkedIn?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              After making changes to your LinkedIn profile, come back and re-score to see your improvement!
+            </p>
+            <Button onClick={handleStartRescore} size="lg" variant="outline" className="border-green-500/50 hover:bg-green-500/10">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Re-Score My Updated Profile
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Analyze Another */}
         <div className="text-center">
           <Button 
             variant="outline" 
             onClick={() => {
               setAnalysis(null);
               setSuggestions(null);
+              setPreviousAnalysis(null);
               setStep("input");
             }}
           >

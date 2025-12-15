@@ -11,9 +11,9 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedinUrl, targetIndustry, targetRole, profileText, requestType } = await req.json();
+    const { linkedinUrl, targetIndustry, targetRole, profileText, resumeText, requestType } = await req.json();
     
-    console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType });
+    console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType, hasResume: !!resumeText });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -94,7 +94,18 @@ Provide a comprehensive scoring analysis.`;
       });
 
     } else if (requestType === "improve") {
-      // AI improvement suggestions
+      // AI improvement suggestions - enhanced with resume context
+      const resumeContext = resumeText 
+        ? `\n\nIMPORTANT: The user has also provided their resume. Use the resume to:
+1. Pull specific achievements, metrics, and outcomes from their work history
+2. Identify strong bullet points that can be adapted for LinkedIn
+3. Find quantified results and leadership examples from their actual experience
+4. Ensure suggestions are authentic to their real career history
+
+RESUME CONTENT:
+${resumeText}` 
+        : "";
+
       const systemPrompt = `You are an expert LinkedIn profile optimizer and career coach. Your job is to provide specific, actionable suggestions to improve a LinkedIn profile for someone targeting ${targetRole} positions in ${targetIndustry}.
 
 Focus on:
@@ -102,7 +113,7 @@ Focus on:
 2. KEYWORD OPTIMIZATION: Add industry and role-specific keywords that recruiters search for
 3. HEADLINE REWRITE: Create a compelling headline that positions them for ${targetRole}
 4. ABOUT SECTION: Craft a powerful summary that tells their career story
-5. EXPERIENCE BULLETS: Rewrite key bullets with STAR format and metrics
+5. EXPERIENCE BULLETS: Rewrite key bullets with STAR format and metrics${resumeText ? " - USE THE RESUME to pull real achievements and metrics" : ""}
 
 Return your suggestions as valid JSON with this exact structure:
 {
@@ -112,7 +123,7 @@ Return your suggestions as valid JSON with this exact structure:
   "experienceRewrites": [
     {
       "original": "<original bullet or section>",
-      "improved": "<rewritten with metrics and impact>",
+      "improved": "<rewritten with metrics and impact${resumeText ? " - incorporate specific achievements from resume" : ""}>",
       "whyBetter": "<explanation>"
     }
   ],
@@ -133,10 +144,10 @@ Return your suggestions as valid JSON with this exact structure:
 
       const userPrompt = `Provide specific improvement suggestions for this LinkedIn profile. The person is targeting a ${targetRole} role in ${targetIndustry}.
 
-Current Profile:
-${profileText}
+Current LinkedIn Profile:
+${profileText}${resumeContext}
 
-Provide detailed, specific suggestions that will significantly improve their profile visibility and appeal to recruiters.`;
+Provide detailed, specific suggestions that will significantly improve their profile visibility and appeal to recruiters.${resumeText ? " Make sure to leverage their actual resume achievements in your experience rewrites." : ""}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
