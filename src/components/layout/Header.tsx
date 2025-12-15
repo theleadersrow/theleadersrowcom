@@ -34,12 +34,11 @@ const Header = () => {
   const contentLinks = [
     { href: "/courses", label: "Self Paced Courses (Coming Soon)" },
     { href: "/newsletter", label: "Newsletter" },
-    { href: "#", label: "Books (Coming Soon)", disabled: true },
+    { href: "#", label: "Book (Coming Soon)", disabled: true },
   ];
 
   const resourceLinks = [
     { href: "/guide", label: "Free Guide" },
-    { href: "/review", label: "Leave a Review" },
   ];
 
   const isProgramsActive = programLinks.some(link => location.pathname === link.href);
