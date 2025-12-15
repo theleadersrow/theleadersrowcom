@@ -1,14 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Mail, MessageSquare, PenLine, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { CheckCircle2, Mail, MessageSquare, PenLine, Star, Send, Quote, MapPin } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { countries } from "@/lib/locationData";
 
 const contactSchema = z.object({
   name: z
@@ -32,8 +40,19 @@ const contactSchema = z.object({
 
 type FormData = z.infer<typeof contactSchema>;
 
+const reviewSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().trim().email("Please enter a valid email").max(255),
+  role: z.string().trim().max(100).optional(),
+  company: z.string().trim().max(100).optional(),
+  quote: z.string().trim().min(20, "Please share at least 20 characters about your experience").max(1000),
+  outcome: z.string().trim().max(200).optional(),
+  program: z.string().optional(),
+  rating: z.number().min(1).max(5),
+});
+
 const Contact = () => {
-  const { toast } = useToast();
+  const { toast: toastNotify } = useToast();
   const [activeTab, setActiveTab] = useState<"contact" | "review">("contact");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,10 +64,70 @@ const Contact = () => {
     message: "",
   });
 
+  // Review form state
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [reviewData, setReviewData] = useState({
+    name: "",
+    email: "",
+    role: "",
+    company: "",
+    location: "",
+    country: "",
+    quote: "",
+    outcome: "",
+    program: "",
+  });
+
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const validation = reviewSchema.safeParse({
+      ...reviewData,
+      rating,
+    });
+
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
+    if (rating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+
+    setReviewSubmitting(true);
+    try {
+      const { error } = await supabase.from("testimonials").insert({
+        name: reviewData.name.trim(),
+        email: reviewData.email.trim(),
+        role: reviewData.role.trim() || null,
+        company: reviewData.company.trim() || null,
+        quote: reviewData.quote.trim(),
+        outcome: reviewData.outcome.trim() || null,
+        program: reviewData.program || null,
+        rating,
+      });
+
+      if (error) throw error;
+
+      setReviewSuccess(true);
+      toast.success("Thank you for your review!");
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error("Failed to submit review. Please try again.");
+    } finally {
+      setReviewSubmitting(false);
     }
   };
 
@@ -64,7 +143,7 @@ const Contact = () => {
         fieldErrors[field] = err.message;
       });
       setErrors(fieldErrors);
-      toast({
+      toastNotify({
         title: "Please fix the errors",
         description: "Some fields need your attention.",
         variant: "destructive",
@@ -92,7 +171,7 @@ const Contact = () => {
       setIsSubmitted(true);
     } catch (error: any) {
       console.error("Error sending email:", error);
-      toast({
+      toastNotify({
         title: "Failed to send message",
         description: "Please try again or email us directly at theleadersrow@gmail.com",
         variant: "destructive",
@@ -276,25 +355,234 @@ const Contact = () => {
                   </form>
                 </div>
               </div>
+            ) : reviewSuccess ? (
+              <div className="max-w-md mx-auto text-center">
+                <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                </div>
+                <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-4">
+                  Thank You!
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  Your review has been submitted successfully. We truly appreciate you taking the time to share your experience with us.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Your testimonial will be reviewed and may be featured on our website.
+                </p>
+              </div>
             ) : (
-              <div className="max-w-2xl mx-auto text-center">
-                <div className="bg-card rounded-3xl p-10 shadow-card">
-                  <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-6">
-                    <PenLine className="w-8 h-8 text-secondary" />
+              <div className="max-w-2xl mx-auto">
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-6">
+                    <Quote className="w-7 h-7 sm:w-8 sm:h-8 text-secondary" />
                   </div>
-                  <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+                  <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground mb-4">
                     Share Your Experience
                   </h2>
-                  <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                    Been through one of our programs? We'd love to hear about your journey 
-                    and how it's impacted your career. Your story could inspire others.
+                  <p className="text-muted-foreground text-base sm:text-lg max-w-lg mx-auto">
+                    Your story could inspire others on their career journey. Tell us how The Leader's Row has helped you grow.
                   </p>
-                  <Link to="/review">
-                    <Button variant="gold" size="lg" className="group">
-                      Write a Review
-                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                </div>
+
+                {/* Review Form */}
+                <div className="bg-card rounded-xl sm:rounded-2xl border border-border p-6 sm:p-8 shadow-soft">
+                  <form onSubmit={handleReviewSubmit} className="space-y-6">
+                    {/* Rating */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 block">
+                        How would you rate your experience? *
+                      </Label>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            onMouseEnter={() => setHoveredRating(star)}
+                            onMouseLeave={() => setHoveredRating(0)}
+                            className="p-1 transition-transform hover:scale-110"
+                          >
+                            <Star
+                              className={`w-8 h-8 sm:w-10 sm:h-10 transition-colors ${
+                                star <= (hoveredRating || rating)
+                                  ? "text-secondary fill-secondary"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Name & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="review-name" className="text-sm font-medium mb-2 block">
+                          Your Name *
+                        </Label>
+                        <Input
+                          id="review-name"
+                          placeholder="John Doe"
+                          value={reviewData.name}
+                          onChange={(e) => setReviewData(prev => ({ ...prev, name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="review-email" className="text-sm font-medium mb-2 block">
+                          Email *
+                        </Label>
+                        <Input
+                          id="review-email"
+                          type="email"
+                          placeholder="john@example.com"
+                          value={reviewData.email}
+                          onChange={(e) => setReviewData(prev => ({ ...prev, email: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Role & Company */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="review-role" className="text-sm font-medium mb-2 block">
+                          Your Role
+                        </Label>
+                        <Input
+                          id="review-role"
+                          placeholder="Senior Product Manager"
+                          value={reviewData.role}
+                          onChange={(e) => setReviewData(prev => ({ ...prev, role: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="review-company" className="text-sm font-medium mb-2 block">
+                          Company
+                        </Label>
+                        <Input
+                          id="review-company"
+                          placeholder="Tech Company"
+                          value={reviewData.company}
+                          onChange={(e) => setReviewData(prev => ({ ...prev, company: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Location & Country */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="review-location" className="text-sm font-medium mb-2 block">
+                          <MapPin className="w-3.5 h-3.5 inline mr-1" />
+                          City / Location
+                        </Label>
+                        <Input
+                          id="review-location"
+                          placeholder="San Francisco"
+                          value={reviewData.location}
+                          onChange={(e) => setReviewData(prev => ({ ...prev, location: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="review-country" className="text-sm font-medium mb-2 block">
+                          Country
+                        </Label>
+                        <Select
+                          value={reviewData.country}
+                          onValueChange={(value) => setReviewData(prev => ({ ...prev, country: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-50 max-h-[300px]">
+                            {countries.map((country) => (
+                              <SelectItem key={country.code} value={country.name}>
+                                {country.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Program */}
+                    <div>
+                      <Label htmlFor="review-program" className="text-sm font-medium mb-2 block">
+                        Which program did you participate in?
+                      </Label>
+                      <Select
+                        value={reviewData.program}
+                        onValueChange={(value) => setReviewData(prev => ({ ...prev, program: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a program" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="200k-method">200K Method</SelectItem>
+                          <SelectItem value="weekly-edge">Weekly Edge</SelectItem>
+                          <SelectItem value="ai-career-coach">AI Career Coach</SelectItem>
+                          <SelectItem value="other">Other / Multiple</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Testimonial */}
+                    <div>
+                      <Label htmlFor="review-quote" className="text-sm font-medium mb-2 block">
+                        Your Experience *
+                      </Label>
+                      <Textarea
+                        id="review-quote"
+                        placeholder="Share your story... What challenges were you facing? How did The Leader's Row help you? What results have you seen?"
+                        value={reviewData.quote}
+                        onChange={(e) => setReviewData(prev => ({ ...prev, quote: e.target.value }))}
+                        rows={5}
+                        required
+                        className="resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Minimum 20 characters
+                      </p>
+                    </div>
+
+                    {/* Outcome */}
+                    <div>
+                      <Label htmlFor="review-outcome" className="text-sm font-medium mb-2 block">
+                        Key Outcome (optional)
+                      </Label>
+                      <Input
+                        id="review-outcome"
+                        placeholder="e.g., 'Landed FAANG offer' or '$50K salary increase'"
+                        value={reviewData.outcome}
+                        onChange={(e) => setReviewData(prev => ({ ...prev, outcome: e.target.value }))}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        A short summary of your biggest win
+                      </p>
+                    </div>
+
+                    {/* Submit */}
+                    <Button
+                      type="submit"
+                      disabled={reviewSubmitting}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {reviewSubmitting ? (
+                        "Submitting..."
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Submit Review
+                        </>
+                      )}
                     </Button>
-                  </Link>
+
+                    <p className="text-xs text-muted-foreground text-center">
+                      By submitting, you agree that your review may be featured on our website.
+                    </p>
+                  </form>
                 </div>
               </div>
             )}
