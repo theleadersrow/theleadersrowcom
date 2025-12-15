@@ -70,6 +70,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [suggestions, setSuggestions] = useState<ImprovementSuggestions | null>(null);
   const [updatedProfileText, setUpdatedProfileText] = useState("");
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFetchLinkedInProfile = async () => {
@@ -78,14 +79,27 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       return;
     }
 
-    // LinkedIn doesn't allow direct scraping - inform user to paste content manually
-    toast.info(
-      "LinkedIn profiles require manual copying. Please copy your profile content from LinkedIn and paste it below.",
-      { duration: 5000 }
-    );
-    
-    // Open LinkedIn profile in new tab so user can copy
-    window.open(linkedinUrl, "_blank");
+    setIsFetchingProfile(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
+        body: { linkedinUrl },
+      });
+
+      if (error) throw error;
+
+      if (data.profileContent) {
+        setProfileText(data.profileContent);
+        toast.success("Profile content generated! Please review and edit to match your actual profile.");
+      }
+    } catch (error) {
+      console.error("Error fetching LinkedIn profile:", error);
+      toast.error("Could not fetch profile. Please paste your content manually.");
+      // Open LinkedIn profile in new tab so user can copy
+      window.open(linkedinUrl, "_blank");
+    } finally {
+      setIsFetchingProfile(false);
+    }
   };
 
   const handleResumeFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,9 +164,41 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   };
 
   const handleAnalyze = async () => {
-    if (!profileText.trim() || !targetIndustry.trim() || !targetRole.trim()) {
-      toast.error("Please fill in all required fields");
+    // Require either profile text OR linkedin URL
+    const hasProfileContent = profileText.trim().length > 0;
+    const hasLinkedInUrl = linkedinUrl.trim().includes("linkedin.com");
+    
+    if (!hasProfileContent && !hasLinkedInUrl) {
+      toast.error("Please provide your LinkedIn URL or paste your profile content");
       return;
+    }
+    
+    if (!targetIndustry.trim() || !targetRole.trim()) {
+      toast.error("Please fill in target industry and role");
+      return;
+    }
+
+    // If we have URL but no profile content, try to fetch it first
+    if (!hasProfileContent && hasLinkedInUrl) {
+      setIsFetchingProfile(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
+          body: { linkedinUrl },
+        });
+
+        if (error) throw error;
+
+        if (data.profileContent) {
+          setProfileText(data.profileContent);
+          toast.info("Profile content generated from URL. Proceeding with analysis...");
+        }
+      } catch (error) {
+        console.error("Error fetching LinkedIn profile:", error);
+        toast.error("Could not fetch profile content. Please paste your profile manually.");
+        setIsFetchingProfile(false);
+        return;
+      }
+      setIsFetchingProfile(false);
     }
 
     setStep("analyzing");
@@ -303,14 +349,23 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 <Button 
                   onClick={handleFetchLinkedInProfile} 
                   variant="outline"
-                  disabled={!linkedinUrl.includes("linkedin.com")}
+                  disabled={isFetchingProfile || !linkedinUrl.includes("linkedin.com")}
                 >
-                  <Link className="w-4 h-4 mr-2" />
-                  Open Profile
+                  {isFetchingProfile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Fetching...
+                    </>
+                  ) : (
+                    <>
+                      <Link className="w-4 h-4 mr-2" />
+                      Fetch Profile
+                    </>
+                  )}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Opens your LinkedIn profile so you can copy the content
+                Click to auto-generate profile content from your LinkedIn URL
               </p>
             </div>
 
@@ -334,15 +389,18 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Profile Content *</label>
+              <label className="text-sm font-medium mb-2 block">
+                Profile Content {!linkedinUrl.includes("linkedin.com") && <span className="text-destructive">*</span>}
+                {linkedinUrl.includes("linkedin.com") && <span className="text-muted-foreground text-xs ml-1">(optional if URL provided)</span>}
+              </label>
               <Textarea
-                placeholder="Your LinkedIn content will appear here after fetching, or paste manually..."
+                placeholder="Click 'Fetch Profile' above to auto-fill, or paste your LinkedIn headline, about section, and experience here..."
                 value={profileText}
                 onChange={(e) => setProfileText(e.target.value)}
                 className="min-h-[180px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Review and edit the content if needed before analyzing
+                {profileText ? "Review and edit if needed" : "Will be auto-generated from URL if not provided"}
               </p>
             </div>
 
