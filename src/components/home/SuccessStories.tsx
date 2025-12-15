@@ -99,7 +99,7 @@ const SuccessStories = () => {
   }, []);
 
   return (
-    <section className="section-padding bg-muted/30">
+    <section id="success-stories" className="section-padding bg-muted/30">
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
           <p className="text-secondary font-medium mb-2 sm:mb-3 text-sm sm:text-base">The Transformation</p>
