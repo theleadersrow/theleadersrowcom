@@ -5,7 +5,7 @@ export const executiveCommunicationCourse = {
   description: "A 60-minute self-paced course that transforms how you communicate, influence stakeholders, and drive decisions — without authority.",
   duration: "60 minutes",
   modules: 6,
-  price: "$149",
+  price: "$49.99",
   featured: true,
   badge: "New",
   targetAudience: [
