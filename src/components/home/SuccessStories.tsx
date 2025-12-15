@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Quote, ArrowRight, Star } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Quote, ArrowRight, Star, PenLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import journeyAfter from "@/assets/journey-after.jpg";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -158,6 +160,20 @@ const SuccessStories = () => {
             * Names and details have been changed. Replace with your real testimonials.
           </p>
         )}
+
+        {/* Write a Review CTA */}
+        <div className="text-center mt-10 pt-8 border-t border-border/50 max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-sm mb-4">
+            Been through one of our programs? We'd love to hear about your experience.
+          </p>
+          <Link to="/review">
+            <Button variant="outline" className="group">
+              <PenLine className="w-4 h-4 mr-2" />
+              Write a Review
+              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );
