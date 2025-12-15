@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Mail } from "lucide-react";
+import { CheckCircle2, Mail, MessageSquare, PenLine, ArrowRight } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,6 +34,7 @@ type FormData = z.infer<typeof contactSchema>;
 
 const Contact = () => {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<"contact" | "review">("contact");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -127,113 +129,175 @@ const Contact = () => {
       <section className="pt-32 pb-20 bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12">
-              {/* Contact Info */}
-              <div>
-                <h1 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
+            {/* Page Header */}
+            <div className="text-center mb-10">
+              <h1 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-4">
+                Contact Us
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Get in touch or share your experience with us.
+              </p>
+            </div>
+
+            {/* Tab Selector */}
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex bg-muted rounded-xl p-1.5">
+                <button
+                  onClick={() => setActiveTab("contact")}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                    activeTab === "contact"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4" />
                   Get in Touch
-                </h1>
-                <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                  Have questions about our programs? We're here to help you find the 
-                  right path for your career growth.
-                </p>
-
-                <div className="flex items-start gap-4 p-6 bg-muted/50 rounded-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Email Us</h3>
-                    <a
-                      href="mailto:theleadersrow@gmail.com"
-                      className="text-muted-foreground hover:text-secondary transition-colors"
-                    >
-                      theleadersrow@gmail.com
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Form */}
-              <div className="bg-card rounded-3xl p-8 shadow-card">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <Label htmlFor="name" className="text-foreground font-medium">
-                      Your Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
-                      placeholder="John Smith"
-                      className={`mt-2 ${errors.name ? "border-destructive" : ""}`}
-                    />
-                    {errors.name && (
-                      <p className="text-destructive text-sm mt-1">{errors.name}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email" className="text-foreground font-medium">
-                      Email Address *
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      placeholder="john@example.com"
-                      className={`mt-2 ${errors.email ? "border-destructive" : ""}`}
-                    />
-                    {errors.email && (
-                      <p className="text-destructive text-sm mt-1">{errors.email}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone" className="text-foreground font-medium">
-                      Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      placeholder="+1 (555) 123-4567"
-                      className="mt-2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message" className="text-foreground font-medium">
-                      Your Message *
-                    </Label>
-                    <Textarea
-                      id="message"
-                      value={formData.message}
-                      onChange={(e) => handleChange("message", e.target.value)}
-                      placeholder="How can we help you?"
-                      rows={5}
-                      className={`mt-2 ${errors.message ? "border-destructive" : ""}`}
-                    />
-                    {errors.message && (
-                      <p className="text-destructive text-sm mt-1">{errors.message}</p>
-                    )}
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    variant="gold" 
-                    size="lg" 
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send Message"}
-                  </Button>
-                </form>
+                </button>
+                <button
+                  onClick={() => setActiveTab("review")}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                    activeTab === "review"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <PenLine className="w-4 h-4" />
+                  Write a Review
+                </button>
               </div>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === "contact" ? (
+              <div className="grid md:grid-cols-2 gap-12">
+                {/* Contact Info */}
+                <div>
+                  <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+                    Get in Touch
+                  </h2>
+                  <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                    Have questions about our programs? We're here to help you find the 
+                    right path for your career growth.
+                  </p>
+
+                  <div className="flex items-start gap-4 p-6 bg-muted/50 rounded-2xl">
+                    <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-6 h-6 text-secondary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Email Us</h3>
+                      <a
+                        href="mailto:theleadersrow@gmail.com"
+                        className="text-muted-foreground hover:text-secondary transition-colors"
+                      >
+                        theleadersrow@gmail.com
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Form */}
+                <div className="bg-card rounded-3xl p-8 shadow-card">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <Label htmlFor="name" className="text-foreground font-medium">
+                        Your Name *
+                      </Label>
+                      <Input
+                        id="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleChange("name", e.target.value)}
+                        placeholder="John Smith"
+                        className={`mt-2 ${errors.name ? "border-destructive" : ""}`}
+                      />
+                      {errors.name && (
+                        <p className="text-destructive text-sm mt-1">{errors.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email" className="text-foreground font-medium">
+                        Email Address *
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
+                        placeholder="john@example.com"
+                        className={`mt-2 ${errors.email ? "border-destructive" : ""}`}
+                      />
+                      {errors.email && (
+                        <p className="text-destructive text-sm mt-1">{errors.email}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone" className="text-foreground font-medium">
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleChange("phone", e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="message" className="text-foreground font-medium">
+                        Your Message *
+                      </Label>
+                      <Textarea
+                        id="message"
+                        value={formData.message}
+                        onChange={(e) => handleChange("message", e.target.value)}
+                        placeholder="How can we help you?"
+                        rows={5}
+                        className={`mt-2 ${errors.message ? "border-destructive" : ""}`}
+                      />
+                      {errors.message && (
+                        <p className="text-destructive text-sm mt-1">{errors.message}</p>
+                      )}
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      variant="gold" 
+                      size="lg" 
+                      className="w-full"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Sending..." : "Send Message"}
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto text-center">
+                <div className="bg-card rounded-3xl p-10 shadow-card">
+                  <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-6">
+                    <PenLine className="w-8 h-8 text-secondary" />
+                  </div>
+                  <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+                    Share Your Experience
+                  </h2>
+                  <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                    Been through one of our programs? We'd love to hear about your journey 
+                    and how it's impacted your career. Your story could inspire others.
+                  </p>
+                  <Link to="/review">
+                    <Button variant="gold" size="lg" className="group">
+                      Write a Review
+                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
