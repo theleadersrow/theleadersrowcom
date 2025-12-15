@@ -10,12 +10,13 @@ import { EmailGate } from "@/components/assessment/EmailGate";
 import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
 import { ATSScoring } from "@/components/assessment/ATSScoring";
+import { ResumeEnhancer } from "@/components/assessment/ResumeEnhancer";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { RimoLanding } from "@/components/assessment/RimoLanding";
 import { EngagementIndicator, EncouragementBanner } from "@/components/assessment/EngagementIndicator";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "hub" | "assessment_landing" | "ats" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
+type AssessmentView = "hub" | "assessment_landing" | "ats" | "resume_enhancer" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
 
 const moduleInsights = [
   "Your strategic calibration is taking shape. We're identifying your current level and growth potential.",
@@ -71,6 +72,10 @@ const StrategicBenchmark = () => {
     setCurrentView("ats");
   };
 
+  const handleGoToResumeEnhancer = () => {
+    setCurrentView("resume_enhancer");
+  };
+
   const handleBackToHub = () => {
     setCurrentView("hub");
   };
@@ -80,7 +85,10 @@ const StrategicBenchmark = () => {
   };
 
   const handleATSComplete = () => {
-    // After ATS, go back to hub so user can choose next action
+    setCurrentView("hub");
+  };
+
+  const handleResumeEnhancerComplete = () => {
     setCurrentView("hub");
   };
 
@@ -206,7 +214,7 @@ const StrategicBenchmark = () => {
     <Layout>
       <div className="min-h-screen bg-background pt-20">
         {/* Progress bar - hide during hub, assessment_landing, ats, module_complete, email gate, generating, and complete */}
-        {!["hub", "assessment_landing", "ats", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
+        {!["hub", "assessment_landing", "ats", "resume_enhancer", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
@@ -221,6 +229,7 @@ const StrategicBenchmark = () => {
             <RimoLanding 
               onStartAssessment={handleGoToAssessmentLanding} 
               onStartATS={handleGoToATS}
+              onStartResumeEnhancer={handleGoToResumeEnhancer}
             />
           )}
 
@@ -236,6 +245,13 @@ const StrategicBenchmark = () => {
               onComplete={handleATSComplete}
               onSkip={handleATSComplete}
               onBack={handleBackToHub}
+            />
+          )}
+
+          {currentView === "resume_enhancer" && (
+            <ResumeEnhancer
+              onBack={handleBackToHub}
+              onComplete={handleResumeEnhancerComplete}
             />
           )}
 

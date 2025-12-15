@@ -4,15 +4,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { 
   Target, BarChart3, Briefcase, Brain, Compass, 
   ArrowRight, Clock, FileText, Zap, CheckCircle, Sparkles,
-  Linkedin, Eye, MessageSquare
+  Linkedin, Eye, MessageSquare, Wand2, Palette, Type
 } from "lucide-react";
 
 interface RimoLandingProps {
   onStartAssessment: () => void;
   onStartATS: () => void;
+  onStartResumeEnhancer: () => void;
 }
 
-export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps) {
+export function RimoLanding({ onStartAssessment, onStartATS, onStartResumeEnhancer }: RimoLandingProps) {
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showLinkedInDialog, setShowLinkedInDialog] = useState(false);
 
@@ -90,6 +91,33 @@ export function RimoLanding({ onStartAssessment, onStartATS }: RimoLandingProps)
                   <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Keyword match</span>
                   <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Experience fit</span>
                   <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Instant feedback</span>
+                </div>
+              </div>
+            </div>
+          </button>
+
+          {/* Resume Enhancer Tool */}
+          <button
+            onClick={onStartResumeEnhancer}
+            className="w-full bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all group text-left"
+          >
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                <Wand2 className="w-7 h-7 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg text-foreground">AI Resume Enhancer</h3>
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">New</span>
+                  <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Transform your resume with AI-powered formatting, better sectioning, enhanced text, and professional styling.
+                </p>
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Palette className="w-3.5 h-3.5" /> Color schemes</span>
+                  <span className="flex items-center gap-1.5"><Type className="w-3.5 h-3.5" /> Font suggestions</span>
+                  <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Enhanced text</span>
                 </div>
               </div>
             </div>
