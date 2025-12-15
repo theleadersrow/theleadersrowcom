@@ -14,43 +14,74 @@ import { Input } from "@/components/ui/input";
 interface RimoLandingProps {
   onStartAssessment: () => void;
   onStartResumeSuite: () => void;
+  onStartLinkedIn: () => void;
 }
 
 const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
 
-export function RimoLanding({ onStartAssessment, onStartResumeSuite }: RimoLandingProps) {
+const LINKEDIN_SUITE_ACCESS_KEY = "linkedin_suite_access";
+
+export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn }: RimoLandingProps) {
   const [searchParams] = useSearchParams();
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
-  const [showLinkedInDialog, setShowLinkedInDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
   const [email, setEmail] = useState("");
+  const [linkedInEmail, setLinkedInEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
+  const [hasResumeAccess, setHasResumeAccess] = useState(false);
+  const [hasLinkedInAccess, setHasLinkedInAccess] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get("purchase") === "success") {
+    const purchaseType = searchParams.get("purchase");
+    if (purchaseType === "resume_success") {
       const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
       localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify({ expiry }));
-      setHasAccess(true);
+      setHasResumeAccess(true);
       toast.success("Payment successful! You now have access to the Resume Intelligence Suite for 1 month.");
+    } else if (purchaseType === "linkedin_success") {
+      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify({ expiry }));
+      setHasLinkedInAccess(true);
+      toast.success("Payment successful! You now have access to the LinkedIn Signal Score for 1 month.");
     }
 
-    const stored = localStorage.getItem(RESUME_SUITE_ACCESS_KEY);
-    if (stored) {
-      const { expiry } = JSON.parse(stored);
+    // Check resume access
+    const storedResume = localStorage.getItem(RESUME_SUITE_ACCESS_KEY);
+    if (storedResume) {
+      const { expiry } = JSON.parse(storedResume);
       if (Date.now() < expiry) {
-        setHasAccess(true);
+        setHasResumeAccess(true);
       } else {
         localStorage.removeItem(RESUME_SUITE_ACCESS_KEY);
+      }
+    }
+
+    // Check LinkedIn access
+    const storedLinkedIn = localStorage.getItem(LINKEDIN_SUITE_ACCESS_KEY);
+    if (storedLinkedIn) {
+      const { expiry } = JSON.parse(storedLinkedIn);
+      if (Date.now() < expiry) {
+        setHasLinkedInAccess(true);
+      } else {
+        localStorage.removeItem(LINKEDIN_SUITE_ACCESS_KEY);
       }
     }
   }, [searchParams]);
 
   const handleResumeSuiteClick = () => {
-    if (hasAccess) {
+    if (hasResumeAccess) {
       onStartResumeSuite();
     } else {
       setShowPaymentDialog(true);
+    }
+  };
+
+  const handleLinkedInClick = () => {
+    if (hasLinkedInAccess) {
+      onStartLinkedIn();
+    } else {
+      setShowLinkedInPaymentDialog(true);
     }
   };
 
@@ -63,7 +94,31 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite }: RimoLandi
     setIsProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
-        body: { customerEmail: email },
+        body: { customerEmail: email, successParam: "resume_success" },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLinkedInCheckout = async () => {
+    if (!linkedInEmail) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
+        body: { customerEmail: linkedInEmail, successParam: "linkedin_success" },
       });
 
       if (error) throw error;
@@ -146,7 +201,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite }: RimoLandi
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
                     <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">$19.99</span>
-                    {hasAccess ? (
+                    {hasResumeAccess ? (
                       <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> Active
                       </span>
@@ -155,48 +210,80 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite }: RimoLandi
                     )}
                     <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Get your ATS score, then let AI transform your resume with the right keywords, quantified achievements, and role-specific language. See your new score instantly.
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-3">
+                    Complete resume transformation with AI-powered content optimization.
                   </p>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <BarChart3 className="w-4 h-4 text-primary" />
+                      <span><strong>ATS Score</strong> — See how you rank</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <span><strong>AI Rewrite</strong> — Get optimized content</span>
+                    </div>
+                  </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> ATS Score</span>
-                    <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> AI Optimization</span>
                     <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Before & After</span>
                     <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Role-targeted</span>
+                    <span className="flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Keywords Added</span>
                   </div>
                 </div>
               </div>
             </button>
             <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20">
-              <span className="font-medium">Includes:</span> Initial ATS Score → AI Content Rewrite → Missing Keywords Added → Quantified Achievements → New ATS Score
+              <span className="font-medium">You get:</span> Initial ATS Score → AI Content Rewrite → Missing Keywords → Quantified Achievements → New ATS Score
             </div>
           </div>
 
-          {/* LinkedIn Profile Signal Score - Coming Soon */}
-          <button
-            onClick={() => setShowLinkedInDialog(true)}
-            className="w-full bg-card border border-border rounded-xl p-6 hover:border-secondary/50 transition-all group text-left opacity-75"
-          >
-            <div className="flex items-start gap-5">
-              <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors flex-shrink-0">
-                <Linkedin className="w-7 h-7 text-secondary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-lg text-foreground">LinkedIn Profile Signal Score</h3>
-                  <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
+          {/* LinkedIn Profile Signal Score - PAID */}
+          <div className="border-2 border-blue-500/30 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent overflow-hidden">
+            <button
+              onClick={handleLinkedInClick}
+              className="w-full p-6 hover:bg-blue-500/5 transition-all group text-left"
+            >
+              <div className="flex items-start gap-5">
+                <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                  <Linkedin className="w-7 h-7 text-blue-600" />
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Get your profile scored on headline clarity, role positioning, impact language, and leadership signal.
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Recruiter view</span>
-                  <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Headline rewrites</span>
-                  <span className="flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Leadership signals</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <h3 className="font-semibold text-lg text-foreground">LinkedIn Signal Score</h3>
+                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$19.99</span>
+                    {hasLinkedInAccess ? (
+                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Active
+                      </span>
+                    ) : (
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <ArrowRight className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-3">
+                    Get your profile scored the way recruiters see it, then get AI suggestions to boost visibility.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Eye className="w-4 h-4 text-blue-600" />
+                      <span><strong>Signal Score</strong> — Recruiter view</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <span><strong>AI Optimize</strong> — Get suggestions</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Headline rewrites</span>
+                    <span className="flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Leadership signals</span>
+                    <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Score improvement</span>
+                  </div>
                 </div>
               </div>
+            </button>
+            <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20">
+              <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
             </div>
-          </button>
+          </div>
 
           {/* Interview Prep Tool - Coming Soon */}
           <button
@@ -309,29 +396,57 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite }: RimoLandi
         </DialogContent>
       </Dialog>
 
-      {/* LinkedIn Profile Coming Soon Dialog */}
-      <Dialog open={showLinkedInDialog} onOpenChange={setShowLinkedInDialog}>
+      {/* LinkedIn Payment Dialog */}
+      <Dialog open={showLinkedInPaymentDialog} onOpenChange={setShowLinkedInPaymentDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Linkedin className="w-5 h-5 text-primary" />
-              LinkedIn Profile Signal Score
+              <Linkedin className="w-5 h-5 text-blue-600" />
+              LinkedIn Signal Score
             </DialogTitle>
             <DialogDescription className="pt-4 space-y-4">
               <p>
-                LinkedIn is the #1 inbound channel for career opportunities. Rimo will analyze your profile the way human recruiters do.
+                Get your profile analyzed like a recruiter would for just <strong className="text-foreground">$19.99</strong> with 1 month of unlimited use.
               </p>
-              <div className="bg-secondary/20 rounded-lg p-4 text-center">
-                <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  This feature is in development. Stay tuned!
+              <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">Signal Score</strong> — See how recruiters view your profile across 6 dimensions</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">AI Optimization</strong> — Get headline rewrites, about section, and experience bullets</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">Projected Impact</strong> — See exactly how changes will improve your score</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span><strong className="text-foreground">Unlimited use</strong> — Optimize for different roles for 30 days</span>
+                </li>
+              </ul>
+              <div className="space-y-3 pt-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={linkedInEmail}
+                  onChange={(e) => setLinkedInEmail(e.target.value)}
+                  className="w-full"
+                />
+                <Button 
+                  onClick={handleLinkedInCheckout} 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? "Processing..." : "Get Access for $19.99"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Secure payment via Stripe • One-time payment • 30-day access
                 </p>
               </div>
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <Button onClick={() => setShowLinkedInDialog(false)}>Got it</Button>
-          </div>
         </DialogContent>
       </Dialog>
 

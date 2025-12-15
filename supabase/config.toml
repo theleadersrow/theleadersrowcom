@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.create-resume-suite-checkout]
 verify_jwt = false
+
+[functions.analyze-linkedin]
+verify_jwt = false
