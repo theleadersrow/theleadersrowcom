@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
-import { CheckCircle2, Mail, MessageSquare, PenLine, Star, Send, Quote, MapPin, Calendar } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CheckCircle2, Mail, MessageSquare, PenLine, Star, Send, Quote, MapPin, Calendar, Clock, Video } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -54,7 +53,7 @@ const reviewSchema = z.object({
 
 const Contact = () => {
   const { toast: toastNotify } = useToast();
-  const [activeTab, setActiveTab] = useState<"contact" | "review">("contact");
+  const [activeTab, setActiveTab] = useState<"contact" | "review" | "call">("contact");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -246,14 +245,18 @@ const Contact = () => {
                   <span className="hidden sm:inline">Write a Review</span>
                   <span className="sm:hidden">Review</span>
                 </button>
-                <Link
-                  to="/book-call"
-                  className="flex items-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-card/50"
+                <button
+                  onClick={() => setActiveTab("call")}
+                  className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-medium transition-all ${
+                    activeTab === "call"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   <Calendar className="w-4 h-4" />
                   <span className="hidden sm:inline">Book a Strategy Call</span>
                   <span className="sm:hidden">Book Call</span>
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -366,7 +369,8 @@ const Contact = () => {
                   </form>
                 </div>
               </div>
-            ) : reviewSuccess ? (
+            ) : activeTab === "review" ? (
+              reviewSuccess ? (
               <div className="max-w-md mx-auto text-center">
                 <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-10 h-10 text-emerald-500" />
@@ -595,6 +599,65 @@ const Contact = () => {
                     </p>
                   </form>
                 </div>
+              </div>
+              )
+            ) : (
+              /* Strategy Call Tab */
+              <div className="max-w-4xl mx-auto">
+                {/* Header */}
+                <div className="text-center mb-10">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-6">
+                    <Calendar className="w-7 h-7 sm:w-8 sm:h-8 text-secondary" />
+                  </div>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+                    Strategic Discovery Call
+                  </h2>
+                  <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+                    Let's discuss your career goals and find the right path to accelerate your growth as a Product Leader.
+                  </p>
+                </div>
+
+                {/* What to expect */}
+                <div className="grid sm:grid-cols-3 gap-4 mb-10">
+                  <div className="bg-card p-5 rounded-xl border border-border text-center">
+                    <Clock className="w-8 h-8 text-secondary mx-auto mb-3" />
+                    <h3 className="font-semibold text-foreground mb-1">30 Minutes</h3>
+                    <p className="text-sm text-muted-foreground">
+                      A focused session to understand your needs
+                    </p>
+                  </div>
+                  <div className="bg-card p-5 rounded-xl border border-border text-center">
+                    <Video className="w-8 h-8 text-secondary mx-auto mb-3" />
+                    <h3 className="font-semibold text-foreground mb-1">Via Zoom</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You'll receive a Zoom link upon booking
+                    </p>
+                  </div>
+                  <div className="bg-card p-5 rounded-xl border border-border text-center">
+                    <Calendar className="w-8 h-8 text-secondary mx-auto mb-3" />
+                    <h3 className="font-semibold text-foreground mb-1">Your Schedule</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Pick a time that works best for you
+                    </p>
+                  </div>
+                </div>
+
+                {/* Calendly Embed */}
+                <div className="bg-card rounded-2xl border border-border overflow-hidden">
+                  <iframe
+                    src="https://calendly.com/theleadersrow/30min?embed_domain=theleadersrow.com&embed_type=Inline"
+                    width="100%"
+                    height="700"
+                    frameBorder="0"
+                    title="Schedule a Discovery Call"
+                    className="min-h-[700px]"
+                  />
+                </div>
+
+                {/* Note */}
+                <p className="text-center text-sm text-muted-foreground mt-6">
+                  After booking, you'll receive a confirmation email with the Zoom meeting link.
+                </p>
               </div>
             )}
           </div>
