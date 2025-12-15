@@ -26,7 +26,10 @@ const Courses = () => {
             <p className="text-cream/80 text-lg sm:text-xl leading-relaxed animate-fade-up delay-100 mb-4">
               Pause anytime. Restart anytime. Learn at your own pace.
             </p>
-            <p className="text-cream/60 text-base leading-relaxed animate-fade-up delay-150 mb-8">
+            <p className="text-cream/70 text-base leading-relaxed animate-fade-up delay-150 mb-4">
+              Your career demands continuous growth. These self-paced courses let you invest in your skills on your schedule—no deadlines, no pressure, just progress.
+            </p>
+            <p className="text-cream/60 text-sm leading-relaxed animate-fade-up delay-200 mb-8">
               Practical frameworks you can apply tomorrow. No fluff, no theory—just results.
             </p>
             <a href="#courses">
