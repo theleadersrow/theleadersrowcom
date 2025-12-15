@@ -103,8 +103,11 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       console.error("Failed to record purchase intent:", error);
     }
 
-    // Open direct Stripe Payment Link
-    window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
+    // Open direct Stripe Payment Link and focus it
+    const paymentWindow = window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
+    if (paymentWindow) {
+      paymentWindow.focus();
+    }
     setShowPaymentDialog(false);
     toast.info("Complete your purchase in the new tab. Return here after payment.");
   };
@@ -127,8 +130,11 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       console.error("Failed to record purchase intent:", error);
     }
 
-    // Open direct Stripe Payment Link
-    window.open("https://buy.stripe.com/6oUcN49uhgH86kD4oz9sk0c", "_blank");
+    // Open direct Stripe Payment Link and focus it
+    const paymentWindow = window.open("https://buy.stripe.com/6oUcN49uhgH86kD4oz9sk0c", "_blank");
+    if (paymentWindow) {
+      paymentWindow.focus();
+    }
     setShowLinkedInPaymentDialog(false);
     toast.info("Complete your purchase in the new tab. Return here after payment.");
   };
