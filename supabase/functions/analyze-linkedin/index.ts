@@ -24,7 +24,9 @@ serve(async (req) => {
       // Initial scoring analysis
       const systemPrompt = `You are an expert LinkedIn profile analyst and recruiter. Analyze LinkedIn profiles from the perspective of recruiters and hiring managers in the ${targetIndustry} industry looking for ${targetRole} candidates.
 
-Score profiles on these dimensions (0-100):
+IMPORTANT: All scores MUST be between 0 and 100. Never exceed 100.
+
+Score profiles on these dimensions (0-100 scale only):
 1. Headline Clarity: Does the headline clearly communicate their value proposition and role?
 2. Role Positioning: Is their experience positioned to match ${targetRole} responsibilities?
 3. Impact Language: Do they use quantified achievements and outcome-focused language?
@@ -32,20 +34,24 @@ Score profiles on these dimensions (0-100):
 5. Industry Alignment: Is their profile optimized for the ${targetIndustry} industry?
 6. Visibility Score: How likely is this profile to appear in recruiter searches?
 
+Also calculate the POTENTIAL IMPROVEMENT percentage - how much the profile could improve with optimizations.
+
 Return your analysis as valid JSON with this exact structure:
 {
-  "overallScore": <number 0-100>,
+  "overallScore": <number 0-100, never exceed 100>,
+  "potentialImprovement": <percentage points the profile could improve, e.g. 25 means +25%>,
+  "projectedScoreAfterChanges": <what the score could be after improvements, max 100>,
   "dimensions": {
-    "headlineClarity": { "score": <number>, "analysis": "<brief analysis>" },
-    "rolePositioning": { "score": <number>, "analysis": "<brief analysis>" },
-    "impactLanguage": { "score": <number>, "analysis": "<brief analysis>" },
-    "leadershipSignal": { "score": <number>, "analysis": "<brief analysis>" },
-    "industryAlignment": { "score": <number>, "analysis": "<brief analysis>" },
-    "visibilityScore": { "score": <number>, "analysis": "<brief analysis>" }
+    "headlineClarity": { "score": <0-100>, "analysis": "<brief 1-sentence analysis>" },
+    "rolePositioning": { "score": <0-100>, "analysis": "<brief 1-sentence analysis>" },
+    "impactLanguage": { "score": <0-100>, "analysis": "<brief 1-sentence analysis>" },
+    "leadershipSignal": { "score": <0-100>, "analysis": "<brief 1-sentence analysis>" },
+    "industryAlignment": { "score": <0-100>, "analysis": "<brief 1-sentence analysis>" },
+    "visibilityScore": { "score": <0-100>, "analysis": "<brief 1-sentence analysis>" }
   },
   "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
   "criticalGaps": ["<gap 1>", "<gap 2>", "<gap 3>"],
-  "recruiterPerspective": "<What a recruiter searching for ${targetRole} in ${targetIndustry} would think seeing this profile>"
+  "recruiterPerspective": "<1-2 sentences: what a recruiter would think>"
 }`;
 
       const userPrompt = `Analyze this LinkedIn profile for someone targeting a ${targetRole} role in ${targetIndustry}:
