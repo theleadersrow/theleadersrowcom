@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   ArrowLeft, ArrowRight, Upload, Loader2, Sparkles, FileText, 
   CheckCircle, Download, RefreshCw, Target, Zap, TrendingUp,
-  AlertCircle, ChevronRight, Copy
+  AlertCircle, ChevronRight, Copy, Mail
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +64,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const [finalScore, setFinalScore] = useState<ATSResult | null>(null);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -239,6 +244,60 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     if (enhancedResume?.enhancedContent) {
       await navigator.clipboard.writeText(enhancedResume.enhancedContent);
       toast({ title: "Copied!", description: "Enhanced resume copied to clipboard" });
+    }
+  };
+
+  const handleDownloadResume = () => {
+    if (!enhancedResume?.enhancedContent) return;
+    
+    const blob = new Blob([enhancedResume.enhancedContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "enhanced-resume.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "Downloaded!", description: "Enhanced resume saved as text file" });
+  };
+
+  const handleEmailResume = async () => {
+    if (!emailAddress.trim()) {
+      toast({ title: "Email required", description: "Please enter your email address", variant: "destructive" });
+      return;
+    }
+
+    if (!enhancedResume?.enhancedContent) return;
+
+    setIsSendingEmail(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-enhanced-resume", {
+        body: {
+          email: emailAddress,
+          resumeContent: enhancedResume.enhancedContent,
+          improvements: {
+            keywordsAdded: enhancedResume.addedKeywords.length,
+            achievementsQuantified: enhancedResume.quantifiedAchievements.length,
+            actionVerbsUpgraded: enhancedResume.actionVerbUpgrades.length,
+          },
+          scores: {
+            before: initialScore?.ats_score || 0,
+            after: finalScore?.ats_score || 0,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Email sent!", description: `Your enhanced resume has been sent to ${emailAddress}` });
+      setShowEmailDialog(false);
+      setEmailAddress("");
+    } catch (error) {
+      console.error("Email error:", error);
+      toast({ title: "Failed to send", description: "Please try again or download the resume instead", variant: "destructive" });
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -605,9 +664,15 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             </div>
           </Card>
 
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             <Button variant="outline" onClick={handleCopyEnhanced}>
-              <Download className="w-4 h-4 mr-2" /> Copy Enhanced Resume
+              <Copy className="w-4 h-4 mr-2" /> Copy
+            </Button>
+            <Button variant="outline" onClick={handleDownloadResume}>
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+            <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
+              <Mail className="w-4 h-4 mr-2" /> Email to Me
             </Button>
             <Button size="lg" onClick={handleFinalAnalysis} disabled={isAnalyzing}>
               {isAnalyzing ? (
@@ -617,6 +682,38 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               )}
             </Button>
           </div>
+
+          {/* Email Dialog */}
+          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-primary" />
+                  Email Your Enhanced Resume
+                </DialogTitle>
+                <DialogDescription className="pt-4 space-y-4">
+                  <p>We'll send your optimized resume directly to your inbox.</p>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
+                  />
+                  <Button 
+                    className="w-full" 
+                    onClick={handleEmailResume}
+                    disabled={isSendingEmail}
+                  >
+                    {isSendingEmail ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                    ) : (
+                      <><Mail className="w-4 h-4 mr-2" /> Send Resume</>
+                    )}
+                  </Button>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     );
@@ -701,17 +798,55 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             </ul>
           </Card>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
             <Button variant="outline" onClick={handleCopyEnhanced}>
-              <Copy className="w-4 h-4 mr-2" /> Copy Enhanced Resume
+              <Copy className="w-4 h-4 mr-2" /> Copy
+            </Button>
+            <Button variant="outline" onClick={handleDownloadResume}>
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+            <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
+              <Mail className="w-4 h-4 mr-2" /> Email to Me
             </Button>
             <Button variant="outline" onClick={handleReset}>
-              <RefreshCw className="w-4 h-4 mr-2" /> Try Another Resume
+              <RefreshCw className="w-4 h-4 mr-2" /> Try Another
             </Button>
             <Button onClick={onComplete}>
               Done
             </Button>
           </div>
+
+          {/* Email Dialog */}
+          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-primary" />
+                  Email Your Enhanced Resume
+                </DialogTitle>
+                <DialogDescription className="pt-4 space-y-4">
+                  <p>We'll send your optimized resume directly to your inbox.</p>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
+                  />
+                  <Button 
+                    className="w-full" 
+                    onClick={handleEmailResume}
+                    disabled={isSendingEmail}
+                  >
+                    {isSendingEmail ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                    ) : (
+                      <><Mail className="w-4 h-4 mr-2" /> Send Resume</>
+                    )}
+                  </Button>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     );
