@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
-import { CheckCircle2, Mail, MessageSquare, PenLine, Star, Send, Quote, MapPin } from "lucide-react";
+import { CheckCircle2, Mail, MessageSquare, PenLine, Star, Send, Quote, MapPin, Calendar } from "lucide-react";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -220,29 +221,39 @@ const Contact = () => {
 
             {/* Tab Selector */}
             <div className="flex justify-center mb-10">
-              <div className="inline-flex bg-muted rounded-xl p-1.5">
+              <div className="inline-flex bg-muted rounded-xl p-1.5 flex-wrap justify-center gap-1">
                 <button
                   onClick={() => setActiveTab("contact")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-medium transition-all ${
                     activeTab === "contact"
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <MessageSquare className="w-4 h-4" />
-                  Get in Touch
+                  <span className="hidden sm:inline">Get in Touch</span>
+                  <span className="sm:hidden">Contact</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("review")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-medium transition-all ${
                     activeTab === "review"
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <PenLine className="w-4 h-4" />
-                  Write a Review
+                  <span className="hidden sm:inline">Write a Review</span>
+                  <span className="sm:hidden">Review</span>
                 </button>
+                <Link
+                  to="/book-call"
+                  className="flex items-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-card/50"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span className="hidden sm:inline">Book a Strategy Call</span>
+                  <span className="sm:hidden">Book Call</span>
+                </Link>
               </div>
             </div>
 
