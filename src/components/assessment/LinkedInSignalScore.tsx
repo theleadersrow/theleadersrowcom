@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Linkedin, ArrowLeft, ArrowRight, Sparkles, CheckCircle, 
-  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link
+  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link, Briefcase
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ interface ImprovementSuggestions {
   suggestedAbout: string;
   keywordAdditions: string[];
   experienceRewrites: Array<{
+    companyRole: string;
     original: string;
     improved: string;
     whyBetter: string;
@@ -68,6 +69,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [resumeText, setResumeText] = useState("");
   const [targetIndustry, setTargetIndustry] = useState("");
   const [targetRole, setTargetRole] = useState("");
+  const [targetJobDescription, setTargetJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<ScoreAnalysis | null>(null);
   const [previousAnalysis, setPreviousAnalysis] = useState<ScoreAnalysis | null>(null);
   const [suggestions, setSuggestions] = useState<ImprovementSuggestions | null>(null);
@@ -212,6 +214,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           linkedinUrl,
           targetIndustry,
           targetRole,
+          targetJobDescription,
           profileText,
           resumeText,
           requestType: "score",
@@ -237,6 +240,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           linkedinUrl,
           targetIndustry,
           targetRole,
+          targetJobDescription,
           profileText,
           resumeText,
           requestType: "improve",
@@ -389,6 +393,21 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                   onChange={(e) => setTargetRole(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Target Job Description <span className="text-muted-foreground text-xs">(optional)</span>
+              </label>
+              <Textarea
+                placeholder="Paste a job description you're targeting to get more tailored suggestions..."
+                value={targetJobDescription}
+                onChange={(e) => setTargetJobDescription(e.target.value)}
+                className="min-h-[100px]"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Adding a job description helps AI tailor suggestions to specific role requirements
+              </p>
             </div>
 
             <div>
@@ -911,11 +930,19 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             <CardTitle className="text-sm">Experience Rewrites</CardTitle>
             <CardDescription>
               {resumeText ? "Based on your resume and LinkedIn profile" : "Based on your LinkedIn profile"}
+              {targetJobDescription && " — tailored to your target job"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {suggestions.experienceRewrites.map((rewrite, i) => (
               <div key={i} className="border border-border rounded-lg overflow-hidden">
+                {/* Experience identifier */}
+                <div className="px-3 py-2 bg-blue-500/10 border-b border-border">
+                  <p className="text-sm font-semibold text-blue-700 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4" />
+                    {rewrite.companyRole || `Experience ${i + 1}`}
+                  </p>
+                </div>
                 <div className="p-3 bg-red-500/5 border-b border-border">
                   <p className="text-xs text-muted-foreground mb-1">Before:</p>
                   <p className="text-sm line-through opacity-70">{rewrite.original}</p>
