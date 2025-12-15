@@ -54,6 +54,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const [step, setStep] = useState<Step>("input");
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [selfProjection, setSelfProjection] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [initialScore, setInitialScore] = useState<ATSResult | null>(null);
@@ -174,6 +175,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         body: { 
           resumeText, 
           jobDescription,
+          selfProjection,
           missingKeywords: initialScore?.missing_keywords || [],
           improvements: initialScore?.improvements || [],
           experienceGaps: initialScore?.experience_gaps || [],
@@ -244,6 +246,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setStep("input");
     setResumeText("");
     setJobDescription("");
+    setSelfProjection("");
     setInitialScore(null);
     setEnhancedResume(null);
     setFinalScore(null);
@@ -351,10 +354,30 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
                 placeholder="Paste the job description here..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                className="min-h-[250px] text-sm"
+                className="min-h-[200px] text-sm"
               />
             </Card>
           </div>
+
+          {/* Self-Projection Field */}
+          <Card className="p-4 mb-6 border-primary/30 bg-primary/5">
+            <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> How Do You Want to Be Perceived?
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Tell us about your professional identity, strengths, and how you want hiring managers to see you. 
+              This helps our AI craft content that authentically represents YOU while maximizing ATS scores.
+            </p>
+            <Textarea
+              placeholder="Example: I'm a strategic product manager who thrives at turning ambiguous problems into clear roadmaps. I'm known for building strong cross-functional relationships and driving measurable outcomes. I want to be seen as a leader who combines data-driven decision making with strong customer empathy..."
+              value={selfProjection}
+              onChange={(e) => setSelfProjection(e.target.value)}
+              className="min-h-[120px] text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              The more specific you are, the more personalized and authentic your enhanced resume will feel.
+            </p>
+          </Card>
 
           <div className="flex justify-center">
             <Button
