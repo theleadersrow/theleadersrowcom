@@ -188,16 +188,66 @@ const Courses = () => {
         </div>
       </section>
 
-      {/* More Courses Coming */}
+      {/* Coming Soon Courses */}
       <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground mb-4">
               More Courses Coming Soon
             </h2>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground">
               We're building more practical, action-oriented courses for ambitious professionals.
-              Join our newsletter to be the first to know.
+            </p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {[
+              {
+                title: "Executive Level Storytelling",
+                subtitle: "Steve Jobs Inspired",
+                description: "Master the art of compelling narratives that move audiences and drive decisions."
+              },
+              {
+                title: "How to Become a People Leader",
+                subtitle: "Leadership Fundamentals",
+                description: "Transition from individual contributor to effective people manager."
+              },
+              {
+                title: "Be Adaptable & Build Resilience",
+                subtitle: "Navigating Change",
+                description: "Navigate change and bounce back stronger from setbacks."
+              },
+              {
+                title: "Be a Decision Maker",
+                subtitle: "Strategic Choices",
+                description: "Build confidence in making high-stakes decisions with clarity."
+              }
+            ].map((placeholderCourse, index) => (
+              <div 
+                key={index}
+                className="relative rounded-xl bg-card border border-border/50 p-6 opacity-75"
+              >
+                <div className="absolute top-4 right-4 bg-muted text-muted-foreground text-xs font-medium px-2 py-1 rounded-full">
+                  Coming Soon
+                </div>
+                <div className="pt-4">
+                  <h3 className="font-serif text-lg font-semibold text-foreground mb-1">
+                    {placeholderCourse.title}
+                  </h3>
+                  <p className="text-secondary text-sm font-medium mb-3">
+                    {placeholderCourse.subtitle}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {placeholderCourse.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-10">
+            <p className="text-muted-foreground mb-4">
+              Join our newsletter to be the first to know when new courses launch.
             </p>
             <Link to="/newsletter">
               <Button variant="outline" size="lg">
