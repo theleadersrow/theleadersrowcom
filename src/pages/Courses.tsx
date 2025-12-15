@@ -142,7 +142,8 @@ const Courses = () => {
               { title: "Executive Storytelling", subtitle: "Steve Jobs Inspired" },
               { title: "Become a People Leader", subtitle: "Leadership Fundamentals" },
               { title: "Build Resilience", subtitle: "Navigating Change" },
-              { title: "Be a Decision Maker", subtitle: "Strategic Choices" },
+              { title: "Decision-Making", subtitle: "Leading with Conviction" },
+              { title: "Innovation & Creativity", subtitle: "Push Your Boundaries" },
             ].map((c, i) => (
               <div key={i} className="bg-card rounded-xl p-5 border border-border/50 opacity-70">
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Soon</span>
