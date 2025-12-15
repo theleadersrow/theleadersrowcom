@@ -197,7 +197,7 @@ const Header = () => {
             <Link to="/career-coach">
               <Button 
                 variant="ghost" 
-                size="sm" 
+                size="default" 
                 className={`${textColor} hover:text-secondary`}
               >
                 Rimo AI Coach
