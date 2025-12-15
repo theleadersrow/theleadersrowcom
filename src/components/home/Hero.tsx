@@ -1,9 +1,51 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Testimonial {
+  name: string;
+  outcome: string | null;
+  quote: string;
+}
+
+const fallbackTestimonials: Testimonial[] = [
+  { name: "Mona", outcome: "200K Method Member", quote: "I've learned things I can truly apply in my life on a daily basis." },
+  { name: "James K.", outcome: "$45K salary increase", quote: "Landed a senior role with a 40% salary increase." },
+  { name: "Priya R.", outcome: "Landed FAANG offer", quote: "Got offers from 3 top tech companies." },
+];
 
 const Hero = () => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(fallbackTestimonials);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      const { data, error } = await supabase
+        .from("testimonials")
+        .select("name, outcome, quote")
+        .eq("is_published", true)
+        .order("published_at", { ascending: false })
+        .limit(5);
+
+      if (!error && data && data.length > 0) {
+        setTestimonials(data as Testimonial[]);
+      }
+    };
+    fetchTestimonials();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  const currentTestimonial = testimonials[currentIndex];
+
   return (
     <section 
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
@@ -54,6 +96,46 @@ const Hero = () => {
                 View All Programs
               </Button>
             </a>
+          </div>
+
+          {/* Social Proof Testimonial Bar */}
+          <div className="mt-10 sm:mt-14 opacity-0 animate-fade-up delay-500">
+            <div className="bg-cream/10 backdrop-blur-sm rounded-2xl px-5 py-4 sm:px-8 sm:py-5 max-w-2xl mx-auto border border-cream/10">
+              <div className="flex items-center justify-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-secondary fill-secondary" />
+                ))}
+              </div>
+              <div className="relative h-16 sm:h-14 overflow-hidden">
+                <div 
+                  className="transition-all duration-500 ease-in-out"
+                  key={currentIndex}
+                >
+                  <p className="text-cream/90 text-sm sm:text-base italic mb-2 line-clamp-2">
+                    "{currentTestimonial.quote}"
+                  </p>
+                  <p className="text-cream/70 text-xs sm:text-sm">
+                    <span className="font-medium text-cream">{currentTestimonial.name}</span>
+                    {currentTestimonial.outcome && (
+                      <span className="text-secondary"> — {currentTestimonial.outcome}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              {/* Dots indicator */}
+              <div className="flex justify-center gap-1.5 mt-3">
+                {testimonials.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentIndex(i)}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      i === currentIndex ? "bg-secondary w-4" : "bg-cream/30"
+                    }`}
+                    aria-label={`View testimonial ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
