@@ -164,10 +164,22 @@ serve(async (req) => {
     let base64Content: string;
     let mimeType: string;
 
+    // Helper function to convert array buffer to base64 without stack overflow
+    function arrayBufferToBase64(buffer: ArrayBuffer): string {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      const chunkSize = 8192; // Process in chunks to avoid stack overflow
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      return btoa(binary);
+    }
+
     if (file) {
       // Read file content from FormData upload
       const arrayBuffer = await file.arrayBuffer();
-      base64Content = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      base64Content = arrayBufferToBase64(arrayBuffer);
       mimeType = file.type;
     } else {
       // Use base64 from JSON body
@@ -261,6 +273,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true,
+      text: resumeText,
       resumeText,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
