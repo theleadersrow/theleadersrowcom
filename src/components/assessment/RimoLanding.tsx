@@ -188,19 +188,19 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           </button>
 
           {/* Resume Intelligence Suite - PAID */}
-          <div className="border-2 border-primary/30 rounded-xl bg-gradient-to-r from-primary/5 to-transparent overflow-hidden">
+          <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent overflow-hidden">
             <button
               onClick={handleResumeSuiteClick}
-              className="w-full p-6 hover:bg-primary/5 transition-all group text-left"
+              className="w-full p-6 hover:bg-amber-500/5 transition-all group text-left"
             >
               <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                  <FileText className="w-7 h-7 text-primary" />
+                <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
+                  <FileText className="w-7 h-7 text-amber-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
-                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">$19.99</span>
+                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$19.99</span>
                     {hasResumeAccess ? (
                       <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> Active
@@ -208,18 +208,18 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                     ) : (
                       <Lock className="w-4 h-4 text-muted-foreground" />
                     )}
-                    <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3">
                     Your resume transformed for your target job + your unique professional identity. AI uses your self-description to create authentic, personalized content that gets through ATS and impresses hiring managers.
                   </p>
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <BarChart3 className="w-4 h-4 text-primary" />
+                      <BarChart3 className="w-4 h-4 text-amber-600" />
                       <span><strong>ATS Score</strong> — Job-specific analysis</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
+                      <Sparkles className="w-4 h-4 text-amber-600" />
                       <span><strong>AI Rewrite</strong> — Personalized to you</span>
                     </div>
                   </div>
