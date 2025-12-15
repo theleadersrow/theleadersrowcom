@@ -115,22 +115,22 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       return;
     }
 
-    setIsProcessing(true);
+    // Record the email for tracking before opening payment link
     try {
-      const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
-        body: { customerEmail: linkedInEmail, successParam: "linkedin_success" },
+      await supabase.from("tool_purchases").insert({
+        email: linkedInEmail,
+        tool_type: "linkedin_signal",
+        status: "pending",
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
     } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error("Failed to start checkout. Please try again.");
-    } finally {
-      setIsProcessing(false);
+      console.error("Failed to record purchase intent:", error);
     }
+
+    // Open direct Stripe Payment Link
+    window.open("https://buy.stripe.com/6oUcN49uhgH86kD4oz9sk0c", "_blank");
+    setShowLinkedInPaymentDialog(false);
+    toast.info("Complete your purchase in the new tab. Return here after payment.");
   };
 
   return (
