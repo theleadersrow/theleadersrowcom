@@ -19,10 +19,14 @@ const Courses = () => {
         
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
+            <p className="text-secondary font-medium mb-3 animate-fade-up">Watch & Learn On Your Time</p>
             <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-cream mb-4 animate-fade-up leading-tight">
-              Professional Development <span className="text-secondary">That Works</span>
+              Self-Paced <span className="text-secondary">Courses</span>
             </h1>
-            <p className="text-cream/80 text-lg sm:text-xl leading-relaxed animate-fade-up delay-100 mb-8">
+            <p className="text-cream/80 text-lg sm:text-xl leading-relaxed animate-fade-up delay-100 mb-4">
+              Pause anytime. Restart anytime. Learn at your own pace.
+            </p>
+            <p className="text-cream/60 text-base leading-relaxed animate-fade-up delay-150 mb-8">
               Practical frameworks you can apply tomorrow. No fluff, no theory—just results.
             </p>
             <a href="#courses">
