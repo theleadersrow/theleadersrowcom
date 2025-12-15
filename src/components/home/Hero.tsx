@@ -100,7 +100,10 @@ const Hero = () => {
 
           {/* Social Proof Testimonial Bar */}
           <div className="mt-10 sm:mt-14 opacity-0 animate-fade-up delay-500">
-            <div className="bg-cream/10 backdrop-blur-sm rounded-2xl px-5 py-4 sm:px-8 sm:py-5 max-w-2xl mx-auto border border-cream/10">
+            <a 
+              href="#success-stories" 
+              className="block bg-cream/10 backdrop-blur-sm rounded-2xl px-5 py-4 sm:px-8 sm:py-5 max-w-2xl mx-auto border border-cream/10 hover:bg-cream/15 hover:border-cream/20 transition-all cursor-pointer"
+            >
               <div className="flex items-center justify-center gap-1 mb-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star key={star} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-secondary fill-secondary" />
@@ -125,17 +128,18 @@ const Hero = () => {
               {/* Dots indicator */}
               <div className="flex justify-center gap-1.5 mt-3">
                 {testimonials.map((_, i) => (
-                  <button
+                  <span
                     key={i}
-                    onClick={() => setCurrentIndex(i)}
                     className={`w-1.5 h-1.5 rounded-full transition-all ${
                       i === currentIndex ? "bg-secondary w-4" : "bg-cream/30"
                     }`}
-                    aria-label={`View testimonial ${i + 1}`}
                   />
                 ))}
               </div>
-            </div>
+              <p className="text-cream/50 text-xs mt-3 hover:text-cream/70 transition-colors">
+                View all success stories →
+              </p>
+            </a>
           </div>
         </div>
       </div>
