@@ -25,6 +25,8 @@ import CareerReport from "./pages/CareerReport";
 import Review from "./pages/Review";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import CancelMembership from "./pages/CancelMembership";
+import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +60,8 @@ const App = () => (
             <Route path="/career-report" element={<CareerReport />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/cancel-membership" element={<CancelMembership />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

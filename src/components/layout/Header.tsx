@@ -32,6 +32,7 @@ const Header = () => {
   ];
 
   const resourceLinks = [
+    { href: "/courses", label: "Courses" },
     { href: "/newsletter", label: "Newsletter" },
     { href: "/guide", label: "Free Guide" },
     { href: "/review", label: "Leave a Review" },
