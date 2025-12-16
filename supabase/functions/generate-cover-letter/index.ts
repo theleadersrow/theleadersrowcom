@@ -23,13 +23,15 @@ serve(async (req) => {
       candidatePhone,
       companyName,
       hiringManagerName,
-      selfProjection
+      selfProjection,
+      coverLetterLength = "medium" // "short", "medium", "detailed"
     } = await req.json();
 
     logStep("Request received", { 
       hasResume: !!resumeText, 
       hasJob: !!jobDescription,
-      candidateName 
+      candidateName,
+      coverLetterLength
     });
 
     if (!resumeText || !jobDescription) {
@@ -44,6 +46,15 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Adjust word count based on length preference
+    const lengthConfig = {
+      short: { words: "200-250", paragraphs: "3 short paragraphs", style: "concise and punchy" },
+      medium: { words: "300-400", paragraphs: "4 paragraphs", style: "balanced and professional" },
+      detailed: { words: "500-600", paragraphs: "5-6 paragraphs", style: "comprehensive and thorough" }
+    };
+    
+    const config = lengthConfig[coverLetterLength as keyof typeof lengthConfig] || lengthConfig.medium;
+
     const systemPrompt = `You are an expert cover letter writer who crafts compelling, personalized cover letters that get interviews. 
 
 Your cover letters:
@@ -53,14 +64,18 @@ Your cover letters:
 4. Show personality while remaining professional
 5. End with a clear call to action
 
+LENGTH PREFERENCE: ${coverLetterLength.toUpperCase()}
+- Target: ${config.words} words
+- Structure: ${config.paragraphs}
+- Style: ${config.style}
+
 STYLE RULES:
 - Be confident but not arrogant
 - Be specific, not generic
 - Use the candidate's authentic voice
-- Keep it concise (under 400 words)
 - Make every sentence count`;
 
-    const userPrompt = `Write a compelling cover letter for this candidate applying to this role.
+    const userPrompt = `Write a ${coverLetterLength.toUpperCase()} cover letter for this candidate applying to this role.
 
 CANDIDATE INFORMATION:
 Name: ${candidateName || "[Candidate Name]"}
@@ -81,22 +96,37 @@ ${selfProjection}
 
 Use this self-projection to make the cover letter authentic to who they are.` : ""}
 
-INSTRUCTIONS:
-1. Start with a compelling opening that shows knowledge of the company/role
-2. Highlight 2-3 specific achievements from the resume that match the job requirements
-3. Show enthusiasm for the specific role, not just any job
-4. Include a clear call to action
-5. Keep it under 400 words
-6. Make it sound human and authentic, not AI-generated
+INSTRUCTIONS FOR ${coverLetterLength.toUpperCase()} COVER LETTER:
+${coverLetterLength === "short" ? `
+- Keep it CONCISE - maximum 250 words
+- 3 short paragraphs only
+- Opening hook, 1 strong achievement paragraph, closing with call to action
+- Perfect for quick-read scenarios and busy hiring managers
+` : coverLetterLength === "detailed" ? `
+- Make it COMPREHENSIVE - 500-600 words
+- 5-6 well-developed paragraphs
+- Opening hook with company research
+- 2-3 achievement paragraphs with specific metrics
+- Paragraph on cultural fit and motivation
+- Strong closing with clear call to action
+- Show depth of experience and genuine interest
+` : `
+- BALANCED length - 300-400 words
+- 4 paragraphs
+- Opening hook
+- 2 achievement paragraphs matching job requirements
+- Closing with enthusiasm and call to action
+`}
 
 Return ONLY the cover letter text, properly formatted with:
-- Header with candidate contact info
+- Header with candidate contact info (name, email, phone on separate lines)
 - Date
-- Greeting
+- Company address if company name provided
+- Greeting (use hiring manager name if provided)
 - Body paragraphs
-- Professional closing`;
+- Professional closing with signature`;
 
-    logStep("Calling AI for cover letter generation");
+    logStep("Calling AI for cover letter generation", { length: coverLetterLength });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -140,7 +170,7 @@ Return ONLY the cover letter text, properly formatted with:
       throw new Error("No content in AI response");
     }
 
-    logStep("Cover letter generated successfully");
+    logStep("Cover letter generated successfully", { length: coverLetterLength });
 
     return new Response(JSON.stringify({ coverLetter }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
