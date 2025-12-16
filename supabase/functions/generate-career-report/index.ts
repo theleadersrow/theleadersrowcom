@@ -155,7 +155,12 @@ serve(async (req) => {
     // Calculate overall score with weighted averaging (some dimensions matter more)
     const dimensionWeights: Record<string, number> = {
       strategy: 1.2, influence: 1.2, leadership: 1.1, narrative: 1.0,
-      execution: 0.9, visibility: 1.0, ambiguity: 1.0, data: 0.9, general: 0.8
+      execution: 0.9, visibility: 1.0, ambiguity: 1.0, data: 0.9, general: 0.8,
+      // New dimensions
+      executive_presence: 1.2, communication: 1.1, stakeholder_management: 1.1,
+      negotiation: 1.0, interview_readiness: 0.9, conflict_management: 1.0,
+      power_dynamics: 1.0, customer_empathy: 1.0, product_sense: 1.1,
+      technical_fluency: 0.9, prioritization: 1.0, cross_functional: 0.9
     };
     let weightedSum = 0;
     let totalWeight = 0;
@@ -173,10 +178,13 @@ serve(async (req) => {
     const ambiguity = dimensionScores.ambiguity || 50;
     const leadership = dimensionScores.leadership || 50;
     const narrative = dimensionScores.narrative || 50;
+    const executive_presence = dimensionScores.executive_presence || 50;
+    const stakeholder_management = dimensionScores.stakeholder_management || 50;
+    const power_dynamics = dimensionScores.power_dynamics || 50;
 
-    if (overallScore > 85 && narrative >= 75 && influence >= 75 && ambiguity >= 75) {
+    if (overallScore > 85 && narrative >= 75 && influence >= 75 && executive_presence >= 70) {
       currentLevelInferred = "Director";
-    } else if (overallScore >= 75 && leadership >= 70) {
+    } else if (overallScore >= 75 && leadership >= 70 && stakeholder_management >= 65) {
       currentLevelInferred = "GPM";
     } else if (overallScore >= 60 && strategy >= 65 && influence >= 60) {
       currentLevelInferred = "Principal";
@@ -209,6 +217,9 @@ serve(async (req) => {
     let marketReadinessScore = "";
     const execution = dimensionScores.execution || 50;
     const visibility = dimensionScores.visibility || 50;
+    const communication = dimensionScores.communication || 50;
+    const conflict_management = dimensionScores.conflict_management || 50;
+    const negotiation = dimensionScores.negotiation || 50;
 
     if (execution > 70 && visibility < 50) {
       blockerArchetype = "Invisible Expert";
@@ -225,6 +236,18 @@ serve(async (req) => {
     } else if (overallScore > 50 && ambiguity < 40) {
       blockerArchetype = "Certainty Seeker";
       blockerDescription = "You thrive when the path is clear, but freeze or over-analyze when facing ambiguity. In senior roles, the map disappears—you become the one who must create clarity for others. Your need for certainty is limiting your scope and keeping you in roles where someone else defines the direction. Building comfort with incomplete information is your gateway to leadership.";
+    } else if (overallScore > 55 && conflict_management < 45) {
+      blockerArchetype = "Conflict Avoider";
+      blockerDescription = "You're skilled at keeping the peace, but that diplomacy has a cost. By avoiding hard conversations, you let problems fester, let others set the agenda, and miss opportunities to shape outcomes. Senior leadership requires navigating tension, not avoiding it. Learning to engage in productive conflict—with curiosity, not aggression—will unlock your ability to lead in complex environments.";
+    } else if (overallScore > 55 && power_dynamics < 45) {
+      blockerArchetype = "Political Outsider";
+      blockerDescription = "You focus on the work while others focus on the game. Your discomfort with organizational politics means you're often blindsided by decisions made in rooms you weren't in. Understanding power dynamics isn't about being manipulative—it's about knowing whose buy-in matters, when to build coalitions, and how to position your ideas to get traction. This skill is non-negotiable at senior levels.";
+    } else if (overallScore > 55 && negotiation < 45) {
+      blockerArchetype = "Underseller";
+      blockerDescription = "You accept what's offered instead of advocating for what you deserve. Whether it's compensation, scope, resources, or recognition—you leave value on the table because asking feels uncomfortable. This pattern compounds over time: less pay, smaller scope, fewer resources. Learning to negotiate confidently isn't greedy; it's how you ensure your contributions are properly valued.";
+    } else if (overallScore > 55 && executive_presence < 45) {
+      blockerArchetype = "Background Player";
+      blockerDescription = "You have the skills but not the presence. In meetings with senior leaders, you blend into the background instead of commanding attention. Executive presence isn't about personality—it's about how you show up: your preparation, your confidence, your ability to speak concisely and with conviction. Without it, your expertise gets overlooked when decisions are made.";
     }
 
     // Generate market readiness score
@@ -252,6 +275,27 @@ serve(async (req) => {
     } else if (topGap === "strategy") {
       thirtyDayActions.push("Block 2 hours to write a one-page strategy doc for your product area");
       thirtyDayActions.push("Study one competitor's product strategy and document what they're betting on");
+    } else if (topGap === "executive_presence") {
+      thirtyDayActions.push("Prepare a 2-minute opening statement for your next exec meeting and practice it out loud");
+      thirtyDayActions.push("Observe how the most respected leader in your org commands a room—note 3 specific behaviors to emulate");
+    } else if (topGap === "communication") {
+      thirtyDayActions.push("Rewrite one recent email or doc to be 50% shorter while keeping the key message");
+      thirtyDayActions.push("Record yourself presenting and review it—identify 2 things to improve");
+    } else if (topGap === "stakeholder_management") {
+      thirtyDayActions.push("Map your top 5 stakeholders: their priorities, concerns, and how your work affects them");
+      thirtyDayActions.push("Schedule a proactive check-in with one stakeholder before they come to you with concerns");
+    } else if (topGap === "conflict_management") {
+      thirtyDayActions.push("Identify one unresolved tension with a colleague and initiate a direct conversation to address it");
+      thirtyDayActions.push("Practice saying 'I disagree, and here's why...' in your next meeting where you have a different view");
+    } else if (topGap === "power_dynamics") {
+      thirtyDayActions.push("Map the informal power structure in your org—who really influences decisions beyond titles?");
+      thirtyDayActions.push("Identify one decision-maker you should build a relationship with and find a way to add value to them");
+    } else if (topGap === "negotiation") {
+      thirtyDayActions.push("Practice your 'value story'—3 bullet points on why you deserve what you're asking for");
+      thirtyDayActions.push("In your next request (budget, timeline, scope), ask for 20% more than you think you'll get");
+    } else if (topGap === "interview_readiness") {
+      thirtyDayActions.push("Write out answers to the 5 most common PM interview questions using STAR format");
+      thirtyDayActions.push("Schedule a mock interview with a peer or mentor and get brutally honest feedback");
     } else {
       thirtyDayActions.push("Document your top 3 wins from the past quarter with measurable impact");
     }
@@ -263,6 +307,14 @@ serve(async (req) => {
       thirtyDayActions.push("Delegate one task you normally do yourself and coach someone else to own it");
     } else if (blockerArchetype === "Strategic Thinker Without Voice") {
       thirtyDayActions.push("Speak up in the first 5 minutes of your next cross-functional meeting with a prepared POV");
+    } else if (blockerArchetype === "Conflict Avoider") {
+      thirtyDayActions.push("Have one difficult conversation you've been putting off this week");
+    } else if (blockerArchetype === "Political Outsider") {
+      thirtyDayActions.push("Ask a trusted colleague to explain the real dynamics behind a recent decision you didn't understand");
+    } else if (blockerArchetype === "Underseller") {
+      thirtyDayActions.push("Document 3 accomplishments you haven't shared broadly and share one with leadership");
+    } else if (blockerArchetype === "Background Player") {
+      thirtyDayActions.push("Prepare one strong POV to share in your next exec meeting—don't leave without sharing it");
     }
 
     // Always add networking
