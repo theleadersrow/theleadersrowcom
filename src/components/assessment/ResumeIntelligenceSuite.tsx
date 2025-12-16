@@ -983,54 +983,104 @@ https://theleadersrow.com
           )}
 
           {/* Experience & Leadership Analysis */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
             {initialScore.years_experience_analysis && (
-              <Card className="p-4">
-                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Card className="p-5 overflow-hidden">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Target className="w-4 h-4 text-primary" /> Years of Experience
                 </h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Job Requires:</span>
-                    <span className="font-medium text-foreground">{initialScore.years_experience_analysis.job_requires}</span>
+                <div className="space-y-4">
+                  {/* Job Requires */}
+                  <div className="rounded-lg bg-blue-500/5 border border-blue-500/20 p-3">
+                    <div className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">
+                      Job Requires
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {initialScore.years_experience_analysis.job_requires}
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Resume Shows:</span>
-                    <span className="font-medium text-foreground">{initialScore.years_experience_analysis.resume_shows}</span>
+                  
+                  {/* Resume Shows */}
+                  <div className="rounded-lg bg-muted/50 border border-muted p-3">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                      Your Resume Shows
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {initialScore.years_experience_analysis.resume_shows}
+                    </p>
                   </div>
-                  <div className={`flex justify-between pt-2 border-t ${
+                  
+                  {/* Gap Analysis */}
+                  <div className={`rounded-lg p-3 ${
                     initialScore.years_experience_analysis.gap.toLowerCase().includes('meets') 
-                      ? 'text-green-600' 
-                      : 'text-orange-600'
+                      ? 'bg-green-500/10 border border-green-500/30' 
+                      : 'bg-orange-500/10 border border-orange-500/30'
                   }`}>
-                    <span>Gap:</span>
-                    <span className="font-medium">{initialScore.years_experience_analysis.gap}</span>
+                    <div className={`text-xs font-medium uppercase tracking-wide mb-1 ${
+                      initialScore.years_experience_analysis.gap.toLowerCase().includes('meets') 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-orange-600 dark:text-orange-400'
+                    }`}>
+                      Gap Analysis
+                    </div>
+                    <p className={`text-sm font-medium leading-relaxed ${
+                      initialScore.years_experience_analysis.gap.toLowerCase().includes('meets') 
+                        ? 'text-green-700 dark:text-green-300' 
+                        : 'text-orange-700 dark:text-orange-300'
+                    }`}>
+                      {initialScore.years_experience_analysis.gap}
+                    </p>
                   </div>
                 </div>
               </Card>
             )}
 
             {initialScore.leadership_analysis && (
-              <Card className="p-4">
-                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Card className="p-5 overflow-hidden">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Zap className="w-4 h-4 text-primary" /> Leadership & Management
                 </h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Job Requires:</span>
-                    <span className="font-medium text-foreground text-right max-w-[60%]">{initialScore.leadership_analysis.job_requires}</span>
+                <div className="space-y-4">
+                  {/* Job Requires */}
+                  <div className="rounded-lg bg-blue-500/5 border border-blue-500/20 p-3">
+                    <div className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">
+                      Job Requires
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {initialScore.leadership_analysis.job_requires}
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Resume Shows:</span>
-                    <span className="font-medium text-foreground text-right max-w-[60%]">{initialScore.leadership_analysis.resume_shows}</span>
+                  
+                  {/* Resume Shows */}
+                  <div className="rounded-lg bg-muted/50 border border-muted p-3">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                      Your Resume Shows
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {initialScore.leadership_analysis.resume_shows}
+                    </p>
                   </div>
-                  <div className={`flex justify-between pt-2 border-t ${
+                  
+                  {/* Gap Analysis */}
+                  <div className={`rounded-lg p-3 ${
                     initialScore.leadership_analysis.gap.toLowerCase().includes('meets') 
-                      ? 'text-green-600' 
-                      : 'text-orange-600'
+                      ? 'bg-green-500/10 border border-green-500/30' 
+                      : 'bg-orange-500/10 border border-orange-500/30'
                   }`}>
-                    <span>Gap:</span>
-                    <span className="font-medium text-right max-w-[60%]">{initialScore.leadership_analysis.gap}</span>
+                    <div className={`text-xs font-medium uppercase tracking-wide mb-1 ${
+                      initialScore.leadership_analysis.gap.toLowerCase().includes('meets') 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-orange-600 dark:text-orange-400'
+                    }`}>
+                      Gap Analysis
+                    </div>
+                    <p className={`text-sm font-medium leading-relaxed ${
+                      initialScore.leadership_analysis.gap.toLowerCase().includes('meets') 
+                        ? 'text-green-700 dark:text-green-300' 
+                        : 'text-orange-700 dark:text-orange-300'
+                    }`}>
+                      {initialScore.leadership_analysis.gap}
+                    </p>
                   </div>
                 </div>
               </Card>
