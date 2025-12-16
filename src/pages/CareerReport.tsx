@@ -214,6 +214,23 @@ const CareerReport = () => {
         setError(null);
         setErrorDetails(null);
       }
+
+      // Check sessionStorage first for cached report data (for back button navigation)
+      const cachedScore = sessionStorage.getItem("career_report_score");
+      const cachedReport = sessionStorage.getItem("career_report_data");
+      
+      if (cachedScore && cachedReport && !isRetry) {
+        try {
+          setScore(JSON.parse(cachedScore));
+          setReport(JSON.parse(cachedReport));
+          setError(null);
+          setIsLoading(false);
+          return;
+        } catch (e) {
+          // If parsing fails, continue to fetch fresh data
+          console.log("Cache parse failed, fetching fresh data");
+        }
+      }
       
       const sessionToken = localStorage.getItem("assessment_session_token");
       if (!sessionToken) {
@@ -260,7 +277,7 @@ const CareerReport = () => {
         .maybeSingle();
 
       if (scoreData && reportData) {
-        setScore({
+        const scoreObj: Score = {
           overall_score: Number(scoreData.overall_score),
           current_level_inferred: scoreData.current_level_inferred || "",
           level_gap: Number(scoreData.level_gap),
@@ -269,11 +286,18 @@ const CareerReport = () => {
           experience_gaps: (scoreData.experience_gaps as string[]) || [],
           blocker_archetype: scoreData.blocker_archetype || "",
           market_fit: (scoreData.market_fit as { role_types: string[]; company_types: string[] }) || { role_types: [], company_types: [] },
-        });
-        setReport({
+        };
+        const reportObj: Report = {
           report_markdown: reportData.report_markdown || "",
           growth_plan_json: (reportData.growth_plan_json as Report["growth_plan_json"]) || [],
-        });
+        };
+        
+        // Cache in sessionStorage for back button navigation
+        sessionStorage.setItem("career_report_score", JSON.stringify(scoreObj));
+        sessionStorage.setItem("career_report_data", JSON.stringify(reportObj));
+        
+        setScore(scoreObj);
+        setReport(reportObj);
         setError(null);
       } else {
         // Generate report
@@ -296,6 +320,11 @@ const CareerReport = () => {
         }
 
         const data = await response.json();
+        
+        // Cache in sessionStorage for back button navigation
+        sessionStorage.setItem("career_report_score", JSON.stringify(data.score));
+        sessionStorage.setItem("career_report_data", JSON.stringify(data.report));
+        
         setScore(data.score);
         setReport(data.report);
         setError(null);
@@ -312,7 +341,7 @@ const CareerReport = () => {
 
   useEffect(() => {
     loadReport();
-  }, [navigate]);
+  }, []);
 
   const handleRetry = () => {
     loadReport(true);
