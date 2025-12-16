@@ -34,6 +34,10 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [recoveryToolType, setRecoveryToolType] = useState<"resume_suite" | "linkedin_signal">("resume_suite");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryStep, setRecoveryStep] = useState<"input" | "not_found" | "sending">("input");
   const [email, setEmail] = useState("");
   const [linkedInEmail, setLinkedInEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -288,6 +292,126 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     }
   };
 
+  const openRecoveryDialog = (toolType: "resume_suite" | "linkedin_signal") => {
+    setRecoveryToolType(toolType);
+    setRecoveryEmail("");
+    setRecoveryStep("input");
+    setShowRecoveryDialog(true);
+  };
+
+  const handleRecoveryCheck = async () => {
+    if (!recoveryEmail) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // First, try instant lookup
+      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email: recoveryEmail, toolType: recoveryToolType, action: "check" },
+      });
+
+      if (error) throw error;
+
+      if (data.hasAccess) {
+        // Grant immediate access
+        const accessData = {
+          expiry: new Date(data.expiresAt).getTime(),
+          email: recoveryEmail,
+          daysRemaining: data.daysRemaining,
+        };
+        
+        if (recoveryToolType === "resume_suite") {
+          localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+          setResumeAccess({ 
+            hasAccess: true, 
+            expiresAt: data.expiresAt, 
+            daysRemaining: data.daysRemaining,
+            email: recoveryEmail 
+          });
+          toast.success("Access restored! You can now use the Resume Intelligence Suite.");
+        } else {
+          localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+          setLinkedInAccess({ 
+            hasAccess: true, 
+            expiresAt: data.expiresAt, 
+            daysRemaining: data.daysRemaining,
+            email: recoveryEmail 
+          });
+          toast.success("Access restored! You can now use the LinkedIn Signal Score.");
+        }
+        setShowRecoveryDialog(false);
+      } else {
+        // Not found - offer to send magic link
+        setRecoveryStep("not_found");
+      }
+    } catch (error) {
+      console.error("Recovery check failed:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSendRecoveryLink = async () => {
+    setRecoveryStep("sending");
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-tool-access-email", {
+        body: { email: recoveryEmail, toolType: recoveryToolType, recoveryOnly: true },
+      });
+
+      if (error) throw error;
+
+      // Check if no active purchase was found
+      if (data.notFound) {
+        toast.error("No active purchase found for this email. Please contact support if you believe this is an error.");
+        setRecoveryStep("not_found");
+        return;
+      }
+
+      // If we got access data back, grant immediate access
+      if (data.accessToken && data.expiresAt) {
+        const accessData = {
+          expiry: new Date(data.expiresAt).getTime(),
+          email: recoveryEmail,
+          daysRemaining: 30,
+        };
+        
+        if (recoveryToolType === "resume_suite") {
+          localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+          setResumeAccess({ 
+            hasAccess: true, 
+            expiresAt: data.expiresAt, 
+            daysRemaining: 30,
+            email: recoveryEmail 
+          });
+          toast.success("Access restored! A backup link was also sent to your email.");
+        } else {
+          localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+          setLinkedInAccess({ 
+            hasAccess: true, 
+            expiresAt: data.expiresAt, 
+            daysRemaining: 30,
+            email: recoveryEmail 
+          });
+          toast.success("Access restored! A backup link was also sent to your email.");
+        }
+        setShowRecoveryDialog(false);
+      } else {
+        toast.success("Recovery link sent! Check your email.");
+        setShowRecoveryDialog(false);
+      }
+    } catch (error) {
+      console.error("Failed to send recovery link:", error);
+      toast.error("Failed to send recovery link. Please contact support.");
+      setRecoveryStep("not_found");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Expiry warning banner component
   const ExpiryWarning = ({ daysRemaining, toolName }: { daysRemaining: number; toolName: string }) => {
     if (daysRemaining > 7) return null;
@@ -423,8 +547,18 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </div>
               </div>
             </button>
-            <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20">
-              <span className="font-medium">You provide:</span> Resume + Job Description + How you want to be perceived → <span className="font-medium">You get:</span> ATS Score + Personalized AI Rewrite + New Score
+            <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20 flex justify-between items-center">
+              <div>
+                <span className="font-medium">You provide:</span> Resume + Job Description + How you want to be perceived → <span className="font-medium">You get:</span> ATS Score + Personalized AI Rewrite + New Score
+              </div>
+              {!resumeAccess.hasAccess && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
+                  className="text-amber-600 hover:text-amber-700 underline underline-offset-2 whitespace-nowrap ml-4"
+                >
+                  Already purchased?
+                </button>
+              )}
             </div>
           </div>
 
@@ -475,8 +609,18 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </div>
               </div>
             </button>
-            <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20">
-              <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
+            <div className="px-6 pb-4 text-xs text-muted-foreground border-t border-border/50 pt-3 bg-muted/20 flex justify-between items-center">
+              <div>
+                <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
+              </div>
+              {!linkedInAccess.hasAccess && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
+                  className="text-blue-600 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap ml-4"
+                >
+                  Already purchased?
+                </button>
+              )}
             </div>
           </div>
 
@@ -663,6 +807,82 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </a>
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Access Recovery Dialog */}
+      <Dialog open={showRecoveryDialog} onOpenChange={setShowRecoveryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              Recover Your Access
+            </DialogTitle>
+            <DialogDescription>
+              {recoveryStep === "input" && "Enter the email you used when purchasing to restore access."}
+              {recoveryStep === "not_found" && "We couldn't find an active purchase with that email."}
+              {recoveryStep === "sending" && "Sending you a new access link..."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            {recoveryStep === "input" && (
+              <>
+                <div className="space-y-2">
+                  <label htmlFor="recovery-email" className="text-sm font-medium text-foreground">
+                    Purchase email address
+                  </label>
+                  <Input
+                    id="recovery-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={recoveryEmail}
+                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleRecoveryCheck()}
+                  />
+                </div>
+                <Button onClick={handleRecoveryCheck} className="w-full" disabled={isProcessing}>
+                  {isProcessing ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Checking...</>
+                  ) : (
+                    "Find My Purchase"
+                  )}
+                </Button>
+              </>
+            )}
+            
+            {recoveryStep === "not_found" && (
+              <>
+                <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <p className="text-sm text-amber-700">
+                    No active purchase found for <strong>{recoveryEmail}</strong>. 
+                    This could mean the purchase was made with a different email, or the access has expired.
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  If you believe this is an error, we can send a new access link to this email (only works if you have an active purchase).
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setRecoveryStep("input")} className="flex-1">
+                    Try Different Email
+                  </Button>
+                  <Button onClick={handleSendRecoveryLink} disabled={isProcessing} className="flex-1">
+                    {isProcessing ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                    ) : (
+                      "Send Link Anyway"
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+            
+            {recoveryStep === "sending" && (
+              <div className="flex flex-col items-center py-6">
+                <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                <p className="text-sm text-muted-foreground">Sending access link to {recoveryEmail}...</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
