@@ -426,67 +426,175 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     if (!content) return;
     
     try {
-      // Parse the content to create a properly formatted Word doc
-      const lines = content.split('\n').filter(line => line.trim());
+      // Parse the content to create a beautifully formatted Word doc
+      const lines = content.split('\n');
       const children: Paragraph[] = [];
       
-      lines.forEach((line, index) => {
+      // Helper function to detect section type
+      const getSectionType = (line: string): 'name' | 'contact' | 'section_header' | 'job_title' | 'company' | 'bullet' | 'skill_list' | 'paragraph' => {
+        const trimmed = line.trim();
+        if (!trimmed) return 'paragraph';
+        
+        // First non-empty line is likely the name
+        if (children.length === 0 && trimmed.length < 50 && !trimmed.includes('@') && !trimmed.includes('•')) {
+          return 'name';
+        }
+        
+        // Contact info (email, phone, LinkedIn)
+        if (trimmed.includes('@') || trimmed.match(/\(\d{3}\)|\d{3}-\d{4}|linkedin\.com|github\.com/i)) {
+          return 'contact';
+        }
+        
+        // Section headers (all caps, common resume sections)
+        const sectionHeaders = ['PROFESSIONAL SUMMARY', 'SUMMARY', 'EXPERIENCE', 'WORK EXPERIENCE', 'EDUCATION', 'SKILLS', 'TECHNICAL SKILLS', 'CERTIFICATIONS', 'PROJECTS', 'ACHIEVEMENTS', 'AWARDS', 'LANGUAGES', 'INTERESTS', 'OBJECTIVE', 'PROFILE'];
+        if (sectionHeaders.some(h => trimmed.toUpperCase().includes(h)) && trimmed.length < 40) {
+          return 'section_header';
+        }
+        if (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 40 && !trimmed.startsWith('•')) {
+          return 'section_header';
+        }
+        
+        // Job title detection (often followed by company or has specific patterns)
+        if (trimmed.match(/^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Chief|Head of)/i) && trimmed.length < 80) {
+          return 'job_title';
+        }
+        
+        // Company and date line
+        if (trimmed.match(/\d{4}\s*[-–]\s*(Present|\d{4})/i) || trimmed.match(/\|.*\d{4}/)) {
+          return 'company';
+        }
+        
+        // Bullet points
+        if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.match(/^[\u2022\u2023\u25E6\u2043]/)) {
+          return 'bullet';
+        }
+        
+        // Skill list (comma-separated items)
+        if (trimmed.includes(',') && trimmed.split(',').length >= 3 && trimmed.length < 200) {
+          return 'skill_list';
+        }
+        
+        return 'paragraph';
+      };
+      
+      let isFirstLine = true;
+      
+      lines.forEach((line) => {
         const trimmedLine = line.trim();
+        if (!trimmedLine && children.length > 0) {
+          // Add spacing between sections
+          children.push(new Paragraph({ spacing: { before: 120, after: 0 } }));
+          return;
+        }
+        if (!trimmedLine) return;
         
-        // Check if it's a header (all caps or starts with #)
-        const isHeader = trimmedLine === trimmedLine.toUpperCase() && trimmedLine.length > 3 && !trimmedLine.startsWith('•') && !trimmedLine.startsWith('-');
-        const isMarkdownHeader = trimmedLine.startsWith('#');
+        const sectionType = isFirstLine ? 'name' : getSectionType(trimmedLine);
+        isFirstLine = false;
         
-        if (isMarkdownHeader) {
-          const headerLevel = trimmedLine.match(/^#+/)?.[0].length || 1;
-          const text = trimmedLine.replace(/^#+\s*/, '');
-          children.push(
-            new Paragraph({
-              text: text,
-              heading: headerLevel === 1 ? HeadingLevel.HEADING_1 : headerLevel === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
-              spacing: { before: 240, after: 120 },
-            })
-          );
-        } else if (isHeader) {
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: trimmedLine, bold: true, size: 24 })],
-              spacing: { before: 240, after: 120 },
-              border: { bottom: { color: "999999", style: BorderStyle.SINGLE, size: 6 } },
-            })
-          );
-        } else if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-          // Bullet point
-          const bulletText = trimmedLine.replace(/^[•\-\*]\s*/, '');
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: bulletText, size: 22 })],
-              bullet: { level: 0 },
-              spacing: { before: 60, after: 60 },
-            })
-          );
-        } else if (trimmedLine.match(/^\d+\./)) {
-          // Numbered list
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: trimmedLine, size: 22 })],
-              spacing: { before: 60, after: 60 },
-            })
-          );
-        } else {
-          // Regular paragraph
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: trimmedLine, size: 22 })],
-              spacing: { before: 60, after: 60 },
-            })
-          );
+        switch (sectionType) {
+          case 'name':
+            // Name - large, bold, centered
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine, bold: true, size: 36, font: "Calibri" })],
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 0, after: 60 },
+              })
+            );
+            break;
+            
+          case 'contact':
+            // Contact info - centered, smaller
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine, size: 20, font: "Calibri", color: "555555" })],
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 0, after: 60 },
+              })
+            );
+            break;
+            
+          case 'section_header':
+            // Section headers - bold, with bottom border
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine.toUpperCase(), bold: true, size: 24, font: "Calibri", color: "1a365d" })],
+                spacing: { before: 300, after: 100 },
+                border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 12 } },
+              })
+            );
+            break;
+            
+          case 'job_title':
+            // Job title - bold
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine, bold: true, size: 22, font: "Calibri" })],
+                spacing: { before: 160, after: 40 },
+              })
+            );
+            break;
+            
+          case 'company':
+            // Company and dates - italic
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine, italics: true, size: 20, font: "Calibri", color: "666666" })],
+                spacing: { before: 0, after: 80 },
+              })
+            );
+            break;
+            
+          case 'bullet':
+            // Bullet points - clean formatting
+            const bulletText = trimmedLine.replace(/^[•\-\*\u2022\u2023\u25E6\u2043]\s*/, '');
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: bulletText, size: 21, font: "Calibri" })],
+                bullet: { level: 0 },
+                spacing: { before: 40, after: 40 },
+                indent: { left: 360 },
+              })
+            );
+            break;
+            
+          case 'skill_list':
+            // Skills - regular text
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine, size: 21, font: "Calibri" })],
+                spacing: { before: 60, after: 60 },
+              })
+            );
+            break;
+            
+          default:
+            // Regular paragraph
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: trimmedLine, size: 21, font: "Calibri" })],
+                spacing: { before: 60, after: 60 },
+              })
+            );
         }
       });
       
       const doc = new Document({
+        styles: {
+          paragraphStyles: [
+            {
+              id: "Normal",
+              name: "Normal",
+              run: { font: "Calibri", size: 21 },
+            },
+          ],
+        },
         sections: [{
-          properties: {},
+          properties: {
+            page: {
+              margin: { top: 720, right: 720, bottom: 720, left: 720 }, // 0.5 inch margins
+            },
+          },
           children: children,
         }],
       });
@@ -1755,7 +1863,7 @@ https://theleadersrow.com
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 mb-6">
             <Button variant="outline" onClick={handleDownloadReport}>
-              <ScrollText className="w-4 h-4 mr-2" /> Download Report
+              <ScrollText className="w-4 h-4 mr-2" /> Download ATS Report
             </Button>
             <Button variant="outline" onClick={handleCopyEnhanced}>
               <Copy className="w-4 h-4 mr-2" /> Copy Resume
