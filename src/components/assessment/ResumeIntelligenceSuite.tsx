@@ -854,7 +854,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         
         <div style="text-align: center; margin-bottom: 30px;">
           <div style="display: inline-block; padding: 20px 40px; background: linear-gradient(135deg, #f8f8f8, #fff); border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <div style="font-size: 48px; font-weight: bold; color: ${getScoreColorHex(initialScore.ats_score)};">${initialScore.ats_score}<span style="font-size: 24px; color: #999;">/100</span></div>
+            <div style="font-size: 48px; font-weight: bold; color: ${getScoreColorHex(initialScore.ats_score || 0)};">${Math.round(initialScore.ats_score || 0)}<span style="font-size: 24px; color: #999;">/100</span></div>
             <div style="color: #666; font-size: 14px;">Overall ATS Score</div>
           </div>
         </div>
@@ -882,8 +882,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         <h2 style="font-size: 18px; color: #16a34a; border-bottom: 2px solid #16a34a; padding-bottom: 8px; margin-bottom: 15px;">After Optimization</h2>
         <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
           <div style="flex: 1; text-align: center; padding: 15px; background: #f0fdf4; border-radius: 8px;">
-            <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${finalScore.ats_score}/100</div>
-            <div style="color: #666; font-size: 12px;">New Score (+${finalScore.ats_score - initialScore.ats_score})</div>
+            <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${Math.round(finalScore.ats_score || 0)}/100</div>
+            <div style="color: #666; font-size: 12px;">New Score (+${Math.round((finalScore.ats_score || 0) - (initialScore.ats_score || 0))})</div>
           </div>
         </div>
         ` : ''}
