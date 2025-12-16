@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,11 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Linkedin, ArrowLeft, ArrowRight, Sparkles, CheckCircle, 
-  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link, Briefcase
+  Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link, Briefcase,
+  Wand2, Search, CheckSquare, Square, Zap, Users, Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface LinkedInSignalScoreProps {
   onBack: () => void;
@@ -60,7 +61,51 @@ interface ImprovementSuggestions {
   }>;
 }
 
-type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "rescore-input" | "rescoring";
+interface HeadlineOption {
+  headline: string;
+  style: string;
+  whyItWorks: string;
+}
+
+interface RecruiterSimulation {
+  searchVisibility: {
+    score: number;
+    ranking: string;
+  };
+  matchingKeywords: Array<{
+    keyword: string;
+    frequency: string;
+    importance: string;
+  }>;
+  missingKeywords: Array<{
+    keyword: string;
+    searchVolume: string;
+    recommendation: string;
+  }>;
+  recruiterSearchQueries: Array<{
+    query: string;
+    wouldMatch: boolean;
+    reason: string;
+  }>;
+  inMailLikelihood: {
+    score: number;
+    factors: string[];
+  };
+  topRecommendations: Array<{
+    action: string;
+    impact: string;
+  }>;
+}
+
+interface ChecklistItem {
+  id: string;
+  label: string;
+  description: string;
+  completed: boolean;
+  action?: () => void;
+}
+
+type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "checklist" | "headlines" | "about" | "recruiter-sim" | "rescore-input" | "rescoring";
 
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
@@ -77,6 +122,63 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
+
+  // New feature states
+  const [headlineOptions, setHeadlineOptions] = useState<HeadlineOption[]>([]);
+  const [selectedHeadline, setSelectedHeadline] = useState<string>("");
+  const [generatedAbout, setGeneratedAbout] = useState<string>("");
+  const [aboutKeyElements, setAboutKeyElements] = useState<string[]>([]);
+  const [recruiterSim, setRecruiterSim] = useState<RecruiterSimulation | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [liveScorePreview, setLiveScorePreview] = useState<number | null>(null);
+
+  // Initialize checklist when suggestions are available
+  useEffect(() => {
+    if (suggestions && analysis) {
+      setChecklist([
+        {
+          id: "headline",
+          label: "Update Your Headline",
+          description: "Use our AI headline generator to create attention-grabbing options",
+          completed: false,
+          action: () => setStep("headlines")
+        },
+        {
+          id: "about",
+          label: "Rewrite Your About Section",
+          description: "Get an AI-crafted summary that tells your career story",
+          completed: false,
+          action: () => setStep("about")
+        },
+        {
+          id: "keywords",
+          label: "Add Missing Keywords",
+          description: `Add these keywords: ${suggestions.keywordAdditions.slice(0, 3).join(", ")}...`,
+          completed: false
+        },
+        {
+          id: "experience",
+          label: "Update Experience Bullets",
+          description: `${suggestions.experienceRewrites.length} bullets need improvement`,
+          completed: false
+        },
+        {
+          id: "skills",
+          label: "Add Recommended Skills",
+          description: `Add: ${suggestions.skillsToAdd.slice(0, 3).join(", ")}...`,
+          completed: false
+        },
+        {
+          id: "recruiter",
+          label: "Check Recruiter Visibility",
+          description: "See how recruiters will find your profile",
+          completed: false,
+          action: () => handleRecruiterSimulation()
+        }
+      ]);
+    }
+  }, [suggestions, analysis]);
 
   const handleFetchLinkedInProfile = async () => {
     if (!linkedinUrl.trim() || !linkedinUrl.includes("linkedin.com")) {
@@ -100,7 +202,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     } catch (error) {
       console.error("Error fetching LinkedIn profile:", error);
       toast.error("Could not fetch profile. Please paste your content manually.");
-      // Open LinkedIn profile in new tab so user can copy
       window.open(linkedinUrl, "_blank");
     } finally {
       setIsFetchingProfile(false);
@@ -131,7 +232,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setIsUploadingResume(true);
 
     try {
-      // For text files, read directly
       if (file.type === 'text/plain') {
         const text = await file.text();
         setResumeText(text);
@@ -140,7 +240,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         return;
       }
 
-      // For PDF/DOC files, use parse-resume edge function
       const formData = new FormData();
       formData.append('file', file);
 
@@ -161,7 +260,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       toast.error("Failed to process resume. Please paste the content manually.");
     } finally {
       setIsUploadingResume(false);
-      // Reset file input
       if (resumeFileInputRef.current) {
         resumeFileInputRef.current.value = "";
       }
@@ -169,7 +267,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   };
 
   const handleAnalyze = async () => {
-    // Require either profile text OR linkedin URL
     const hasProfileContent = profileText.trim().length > 0;
     const hasLinkedInUrl = linkedinUrl.trim().includes("linkedin.com");
     
@@ -183,7 +280,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       return;
     }
 
-    // If we have URL but no profile content, try to fetch it first
     if (!hasProfileContent && hasLinkedInUrl) {
       setIsFetchingProfile(true);
       try {
@@ -249,12 +345,103 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
 
       if (error) throw error;
       setSuggestions(data.suggestions);
-      setStep("suggestions");
+      setStep("checklist"); // Go to interactive checklist instead of suggestions
     } catch (error) {
       console.error("Error getting suggestions:", error);
       toast.error("Failed to generate suggestions. Please try again.");
       setStep("score");
     }
+  };
+
+  const handleGenerateHeadlines = async () => {
+    setIsGenerating(true);
+    setStep("headlines");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
+        body: {
+          linkedinUrl,
+          targetIndustry,
+          targetRole,
+          targetJobDescription,
+          profileText,
+          resumeText,
+          requestType: "generate_headlines",
+        },
+      });
+
+      if (error) throw error;
+      setHeadlineOptions(data.headlines || []);
+      updateChecklistItem("headline", true);
+    } catch (error) {
+      console.error("Error generating headlines:", error);
+      toast.error("Failed to generate headlines. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateAbout = async () => {
+    setIsGenerating(true);
+    setStep("about");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
+        body: {
+          linkedinUrl,
+          targetIndustry,
+          targetRole,
+          targetJobDescription,
+          profileText,
+          resumeText,
+          requestType: "generate_about",
+        },
+      });
+
+      if (error) throw error;
+      setGeneratedAbout(data.aboutSection || "");
+      setAboutKeyElements(data.keyElements || []);
+      updateChecklistItem("about", true);
+    } catch (error) {
+      console.error("Error generating About section:", error);
+      toast.error("Failed to generate About section. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRecruiterSimulation = async () => {
+    setIsGenerating(true);
+    setStep("recruiter-sim");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
+        body: {
+          linkedinUrl,
+          targetIndustry,
+          targetRole,
+          targetJobDescription,
+          profileText,
+          resumeText,
+          requestType: "recruiter_simulation",
+        },
+      });
+
+      if (error) throw error;
+      setRecruiterSim(data);
+      updateChecklistItem("recruiter", true);
+    } catch (error) {
+      console.error("Error running recruiter simulation:", error);
+      toast.error("Failed to run recruiter simulation. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const updateChecklistItem = (id: string, completed: boolean) => {
+    setChecklist(prev => prev.map(item => 
+      item.id === id ? { ...item, completed } : item
+    ));
   };
 
   const handleStartRescore = () => {
@@ -291,9 +478,28 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     } catch (error) {
       console.error("Error re-analyzing LinkedIn:", error);
       toast.error("Failed to re-analyze profile. Please try again.");
-      setStep("suggestions");
+      setStep("checklist");
     }
   };
+
+  // Live score preview as user types in rescore
+  useEffect(() => {
+    if (step === "rescore-input" && updatedProfileText.length > 100) {
+      const timer = setTimeout(() => {
+        // Simple heuristic: estimate score improvement based on text changes
+        if (previousAnalysis) {
+          const lengthImprovement = Math.min((updatedProfileText.length - profileText.length) / 100, 10);
+          const hasKeywords = suggestions?.keywordAdditions.some(k => 
+            updatedProfileText.toLowerCase().includes(k.toLowerCase())
+          );
+          const keywordBonus = hasKeywords ? 5 : 0;
+          const estimated = Math.min(previousAnalysis.overallScore + lengthImprovement + keywordBonus, 100);
+          setLiveScorePreview(Math.round(estimated));
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [updatedProfileText, step, previousAnalysis, profileText, suggestions]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -312,7 +518,10 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     return "from-red-500 to-red-600";
   };
 
+  const completedItems = checklist.filter(item => item.completed).length;
+  const progressPercentage = checklist.length > 0 ? (completedItems / checklist.length) * 100 : 0;
 
+  // Input step
   if (step === "input") {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-up">
@@ -332,7 +541,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             LinkedIn Profile Signal Score
           </h1>
           <p className="text-muted-foreground">
-            Get your profile scored the way recruiters see it, then get AI-powered suggestions to boost your visibility.
+            Get your profile scored the way recruiters see it, then use our AI tools to boost your visibility.
           </p>
         </div>
 
@@ -371,9 +580,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Click to auto-generate profile content from your LinkedIn URL
-              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -405,25 +611,18 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 onChange={(e) => setTargetJobDescription(e.target.value)}
                 className="min-h-[100px]"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Adding a job description helps AI tailor suggestions to specific role requirements
-              </p>
             </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">
                 Profile Content {!linkedinUrl.includes("linkedin.com") && <span className="text-destructive">*</span>}
-                {linkedinUrl.includes("linkedin.com") && <span className="text-muted-foreground text-xs ml-1">(optional if URL provided)</span>}
               </label>
               <Textarea
-                placeholder="Click 'Fetch Profile' above to auto-fill, or paste your LinkedIn headline, about section, and experience here..."
+                placeholder="Click 'Fetch Profile' above or paste your LinkedIn headline, about section, and experience here..."
                 value={profileText}
                 onChange={(e) => setProfileText(e.target.value)}
                 className="min-h-[180px]"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                {profileText ? "Review and edit if needed" : "Will be auto-generated from URL if not provided"}
-              </p>
             </div>
 
             <div className="border-t border-border pt-4">
@@ -432,7 +631,6 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 Your Resume (optional but recommended)
               </label>
               
-              {/* File Upload Option */}
               <div className="flex gap-2 mb-2">
                 <input
                   type="file"
@@ -461,29 +659,21 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 </Button>
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">or paste text</span>
-                </div>
-              </div>
+              {resumeText && (
+                <p className="text-xs text-green-600 mb-2">✓ Resume loaded ({resumeText.length} characters)</p>
+              )}
 
               <Textarea
-                placeholder="Paste your resume text here..."
+                placeholder="Or paste your resume text here..."
                 value={resumeText}
                 onChange={(e) => setResumeText(e.target.value)}
-                className="min-h-[120px] mt-2"
+                className="min-h-[100px]"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Including your resume enables AI to suggest specific experience bullets from your actual work history
-              </p>
             </div>
 
             <Button onClick={handleAnalyze} className="w-full" size="lg">
+              <Sparkles className="w-4 h-4 mr-2" />
               Analyze My Profile
-              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </CardContent>
         </Card>
@@ -491,6 +681,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     );
   }
 
+  // Loading states
   if (step === "analyzing" || step === "improving" || step === "rescoring") {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center animate-fade-up">
@@ -498,70 +689,20 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
         </div>
         <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
-          {step === "analyzing" ? "Analyzing Your Profile" : step === "improving" ? "Generating AI Suggestions" : "Re-Scoring Your Profile"}
+          {step === "analyzing" ? "Analyzing Your Profile" : step === "improving" ? "Creating Your Optimization Plan" : "Re-Scoring Your Profile"}
         </h2>
         <p className="text-muted-foreground">
           {step === "analyzing" 
             ? "Our AI is reviewing your profile through the lens of a recruiter..."
             : step === "improving"
-            ? "Creating personalized recommendations to boost your visibility..."
+            ? "Building personalized recommendations to maximize your visibility..."
             : "Comparing your updated profile against the previous version..."}
         </p>
       </div>
     );
   }
 
-  if (step === "rescore-input") {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-up">
-        <button
-          onClick={() => setStep("suggestions")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Suggestions
-        </button>
-
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-            <RefreshCw className="w-8 h-8 text-green-600" />
-          </div>
-          <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-            Re-Score Your Updated Profile
-          </h1>
-          <p className="text-muted-foreground">
-            Paste your updated LinkedIn profile to see your new score and improvement.
-          </p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Updated Profile Content</CardTitle>
-            <CardDescription>
-              After updating your LinkedIn with the suggestions, paste your new profile content here to see your improved score.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Updated Profile Content *</label>
-              <Textarea
-                placeholder="Paste your updated LinkedIn headline, about section, and experience bullets here..."
-                value={updatedProfileText}
-                onChange={(e) => setUpdatedProfileText(e.target.value)}
-                className="min-h-[250px]"
-              />
-            </div>
-
-            <Button onClick={handleRescore} className="w-full" size="lg">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Re-Score My Profile
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // Score display
   if (step === "score" && analysis) {
     const scoreImprovement = previousAnalysis ? analysis.overallScore - previousAnalysis.overallScore : null;
     
@@ -583,101 +724,22 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           </div>
           <p className="text-muted-foreground mt-2">out of 100</p>
           
-          {/* Potential Improvement Badge */}
           {analysis.potentialImprovement && analysis.potentialImprovement > 0 && !previousAnalysis && (
             <div className="mt-4 inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 px-4 py-2 rounded-full">
               <TrendingUp className="w-4 h-4" />
               <span className="font-semibold">
                 +{analysis.potentialImprovement}% improvement possible
-                {analysis.projectedScoreAfterChanges && (
-                  <span className="text-blue-500 ml-1">
-                    → {Math.min(analysis.projectedScoreAfterChanges, 100)}/100
-                  </span>
-                )}
               </span>
             </div>
           )}
           
-          {/* Score improvement after re-scoring */}
           {scoreImprovement !== null && scoreImprovement > 0 && (
             <div className="mt-3 inline-flex items-center gap-2 bg-green-500/10 text-green-600 px-4 py-2 rounded-full">
               <TrendingUp className="w-4 h-4" />
               <span className="font-semibold">+{scoreImprovement} points improvement!</span>
             </div>
           )}
-          {previousAnalysis && (
-            <p className="text-sm text-muted-foreground mt-2">
-              Previous score: {Math.min(previousAnalysis.overallScore, 100)}
-            </p>
-          )}
         </div>
-
-        {/* Visual Comparison Chart */}
-        {suggestions?.projectedScoreIncrease && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                Current vs Projected Scores
-              </CardTitle>
-              <CardDescription>
-                See how your profile could improve with AI suggestions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={Object.entries(analysis.dimensions).map(([key, value]) => ({
-                      name: key.replace(/([A-Z])/g, ' $1').trim().replace('Score', ''),
-                      current: value.score,
-                      projected: Math.min(suggestions.projectedScoreIncrease[key as keyof typeof suggestions.projectedScoreIncrease] || value.score, 100),
-                    }))}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 11 }} 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                    />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          const current = payload[0]?.value as number;
-                          const projected = payload[1]?.value as number;
-                          const improvement = projected - current;
-                          return (
-                            <div className="bg-background border rounded-lg p-3 shadow-lg">
-                              <p className="font-medium text-sm mb-2">{label}</p>
-                              <p className="text-sm text-muted-foreground">Current: <span className="font-bold text-foreground">{current}</span></p>
-                              <p className="text-sm text-muted-foreground">Projected: <span className="font-bold text-green-600">{projected}</span></p>
-                              {improvement > 0 && (
-                                <p className="text-xs text-green-600 mt-1">+{improvement} improvement</p>
-                              )}
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="current" name="Current Score" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="projected" name="Projected Score" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Potential overall improvement: <span className="font-bold text-green-600">+{Math.round(suggestions.projectedScoreIncrease.projectedOverallScore - analysis.overallScore)} points</span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Dimension Scores */}
         <Card className="mb-6">
@@ -688,44 +750,20 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Object.entries(analysis.dimensions).map(([key, value]) => {
-              const projectedScore = suggestions?.projectedScoreIncrease?.[key as keyof typeof suggestions.projectedScoreIncrease];
-              const improvement = projectedScore ? Math.min(projectedScore, 100) - value.score : 0;
-              
-              return (
-                <div key={key}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${getScoreColor(value.score)}`}>
-                        {value.score}
-                      </span>
-                      {improvement > 0 && (
-                        <span className="text-xs text-green-600 flex items-center gap-0.5">
-                          <TrendingUp className="w-3 h-3" />
-                          +{improvement}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <Progress value={value.score} className="h-2 mb-1" />
-                    {improvement > 0 && (
-                      <div 
-                        className="absolute top-0 h-2 bg-green-500/30 rounded-full"
-                        style={{ 
-                          left: `${value.score}%`, 
-                          width: `${improvement}%` 
-                        }}
-                      />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{value.analysis}</p>
+            {Object.entries(analysis.dimensions).map(([key, value]) => (
+              <div key={key}>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm font-medium capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </span>
+                  <span className={`text-sm font-bold ${getScoreColor(value.score)}`}>
+                    {value.score}
+                  </span>
                 </div>
-              );
-            })}
+                <Progress value={value.score} className="h-2 mb-1" />
+                <p className="text-xs text-muted-foreground">{value.analysis}</p>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -784,18 +822,17 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </Card>
 
         {/* Get AI Help CTA */}
-        <Card className="border-2 border-blue-500/30 bg-gradient-to-r from-blue-500/5 to-transparent">
+        <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
           <CardContent className="py-6 text-center">
-            <Sparkles className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Want to Improve Your Score?</h3>
+            <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h3 className="font-semibold text-lg mb-2">Ready to Boost Your Score?</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Get AI-powered suggestions including a new headline, about section rewrites, 
-              and keyword optimizations tailored to your target role.
-              {resumeText && " Your resume will be used to suggest specific experience bullets."}
+              Get a personalized optimization checklist with AI-powered tools to rewrite your headline, 
+              about section, and see how recruiters will find you.
             </p>
-            <Button onClick={handleGetSuggestions} size="lg">
+            <Button onClick={handleGetSuggestions} size="lg" className="bg-primary hover:bg-primary/90">
               <Sparkles className="w-4 h-4 mr-2" />
-              Get AI Improvement Suggestions
+              Get My Optimization Plan
             </Button>
           </CardContent>
         </Card>
@@ -803,9 +840,8 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     );
   }
 
-  if (step === "suggestions" && suggestions && analysis) {
-    const projectedIncrease = suggestions.projectedScoreIncrease.projectedOverallScore - analysis.overallScore;
-
+  // Interactive Checklist
+  if (step === "checklist" && suggestions && analysis) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
         <button
@@ -816,202 +852,579 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           Back to Score
         </button>
 
-        {/* Projected Score Improvement */}
-        <div className="text-center mb-8 p-6 rounded-xl bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20">
-          <h1 className="text-xl font-serif font-bold text-foreground mb-4">Projected Score After Changes</h1>
-          <div className="flex items-center justify-center gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-muted-foreground">{analysis.overallScore}</div>
-              <p className="text-xs text-muted-foreground">Current</p>
-            </div>
-            <TrendingUp className="w-8 h-8 text-green-500" />
-            <div className="text-center">
-              <div className="text-5xl font-bold text-green-500">
-                {suggestions.projectedScoreIncrease.projectedOverallScore}
-              </div>
-              <p className="text-xs text-muted-foreground">Projected</p>
-            </div>
-          </div>
-          <p className="text-sm text-green-600 mt-2 font-medium">
-            +{projectedIncrease} points with these improvements
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-serif font-bold text-foreground mb-2">Your Profile Optimization Checklist</h1>
+          <p className="text-muted-foreground mb-4">
+            Complete each step to maximize your LinkedIn visibility
           </p>
+          <div className="flex items-center justify-center gap-4">
+            <Progress value={progressPercentage} className="w-48 h-3" />
+            <span className="text-sm font-medium">{completedItems}/{checklist.length} complete</span>
+          </div>
         </div>
 
-        {/* Priority Actions */}
+        <div className="space-y-3 mb-8">
+          {checklist.map((item, index) => (
+            <Card 
+              key={item.id} 
+              className={`cursor-pointer transition-all ${item.completed ? 'bg-green-500/5 border-green-500/30' : 'hover:border-primary/50'}`}
+              onClick={() => item.action?.()}
+            >
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="flex-shrink-0">
+                  {item.completed ? (
+                    <CheckSquare className="w-6 h-6 text-green-500" />
+                  ) : (
+                    <Square className="w-6 h-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className={`font-medium ${item.completed ? 'text-green-700 line-through' : ''}`}>
+                    {index + 1}. {item.label}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
+                {item.action && !item.completed && (
+                  <Button size="sm" variant="outline">
+                    <Wand2 className="w-4 h-4 mr-1" />
+                    Start
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <Card className="cursor-pointer hover:border-blue-500/50 transition-all" onClick={handleGenerateHeadlines}>
+            <CardContent className="p-4 text-center">
+              <Wand2 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <h3 className="font-medium text-sm">AI Headlines</h3>
+              <p className="text-xs text-muted-foreground">Generate 5 options</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:border-purple-500/50 transition-all" onClick={handleGenerateAbout}>
+            <CardContent className="p-4 text-center">
+              <MessageSquare className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+              <h3 className="font-medium text-sm">AI About Section</h3>
+              <p className="text-xs text-muted-foreground">Write my summary</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:border-green-500/50 transition-all" onClick={handleRecruiterSimulation}>
+            <CardContent className="p-4 text-center">
+              <Search className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <h3 className="font-medium text-sm">Recruiter Sim</h3>
+              <p className="text-xs text-muted-foreground">See how I appear</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* View All Suggestions */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-blue-600" />
-              Priority Actions
-            </CardTitle>
+            <CardTitle className="text-sm">Quick Copy: Keywords & Skills to Add</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {suggestions.priorityActions.map((action, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    action.impact === 'high' ? 'bg-red-500/20 text-red-600' : 'bg-yellow-500/20 text-yellow-600'
-                  }`}>
-                    {action.impact}
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground mb-2">Keywords:</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.keywordAdditions.map((keyword, i) => (
+                  <span 
+                    key={i} 
+                    className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full cursor-pointer hover:bg-blue-500/20"
+                    onClick={() => copyToClipboard(keyword, "Keyword")}
+                  >
+                    {keyword}
                   </span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{action.action}</p>
-                    <p className="text-xs text-muted-foreground">{action.timeToComplete}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Suggested Headline */}
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-blue-600" />
-                Suggested Headline
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => copyToClipboard(suggestions.suggestedHeadline, "Headline")}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm bg-muted/50 p-3 rounded-lg font-medium">{suggestions.suggestedHeadline}</p>
-          </CardContent>
-        </Card>
-
-        {/* Suggested About Section */}
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-blue-600" />
-                Suggested About Section
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => copyToClipboard(suggestions.suggestedAbout, "About section")}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm bg-muted/50 p-3 rounded-lg whitespace-pre-line">{suggestions.suggestedAbout}</p>
-          </CardContent>
-        </Card>
-
-        {/* Keywords to Add */}
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Keywords to Add</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {suggestions.keywordAdditions.map((keyword, i) => (
-                <span key={i} className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full">
-                  {keyword}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Experience Rewrites */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-sm">Experience Rewrites</CardTitle>
-            <CardDescription>
-              {resumeText ? "Based on your resume and LinkedIn profile" : "Based on your LinkedIn profile"}
-              {targetJobDescription && " — tailored to your target job"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {suggestions.experienceRewrites.map((rewrite, i) => (
-              <div key={i} className="border border-border rounded-lg overflow-hidden">
-                {/* Experience identifier */}
-                <div className="px-3 py-2 bg-blue-500/10 border-b border-border">
-                  <p className="text-sm font-semibold text-blue-700 flex items-center gap-2">
-                    <Briefcase className="w-4 h-4" />
-                    {rewrite.companyRole || `Experience ${i + 1}`}
-                  </p>
-                </div>
-                <div className="p-3 bg-red-500/5 border-b border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Before:</p>
-                  <p className="text-sm line-through opacity-70">{rewrite.original}</p>
-                </div>
-                <div className="p-3 bg-green-500/5">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs text-muted-foreground">After:</p>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="h-6 px-2"
-                      onClick={() => copyToClipboard(rewrite.improved, "Experience bullet")}
-                    >
-                      <Copy className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <p className="text-sm font-medium text-green-700">{rewrite.improved}</p>
-                  <p className="text-xs text-muted-foreground mt-2 italic">{rewrite.whyBetter}</p>
-                </div>
+                ))}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Skills to Add */}
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Skills to Add</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {suggestions.skillsToAdd.map((skill, i) => (
-                <span key={i} className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-1 rounded-full">
-                  {skill}
-                </span>
-              ))}
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Skills:</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.skillsToAdd.map((skill, i) => (
+                  <span 
+                    key={i} 
+                    className="text-xs bg-purple-500/10 text-purple-600 px-2 py-1 rounded-full cursor-pointer hover:bg-purple-500/20"
+                    onClick={() => copyToClipboard(skill, "Skill")}
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Re-Score CTA */}
-        <Card className="mb-6 border-2 border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent">
+        <Card className="border-2 border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent">
           <CardContent className="py-6 text-center">
             <RefreshCw className="w-8 h-8 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Updated Your LinkedIn?</h3>
+            <h3 className="font-semibold text-lg mb-2">Made Changes? Re-Score!</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              After making changes to your LinkedIn profile, come back and re-score to see your improvement!
+              After updating your LinkedIn, come back and see your improvement!
             </p>
             <Button onClick={handleStartRescore} size="lg" variant="outline" className="border-green-500/50 hover:bg-green-500/10">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Re-Score My Updated Profile
+              Re-Score My Profile
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
 
-        {/* Analyze Another */}
-        <div className="text-center">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setAnalysis(null);
-              setSuggestions(null);
-              setPreviousAnalysis(null);
-              setStep("input");
-            }}
-          >
-            Analyze Another Profile
-          </Button>
+  // AI Headline Generator
+  if (step === "headlines") {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        <button
+          onClick={() => setStep("checklist")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Checklist
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+            <Wand2 className="w-8 h-8 text-blue-600" />
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground mb-2">AI Headline Generator</h1>
+          <p className="text-muted-foreground">
+            Choose from 5 attention-grabbing headline options tailored for {targetRole}
+          </p>
         </div>
+
+        {isGenerating ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Crafting your perfect headlines...</p>
+          </div>
+        ) : headlineOptions.length > 0 ? (
+          <div className="space-y-4">
+            {headlineOptions.map((option, i) => (
+              <Card 
+                key={i} 
+                className={`cursor-pointer transition-all ${selectedHeadline === option.headline ? 'border-blue-500 bg-blue-500/5' : 'hover:border-blue-500/50'}`}
+                onClick={() => setSelectedHeadline(option.headline)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full">
+                          {option.style}
+                        </span>
+                        {selectedHeadline === option.headline && (
+                          <CheckCircle className="w-4 h-4 text-blue-600" />
+                        )}
+                      </div>
+                      <p className="font-medium text-lg mb-2">{option.headline}</p>
+                      <p className="text-sm text-muted-foreground">{option.whyItWorks}</p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(option.headline, "Headline");
+                      }}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            <div className="flex gap-4 mt-6">
+              <Button variant="outline" onClick={handleGenerateHeadlines} className="flex-1">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Generate More
+              </Button>
+              <Button onClick={() => setStep("checklist")} className="flex-1">
+                Continue to Checklist
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Wand2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Ready to Generate Headlines?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our AI will create 5 unique headline options optimized for your target role.
+              </p>
+              <Button onClick={handleGenerateHeadlines} size="lg">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate Headlines
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // AI About Section Writer
+  if (step === "about") {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        <button
+          onClick={() => setStep("checklist")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Checklist
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="w-8 h-8 text-purple-600" />
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground mb-2">AI About Section Writer</h1>
+          <p className="text-muted-foreground">
+            A compelling summary crafted to tell your career story
+          </p>
+        </div>
+
+        {isGenerating ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-10 h-10 text-purple-600 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Writing your perfect About section...</p>
+          </div>
+        ) : generatedAbout ? (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">Your New About Section</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => copyToClipboard(generatedAbout, "About section")}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-line text-sm">
+                  {generatedAbout}
+                </div>
+              </CardContent>
+            </Card>
+
+            {aboutKeyElements.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Key Elements Included</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {aboutKeyElements.map((element, i) => (
+                      <span key={i} className="text-xs bg-purple-500/10 text-purple-600 px-2 py-1 rounded-full">
+                        ✓ {element}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={handleGenerateAbout} className="flex-1">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Regenerate
+              </Button>
+              <Button onClick={() => setStep("checklist")} className="flex-1">
+                Continue to Checklist
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Ready to Write Your About Section?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our AI will craft a compelling summary based on your experience and target role.
+              </p>
+              <Button onClick={handleGenerateAbout} size="lg">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Write My About Section
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // Recruiter Search Simulation
+  if (step === "recruiter-sim") {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        <button
+          onClick={() => setStep("checklist")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Checklist
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground mb-2">Recruiter Search Simulation</h1>
+          <p className="text-muted-foreground">
+            See how recruiters will find your profile in their searches
+          </p>
+        </div>
+
+        {isGenerating ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-10 h-10 text-green-600 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Simulating recruiter searches...</p>
+          </div>
+        ) : recruiterSim ? (
+          <div className="space-y-6">
+            {/* Search Visibility Score */}
+            <Card className="border-green-500/30 bg-green-500/5">
+              <CardContent className="py-6 text-center">
+                <div className="text-5xl font-bold text-green-600 mb-2">
+                  {recruiterSim.searchVisibility.score}
+                </div>
+                <p className="text-sm text-muted-foreground">Search Visibility Score</p>
+                <p className="text-sm font-medium text-green-600 mt-1">
+                  You rank in the {recruiterSim.searchVisibility.ranking} of profiles
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* InMail Likelihood */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-600" />
+                  InMail Likelihood: {recruiterSim.inMailLikelihood.score}%
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Progress value={recruiterSim.inMailLikelihood.score} className="h-2 mb-3" />
+                <div className="flex flex-wrap gap-2">
+                  {recruiterSim.inMailLikelihood.factors.map((factor, i) => (
+                    <span key={i} className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full">
+                      {factor}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Matching Keywords */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  Matching Keywords (Found in Your Profile)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {recruiterSim.matchingKeywords.map((kw, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{kw.keyword}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground text-xs">{kw.frequency}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          kw.importance === 'high' ? 'bg-green-500/10 text-green-600' : 
+                          kw.importance === 'medium' ? 'bg-yellow-500/10 text-yellow-600' : 
+                          'bg-gray-500/10 text-gray-600'
+                        }`}>
+                          {kw.importance}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Missing Keywords */}
+            <Card className="border-red-500/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  Missing Keywords (Add These!)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recruiterSim.missingKeywords.map((kw, i) => (
+                    <div key={i} className="p-3 bg-red-500/5 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm">{kw.keyword}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          kw.searchVolume === 'high' ? 'bg-red-500/10 text-red-600' : 'bg-yellow-500/10 text-yellow-600'
+                        }`}>
+                          {kw.searchVolume} search volume
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{kw.recommendation}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recruiter Search Queries */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Search className="w-4 h-4 text-blue-600" />
+                  Sample Recruiter Searches
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recruiterSim.recruiterSearchQueries.map((query, i) => (
+                    <div key={i} className="p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code className="text-xs bg-background px-2 py-1 rounded">{query.query}</code>
+                        {query.wouldMatch ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-red-500" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{query.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Recommendations */}
+            <Card className="border-2 border-primary/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Star className="w-4 h-4 text-primary" />
+                  Top Recommendations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {recruiterSim.topRecommendations.map((rec, i) => (
+                    <div key={i} className="flex items-start gap-3 p-2">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium">{rec.action}</p>
+                        <p className="text-xs text-muted-foreground">{rec.impact}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button onClick={() => setStep("checklist")} className="w-full">
+              Back to Optimization Checklist
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Ready to Simulate Recruiter Searches?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                See exactly which keywords will help recruiters find your profile.
+              </p>
+              <Button onClick={handleRecruiterSimulation} size="lg">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Run Simulation
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // Re-score input with live preview
+  if (step === "rescore-input") {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-up">
+        <button
+          onClick={() => setStep("checklist")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Checklist
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+            <RefreshCw className="w-8 h-8 text-green-600" />
+          </div>
+          <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+            Re-Score Your Updated Profile
+          </h1>
+          <p className="text-muted-foreground">
+            Paste your updated LinkedIn profile to see your new score
+          </p>
+        </div>
+
+        {/* Live Score Preview */}
+        {liveScorePreview && previousAnalysis && (
+          <Card className="mb-6 border-green-500/30 bg-green-500/5">
+            <CardContent className="py-4 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Estimated Score Preview</p>
+              <div className="flex items-center justify-center gap-4">
+                <span className="text-2xl text-muted-foreground">{previousAnalysis.overallScore}</span>
+                <TrendingUp className="w-5 h-5 text-green-500" />
+                <span className="text-3xl font-bold text-green-600">{liveScorePreview}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                (Actual score calculated after submission)
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Updated Profile Content</CardTitle>
+            <CardDescription>
+              After updating your LinkedIn with the suggestions, paste your new profile content here.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Updated Profile Content *</label>
+              <Textarea
+                placeholder="Paste your updated LinkedIn headline, about section, and experience bullets here..."
+                value={updatedProfileText}
+                onChange={(e) => setUpdatedProfileText(e.target.value)}
+                className="min-h-[250px]"
+              />
+            </div>
+
+            <Button onClick={handleRescore} className="w-full" size="lg">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Re-Score My Profile
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
