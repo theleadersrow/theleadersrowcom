@@ -1143,20 +1143,21 @@ https://theleadersrow.com
           {/* Self-Projection Field */}
           <Card className="p-4 mb-6 border-primary/30 bg-primary/5">
             <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" /> How Do You Want to Be Perceived?
+              <Sparkles className="w-4 h-4 text-primary" /> Define Your Professional Brand
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Tell us about your professional identity, strengths, and how you want hiring managers to see you. 
-              This helps our AI craft content that authentically represents YOU while maximizing ATS scores.
+              To stand out in the marketplace, we need to know how you want to be positioned. Share your unique strengths, 
+              leadership style, and the value you bring—this helps us craft a resume that authentically represents your brand 
+              to hiring managers and recruiters.
             </p>
             <Textarea
-              placeholder="Example: I'm a strategic product manager who thrives at turning ambiguous problems into clear roadmaps. I'm known for building strong cross-functional relationships and driving measurable outcomes. I want to be seen as a leader who combines data-driven decision making with strong customer empathy..."
+              placeholder="Example: I'm a strategic product manager who turns ambiguous problems into clear, actionable roadmaps. My superpower is building trust across engineering, design, and business teams to drive outcomes that matter. I want to be known as a data-informed leader with deep customer empathy who consistently delivers impact..."
               value={selfProjection}
               onChange={(e) => setSelfProjection(e.target.value)}
               className="min-h-[120px] text-sm"
             />
             <p className="text-xs text-muted-foreground mt-2 italic">
-              The more specific you are, the more personalized and authentic your enhanced resume will feel.
+              The more specific you are, the more powerfully your resume will position you in the marketplace.
             </p>
           </Card>
 
