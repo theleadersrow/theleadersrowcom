@@ -13,8 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { RefreshCw, FileText, Linkedin, XCircle, Clock, CheckCircle, AlertCircle, Mail, CalendarClock } from "lucide-react";
-import { format, formatDistanceToNow, isPast, differenceInDays, addDays } from "date-fns";
+import { RefreshCw, FileText, Linkedin, XCircle, Clock, CheckCircle, AlertCircle, Mail, CalendarClock, Send } from "lucide-react";
+import { format, formatDistanceToNow, isPast, differenceInDays } from "date-fns";
 
 interface ToolPurchase {
   id: string;
@@ -94,6 +94,23 @@ export function ToolPurchasesTab() {
     } catch (error) {
       console.error("Error expiring purchases:", error);
       toast.error("Failed to expire purchases");
+    }
+  };
+
+  const sendManualReminder = async (purchaseId: string, email: string) => {
+    try {
+      toast.loading("Sending reminder...", { id: "reminder" });
+      const { data, error } = await supabase.functions.invoke("send-expiry-reminders", {
+        body: { purchase_id: purchaseId },
+      });
+
+      if (error) throw error;
+      
+      toast.success(`Reminder sent to ${email}`, { id: "reminder" });
+      fetchPurchases();
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      toast.error("Failed to send reminder", { id: "reminder" });
     }
   };
 
@@ -339,16 +356,30 @@ export function ToolPurchasesTab() {
                         <Badge variant="outline">{purchase.usage_count} times</Badge>
                       </TableCell>
                       <TableCell>
-                        {purchase.status === "active" && !isPast(new Date(purchase.expires_at)) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => cancelPurchase(purchase.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {purchase.status === "active" && !isPast(new Date(purchase.expires_at)) && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => sendManualReminder(purchase.id, purchase.email)}
+                                className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                title="Send reminder email"
+                              >
+                                <Send className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => cancelPurchase(purchase.id)}
+                                className="text-destructive hover:text-destructive"
+                                title="Cancel purchase"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
