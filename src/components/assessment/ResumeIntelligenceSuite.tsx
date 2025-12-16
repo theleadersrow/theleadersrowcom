@@ -429,20 +429,24 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     try {
       // Use the improved parseResumeContent function
       const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
-      const lines = content.split('\n').filter(l => l.trim());
+      const lines = content.split('\n');
       
-      // Check if we have structured data
-      const hasGoodData = experiences.length > 0 || summary.length > 50;
+      // Check if we have structured data (experiences are key)
+      const hasStructuredData = experiences.length > 0;
       
-      if (!hasGoodData) {
-        // Fallback: create a clean single-column DOCX from raw content
+      if (!hasStructuredData) {
+        // Fallback: create a clean single-column DOCX from ALL raw content
         const children: Paragraph[] = [];
         let isFirstLine = true;
-        let currentSection = "";
         
         lines.forEach((line, idx) => {
           const trimmed = line.trim();
-          if (!trimmed) return;
+          
+          // Add spacing for empty lines
+          if (!trimmed) {
+            children.push(new Paragraph({ text: "", spacing: { before: 60 } }));
+            return;
+          }
           
           // Name (first line)
           if (isFirstLine) {
@@ -456,7 +460,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           }
           
           // Contact info (early lines with email/phone)
-          if (idx < 5 && (trimmed.includes('@') || trimmed.match(/\d{3}/))) {
+          if (idx < 8 && (trimmed.includes('@') || trimmed.match(/\d{3}[-.\s]?\d{3}/))) {
             children.push(new Paragraph({
               children: [new TextRun({ text: trimmed, size: 20, font: "Calibri", color: "666666" })],
               alignment: AlignmentType.CENTER,
@@ -472,21 +476,20 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               spacing: { before: 280, after: 80 },
               border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 8 } }
             }));
-            currentSection = trimmed;
             return;
           }
           
           // Bullet points
-          if (/^[•\-\*▪]/.test(trimmed)) {
+          if (/^[•\-\*▪◦‣→]/.test(trimmed)) {
             children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed.replace(/^[•\-\*▪]\s*/, ''), size: 21, font: "Calibri" })],
+              children: [new TextRun({ text: trimmed.replace(/^[•\-\*▪◦‣→]\s*/, ''), size: 21, font: "Calibri" })],
               bullet: { level: 0 },
               spacing: { before: 30, after: 30 }
             }));
             return;
           }
           
-          // Regular text
+          // Regular text - include everything
           children.push(new Paragraph({
             children: [new TextRun({ text: trimmed, size: 21, font: "Calibri" })],
             spacing: { before: 50, after: 50 }
@@ -801,7 +804,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
   };
 
-  // Parse resume content into structured sections - improved parsing
+  // Parse resume content into structured sections - comprehensive parsing
   const parseResumeContent = (content: string) => {
     const lines = content.split('\n');
     let name = "";
@@ -815,6 +818,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     let currentSection = "";
     let currentExperience: { title: string; company: string; dates: string; bullets: string[] } | null = null;
     let summaryLines: string[] = [];
+    let pendingText: string[] = [];
     
     const sectionHeaders = {
       summary: /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$/i,
@@ -823,6 +827,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       education: /^EDUCATION|^ACADEMIC|^QUALIFICATIONS$/i,
       achievements: /^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i
     };
+
+    const datePattern = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
 
     lines.forEach((line, index) => {
       const trimmed = line.trim();
@@ -836,36 +842,59 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         return;
       }
       
-      // Contact info detection (within first 8 lines)
-      if (index < 8 && (cleanLine.includes('@') || cleanLine.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) || cleanLine.toLowerCase().includes('linkedin.com'))) {
-        // Split by common delimiters and add each part
+      // Contact info detection (within first 10 lines)
+      if (index < 10 && (cleanLine.includes('@') || cleanLine.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) || cleanLine.toLowerCase().includes('linkedin.com'))) {
         const parts = cleanLine.split(/[|•·]/).map(p => p.trim()).filter(p => p);
         contactInfo.push(...parts);
         return;
       }
       
-      // Headline detection (line after name, before sections)
-      if (!headline && index < 5 && !currentSection && cleanLine.length < 100 && !cleanLine.includes('@')) {
-        if (cleanLine.match(/Manager|Engineer|Developer|Designer|Analyst|Director|Lead|Specialist|Consultant|Executive/i)) {
+      // Headline detection
+      if (!headline && index < 6 && !currentSection && cleanLine.length < 100 && !cleanLine.includes('@')) {
+        if (cleanLine.match(/Manager|Engineer|Developer|Designer|Analyst|Director|Lead|Specialist|Consultant|Executive|Product|Senior|Principal/i)) {
           headline = cleanLine;
           return;
         }
       }
       
       // Section header detection
-      if (sectionHeaders.summary.test(cleanLine)) { currentSection = 'summary'; return; }
-      if (sectionHeaders.experience.test(cleanLine)) { 
-        if (currentExperience) experiences.push(currentExperience);
+      const cleanUpper = cleanLine.toUpperCase();
+      if (sectionHeaders.summary.test(cleanLine) || sectionHeaders.summary.test(cleanUpper)) { 
+        currentSection = 'summary'; 
+        return; 
+      }
+      if (sectionHeaders.experience.test(cleanLine) || sectionHeaders.experience.test(cleanUpper)) { 
+        if (currentExperience && currentExperience.title) {
+          experiences.push(currentExperience);
+        }
         currentExperience = null;
         currentSection = 'experience'; 
         return; 
       }
-      if (sectionHeaders.skills.test(cleanLine)) { currentSection = 'skills'; return; }
-      if (sectionHeaders.education.test(cleanLine)) { currentSection = 'education'; return; }
-      if (sectionHeaders.achievements.test(cleanLine)) { currentSection = 'achievements'; return; }
-      
-      // Skip pure section headers
-      if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 30) return;
+      if (sectionHeaders.skills.test(cleanLine) || sectionHeaders.skills.test(cleanUpper)) { 
+        if (currentExperience && currentExperience.title) {
+          experiences.push(currentExperience);
+          currentExperience = null;
+        }
+        currentSection = 'skills'; 
+        return; 
+      }
+      if (sectionHeaders.education.test(cleanLine) || sectionHeaders.education.test(cleanUpper)) { 
+        if (currentExperience && currentExperience.title) {
+          experiences.push(currentExperience);
+          currentExperience = null;
+        }
+        currentSection = 'education'; 
+        return; 
+      }
+      if (sectionHeaders.achievements.test(cleanLine) || sectionHeaders.achievements.test(cleanUpper)) { 
+        if (currentExperience && currentExperience.title) {
+          experiences.push(currentExperience);
+          currentExperience = null;
+        }
+        currentSection = 'achievements'; 
+        return; 
+      }
       
       // Process based on current section
       switch (currentSection) {
@@ -877,59 +906,71 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           
         case 'experience':
           const isBullet = /^[•\-\*▪◦‣→]/.test(cleanLine);
-          const datePattern = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
           const hasDate = datePattern.test(cleanLine);
-          const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
+          const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
           
-          if (isBullet && currentExperience) {
+          if (isBullet) {
+            // Always add bullets to current experience or create one
+            if (!currentExperience) {
+              currentExperience = { title: "Position", company: "", dates: "", bullets: [] };
+            }
             currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
-          } else if (isJobTitle && !isBullet) {
-            if (currentExperience && currentExperience.bullets.length > 0) {
+          } else if (isJobTitle || hasDate) {
+            // Save current experience if it has content
+            if (currentExperience && (currentExperience.title !== "Position" || currentExperience.bullets.length > 0)) {
               experiences.push(currentExperience);
             }
             const dateMatch = cleanLine.match(datePattern);
             currentExperience = {
-              title: cleanLine.replace(datePattern, '').replace(/[|,].*$/, '').trim(),
+              title: cleanLine.replace(datePattern, '').replace(/[|,]\s*$/, '').trim() || "Position",
               company: '',
               dates: dateMatch ? dateMatch[0] : '',
               bullets: []
             };
-          } else if (currentExperience && !currentExperience.company && cleanLine.length > 3 && !isBullet) {
-            // This might be company info
+          } else if (currentExperience && !currentExperience.company && cleanLine.length > 3 && cleanLine.length < 100) {
+            // This is likely company info
             const dateMatch = cleanLine.match(datePattern);
             if (dateMatch && !currentExperience.dates) {
               currentExperience.dates = dateMatch[0];
               currentExperience.company = cleanLine.replace(datePattern, '').replace(/[|,]\s*$/, '').trim();
-            } else if (!hasDate) {
+            } else {
               currentExperience.company = cleanLine.split(/[|,]/)[0].trim();
             }
+          } else if (currentExperience && cleanLine.length > 10) {
+            // Treat as a bullet point even without bullet character
+            currentExperience.bullets.push(cleanLine);
           }
           break;
           
         case 'skills':
-          // Handle various skill formats
-          const skillItems = cleanLine.split(/[,;|•·]/).map(s => s.trim()).filter(s => s.length > 1 && s.length < 50);
+          const skillItems = cleanLine.split(/[,;|•·]/).map(s => s.trim()).filter(s => s.length > 1 && s.length < 60);
           if (skillItems.length > 0) {
             skills.push(...skillItems);
-          } else if (cleanLine.length > 2 && cleanLine.length < 50) {
+          } else if (cleanLine.length > 2 && cleanLine.length < 60) {
             skills.push(cleanLine);
           }
           break;
           
         case 'education':
-          if (cleanLine.length > 5 && !cleanLine.match(/^[A-Z\s&]+$/)) {
-            education.push({ 
-              degree: cleanLine, 
-              school: '', 
-              dates: '' 
-            });
+          if (cleanLine.length > 5) {
+            education.push({ degree: cleanLine, school: '', dates: '' });
+          }
+          break;
+          
+        case 'achievements':
+          // Add achievements as bullets to a special experience entry or current one
+          if (isBullet || cleanLine.length > 10) {
+            if (!currentExperience) {
+              currentExperience = { title: "Key Achievements", company: "", dates: "", bullets: [] };
+            }
+            currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
           }
           break;
       }
     });
     
     // Don't forget the last experience
-    if (currentExperience && currentExperience.title) {
+    if (currentExperience && (currentExperience.title || currentExperience.bullets.length > 0)) {
       experiences.push(currentExperience);
     }
     
@@ -946,18 +987,21 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const generateClassicResumeHTML = (name: string, headline: string, contactInfo: string[], summary: string, experiences: any[], skills: string[], education: any[]) => {
     const content = finalResumeContent || enhancedResume?.enhancedContent || "";
     
-    // If parsing didn't yield good results, use a simple formatted version
-    const hasGoodData = experiences.length > 0 || summary.length > 50;
+    // Always use structured data if we have any experiences
+    const hasStructuredData = experiences.length > 0;
     
-    if (!hasGoodData) {
-      // Fallback: format content directly as a clean resume
-      const lines = content.split('\n').filter(l => l.trim());
+    if (!hasStructuredData) {
+      // Fallback: format ALL content directly as a clean resume
+      const lines = content.split('\n');
       let formattedContent = '';
       let isFirstLine = true;
       
       lines.forEach(line => {
         const trimmed = line.trim();
-        if (!trimmed) return;
+        if (!trimmed) {
+          formattedContent += '<div style="height: 8px;"></div>';
+          return;
+        }
         
         if (isFirstLine) {
           formattedContent += `<h1 style="font-size: 26px; text-align: center; margin: 0 0 5px 0; letter-spacing: 1px;">${trimmed}</h1>`;
@@ -974,7 +1018,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       return `<div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">${formattedContent}</div>`;
     }
     
-    // Use structured data if available
+    // Use structured data - ensure ALL bullets are included
     return `
       <div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 12px;">
@@ -1001,7 +1045,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               </div>
               ${exp.company ? `<div style="font-size: 11px; color: #555; font-style: italic; margin-top: 2px;">${exp.company}</div>` : ""}
               ${exp.bullets && exp.bullets.length > 0 ? `
-                <ul style="margin: 6px 0 0 0; padding-left: 16px;">
+                <ul style="margin: 6px 0 0 0; padding-left: 16px; list-style-type: disc;">
                   ${exp.bullets.map((b: string) => `<li style="font-size: 10px; line-height: 1.5; margin-bottom: 3px; color: #444;">${b}</li>`).join('')}
                 </ul>
               ` : ""}
@@ -1031,23 +1075,27 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const generateModernResumeHTML = (name: string, headline: string, contactInfo: string[], summary: string, experiences: any[], skills: string[], education: any[]) => {
     const content = finalResumeContent || enhancedResume?.enhancedContent || "";
     
-    const hasGoodData = experiences.length > 0 || summary.length > 50;
+    const hasStructuredData = experiences.length > 0;
     
-    if (!hasGoodData) {
-      // Fallback: create a modern single-column version with accent
-      const lines = content.split('\n').filter(l => l.trim());
+    if (!hasStructuredData) {
+      // Fallback: format ALL content as modern single-column
+      const lines = content.split('\n');
       let headerContent = '';
       let bodyContent = '';
-      let lineIndex = 0;
+      let isFirstLine = true;
       
-      lines.forEach(line => {
+      lines.forEach((line, idx) => {
         const trimmed = line.trim();
-        if (!trimmed) return;
+        if (!trimmed) {
+          bodyContent += '<div style="height: 6px;"></div>';
+          return;
+        }
         
-        if (lineIndex === 0) {
-          headerContent += `<h1 style="font-size: 24px; margin: 0; color: #1a365d;">${trimmed}</h1>`;
-        } else if (lineIndex < 3 && (trimmed.includes('@') || trimmed.match(/\d{3}/))) {
-          headerContent += `<p style="font-size: 10px; color: #666; margin: 4px 0;">${trimmed}</p>`;
+        if (isFirstLine) {
+          headerContent += `<h1 style="font-size: 24px; margin: 0; color: white;">${trimmed}</h1>`;
+          isFirstLine = false;
+        } else if (idx < 5 && (trimmed.includes('@') || trimmed.match(/\d{3}/))) {
+          headerContent += `<p style="font-size: 10px; color: #90cdf4; margin: 4px 0;">${trimmed}</p>`;
         } else if (trimmed === trimmed.toUpperCase() && trimmed.length < 40 && trimmed.length > 3) {
           bodyContent += `<h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #1a365d; border-bottom: 2px solid #1a365d; padding-bottom: 4px; margin: 16px 0 8px 0;">${trimmed}</h2>`;
         } else if (/^[•\-\*▪]/.test(trimmed)) {
@@ -1055,7 +1103,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         } else {
           bodyContent += `<p style="font-size: 10px; margin: 4px 0; line-height: 1.5; color: #444;">${trimmed}</p>`;
         }
-        lineIndex++;
       });
       
       return `
@@ -1070,7 +1117,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       `;
     }
     
-    // Use structured two-column layout
+    // Use structured two-column layout - ALL content included
     return `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto;">
         <table style="width: 100%; border-collapse: collapse;">
@@ -1122,7 +1169,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
                     </div>
                     ${exp.company ? `<div style="font-size: 10px; color: #666; margin-top: 1px;">${exp.company}</div>` : ""}
                     ${exp.bullets && exp.bullets.length > 0 ? `
-                      <ul style="margin: 5px 0 0 0; padding-left: 14px;">
+                      <ul style="margin: 5px 0 0 0; padding-left: 14px; list-style-type: disc;">
                         ${exp.bullets.map((b: string) => `<li style="font-size: 9px; line-height: 1.5; margin-bottom: 2px; color: #444;">${b}</li>`).join('')}
                       </ul>
                     ` : ""}
