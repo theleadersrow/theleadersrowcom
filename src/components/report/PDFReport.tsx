@@ -14,6 +14,7 @@ interface Score {
 }
 
 interface Report {
+  report_markdown?: string;
   growth_plan_json: Array<{
     month: number;
     theme: string;
@@ -25,6 +26,23 @@ interface PDFReportProps {
   score: Score;
   report: Report;
   dimensionLabels: Record<string, string>;
+}
+
+// Helper to extract sections from markdown
+function extractSection(markdown: string, sectionName: string): string {
+  if (!markdown) return "";
+  const patterns = [
+    new RegExp(`\\*\\*${sectionName}\\*\\*[:\\s]*([\\s\\S]*?)(?=\\*\\*[A-Z]|$)`, "i"),
+    new RegExp(`##\\s*${sectionName}[:\\s]*([\\s\\S]*?)(?=##|$)`, "i"),
+    new RegExp(`${sectionName}[:\\s]*([\\s\\S]*?)(?=\\n\\n|$)`, "i"),
+  ];
+  for (const pattern of patterns) {
+    const match = markdown.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim().replace(/\*\*/g, "").substring(0, 500);
+    }
+  }
+  return "";
 }
 
 export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
@@ -46,6 +64,11 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
       return descriptions[archetype] || "";
     };
 
+    // Extract key insights from AI narrative
+    const hardTruth = extractSection(report.report_markdown || "", "Hard Truth");
+    const executiveSummary = extractSection(report.report_markdown || "", "Executive Snapshot");
+    const immediateAction = extractSection(report.report_markdown || "", "Immediate Next Action");
+
     // Get top 6 skills for compact display
     const topSkills = Object.entries(score.dimension_scores)
       .filter(([key]) => key !== "general")
@@ -58,12 +81,12 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
         style={{
           width: "210mm",
           height: "297mm",
-          padding: "15mm 18mm",
+          padding: "12mm 15mm",
           fontFamily: "Georgia, serif",
           backgroundColor: "#ffffff",
           color: "#1a2332",
-          fontSize: "9pt",
-          lineHeight: "1.5",
+          fontSize: "8pt",
+          lineHeight: "1.4",
           position: "relative",
           overflow: "hidden",
           boxSizing: "border-box",
@@ -115,17 +138,17 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
         {/* Content Container */}
         <div style={{ position: "relative", zIndex: 1 }}>
           {/* Header */}
-          <div style={{ borderBottom: "2px solid #B8860B", paddingBottom: "10px", marginBottom: "15px" }}>
+          <div style={{ borderBottom: "2px solid #B8860B", paddingBottom: "8px", marginBottom: "12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
               <div>
-                <h1 style={{ fontSize: "20pt", fontWeight: "bold", color: "#1a2332", margin: 0, letterSpacing: "0.5px" }}>
+                <h1 style={{ fontSize: "18pt", fontWeight: "bold", color: "#1a2332", margin: 0, letterSpacing: "0.5px" }}>
                   Career Intelligence Report
                 </h1>
-                <p style={{ fontSize: "9pt", color: "#B8860B", margin: "3px 0 0 0", fontWeight: 600 }}>
+                <p style={{ fontSize: "8pt", color: "#B8860B", margin: "2px 0 0 0", fontWeight: 600 }}>
                   Strategic Benchmark Assessment
                 </p>
               </div>
-              <div style={{ textAlign: "right", color: "#6b7280", fontSize: "8pt" }}>
+              <div style={{ textAlign: "right", color: "#6b7280", fontSize: "7pt" }}>
                 <p style={{ margin: 0 }}>{today}</p>
               </div>
             </div>
@@ -134,51 +157,74 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
           {/* Executive Summary Card */}
           <div style={{ 
             background: "linear-gradient(135deg, #1a2332 0%, #2d3748 100%)", 
-            borderRadius: "8px", 
-            padding: "18px 20px", 
-            marginBottom: "15px",
+            borderRadius: "6px", 
+            padding: "14px 16px", 
+            marginBottom: "10px",
             color: "#ffffff"
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "8pt", margin: 0, textTransform: "uppercase", letterSpacing: "1px" }}>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "7pt", margin: 0, textTransform: "uppercase", letterSpacing: "1px" }}>
                   Your Inferred Level
                 </p>
-                <p style={{ fontSize: "18pt", fontWeight: "bold", margin: "3px 0 0 0", color: "#B8860B" }}>
+                <p style={{ fontSize: "16pt", fontWeight: "bold", margin: "2px 0 0 0", color: "#B8860B" }}>
                   {score.current_level_inferred} Product Manager
                 </p>
               </div>
               <div style={{ textAlign: "right" }}>
-                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "8pt", margin: 0, textTransform: "uppercase", letterSpacing: "1px" }}>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "7pt", margin: 0, textTransform: "uppercase", letterSpacing: "1px" }}>
                   Readiness Score
                 </p>
-                <p style={{ fontSize: "28pt", fontWeight: "bold", margin: "3px 0 0 0" }}>
-                  {Math.round(score.overall_score)}<span style={{ fontSize: "14pt", opacity: 0.7 }}>/100</span>
+                <p style={{ fontSize: "24pt", fontWeight: "bold", margin: "2px 0 0 0" }}>
+                  {Math.round(score.overall_score)}<span style={{ fontSize: "12pt", opacity: 0.7 }}>/100</span>
                 </p>
               </div>
             </div>
+            {executiveSummary && (
+              <p style={{ margin: "8px 0 0 0", fontSize: "7pt", color: "rgba(255,255,255,0.85)", lineHeight: "1.4" }}>
+                {executiveSummary.substring(0, 200)}...
+              </p>
+            )}
           </div>
 
+          {/* Hard Truth Section - NEW */}
+          {hardTruth && (
+            <div style={{ 
+              background: "#fef2f2", 
+              borderLeft: "3px solid #dc2626", 
+              padding: "10px 12px", 
+              marginBottom: "10px",
+              borderRadius: "0 6px 6px 0"
+            }}>
+              <h3 style={{ color: "#dc2626", fontSize: "8pt", margin: 0, fontWeight: "bold" }}>
+                ⚠ Your Hard Truth
+              </h3>
+              <p style={{ margin: "4px 0 0 0", color: "#1a2332", fontSize: "7pt", lineHeight: "1.4" }}>
+                {hardTruth.substring(0, 300)}
+              </p>
+            </div>
+          )}
+
           {/* Two Column Layout */}
-          <div style={{ display: "flex", gap: "15px", marginBottom: "15px" }}>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
             {/* Left Column - Strengths & Gaps */}
             <div style={{ flex: 1 }}>
-              <div style={{ background: "#f0fdf4", borderRadius: "6px", padding: "12px", marginBottom: "10px" }}>
-                <h3 style={{ color: "#166534", fontSize: "9pt", margin: "0 0 8px 0", fontWeight: "bold" }}>
+              <div style={{ background: "#f0fdf4", borderRadius: "5px", padding: "10px", marginBottom: "8px" }}>
+                <h3 style={{ color: "#166534", fontSize: "8pt", margin: "0 0 6px 0", fontWeight: "bold" }}>
                   ✓ Your Strengths
                 </h3>
                 {score.skill_heatmap.strengths?.slice(0, 3).map((strength, i) => (
-                  <p key={i} style={{ margin: "4px 0", color: "#1a2332", fontSize: "8pt" }}>
+                  <p key={i} style={{ margin: "3px 0", color: "#1a2332", fontSize: "7pt" }}>
                     {i + 1}. {dimensionLabels[strength] || strength}
                   </p>
                 ))}
               </div>
-              <div style={{ background: "#fffbeb", borderRadius: "6px", padding: "12px" }}>
-                <h3 style={{ color: "#92400e", fontSize: "9pt", margin: "0 0 8px 0", fontWeight: "bold" }}>
+              <div style={{ background: "#fffbeb", borderRadius: "5px", padding: "10px" }}>
+                <h3 style={{ color: "#92400e", fontSize: "8pt", margin: "0 0 6px 0", fontWeight: "bold" }}>
                   ⚡ Priority Gaps
                 </h3>
                 {score.skill_heatmap.gaps?.slice(0, 3).map((gap, i) => (
-                  <p key={i} style={{ margin: "4px 0", color: "#1a2332", fontSize: "8pt" }}>
+                  <p key={i} style={{ margin: "3px 0", color: "#1a2332", fontSize: "7pt" }}>
                     {i + 1}. {dimensionLabels[gap] || gap}
                   </p>
                 ))}
@@ -187,15 +233,15 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
 
             {/* Right Column - Skill Bars */}
             <div style={{ flex: 1 }}>
-              <h3 style={{ color: "#1a2332", fontSize: "9pt", margin: "0 0 10px 0", fontWeight: "bold" }}>
+              <h3 style={{ color: "#1a2332", fontSize: "8pt", margin: "0 0 8px 0", fontWeight: "bold" }}>
                 Skill Assessment
               </h3>
               {topSkills.map(([key, value]) => (
-                <div key={key} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "7pt", color: "#6b7280", width: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
+                  <span style={{ fontSize: "6pt", color: "#6b7280", width: "80px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {dimensionLabels[key] || key}
                   </span>
-                  <div style={{ flex: 1, height: "6px", background: "#e5e7eb", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ flex: 1, height: "5px", background: "#e5e7eb", borderRadius: "3px", overflow: "hidden" }}>
                     <div style={{ 
                       width: `${Math.min(100, value)}%`, 
                       height: "100%", 
@@ -203,7 +249,7 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
                       borderRadius: "3px"
                     }} />
                   </div>
-                  <span style={{ fontSize: "7pt", fontWeight: "bold", width: "20px", textAlign: "right" }}>
+                  <span style={{ fontSize: "6pt", fontWeight: "bold", width: "18px", textAlign: "right" }}>
                     {Math.round(value)}
                   </span>
                 </div>
@@ -216,44 +262,46 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
             <div style={{ 
               background: "#faf5ff", 
               borderLeft: "3px solid #9333ea", 
-              padding: "12px 15px", 
-              marginBottom: "15px",
+              padding: "10px 12px", 
+              marginBottom: "10px",
               borderRadius: "0 6px 6px 0"
             }}>
-              <h3 style={{ color: "#9333ea", fontSize: "9pt", margin: 0, fontWeight: "bold" }}>
+              <h3 style={{ color: "#9333ea", fontSize: "8pt", margin: 0, fontWeight: "bold" }}>
                 Blocker Pattern: {score.blocker_archetype}
               </h3>
-              <p style={{ margin: "6px 0 0 0", color: "#4a5568", fontSize: "8pt", lineHeight: "1.5" }}>
+              <p style={{ margin: "4px 0 0 0", color: "#4a5568", fontSize: "7pt", lineHeight: "1.4" }}>
                 {score.blocker_description || getBlockerDescription(score.blocker_archetype)}
               </p>
             </div>
           )}
 
-          {/* Market Readiness */}
-          {score.market_readiness_score && (
+          {/* Immediate Action - NEW */}
+          {immediateAction && (
             <div style={{ 
-              background: "#f0fdf4", 
-              borderLeft: "3px solid #10b981", 
-              padding: "10px 15px", 
-              marginBottom: "15px",
+              background: "#f0f9ff", 
+              borderLeft: "3px solid #0284c7", 
+              padding: "10px 12px", 
+              marginBottom: "10px",
               borderRadius: "0 6px 6px 0"
             }}>
-              <p style={{ fontWeight: "bold", color: "#047857", margin: 0, fontSize: "8pt", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Market Readiness
+              <h3 style={{ color: "#0284c7", fontSize: "8pt", margin: 0, fontWeight: "bold" }}>
+                🎯 This Week's Action
+              </h3>
+              <p style={{ margin: "4px 0 0 0", color: "#1a2332", fontSize: "7pt", lineHeight: "1.4" }}>
+                {immediateAction.substring(0, 200)}
               </p>
-              <p style={{ margin: "4px 0 0 0", color: "#1a2332", fontSize: "8pt" }}>{score.market_readiness_score}</p>
             </div>
           )}
 
           {/* 30-Day Actions */}
           {score.thirty_day_actions && score.thirty_day_actions.length > 0 && (
-            <div style={{ marginBottom: "15px" }}>
-              <h3 style={{ color: "#1a2332", fontSize: "10pt", margin: "0 0 8px 0", fontWeight: "bold" }}>
+            <div style={{ marginBottom: "10px" }}>
+              <h3 style={{ color: "#1a2332", fontSize: "9pt", margin: "0 0 6px 0", fontWeight: "bold" }}>
                 30-Day Action Plan
               </h3>
-              <div style={{ background: "#f8f9fa", borderRadius: "6px", padding: "10px 12px" }}>
+              <div style={{ background: "#f8f9fa", borderRadius: "5px", padding: "8px 10px" }}>
                 {score.thirty_day_actions.slice(0, 4).map((action, i) => (
-                  <p key={i} style={{ margin: i === 0 ? 0 : "6px 0 0 0", fontSize: "8pt", color: "#1a2332" }}>
+                  <p key={i} style={{ margin: i === 0 ? 0 : "4px 0 0 0", fontSize: "7pt", color: "#1a2332" }}>
                     <span style={{ color: "#B8860B", fontWeight: "bold" }}>{i + 1}.</span> {action}
                   </p>
                 ))}
@@ -263,23 +311,23 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
 
           {/* 90-Day Growth Plan */}
           {report.growth_plan_json && report.growth_plan_json.length > 0 && (
-            <div style={{ marginBottom: "15px" }}>
-              <h3 style={{ color: "#1a2332", fontSize: "10pt", margin: "0 0 8px 0", fontWeight: "bold" }}>
+            <div style={{ marginBottom: "10px" }}>
+              <h3 style={{ color: "#1a2332", fontSize: "9pt", margin: "0 0 6px 0", fontWeight: "bold" }}>
                 90-Day Leadership Lift Plan
               </h3>
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div style={{ display: "flex", gap: "8px" }}>
                 {report.growth_plan_json.slice(0, 3).map((month, i) => (
                   <div key={i} style={{ 
                     flex: 1, 
                     background: "#f8f9fa", 
-                    borderRadius: "6px", 
-                    padding: "10px",
+                    borderRadius: "5px", 
+                    padding: "8px",
                     borderTop: `3px solid ${i === 0 ? "#B8860B" : i === 1 ? "#f59e0b" : "#10b981"}`
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "5px" }}>
                       <div style={{ 
-                        width: "20px", 
-                        height: "20px", 
+                        width: "18px", 
+                        height: "18px", 
                         borderRadius: "50%", 
                         background: i === 0 ? "#B8860B" : i === 1 ? "#f59e0b" : "#10b981",
                         color: "#ffffff",
@@ -287,15 +335,15 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
                         alignItems: "center",
                         justifyContent: "center",
                         fontWeight: "bold",
-                        fontSize: "9pt"
+                        fontSize: "8pt"
                       }}>
                         {month.month}
                       </div>
-                      <span style={{ fontWeight: "bold", fontSize: "8pt" }}>{month.theme}</span>
+                      <span style={{ fontWeight: "bold", fontSize: "7pt" }}>{month.theme}</span>
                     </div>
                     {month.actions?.slice(0, 2).map((action, j) => (
-                      <p key={j} style={{ margin: "3px 0", fontSize: "7pt", color: "#4a5568" }}>
-                        • {action.length > 50 ? action.substring(0, 50) + "..." : action}
+                      <p key={j} style={{ margin: "2px 0", fontSize: "6pt", color: "#4a5568" }}>
+                        • {action.length > 45 ? action.substring(0, 45) + "..." : action}
                       </p>
                     ))}
                   </div>
@@ -307,27 +355,27 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
           {/* Footer */}
           <div style={{ 
             position: "absolute",
-            bottom: "15mm",
-            left: "18mm",
-            right: "18mm",
+            bottom: "12mm",
+            left: "15mm",
+            right: "15mm",
             borderTop: "1px solid #e5e7eb", 
-            paddingTop: "10px",
+            paddingTop: "8px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center"
           }}>
-            <div style={{ color: "#6b7280", fontSize: "8pt" }}>
+            <div style={{ color: "#6b7280", fontSize: "7pt" }}>
               <p style={{ margin: 0, fontWeight: 600 }}>Ready to accelerate your career?</p>
               <p style={{ margin: "2px 0 0 0", color: "#B8860B", fontWeight: 600 }}>
                 theleadersrow.com/200k-method
               </p>
             </div>
             <div style={{ textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: "10pt", fontWeight: "bold", color: "#1a2332", letterSpacing: "1px" }}>
+              <p style={{ margin: 0, fontSize: "9pt", fontWeight: "bold", color: "#1a2332", letterSpacing: "1px" }}>
                 THE LEADER'S ROW
               </p>
             </div>
-            <div style={{ textAlign: "right", color: "#9ca3af", fontSize: "7pt" }}>
+            <div style={{ textAlign: "right", color: "#9ca3af", fontSize: "6pt" }}>
               <p style={{ margin: 0 }}>© The Leader's Row</p>
               <p style={{ margin: "2px 0 0 0" }}>Confidential Assessment</p>
             </div>
