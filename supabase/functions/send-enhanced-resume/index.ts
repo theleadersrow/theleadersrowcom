@@ -20,6 +20,7 @@ interface EnhancedResumeRequest {
     before: number;
     after: number;
   };
+  coverLetter?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -28,7 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, resumeContent, improvements, scores }: EnhancedResumeRequest = await req.json();
+    const { email, resumeContent, improvements, scores, coverLetter }: EnhancedResumeRequest = await req.json();
 
     if (!email || !resumeContent) {
       return new Response(
@@ -39,10 +40,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     const scoreImprovement = scores.after - scores.before;
 
+    const coverLetterSection = coverLetter ? `
+              <!-- Cover Letter -->
+              <div style="margin-bottom: 24px;">
+                <h3 style="color: #111827; font-size: 16px; margin: 0 0 16px 0;">Your Cover Letter:</h3>
+                <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 20px; font-size: 13px; line-height: 1.6; color: #374151; white-space: pre-wrap;">
+${coverLetter}
+                </div>
+              </div>
+
+              <!-- Divider -->
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+    ` : '';
+
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
-      subject: "Your AI-Enhanced Resume is Ready",
+      subject: coverLetter ? "Your AI-Enhanced Resume & Cover Letter" : "Your AI-Enhanced Resume is Ready",
       html: `
         <!DOCTYPE html>
         <html>
@@ -56,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <!-- Header -->
               <div style="text-align: center; margin-bottom: 32px;">
-                <h1 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Your Enhanced Resume</h1>
+                <h1 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Your Resume Package</h1>
                 <p style="color: #6b7280; margin: 0;">Optimized by Rimo AI Career Coach</p>
               </div>
 
@@ -78,11 +92,14 @@ const handler = async (req: Request): Promise<Response> => {
                   <li>Added ${improvements.keywordsAdded} missing keywords from the job description</li>
                   <li>Quantified ${improvements.achievementsQuantified} achievements with metrics</li>
                   <li>Upgraded ${improvements.actionVerbsUpgraded} action verbs for stronger impact</li>
+                  ${coverLetter ? '<li>Generated a personalized cover letter</li>' : ''}
                 </ul>
               </div>
 
               <!-- Divider -->
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+
+              ${coverLetterSection}
 
               <!-- Resume Content -->
               <div style="margin-bottom: 24px;">
