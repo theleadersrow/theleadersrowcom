@@ -455,9 +455,31 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("rescore-input");
   };
 
+  // Helper to normalize text for comparison (remove extra whitespace, normalize line endings)
+  const normalizeText = (text: string): string => {
+    return text
+      .trim()
+      .replace(/\r\n/g, '\n')
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  };
+
   const handleRescore = async () => {
     if (!updatedProfileText.trim()) {
       toast.error("Please paste your updated LinkedIn profile");
+      return;
+    }
+
+    // Check if the profile content has actually changed
+    const normalizedOriginal = normalizeText(profileText);
+    const normalizedUpdated = normalizeText(updatedProfileText);
+    
+    if (normalizedOriginal === normalizedUpdated) {
+      // No meaningful changes detected - keep the same score
+      toast.info("No changes detected in your profile. Your score remains the same.", {
+        description: "Make updates to your LinkedIn profile to see score improvements."
+      });
+      setStep("score");
       return;
     }
 
