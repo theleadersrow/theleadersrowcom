@@ -132,6 +132,11 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [liveScorePreview, setLiveScorePreview] = useState<number | null>(null);
+  
+  // Expandable checklist item states
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
+  const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
 
   // Initialize checklist when suggestions are available
   useEffect(() => {
@@ -864,35 +869,252 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </div>
 
         <div className="space-y-3 mb-8">
-          {checklist.map((item, index) => (
-            <Card 
-              key={item.id} 
-              className={`cursor-pointer transition-all ${item.completed ? 'bg-green-500/5 border-green-500/30' : 'hover:border-primary/50'}`}
-              onClick={() => item.action?.()}
-            >
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="flex-shrink-0">
-                  {item.completed ? (
-                    <CheckSquare className="w-6 h-6 text-green-500" />
-                  ) : (
-                    <Square className="w-6 h-6 text-muted-foreground" />
+          {checklist.map((item, index) => {
+            const isExpanded = expandedItems.has(item.id);
+            const toggleExpand = () => {
+              setExpandedItems(prev => {
+                const newSet = new Set(prev);
+                if (newSet.has(item.id)) {
+                  newSet.delete(item.id);
+                } else {
+                  newSet.add(item.id);
+                }
+                return newSet;
+              });
+            };
+
+            // Items 3 (keywords), 4 (experience), 5 (skills) are expandable
+            const isExpandable = ["keywords", "experience", "skills"].includes(item.id);
+            
+            return (
+              <Card 
+                key={item.id} 
+                className={`transition-all ${item.completed ? 'bg-green-500/5 border-green-500/30' : 'hover:border-primary/50'}`}
+              >
+                <CardContent className="p-4">
+                  <div 
+                    className="flex items-center gap-4 cursor-pointer"
+                    onClick={() => {
+                      if (isExpandable) {
+                        toggleExpand();
+                      } else if (item.action) {
+                        item.action();
+                      }
+                    }}
+                  >
+                    <div className="flex-shrink-0">
+                      {item.completed ? (
+                        <CheckSquare className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <Square className="w-6 h-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className={`font-medium ${item.completed ? 'text-green-700 line-through' : ''}`}>
+                        {index + 1}. {item.label}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </div>
+                    {item.action && !item.completed && !isExpandable && (
+                      <Button size="sm" variant="outline">
+                        <Wand2 className="w-4 h-4 mr-1" />
+                        Start
+                      </Button>
+                    )}
+                    {isExpandable && (
+                      <ArrowRight className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                    )}
+                  </div>
+
+                  {/* Expandable Content for Keywords */}
+                  {item.id === "keywords" && isExpanded && suggestions && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium mb-3">Select keywords to add to your profile:</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {suggestions.keywordAdditions.map((keyword, i) => {
+                          const isSelected = selectedKeywords.has(keyword);
+                          return (
+                            <button
+                              key={i}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedKeywords(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(keyword)) {
+                                    newSet.delete(keyword);
+                                  } else {
+                                    newSet.add(keyword);
+                                  }
+                                  return newSet;
+                                });
+                              }}
+                              className={`px-3 py-1.5 text-sm rounded-full transition-all border flex items-center gap-1 ${
+                                isSelected
+                                  ? 'bg-blue-500/20 text-blue-700 border-blue-500 dark:text-blue-300'
+                                  : 'bg-muted/50 text-muted-foreground border-muted hover:border-blue-500/50'
+                              }`}
+                            >
+                              {isSelected && <CheckCircle className="w-3 h-3" />}
+                              {keyword}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {selectedKeywords.size > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            {selectedKeywords.size} keywords selected
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const keywordText = Array.from(selectedKeywords).join(", ");
+                              navigator.clipboard.writeText(keywordText);
+                              toast.success("Keywords copied to clipboard!");
+                              updateChecklistItem("keywords", true);
+                            }}
+                          >
+                            <Copy className="w-4 h-4 mr-1" />
+                            Copy Selected
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   )}
-                </div>
-                <div className="flex-1">
-                  <h3 className={`font-medium ${item.completed ? 'text-green-700 line-through' : ''}`}>
-                    {index + 1}. {item.label}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                </div>
-                {item.action && !item.completed && (
-                  <Button size="sm" variant="outline">
-                    <Wand2 className="w-4 h-4 mr-1" />
-                    Start
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                  {/* Expandable Content for Experience Bullets */}
+                  {item.id === "experience" && isExpanded && suggestions && (
+                    <div className="mt-4 pt-4 border-t space-y-4">
+                      <p className="text-sm font-medium mb-3">Experience bullets that need updating:</p>
+                      {suggestions.experienceRewrites.map((exp, i) => (
+                        <Card key={i} className="border-orange-500/20 bg-orange-500/5">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-orange-500/10 text-orange-700 dark:text-orange-300">
+                                {exp.companyRole}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(exp.improved);
+                                  toast.success("Improved bullet copied!");
+                                }}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-3">
+                              <div className="rounded-lg bg-red-500/5 border border-red-500/20 p-3">
+                                <div className="text-xs font-medium text-red-600 mb-1 flex items-center gap-1">
+                                  <span className="w-2 h-2 rounded-full bg-red-500"></span> ORIGINAL
+                                </div>
+                                <p className="text-sm text-muted-foreground">{exp.original}</p>
+                              </div>
+                              <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3">
+                                <div className="text-xs font-medium text-green-600 mb-1 flex items-center gap-1">
+                                  <span className="w-2 h-2 rounded-full bg-green-500"></span> IMPROVED
+                                </div>
+                                <p className="text-sm text-foreground">{exp.improved}</p>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2 italic">
+                              💡 {exp.whyBetter}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateChecklistItem("experience", true);
+                          toast.success("Experience marked as reviewed!");
+                        }}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Mark as Done
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Expandable Content for Skills */}
+                  {item.id === "skills" && isExpanded && suggestions && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium mb-3">Recommended skills by priority:</p>
+                      <div className="space-y-2 mb-4">
+                        {suggestions.skillsToAdd.map((skill, i) => {
+                          const priority = i < 3 ? "high" : i < 6 ? "medium" : "low";
+                          const isSelected = selectedSkills.has(skill);
+                          return (
+                            <div
+                              key={i}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSkills(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(skill)) {
+                                    newSet.delete(skill);
+                                  } else {
+                                    newSet.add(skill);
+                                  }
+                                  return newSet;
+                                });
+                              }}
+                              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border ${
+                                isSelected
+                                  ? 'bg-purple-500/10 border-purple-500/50'
+                                  : 'bg-muted/30 border-muted hover:border-purple-500/30'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                  isSelected ? 'border-purple-500 bg-purple-500' : 'border-muted-foreground'
+                                }`}>
+                                  {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="font-medium text-sm">{skill}</span>
+                              </div>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                priority === 'high' ? 'bg-red-500/10 text-red-600' :
+                                priority === 'medium' ? 'bg-yellow-500/10 text-yellow-600' :
+                                'bg-gray-500/10 text-gray-600'
+                              }`}>
+                                {priority} priority
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {selectedSkills.size > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            {selectedSkills.size} skills selected
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const skillText = Array.from(selectedSkills).join(", ");
+                              navigator.clipboard.writeText(skillText);
+                              toast.success("Skills copied to clipboard!");
+                              updateChecklistItem("skills", true);
+                            }}
+                          >
+                            <Copy className="w-4 h-4 mr-1" />
+                            Copy Selected
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Quick Actions */}
