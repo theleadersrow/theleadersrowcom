@@ -19,7 +19,18 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Starting expiry reminder check");
+    // Check for manual trigger with specific purchase_id
+    let purchaseId: string | null = null;
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        purchaseId = body.purchase_id || null;
+      } catch {
+        // No body or invalid JSON, proceed with batch mode
+      }
+    }
+
+    logStep("Starting expiry reminder", { mode: purchaseId ? "manual" : "batch", purchaseId });
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -27,30 +38,49 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Calculate the date range: expires in 3 days (between 2-4 days from now to catch the window)
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-    const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
-    const fourDaysFromNow = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
+    let expiringPurchases: any[] = [];
 
-    // Find active purchases expiring in ~3 days that haven't received a reminder
-    const { data: expiringPurchases, error: fetchError } = await supabaseAdmin
-      .from("tool_purchases")
-      .select("*")
-      .eq("status", "active")
-      .is("reminder_sent_at", null)
-      .gte("expires_at", twoDaysFromNow.toISOString())
-      .lte("expires_at", fourDaysFromNow.toISOString());
+    if (purchaseId) {
+      // Manual mode: send reminder for specific purchase
+      const { data, error: fetchError } = await supabaseAdmin
+        .from("tool_purchases")
+        .select("*")
+        .eq("id", purchaseId)
+        .eq("status", "active")
+        .single();
 
-    if (fetchError) {
-      throw new Error(`Failed to fetch expiring purchases: ${fetchError.message}`);
+      if (fetchError) {
+        throw new Error(`Failed to fetch purchase: ${fetchError.message}`);
+      }
+      if (!data) {
+        throw new Error("Purchase not found or not active");
+      }
+      expiringPurchases = [data];
+    } else {
+      // Batch mode: find purchases expiring in ~3 days
+      const now = new Date();
+      const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+      const fourDaysFromNow = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
+
+      const { data, error: fetchError } = await supabaseAdmin
+        .from("tool_purchases")
+        .select("*")
+        .eq("status", "active")
+        .is("reminder_sent_at", null)
+        .gte("expires_at", twoDaysFromNow.toISOString())
+        .lte("expires_at", fourDaysFromNow.toISOString());
+
+      if (fetchError) {
+        throw new Error(`Failed to fetch expiring purchases: ${fetchError.message}`);
+      }
+      expiringPurchases = data || [];
     }
 
-    logStep("Found expiring purchases", { count: expiringPurchases?.length || 0 });
+    logStep("Found purchases to notify", { count: expiringPurchases.length });
 
-    if (!expiringPurchases || expiringPurchases.length === 0) {
+    if (expiringPurchases.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, message: "No expiring purchases to notify", sent: 0 }),
+        JSON.stringify({ success: true, message: "No purchases to notify", sent: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
@@ -65,7 +95,8 @@ serve(async (req) => {
           : "LinkedIn Signal Score";
         
         const expiresAt = new Date(purchase.expires_at);
-        const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const currentTime = new Date();
+        const daysRemaining = Math.ceil((expiresAt.getTime() - currentTime.getTime()) / (1000 * 60 * 60 * 24));
         const expiryDate = expiresAt.toLocaleDateString("en-US", { 
           weekday: "long", 
           year: "numeric", 
