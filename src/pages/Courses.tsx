@@ -91,29 +91,30 @@ const Courses = () => {
               return (
                 <div 
                   key={course.id} 
-                  className={`relative rounded-2xl overflow-hidden bg-card shadow-elevated ${isComingSoon ? 'opacity-80' : ''}`}
+                  className={`rounded-2xl overflow-hidden bg-card shadow-elevated ${isComingSoon ? 'opacity-80' : ''}`}
                 >
-                  {course.badge && (
-                    <div className={`absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 z-10 ${
-                      isComingSoon 
-                        ? 'bg-muted text-muted-foreground' 
-                        : 'bg-secondary text-secondary-foreground'
-                    }`}>
-                      {!isComingSoon && <Star className="w-3.5 h-3.5 fill-current" />}
-                      {course.badge}
-                    </div>
-                  )}
-
                   <div className="p-6 sm:p-8">
-                    <div className="flex flex-wrap items-center gap-3 mb-3 text-muted-foreground text-sm">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4" />
-                        {course.duration}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <BookOpen className="w-4 h-4" />
-                        {course.modules} Modules
-                      </span>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                      <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4" />
+                          {course.duration}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <BookOpen className="w-4 h-4" />
+                          {course.modules} Modules
+                        </span>
+                      </div>
+                      {course.badge && (
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 ${
+                          isComingSoon 
+                            ? 'bg-muted text-muted-foreground' 
+                            : 'bg-secondary text-secondary-foreground'
+                        }`}>
+                          {!isComingSoon && <Star className="w-3.5 h-3.5 fill-current" />}
+                          {course.badge}
+                        </span>
+                      )}
                     </div>
                     
                     <h3 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-2">
