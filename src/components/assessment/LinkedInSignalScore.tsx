@@ -1272,13 +1272,32 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           </CardContent>
         </Card>
 
+        {/* Important Reminder */}
+        <Card className="border-2 border-amber-500/40 bg-gradient-to-r from-amber-500/10 to-amber-500/5">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-amber-700 dark:text-amber-400 mb-1">
+                  Important: Update LinkedIn First!
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  To get the most accurate results from this tool, make sure to <strong>update your actual LinkedIn profile</strong> with the suggested changes before re-scoring. The re-score feature analyzes the text you paste — so copy your updated profile directly from LinkedIn after making changes.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Re-Score CTA */}
         <Card className="border-2 border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent">
           <CardContent className="py-6 text-center">
             <RefreshCw className="w-8 h-8 text-green-600 mx-auto mb-3" />
             <h3 className="font-semibold text-lg mb-2">Made Changes? Re-Score!</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              After updating your LinkedIn, come back and see your improvement!
+              After updating your LinkedIn, paste your new profile content to see your improvement!
             </p>
             <Button onClick={handleStartRescore} size="lg" variant="outline" className="border-green-500/50 hover:bg-green-500/10">
               <RefreshCw className="w-4 h-4 mr-2" />
