@@ -163,45 +163,79 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         return;
       }
 
-      // Check stored access
-      checkStoredAccess();
+      // Check stored access (but validate against backend so cancelled/expired access is removed)
+      await checkStoredAccess();
     };
 
     init();
   }, [searchParams, setSearchParams]);
 
-  const checkStoredAccess = () => {
-    // Check resume access
-    const storedResume = localStorage.getItem(RESUME_SUITE_ACCESS_KEY);
-    if (storedResume) {
-      try {
-        const { expiry, email, daysRemaining } = JSON.parse(storedResume);
-        if (Date.now() < expiry) {
-          const remaining = Math.ceil((expiry - Date.now()) / (1000 * 60 * 60 * 24));
-          setResumeAccess({ hasAccess: true, daysRemaining: remaining, email });
-        } else {
-          localStorage.removeItem(RESUME_SUITE_ACCESS_KEY);
-        }
-      } catch {
-        localStorage.removeItem(RESUME_SUITE_ACCESS_KEY);
-      }
-    }
+  const checkStoredAccess = async () => {
+    const DAY_MS = 1000 * 60 * 60 * 24;
 
-    // Check LinkedIn access
-    const storedLinkedIn = localStorage.getItem(LINKEDIN_SUITE_ACCESS_KEY);
-    if (storedLinkedIn) {
+    const validateOne = async (
+      storageKey: string,
+      toolType: "resume_suite" | "linkedin_signal",
+      setAccess: (info: AccessInfo) => void
+    ) => {
+      const stored = localStorage.getItem(storageKey);
+      if (!stored) return;
+
       try {
-        const { expiry, email, daysRemaining } = JSON.parse(storedLinkedIn);
-        if (Date.now() < expiry) {
-          const remaining = Math.ceil((expiry - Date.now()) / (1000 * 60 * 60 * 24));
-          setLinkedInAccess({ hasAccess: true, daysRemaining: remaining, email });
-        } else {
-          localStorage.removeItem(LINKEDIN_SUITE_ACCESS_KEY);
+        const parsed = JSON.parse(stored) as { expiry: number; email?: string };
+        const expiry = Number(parsed.expiry);
+        const storedEmail = parsed.email;
+
+        if (!expiry || Date.now() >= expiry) {
+          localStorage.removeItem(storageKey);
+          setAccess({ hasAccess: false });
+          return;
         }
+
+        // If we don't know the email, we can't validate; treat as no access.
+        if (!storedEmail) {
+          localStorage.removeItem(storageKey);
+          setAccess({ hasAccess: false });
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+          body: { email: storedEmail, toolType, action: "check" },
+        });
+
+        if (error) throw error;
+
+        if (!data?.hasAccess) {
+          localStorage.removeItem(storageKey);
+          setAccess({ hasAccess: false });
+          return;
+        }
+
+        const canonicalExpiresAt = data.expiresAt as string | undefined;
+        const canonicalExpiryMs = canonicalExpiresAt ? new Date(canonicalExpiresAt).getTime() : expiry;
+        const remaining = Math.max(0, Math.ceil((canonicalExpiryMs - Date.now()) / DAY_MS));
+
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({ expiry: canonicalExpiryMs, email: storedEmail, daysRemaining: remaining })
+        );
+
+        setAccess({
+          hasAccess: true,
+          expiresAt: canonicalExpiresAt,
+          daysRemaining: data.daysRemaining ?? remaining,
+          email: storedEmail,
+        });
       } catch {
-        localStorage.removeItem(LINKEDIN_SUITE_ACCESS_KEY);
+        localStorage.removeItem(storageKey);
+        setAccess({ hasAccess: false });
       }
-    }
+    };
+
+    await Promise.all([
+      validateOne(RESUME_SUITE_ACCESS_KEY, "resume_suite", setResumeAccess),
+      validateOne(LINKEDIN_SUITE_ACCESS_KEY, "linkedin_signal", setLinkedInAccess),
+    ]);
   };
 
   const handleResumeSuiteClick = () => {
