@@ -1541,7 +1541,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
             </Card>
 
             {/* Top Recommendations */}
-            <Card className="border-2 border-primary/30">
+            <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Star className="w-4 h-4 text-primary" />
@@ -1549,18 +1549,30 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {recruiterSim.topRecommendations.map((rec, i) => (
-                    <div key={i} className="flex items-start gap-3 p-2">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {i + 1}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium">{rec.action}</p>
-                        <p className="text-xs text-muted-foreground">{rec.impact}</p>
+                <div className="space-y-3">
+                  {recruiterSim.topRecommendations.map((rec, i) => {
+                    const colors = [
+                      { bg: "bg-green-500/15", border: "border-green-500/40", text: "text-green-700 dark:text-green-400", badge: "bg-green-500" },
+                      { bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-700 dark:text-blue-400", badge: "bg-blue-500" },
+                      { bg: "bg-orange-500/15", border: "border-orange-500/40", text: "text-orange-700 dark:text-orange-400", badge: "bg-orange-500" },
+                    ];
+                    const color = colors[i % colors.length];
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className={`flex items-start gap-3 p-3 rounded-lg ${color.bg} border ${color.border} transition-all hover:scale-[1.01]`}
+                      >
+                        <span className={`w-6 h-6 rounded-full ${color.badge} text-white flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm`}>
+                          {i + 1}
+                        </span>
+                        <div className="flex-1">
+                          <p className={`text-sm font-semibold ${color.text}`}>{rec.action}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{rec.impact}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
