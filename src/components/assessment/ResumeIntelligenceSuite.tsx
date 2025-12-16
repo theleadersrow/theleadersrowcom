@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   ArrowLeft, ArrowRight, Upload, Loader2, Sparkles, FileText, 
   CheckCircle, Download, RefreshCw, Target, Zap, TrendingUp,
@@ -14,6 +15,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from "docx";
+import { saveAs } from "file-saver";
 
 interface ResumeIntelligenceSuiteProps {
   onBack: () => void;
@@ -60,6 +63,7 @@ interface CoverLetterDetails {
 }
 
 type Step = "input" | "initial_score" | "enhancing" | "improvements" | "final_score";
+type CoverLetterLength = "short" | "medium" | "detailed";
 
 export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligenceSuiteProps) {
   const [step, setStep] = useState<Step>("input");
@@ -87,6 +91,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     companyName: "",
     hiringManagerName: "",
   });
+  const [coverLetterLength, setCoverLetterLength] = useState<CoverLetterLength>("medium");
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState<string | null>(null);
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [showCoverLetterResult, setShowCoverLetterResult] = useState(false);
@@ -276,19 +281,85 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
   };
 
-  const handleDownloadResume = () => {
+  const handleDownloadResume = async () => {
     if (!enhancedResume?.enhancedContent) return;
     
-    const blob = new Blob([enhancedResume.enhancedContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "enhanced-resume.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded!", description: "Enhanced resume saved as text file" });
+    try {
+      // Parse the enhanced content to create a properly formatted Word doc
+      const lines = enhancedResume.enhancedContent.split('\n').filter(line => line.trim());
+      const children: Paragraph[] = [];
+      
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        
+        // Check if it's a header (all caps or starts with #)
+        const isHeader = trimmedLine === trimmedLine.toUpperCase() && trimmedLine.length > 3 && !trimmedLine.startsWith('•') && !trimmedLine.startsWith('-');
+        const isMarkdownHeader = trimmedLine.startsWith('#');
+        
+        if (isMarkdownHeader) {
+          const headerLevel = trimmedLine.match(/^#+/)?.[0].length || 1;
+          const text = trimmedLine.replace(/^#+\s*/, '');
+          children.push(
+            new Paragraph({
+              text: text,
+              heading: headerLevel === 1 ? HeadingLevel.HEADING_1 : headerLevel === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
+              spacing: { before: 240, after: 120 },
+            })
+          );
+        } else if (isHeader) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: trimmedLine, bold: true, size: 24 })],
+              spacing: { before: 240, after: 120 },
+              border: { bottom: { color: "999999", style: BorderStyle.SINGLE, size: 6 } },
+            })
+          );
+        } else if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+          // Bullet point
+          const bulletText = trimmedLine.replace(/^[•\-\*]\s*/, '');
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: bulletText, size: 22 })],
+              bullet: { level: 0 },
+              spacing: { before: 60, after: 60 },
+            })
+          );
+        } else if (trimmedLine.match(/^\d+\./)) {
+          // Numbered list
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: trimmedLine, size: 22 })],
+              spacing: { before: 60, after: 60 },
+            })
+          );
+        } else {
+          // Regular paragraph
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: trimmedLine, size: 22 })],
+              spacing: { before: 60, after: 60 },
+            })
+          );
+        }
+      });
+      
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: children,
+        }],
+      });
+      
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, "optimized-resume.docx");
+      toast({ title: "Downloaded!", description: "Resume saved as Word document" });
+    } catch (error) {
+      console.error("Download error:", error);
+      // Fallback to text download
+      const blob = new Blob([enhancedResume.enhancedContent], { type: "text/plain" });
+      saveAs(blob, "optimized-resume.txt");
+      toast({ title: "Downloaded!", description: "Resume saved as text file" });
+    }
   };
 
   const handleEmailResume = async () => {
@@ -454,6 +525,7 @@ https://theleadersrow.com
           companyName: coverLetterDetails.companyName,
           hiringManagerName: coverLetterDetails.hiringManagerName,
           selfProjection,
+          coverLetterLength,
         },
       });
 
@@ -471,19 +543,44 @@ https://theleadersrow.com
     }
   };
 
-  const handleDownloadCoverLetter = () => {
+  const handleDownloadCoverLetter = async () => {
     if (!generatedCoverLetter) return;
     
-    const blob = new Blob([generatedCoverLetter], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cover-letter.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded!", description: "Cover letter saved" });
+    try {
+      const lines = generatedCoverLetter.split('\n');
+      const children: Paragraph[] = [];
+      
+      lines.forEach((line) => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) {
+          children.push(new Paragraph({ text: "", spacing: { before: 120 } }));
+          return;
+        }
+        
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ text: trimmedLine, size: 24, font: "Calibri" })],
+            spacing: { before: 60, after: 60 },
+          })
+        );
+      });
+      
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: children,
+        }],
+      });
+      
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, "cover-letter.docx");
+      toast({ title: "Downloaded!", description: "Cover letter saved as Word document" });
+    } catch (error) {
+      console.error("Download error:", error);
+      const blob = new Blob([generatedCoverLetter], { type: "text/plain" });
+      saveAs(blob, "cover-letter.txt");
+      toast({ title: "Downloaded!", description: "Cover letter saved" });
+    }
   };
 
   const handleCopyCoverLetter = async () => {
@@ -891,7 +988,7 @@ https://theleadersrow.com
               <Copy className="w-4 h-4 mr-2" /> Copy
             </Button>
             <Button variant="outline" onClick={handleDownloadResume}>
-              <Download className="w-4 h-4 mr-2" /> Download
+              <Download className="w-4 h-4 mr-2" /> Download DOCX
             </Button>
             <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
               <Mail className="w-4 h-4 mr-2" /> Email to Me
@@ -1059,7 +1156,7 @@ https://theleadersrow.com
                     <Copy className="w-4 h-4 mr-1" /> Copy
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleDownloadCoverLetter}>
-                    <Download className="w-4 h-4 mr-1" /> Download
+                    <Download className="w-4 h-4 mr-1" /> DOCX
                   </Button>
                 </div>
               </div>
@@ -1078,7 +1175,7 @@ https://theleadersrow.com
               <Copy className="w-4 h-4 mr-2" /> Copy Resume
             </Button>
             <Button variant="outline" onClick={handleDownloadResume}>
-              <Download className="w-4 h-4 mr-2" /> Download Resume
+              <Download className="w-4 h-4 mr-2" /> Download DOCX
             </Button>
           </div>
 
@@ -1092,7 +1189,7 @@ https://theleadersrow.com
             </p>
             <div className="flex flex-wrap gap-3">
               <Button variant="outline" onClick={handleDownloadResume}>
-                <Download className="w-4 h-4 mr-2" /> Download as TXT
+                <Download className="w-4 h-4 mr-2" /> Download as DOCX
               </Button>
               <Button onClick={() => setShowFreshResumeDialog(true)}>
                 <Mail className="w-4 h-4 mr-2" /> Email My Resume Package
@@ -1172,8 +1269,41 @@ https://theleadersrow.com
                     onChange={(e) => setCoverLetterDetails(prev => ({ ...prev, hiringManagerName: e.target.value }))}
                   />
                 </div>
+                
+                {/* Cover Letter Length Selection */}
+                <div className="space-y-3 pt-2 border-t">
+                  <Label>Cover Letter Length</Label>
+                  <RadioGroup 
+                    value={coverLetterLength} 
+                    onValueChange={(value) => setCoverLetterLength(value as CoverLetterLength)}
+                    className="grid grid-cols-3 gap-3"
+                  >
+                    <div className="flex items-start space-x-2">
+                      <RadioGroupItem value="short" id="short" className="mt-1" />
+                      <div>
+                        <Label htmlFor="short" className="font-medium cursor-pointer">Short</Label>
+                        <p className="text-xs text-muted-foreground">~200 words, concise</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <RadioGroupItem value="medium" id="medium" className="mt-1" />
+                      <div>
+                        <Label htmlFor="medium" className="font-medium cursor-pointer">Medium</Label>
+                        <p className="text-xs text-muted-foreground">~350 words, balanced</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <RadioGroupItem value="detailed" id="detailed" className="mt-1" />
+                      <div>
+                        <Label htmlFor="detailed" className="font-medium cursor-pointer">Detailed</Label>
+                        <p className="text-xs text-muted-foreground">~500 words, comprehensive</p>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
                 <Button className="w-full" onClick={handleGenerateCoverLetter}>
-                  <Sparkles className="w-4 h-4 mr-2" /> Generate Cover Letter
+                  <Sparkles className="w-4 h-4 mr-2" /> Generate {coverLetterLength.charAt(0).toUpperCase() + coverLetterLength.slice(1)} Cover Letter
                 </Button>
               </div>
             </DialogContent>
