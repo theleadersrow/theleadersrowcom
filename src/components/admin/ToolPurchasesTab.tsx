@@ -13,8 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { RefreshCw, FileText, Linkedin, XCircle, Clock, CheckCircle, AlertCircle } from "lucide-react";
-import { format, formatDistanceToNow, isPast } from "date-fns";
+import { RefreshCw, FileText, Linkedin, XCircle, Clock, CheckCircle, AlertCircle, Mail, CalendarClock } from "lucide-react";
+import { format, formatDistanceToNow, isPast, differenceInDays, addDays } from "date-fns";
 
 interface ToolPurchase {
   id: string;
@@ -27,12 +27,14 @@ interface ToolPurchase {
   last_used_at: string | null;
   status: string;
   results_summary: any;
+  reminder_sent_at: string | null;
 }
 
 export function ToolPurchasesTab() {
   const [purchases, setPurchases] = useState<ToolPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "resume_suite" | "linkedin_signal">("all");
+  const [view, setView] = useState<"all" | "expiring" | "reminders">("all");
 
   const fetchPurchases = async () => {
     setLoading(true);
@@ -122,11 +124,37 @@ export function ToolPurchasesTab() {
   const resumePurchases = purchases.filter(p => p.tool_type === "resume_suite");
   const linkedinPurchases = purchases.filter(p => p.tool_type === "linkedin_signal");
   const activePurchases = purchases.filter(p => p.status === "active" && !isPast(new Date(p.expires_at)));
+  
+  // Expiring soon (within 7 days)
+  const expiringSoon = purchases.filter(p => {
+    if (p.status !== "active") return false;
+    const expiresAt = new Date(p.expires_at);
+    if (isPast(expiresAt)) return false;
+    const daysLeft = differenceInDays(expiresAt, new Date());
+    return daysLeft <= 7;
+  });
+
+  // Purchases with reminders sent
+  const remindersSent = purchases.filter(p => p.reminder_sent_at !== null);
+
+  // Get filtered data based on view
+  const getDisplayPurchases = () => {
+    switch (view) {
+      case "expiring":
+        return expiringSoon;
+      case "reminders":
+        return remindersSent;
+      default:
+        return purchases;
+    }
+  };
+
+  const displayPurchases = getDisplayPurchases();
 
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Purchases</CardTitle>
@@ -143,6 +171,29 @@ export function ToolPurchasesTab() {
             <div className="text-2xl font-bold text-green-600">{activePurchases.length}</div>
           </CardContent>
         </Card>
+        <Card className="border-orange-500/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2 text-orange-600">
+              <CalendarClock className="w-4 h-4" />
+              Expiring Soon
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{expiringSoon.length}</div>
+            <p className="text-xs text-muted-foreground">within 7 days</p>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-500/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2 text-purple-600">
+              <Mail className="w-4 h-4" />
+              Reminders Sent
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{remindersSent.length}</div>
+          </CardContent>
+        </Card>
         <Card className="border-amber-500/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -154,24 +205,30 @@ export function ToolPurchasesTab() {
             <div className="text-2xl font-bold text-amber-600">{resumePurchases.length}</div>
           </CardContent>
         </Card>
-        <Card className="border-blue-500/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Linkedin className="w-4 h-4 text-blue-600" />
-              LinkedIn Signal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{linkedinPurchases.length}</div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Actions */}
+      {/* View Tabs */}
+      <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsTrigger value="all" className="flex items-center gap-1">
+            All Purchases
+          </TabsTrigger>
+          <TabsTrigger value="expiring" className="flex items-center gap-1">
+            <CalendarClock className="w-3 h-3" />
+            Expiring ({expiringSoon.length})
+          </TabsTrigger>
+          <TabsTrigger value="reminders" className="flex items-center gap-1">
+            <Mail className="w-3 h-3" />
+            Reminders ({remindersSent.length})
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {/* Tool Type Filter & Actions */}
       <div className="flex items-center justify-between">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="all">All Tools</TabsTrigger>
             <TabsTrigger value="resume_suite" className="flex items-center gap-1">
               <FileText className="w-3 h-3" /> Resume
             </TabsTrigger>
@@ -194,14 +251,23 @@ export function ToolPurchasesTab() {
 
       {/* Purchases Table */}
       <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">
+            {view === "expiring" && "Expiring Soon (within 7 days)"}
+            {view === "reminders" && "Reminder Email History"}
+            {view === "all" && "All Purchases"}
+          </CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : purchases.length === 0 ? (
+          ) : displayPurchases.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              No purchases found
+              {view === "expiring" && "No purchases expiring soon"}
+              {view === "reminders" && "No reminder emails sent yet"}
+              {view === "all" && "No purchases found"}
             </div>
           ) : (
             <Table>
@@ -212,66 +278,81 @@ export function ToolPurchasesTab() {
                   <TableHead>Status</TableHead>
                   <TableHead>Purchased</TableHead>
                   <TableHead>Expires</TableHead>
+                  {view === "expiring" && <TableHead>Days Left</TableHead>}
+                  {view === "reminders" && <TableHead>Reminder Sent</TableHead>}
                   <TableHead>Usage</TableHead>
-                  <TableHead>Last Used</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {purchases.map((purchase) => (
-                  <TableRow key={purchase.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getToolIcon(purchase.tool_type)}
-                        <span className="text-sm">{getToolLabel(purchase.tool_type)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{purchase.email}</TableCell>
-                    <TableCell>{getStatusBadge(purchase)}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {format(new Date(purchase.purchased_at), "MMM d, yyyy")}
-                        <div className="text-xs text-muted-foreground">
-                          {format(new Date(purchase.purchased_at), "h:mm a")}
+                {displayPurchases.map((purchase) => {
+                  const daysLeft = differenceInDays(new Date(purchase.expires_at), new Date());
+                  
+                  return (
+                    <TableRow key={purchase.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getToolIcon(purchase.tool_type)}
+                          <span className="text-sm">{getToolLabel(purchase.tool_type)}</span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {format(new Date(purchase.expires_at), "MMM d, yyyy")}
-                        <div className="text-xs text-muted-foreground">
-                          {isPast(new Date(purchase.expires_at)) 
-                            ? "Expired" 
-                            : `${formatDistanceToNow(new Date(purchase.expires_at))} left`}
+                      </TableCell>
+                      <TableCell className="font-medium">{purchase.email}</TableCell>
+                      <TableCell>{getStatusBadge(purchase)}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {format(new Date(purchase.purchased_at), "MMM d, yyyy")}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{purchase.usage_count} times</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {purchase.last_used_at ? (
-                        <span className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(purchase.last_used_at), { addSuffix: true })}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Never</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {format(new Date(purchase.expires_at), "MMM d, yyyy")}
+                          <div className="text-xs text-muted-foreground">
+                            {isPast(new Date(purchase.expires_at)) 
+                              ? "Expired" 
+                              : `${formatDistanceToNow(new Date(purchase.expires_at))} left`}
+                          </div>
+                        </div>
+                      </TableCell>
+                      {view === "expiring" && (
+                        <TableCell>
+                          <Badge 
+                            variant={daysLeft <= 3 ? "destructive" : "outline"}
+                            className={daysLeft <= 3 ? "" : "border-orange-500 text-orange-600"}
+                          >
+                            {daysLeft} day{daysLeft !== 1 ? "s" : ""}
+                          </Badge>
+                        </TableCell>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      {purchase.status === "active" && !isPast(new Date(purchase.expires_at)) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => cancelPurchase(purchase.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </Button>
+                      {view === "reminders" && (
+                        <TableCell>
+                          {purchase.reminder_sent_at ? (
+                            <div className="flex items-center gap-1 text-sm text-purple-600">
+                              <CheckCircle className="w-3 h-3" />
+                              {format(new Date(purchase.reminder_sent_at), "MMM d, h:mm a")}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Not sent</span>
+                          )}
+                        </TableCell>
                       )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      <TableCell>
+                        <Badge variant="outline">{purchase.usage_count} times</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {purchase.status === "active" && !isPast(new Date(purchase.expires_at)) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => cancelPurchase(purchase.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
