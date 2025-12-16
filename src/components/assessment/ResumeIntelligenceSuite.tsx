@@ -23,6 +23,24 @@ interface ResumeIntelligenceSuiteProps {
   onComplete: () => void;
 }
 
+interface SkillGap {
+  skill: string;
+  importance: string;
+  context: string;
+}
+
+interface YearsExperienceAnalysis {
+  job_requires: string;
+  resume_shows: string;
+  gap: string;
+}
+
+interface LeadershipAnalysis {
+  job_requires: string;
+  resume_shows: string;
+  gap: string;
+}
+
 interface ATSResult {
   ats_score: number;
   keyword_match_score: number;
@@ -35,8 +53,13 @@ interface ATSResult {
   strengths: string[];
   improvements: Array<{ priority: string; issue: string; fix: string }>;
   experience_gaps: string[];
+  skills_gaps?: SkillGap[];
+  years_experience_analysis?: YearsExperienceAnalysis;
+  leadership_analysis?: LeadershipAnalysis;
+  tech_stack_gaps?: string[];
   recommended_additions: string[];
   role_fit_assessment: string;
+  deal_breakers?: string[];
 }
 
 interface ContentImprovement {
@@ -933,37 +956,195 @@ https://theleadersrow.com
             ))}
           </div>
 
+          {/* Deal Breakers - Show first if any */}
+          {initialScore.deal_breakers && initialScore.deal_breakers.length > 0 && (
+            <Card className="p-4 mb-6 border-red-500/50 bg-red-500/10">
+              <h3 className="font-semibold text-red-600 dark:text-red-400 mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" /> Deal Breakers
+              </h3>
+              <ul className="space-y-2">
+                {initialScore.deal_breakers.map((db, i) => (
+                  <li key={i} className="text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
+                    <span className="text-red-500 mt-0.5">✗</span> {db}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {/* Experience & Leadership Analysis */}
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            {initialScore.years_experience_analysis && (
+              <Card className="p-4">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary" /> Years of Experience
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Job Requires:</span>
+                    <span className="font-medium text-foreground">{initialScore.years_experience_analysis.job_requires}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Resume Shows:</span>
+                    <span className="font-medium text-foreground">{initialScore.years_experience_analysis.resume_shows}</span>
+                  </div>
+                  <div className={`flex justify-between pt-2 border-t ${
+                    initialScore.years_experience_analysis.gap.toLowerCase().includes('meets') 
+                      ? 'text-green-600' 
+                      : 'text-orange-600'
+                  }`}>
+                    <span>Gap:</span>
+                    <span className="font-medium">{initialScore.years_experience_analysis.gap}</span>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {initialScore.leadership_analysis && (
+              <Card className="p-4">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-primary" /> Leadership & Management
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Job Requires:</span>
+                    <span className="font-medium text-foreground text-right max-w-[60%]">{initialScore.leadership_analysis.job_requires}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Resume Shows:</span>
+                    <span className="font-medium text-foreground text-right max-w-[60%]">{initialScore.leadership_analysis.resume_shows}</span>
+                  </div>
+                  <div className={`flex justify-between pt-2 border-t ${
+                    initialScore.leadership_analysis.gap.toLowerCase().includes('meets') 
+                      ? 'text-green-600' 
+                      : 'text-orange-600'
+                  }`}>
+                    <span>Gap:</span>
+                    <span className="font-medium text-right max-w-[60%]">{initialScore.leadership_analysis.gap}</span>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+
+          {/* Skills Gaps */}
+          {initialScore.skills_gaps && initialScore.skills_gaps.length > 0 && (
+            <Card className="p-4 mb-6">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-orange-500" /> Critical Skill Gaps
+              </h3>
+              <div className="space-y-3">
+                {initialScore.skills_gaps.map((sg, i) => (
+                  <div key={i} className="bg-muted/30 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-foreground">{sg.skill}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        sg.importance === 'critical' 
+                          ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
+                          : sg.importance === 'high'
+                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                      }`}>
+                        {sg.importance}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{sg.context}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Tech Stack Gaps */}
+          {initialScore.tech_stack_gaps && initialScore.tech_stack_gaps.length > 0 && (
+            <Card className="p-4 mb-6">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-orange-500" /> Missing Tech Stack
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {initialScore.tech_stack_gaps.map((tech, i) => (
+                  <span key={i} className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full dark:bg-red-900/30 dark:text-red-300">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Missing Keywords */}
           {initialScore.missing_keywords.length > 0 && (
             <Card className="p-4 mb-6">
               <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-orange-500" /> Missing Keywords ({initialScore.missing_keywords.length})
               </h3>
               <div className="flex flex-wrap gap-2">
-                {initialScore.missing_keywords.slice(0, 12).map((kw, i) => (
+                {initialScore.missing_keywords.slice(0, 15).map((kw, i) => (
                   <span key={i} className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900/30 dark:text-orange-300">
                     {kw}
                   </span>
                 ))}
-                {initialScore.missing_keywords.length > 12 && (
-                  <span className="text-xs text-muted-foreground">+{initialScore.missing_keywords.length - 12} more</span>
+                {initialScore.missing_keywords.length > 15 && (
+                  <span className="text-xs text-muted-foreground">+{initialScore.missing_keywords.length - 15} more</span>
                 )}
               </div>
             </Card>
           )}
 
+          {/* Experience Gaps */}
+          {initialScore.experience_gaps && initialScore.experience_gaps.length > 0 && (
+            <Card className="p-4 mb-6">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-orange-500" /> Experience Gaps
+              </h3>
+              <ul className="space-y-2">
+                {initialScore.experience_gaps.map((gap, i) => (
+                  <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <span className="text-orange-500 mt-0.5">•</span> {gap}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {/* Top Improvements Needed */}
           {initialScore.improvements.length > 0 && (
             <Card className="p-4 mb-6">
               <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" /> Top Improvements Needed
               </h3>
               <div className="space-y-3">
-                {initialScore.improvements.slice(0, 3).map((imp, i) => (
-                  <div key={i} className="border-l-2 border-primary/50 pl-3">
+                {initialScore.improvements.slice(0, 5).map((imp, i) => (
+                  <div key={i} className={`border-l-2 pl-3 ${
+                    imp.priority === 'critical' 
+                      ? 'border-red-500' 
+                      : imp.priority === 'high' 
+                      ? 'border-orange-500' 
+                      : 'border-yellow-500'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        imp.priority === 'critical' 
+                          ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
+                          : imp.priority === 'high'
+                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                      }`}>
+                        {imp.priority}
+                      </span>
+                    </div>
                     <div className="font-medium text-foreground text-sm">{imp.issue}</div>
-                    <div className="text-sm text-muted-foreground">{imp.fix}</div>
+                    <div className="text-sm text-muted-foreground">→ {imp.fix}</div>
                   </div>
                 ))}
               </div>
+            </Card>
+          )}
+
+          {/* Role Fit Assessment */}
+          {initialScore.role_fit_assessment && (
+            <Card className="p-4 mb-6 bg-muted/30">
+              <h3 className="font-semibold text-foreground mb-2">Role Fit Assessment</h3>
+              <p className="text-sm text-muted-foreground">{initialScore.role_fit_assessment}</p>
             </Card>
           )}
 

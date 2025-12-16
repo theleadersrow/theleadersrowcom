@@ -112,11 +112,23 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    const systemPrompt = `You are an expert ATS (Applicant Tracking System) analyzer and career coach. 
-You analyze resumes against job descriptions to provide actionable feedback.
-Be direct, specific, and helpful. Focus on concrete improvements.`;
+    const systemPrompt = `You are an expert ATS (Applicant Tracking System) analyzer, career coach, and hiring manager with 15+ years of experience screening resumes for Fortune 500 companies. 
 
-    const userPrompt = `Analyze this resume against the job description and provide an ATS compatibility score.
+You provide BRUTALLY HONEST assessments that reveal the TRUE reasons why resumes fail to pass ATS systems and why candidates don't get interviews. You don't sugarcoat issues.
+
+Your analysis must identify:
+1. EXACT keyword gaps and missing technical skills
+2. YEARS OF EXPERIENCE mismatches (if job requires 7+ years but resume shows 4, call it out explicitly)
+3. LEADERSHIP/MANAGEMENT gaps (if job requires people management, team leadership, or direct reports and resume lacks this)
+4. STRATEGIC vs TACTICAL gaps (if job is senior/director level requiring strategy but resume is all tactical execution)
+5. DOMAIN/INDUSTRY experience gaps
+6. TECH STACK gaps (specific technologies, tools, platforms missing)
+7. SCOPE gaps (individual contributor vs team lead vs manager vs director level work)
+8. IMPACT gaps (missing quantified achievements, metrics, business outcomes)
+
+Be direct, specific, and helpful. Focus on concrete improvements that will make a real difference.`;
+
+    const userPrompt = `Analyze this resume against the job description with BRUTAL HONESTY. I need to know the REAL reasons why this resume might not pass ATS or get interviews.
 
 **RESUME:**
 ${safeResumeText}
@@ -131,21 +143,54 @@ Provide your analysis in this exact JSON format (no markdown, just JSON):
   "experience_match_score": <number 0-100>,
   "skills_match_score": <number 0-100>,
   "format_score": <number 0-100>,
-  "summary": "<2-3 sentence overall assessment>",
+  "summary": "<2-3 sentence BRUTALLY HONEST assessment that highlights the biggest gaps>",
   "matched_keywords": ["keyword1", "keyword2", ...],
-  "missing_keywords": ["keyword1", "keyword2", ...],
+  "missing_keywords": ["keyword1", "keyword2", ...up to 15 critical missing keywords],
   "strengths": ["strength1", "strength2", "strength3"],
   "improvements": [
-    {"priority": "high", "issue": "<issue>", "fix": "<specific fix>"},
-    {"priority": "high", "issue": "<issue>", "fix": "<specific fix>"},
-    {"priority": "medium", "issue": "<issue>", "fix": "<specific fix>"}
+    {"priority": "critical", "issue": "<SPECIFIC gap - e.g. 'Resume shows 4 years experience but role requires 7+ years'>", "fix": "<specific fix>"},
+    {"priority": "critical", "issue": "<SPECIFIC gap - e.g. 'No people management experience but role requires managing team of 5+'>", "fix": "<specific fix>"},
+    {"priority": "high", "issue": "<SPECIFIC gap>", "fix": "<specific fix>"},
+    {"priority": "high", "issue": "<SPECIFIC gap>", "fix": "<specific fix>"},
+    {"priority": "medium", "issue": "<SPECIFIC gap>", "fix": "<specific fix>"}
   ],
-  "experience_gaps": ["<gap1>", "<gap2>"],
-  "recommended_additions": ["<addition1>", "<addition2>"],
-  "role_fit_assessment": "<1 paragraph on how well they fit this specific role>"
+  "experience_gaps": [
+    "<SPECIFIC gap like 'Job requires 8+ years in product management, resume shows ~5 years'>",
+    "<SPECIFIC gap like 'No evidence of managing direct reports - role requires 3+ years people management'>",
+    "<SPECIFIC gap like 'Missing enterprise/B2B experience - role is for enterprise software'>",
+    "<SPECIFIC gap like 'No experience with [specific tech stack from JD]'>",
+    "<SPECIFIC gap like 'Resume shows IC work only - role requires director-level strategic leadership'>"
+  ],
+  "skills_gaps": [
+    {"skill": "<missing skill from JD>", "importance": "critical|high|medium", "context": "<why this matters for the role>"},
+    {"skill": "<missing skill from JD>", "importance": "critical|high|medium", "context": "<why this matters for the role>"}
+  ],
+  "years_experience_analysis": {
+    "job_requires": "<e.g. '7-10 years' or 'Senior level (typically 6+ years)'>",
+    "resume_shows": "<e.g. '4-5 years based on work history'>",
+    "gap": "<e.g. '2-3 years short of requirement' or 'Meets requirement'>"
+  },
+  "leadership_analysis": {
+    "job_requires": "<e.g. 'People management of 5+ direct reports' or 'IC role - no management required'>",
+    "resume_shows": "<e.g. 'No direct reports mentioned' or 'Managed team of 3'>",
+    "gap": "<specific gap or 'Meets requirement'>"
+  },
+  "tech_stack_gaps": ["<missing technology 1>", "<missing technology 2>"],
+  "recommended_additions": ["<addition1>", "<addition2>", "<addition3>"],
+  "role_fit_assessment": "<1 paragraph being BRUTALLY HONEST about fit - mention specific years gaps, leadership gaps, skill gaps>",
+  "deal_breakers": ["<any absolute deal-breakers that would immediately disqualify this candidate>"]
 }
 
-Be specific and actionable. Score harshly but fairly - most resumes should score 50-75.`;
+IMPORTANT SCORING GUIDELINES:
+- 90-100: Perfect match, exceeds all requirements
+- 75-89: Strong match with minor gaps
+- 60-74: Decent match but missing key requirements
+- 45-59: Significant gaps in experience, skills, or qualifications
+- 30-44: Major misalignment with role requirements
+- Below 30: Not qualified for this role
+
+Most resumes realistically score 45-70. Don't inflate scores. If there's a 3-year experience gap, that alone should significantly impact the score.`;
+
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
