@@ -392,7 +392,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText: finalContent, jobDescription }),
+          body: JSON.stringify({ resumeText: finalContent, jobDescription, isPostTransformation: true }),
         }
       );
 
@@ -1284,7 +1284,7 @@ https://theleadersrow.com
               "Content-Type": "application/json",
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ resumeText: content, jobDescription }),
+            body: JSON.stringify({ resumeText: content, jobDescription, isPostTransformation: true }),
           }
         );
 
