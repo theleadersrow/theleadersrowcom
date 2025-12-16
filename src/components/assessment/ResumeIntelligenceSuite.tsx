@@ -39,17 +39,24 @@ interface ATSResult {
   role_fit_assessment: string;
 }
 
+interface ContentImprovement {
+  section: string;
+  original: string;
+  improved: string;
+  reason: string;
+}
+
+interface ActionVerbUpgrade {
+  original: string;
+  improved: string;
+}
+
 interface EnhancedResume {
   enhancedContent: string;
-  contentImprovements: Array<{
-    section: string;
-    original: string;
-    improved: string;
-    reason: string;
-  }>;
+  contentImprovements: ContentImprovement[];
   addedKeywords: string[];
   quantifiedAchievements: string[];
-  actionVerbUpgrades: Array<{ original: string; improved: string }>;
+  actionVerbUpgrades: ActionVerbUpgrade[];
   summaryRewrite: string;
   bulletPointImprovements: string[];
 }
@@ -100,6 +107,13 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const [showFreshResumeDialog, setShowFreshResumeDialog] = useState(false);
   const [freshResumeEmail, setFreshResumeEmail] = useState("");
   const [isSendingFreshResume, setIsSendingFreshResume] = useState(false);
+  
+  // Change acceptance state
+  const [acceptedContentChanges, setAcceptedContentChanges] = useState<Set<number>>(new Set());
+  const [acceptedKeywords, setAcceptedKeywords] = useState<Set<number>>(new Set());
+  const [acceptedVerbUpgrades, setAcceptedVerbUpgrades] = useState<Set<number>>(new Set());
+  const [acceptedAchievements, setAcceptedAchievements] = useState<Set<number>>(new Set());
+  const [finalResumeContent, setFinalResumeContent] = useState<string>("");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -225,6 +239,11 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       if (data.error) throw new Error(data.error);
 
       setEnhancedResume(data);
+      // Initialize all changes as accepted by default
+      setAcceptedContentChanges(new Set((data.contentImprovements || []).map((_: any, i: number) => i)));
+      setAcceptedKeywords(new Set((data.addedKeywords || []).map((_: any, i: number) => i)));
+      setAcceptedVerbUpgrades(new Set((data.actionVerbUpgrades || []).map((_: any, i: number) => i)));
+      setAcceptedAchievements(new Set((data.quantifiedAchievements || []).map((_: any, i: number) => i)));
       setStep("improvements");
     } catch (error) {
       console.error("Enhancement error:", error);
@@ -239,9 +258,99 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
   };
 
-  const handleFinalAnalysis = async () => {
-    if (!enhancedResume?.enhancedContent) return;
+  // Build final resume with only accepted changes
+  const buildFinalResume = () => {
+    if (!enhancedResume) return resumeText;
+    
+    let finalContent = resumeText;
+    
+    // Apply accepted content improvements
+    enhancedResume.contentImprovements.forEach((imp, index) => {
+      if (acceptedContentChanges.has(index) && imp.original && imp.improved) {
+        finalContent = finalContent.replace(imp.original, imp.improved);
+      }
+    });
+    
+    // Apply accepted action verb upgrades
+    enhancedResume.actionVerbUpgrades.forEach((upgrade, index) => {
+      if (acceptedVerbUpgrades.has(index) && upgrade.original && upgrade.improved) {
+        const regex = new RegExp(`\\b${upgrade.original}\\b`, 'gi');
+        finalContent = finalContent.replace(regex, upgrade.improved);
+      }
+    });
+    
+    return finalContent;
+  };
 
+  const toggleContentChange = (index: number) => {
+    setAcceptedContentChanges(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleKeyword = (index: number) => {
+    setAcceptedKeywords(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleVerbUpgrade = (index: number) => {
+    setAcceptedVerbUpgrades(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAchievement = (index: number) => {
+    setAcceptedAchievements(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const acceptAllChanges = () => {
+    if (!enhancedResume) return;
+    setAcceptedContentChanges(new Set(enhancedResume.contentImprovements.map((_, i) => i)));
+    setAcceptedKeywords(new Set(enhancedResume.addedKeywords.map((_, i) => i)));
+    setAcceptedVerbUpgrades(new Set(enhancedResume.actionVerbUpgrades.map((_, i) => i)));
+    setAcceptedAchievements(new Set(enhancedResume.quantifiedAchievements.map((_, i) => i)));
+  };
+
+  const declineAllChanges = () => {
+    setAcceptedContentChanges(new Set());
+    setAcceptedKeywords(new Set());
+    setAcceptedVerbUpgrades(new Set());
+    setAcceptedAchievements(new Set());
+  };
+
+  const handleFinalAnalysis = async () => {
+    if (!enhancedResume) return;
+
+    // Build final resume with only accepted changes
+    const finalContent = buildFinalResume();
+    setFinalResumeContent(finalContent);
     setIsAnalyzing(true);
 
     try {
@@ -253,7 +362,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText: enhancedResume.enhancedContent, jobDescription }),
+          body: JSON.stringify({ resumeText: finalContent, jobDescription }),
         }
       );
 
@@ -275,18 +384,20 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   };
 
   const handleCopyEnhanced = async () => {
-    if (enhancedResume?.enhancedContent) {
-      await navigator.clipboard.writeText(enhancedResume.enhancedContent);
-      toast({ title: "Copied!", description: "Enhanced resume copied to clipboard" });
+    const content = finalResumeContent || enhancedResume?.enhancedContent;
+    if (content) {
+      await navigator.clipboard.writeText(content);
+      toast({ title: "Copied!", description: "Resume copied to clipboard" });
     }
   };
 
   const handleDownloadResume = async () => {
-    if (!enhancedResume?.enhancedContent) return;
+    const content = finalResumeContent || enhancedResume?.enhancedContent;
+    if (!content) return;
     
     try {
-      // Parse the enhanced content to create a properly formatted Word doc
-      const lines = enhancedResume.enhancedContent.split('\n').filter(line => line.trim());
+      // Parse the content to create a properly formatted Word doc
+      const lines = content.split('\n').filter(line => line.trim());
       const children: Paragraph[] = [];
       
       lines.forEach((line, index) => {
@@ -356,7 +467,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     } catch (error) {
       console.error("Download error:", error);
       // Fallback to text download
-      const blob = new Blob([enhancedResume.enhancedContent], { type: "text/plain" });
+      const content = finalResumeContent || enhancedResume?.enhancedContent || "";
+      const blob = new Blob([content], { type: "text/plain" });
       saveAs(blob, "optimized-resume.txt");
       toast({ title: "Downloaded!", description: "Resume saved as text file" });
     }
@@ -368,14 +480,15 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       return;
     }
 
-    if (!enhancedResume?.enhancedContent) return;
+    const content = finalResumeContent || enhancedResume?.enhancedContent;
+    if (!content) return;
 
     setIsSendingEmail(true);
     try {
       const { error } = await supabase.functions.invoke("send-enhanced-resume", {
         body: {
           email: emailAddress,
-          resumeContent: enhancedResume.enhancedContent,
+          resumeContent: content,
           improvements: {
             keywordsAdded: enhancedResume.addedKeywords.length,
             achievementsQuantified: enhancedResume.quantifiedAchievements.length,
@@ -420,6 +533,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       companyName: "",
       hiringManagerName: "",
     });
+    // Reset change acceptance state
+    setAcceptedContentChanges(new Set());
+    setAcceptedKeywords(new Set());
+    setAcceptedVerbUpgrades(new Set());
+    setAcceptedAchievements(new Set());
+    setFinalResumeContent("");
   };
 
   // Download report function
@@ -597,14 +716,15 @@ https://theleadersrow.com
       return;
     }
 
-    if (!enhancedResume?.enhancedContent) return;
+    const content = finalResumeContent || enhancedResume?.enhancedContent;
+    if (!content) return;
 
     setIsSendingFreshResume(true);
     try {
       const { error } = await supabase.functions.invoke("send-enhanced-resume", {
         body: {
           email: freshResumeEmail,
-          resumeContent: enhancedResume.enhancedContent,
+          resumeContent: content,
           improvements: {
             keywordsAdded: enhancedResume.addedKeywords.length,
             achievementsQuantified: enhancedResume.quantifiedAchievements.length,
@@ -892,8 +1012,13 @@ https://theleadersrow.com
     );
   }
 
-  // Step 4: Improvements
+  // Step 4: Improvements - Review Changes
   if (step === "improvements" && enhancedResume) {
+    const totalChanges = 
+      enhancedResume.contentImprovements.length + 
+      enhancedResume.actionVerbUpgrades.length;
+    const acceptedCount = acceptedContentChanges.size + acceptedVerbUpgrades.size;
+
     return (
       <div className="min-h-[80vh] animate-fade-up px-4">
         <div className="max-w-4xl mx-auto">
@@ -902,137 +1027,195 @@ https://theleadersrow.com
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
             <div>
-              <h1 className="text-2xl font-serif font-bold text-foreground">Your Optimized Resume</h1>
-              <p className="text-muted-foreground">AI-powered improvements for your target role</p>
+              <h1 className="text-2xl font-serif font-bold text-foreground">Review Your Changes</h1>
+              <p className="text-muted-foreground">Accept or decline each suggestion to customize your resume</p>
             </div>
           </div>
 
           {stepIndicator}
 
-          {/* Key Improvements Summary */}
-          <div className="grid sm:grid-cols-3 gap-4 mb-6">
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{enhancedResume.addedKeywords.length}</div>
-              <div className="text-sm text-muted-foreground">Keywords Added</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{enhancedResume.quantifiedAchievements.length}</div>
-              <div className="text-sm text-muted-foreground">Achievements Quantified</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{enhancedResume.actionVerbUpgrades.length}</div>
-              <div className="text-sm text-muted-foreground">Action Verbs Upgraded</div>
-            </Card>
-          </div>
-
-          {/* Added Keywords */}
-          {enhancedResume.addedKeywords.length > 0 && (
-            <Card className="p-4 mb-6">
-              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" /> Keywords Added to Your Resume
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {enhancedResume.addedKeywords.map((kw, i) => (
-                  <span key={i} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
-                    + {kw}
-                  </span>
-                ))}
+          {/* Quick Actions */}
+          <Card className="p-4 mb-6 bg-primary/5 border-primary/20">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {acceptedCount} of {totalChanges} changes accepted
+                </p>
+                <p className="text-xs text-muted-foreground">Toggle each change below or use quick actions</p>
               </div>
-            </Card>
-          )}
-
-          {/* Content Improvements */}
-          {enhancedResume.contentImprovements.length > 0 && (
-            <Card className="p-4 mb-6">
-              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" /> Content Improvements
-              </h3>
-              <div className="space-y-4">
-                {enhancedResume.contentImprovements.slice(0, 3).map((imp, i) => (
-                  <div key={i} className="bg-muted/30 rounded-lg p-3">
-                    <div className="text-xs font-medium text-primary mb-2">{imp.section}</div>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Before:</div>
-                        <div className="text-sm text-muted-foreground line-through">{imp.original}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-green-600 mb-1">After:</div>
-                        <div className="text-sm text-foreground">{imp.improved}</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2 italic">{imp.reason}</div>
-                  </div>
-                ))}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={acceptAllChanges}>
+                  <CheckCircle className="w-4 h-4 mr-1" /> Accept All
+                </Button>
+                <Button variant="outline" size="sm" onClick={declineAllChanges}>
+                  Decline All
+                </Button>
               </div>
-            </Card>
-          )}
-
-          {/* Enhanced Resume Content */}
-          <Card className="p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary" /> Your Enhanced Resume
-              </h3>
-              <Button variant="outline" size="sm" onClick={handleCopyEnhanced}>
-                <Copy className="w-4 h-4 mr-2" /> Copy
-              </Button>
-            </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/30 rounded-lg p-4 max-h-[400px] overflow-y-auto">
-              <ReactMarkdown>{enhancedResume.enhancedContent}</ReactMarkdown>
             </div>
           </Card>
 
+          {/* Content Improvements - Before/After with Accept/Decline */}
+          {enhancedResume.contentImprovements.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" /> Content Improvements ({enhancedResume.contentImprovements.length})
+              </h3>
+              <div className="space-y-4">
+                {enhancedResume.contentImprovements.map((imp, index) => {
+                  const isAccepted = acceptedContentChanges.has(index);
+                  return (
+                    <Card 
+                      key={index} 
+                      className={`p-4 transition-all ${isAccepted ? 'border-green-500/50 bg-green-500/5' : 'border-muted opacity-60'}`}
+                    >
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                            {imp.section}
+                          </span>
+                          {isAccepted && (
+                            <span className="text-xs text-green-600 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" /> Accepted
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          variant={isAccepted ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => toggleContentChange(index)}
+                          className={isAccepted ? "bg-green-600 hover:bg-green-700" : ""}
+                        >
+                          {isAccepted ? (
+                            <><CheckCircle className="w-4 h-4 mr-1" /> Accepted</>
+                          ) : (
+                            "Accept Change"
+                          )}
+                        </Button>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="rounded-lg bg-red-500/5 border border-red-500/20 p-3">
+                          <div className="text-xs font-medium text-red-600 mb-2 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-red-500"></span> BEFORE
+                          </div>
+                          <p className="text-sm text-muted-foreground">{imp.original || "N/A"}</p>
+                        </div>
+                        <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3">
+                          <div className="text-xs font-medium text-green-600 mb-2 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span> AFTER
+                          </div>
+                          <p className="text-sm text-foreground">{imp.improved || "N/A"}</p>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground mt-3 italic border-l-2 border-primary/30 pl-2">
+                        💡 {imp.reason}
+                      </p>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Action Verb Upgrades */}
+          {enhancedResume.actionVerbUpgrades.length > 0 && (
+            <Card className="p-4 mb-6">
+              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary" /> Action Verb Upgrades ({enhancedResume.actionVerbUpgrades.length})
+              </h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {enhancedResume.actionVerbUpgrades.map((upgrade, index) => {
+                  const isAccepted = acceptedVerbUpgrades.has(index);
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => toggleVerbUpgrade(index)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                        isAccepted 
+                          ? 'border-green-500/50 bg-green-500/10' 
+                          : 'border-muted bg-muted/20 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isAccepted ? 'border-green-500 bg-green-500' : 'border-muted-foreground'
+                        }`}>
+                          {isAccepted && <CheckCircle className="w-3 h-3 text-white" />}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground line-through">{upgrade.original}</span>
+                        <ArrowRight className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-foreground font-medium">{upgrade.improved}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
+          {/* Keywords to Add */}
+          {enhancedResume.addedKeywords.length > 0 && (
+            <Card className="p-4 mb-6">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" /> Keywords to Add ({acceptedKeywords.size}/{enhancedResume.addedKeywords.length} selected)
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">Click keywords to include them in your final resume</p>
+              <div className="flex flex-wrap gap-2">
+                {enhancedResume.addedKeywords.map((kw, index) => {
+                  const isAccepted = acceptedKeywords.has(index);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => toggleKeyword(index)}
+                      className={`px-3 py-1.5 text-xs rounded-full transition-all border ${
+                        isAccepted
+                          ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700'
+                          : 'bg-muted/50 text-muted-foreground border-muted hover:border-primary/50'
+                      }`}
+                    >
+                      {isAccepted && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                      {kw}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
+          {/* Summary */}
+          <Card className="p-4 mb-6 bg-muted/30">
+            <h3 className="font-semibold text-foreground mb-2">Your Customized Resume Summary</h3>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• {acceptedContentChanges.size} content improvements accepted</li>
+              <li>• {acceptedVerbUpgrades.size} action verb upgrades accepted</li>
+              <li>• {acceptedKeywords.size} keywords will be added</li>
+            </ul>
+          </Card>
+
           <div className="flex flex-wrap justify-center gap-4">
-            <Button variant="outline" onClick={handleCopyEnhanced}>
-              <Copy className="w-4 h-4 mr-2" /> Copy
+            <Button variant="outline" onClick={() => setStep("initial_score")}>
+              <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
             </Button>
-            <Button variant="outline" onClick={handleDownloadResume}>
-              <Download className="w-4 h-4 mr-2" /> Download DOCX
-            </Button>
-            <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
-              <Mail className="w-4 h-4 mr-2" /> Email to Me
-            </Button>
-            <Button size="lg" onClick={handleFinalAnalysis} disabled={isAnalyzing}>
+            <Button 
+              size="lg" 
+              onClick={handleFinalAnalysis} 
+              disabled={isAnalyzing || acceptedCount === 0}
+            >
               {isAnalyzing ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scoring...</>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Building Resume...</>
               ) : (
-                <>See My New Score <ArrowRight className="w-4 h-4 ml-2" /></>
+                <>Apply Changes & Score <ArrowRight className="w-4 h-4 ml-2" /></>
               )}
             </Button>
           </div>
-
-          {/* Email Dialog */}
-          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-primary" />
-                  Email Your Enhanced Resume
-                </DialogTitle>
-                <DialogDescription className="pt-4 space-y-4">
-                  <p>We'll send your optimized resume directly to your inbox.</p>
-                  <Input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={emailAddress}
-                    onChange={(e) => setEmailAddress(e.target.value)}
-                  />
-                  <Button 
-                    className="w-full" 
-                    onClick={handleEmailResume}
-                    disabled={isSendingEmail}
-                  >
-                    {isSendingEmail ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
-                    ) : (
-                      <><Mail className="w-4 h-4 mr-2" /> Send Resume</>
-                    )}
-                  </Button>
-                </DialogDescription>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
+          {acceptedCount === 0 && (
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              Please accept at least one change to continue
+            </p>
+          )}
         </div>
       </div>
     );
