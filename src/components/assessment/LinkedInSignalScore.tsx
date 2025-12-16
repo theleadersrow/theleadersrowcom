@@ -985,50 +985,36 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
 
                   {/* Expandable Content for Experience Bullets */}
                   {item.id === "experience" && isExpanded && suggestions && (
-                    <div className="mt-4 pt-4 border-t space-y-4">
-                      <p className="text-sm font-medium mb-3">Experience bullets that need updating:</p>
-                      {suggestions.experienceRewrites.map((exp, i) => (
-                        <Card key={i} className="border-orange-500/20 bg-orange-500/5">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-medium px-2 py-1 rounded bg-orange-500/10 text-orange-700 dark:text-orange-300">
-                                {exp.companyRole}
-                              </span>
+                    <div className="mt-4 pt-4 border-t space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Your experience section needs stronger impact language and quantified results. Focus on these key improvements:
+                      </p>
+                      <ul className="space-y-2">
+                        {suggestions.experienceRewrites.slice(0, 3).map((exp, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-orange-500 mt-0.5">•</span>
+                            <div className="flex-1">
+                              <span className="text-sm font-medium">{exp.companyRole}:</span>
+                              <span className="text-sm text-muted-foreground ml-1">{exp.whyBetter}</span>
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                className="ml-2 h-6 px-2"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   navigator.clipboard.writeText(exp.improved);
                                   toast.success("Improved bullet copied!");
                                 }}
                               >
-                                <Copy className="w-4 h-4" />
+                                <Copy className="w-3 h-3" />
                               </Button>
                             </div>
-                            <div className="grid md:grid-cols-2 gap-3">
-                              <div className="rounded-lg bg-red-500/5 border border-red-500/20 p-3">
-                                <div className="text-xs font-medium text-red-600 mb-1 flex items-center gap-1">
-                                  <span className="w-2 h-2 rounded-full bg-red-500"></span> ORIGINAL
-                                </div>
-                                <p className="text-sm text-muted-foreground">{exp.original}</p>
-                              </div>
-                              <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3">
-                                <div className="text-xs font-medium text-green-600 mb-1 flex items-center gap-1">
-                                  <span className="w-2 h-2 rounded-full bg-green-500"></span> IMPROVED
-                                </div>
-                                <p className="text-sm text-foreground">{exp.improved}</p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2 italic">
-                              💡 {exp.whyBetter}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      ))}
+                          </li>
+                        ))}
+                      </ul>
                       <Button 
                         size="sm" 
-                        className="w-full"
+                        className="w-full mt-2"
                         onClick={(e) => {
                           e.stopPropagation();
                           updateChecklistItem("experience", true);
