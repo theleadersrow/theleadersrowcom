@@ -686,6 +686,7 @@ export type Database = {
       }
       tool_purchases: {
         Row: {
+          access_token: string | null
           created_at: string
           email: string
           expires_at: string
@@ -699,6 +700,7 @@ export type Database = {
           usage_count: number
         }
         Insert: {
+          access_token?: string | null
           created_at?: string
           email: string
           expires_at: string
@@ -712,6 +714,7 @@ export type Database = {
           usage_count?: number
         }
         Update: {
+          access_token?: string | null
           created_at?: string
           email?: string
           expires_at?: string

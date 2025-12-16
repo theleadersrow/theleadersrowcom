@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { 
   Target, BarChart3, Briefcase, Brain, Compass, 
   ArrowRight, Clock, Zap, CheckCircle, Sparkles,
-  Linkedin, Eye, MessageSquare, Lock, CreditCard, FileText, TrendingUp
+  Linkedin, Eye, MessageSquare, Lock, FileText, TrendingUp,
+  AlertTriangle, Mail, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,41 +19,141 @@ interface RimoLandingProps {
 }
 
 const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
-
 const LINKEDIN_SUITE_ACCESS_KEY = "linkedin_suite_access";
+const PENDING_PURCHASE_EMAIL_KEY = "pending_purchase_email";
+
+interface AccessInfo {
+  hasAccess: boolean;
+  expiresAt?: string;
+  daysRemaining?: number;
+  email?: string;
+}
 
 export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn }: RimoLandingProps) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
+  const [showCheckEmailDialog, setShowCheckEmailDialog] = useState(false);
   const [email, setEmail] = useState("");
   const [linkedInEmail, setLinkedInEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [hasResumeAccess, setHasResumeAccess] = useState(false);
-  const [hasLinkedInAccess, setHasLinkedInAccess] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [resumeAccess, setResumeAccess] = useState<AccessInfo>({ hasAccess: false });
+  const [linkedInAccess, setLinkedInAccess] = useState<AccessInfo>({ hasAccess: false });
+  const [pendingToolType, setPendingToolType] = useState<string | null>(null);
 
   useEffect(() => {
-    const purchaseType = searchParams.get("purchase");
-    if (purchaseType === "resume_success") {
-      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify({ expiry }));
-      setHasResumeAccess(true);
-      toast.success("Payment successful! You now have access to the Resume Intelligence Suite for 1 month.");
-    } else if (purchaseType === "linkedin_success") {
-      const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify({ expiry }));
-      setHasLinkedInAccess(true);
-      toast.success("Payment successful! You now have access to the LinkedIn Signal Score for 1 month.");
-    }
+    const init = async () => {
+      // Check for magic link verification
+      const verifyToken = searchParams.get("verify");
+      const toolType = searchParams.get("tool");
+      
+      if (verifyToken) {
+        setIsVerifying(true);
+        try {
+          const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+            body: { accessToken: verifyToken, action: "verify" },
+          });
 
+          if (error) throw error;
+
+          if (data.valid) {
+            // Store access locally
+            const accessData = {
+              expiry: new Date(data.expiresAt).getTime(),
+              email: data.email,
+              daysRemaining: data.daysRemaining,
+            };
+            
+            if (data.toolType === "resume_suite") {
+              localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+              setResumeAccess({ 
+                hasAccess: true, 
+                expiresAt: data.expiresAt, 
+                daysRemaining: data.daysRemaining,
+                email: data.email 
+              });
+              toast.success("Access verified! You can now use the Resume Intelligence Suite.");
+            } else if (data.toolType === "linkedin_signal") {
+              localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+              setLinkedInAccess({ 
+                hasAccess: true, 
+                expiresAt: data.expiresAt, 
+                daysRemaining: data.daysRemaining,
+                email: data.email 
+              });
+              toast.success("Access verified! You can now use the LinkedIn Signal Score.");
+            }
+            
+            // Clear URL params
+            setSearchParams({});
+          } else {
+            toast.error(data.error || "Invalid access link. Please check your email for the correct link.");
+          }
+        } catch (error) {
+          console.error("Verification error:", error);
+          toast.error("Failed to verify access. Please try again.");
+        } finally {
+          setIsVerifying(false);
+        }
+        return;
+      }
+
+      // Check for purchase success - send access email
+      const purchaseType = searchParams.get("purchase");
+      if (purchaseType === "resume_success" || purchaseType === "linkedin_success") {
+        const pendingEmail = localStorage.getItem(PENDING_PURCHASE_EMAIL_KEY);
+        const pendingTool = purchaseType === "resume_success" ? "resume_suite" : "linkedin_signal";
+        
+        if (pendingEmail) {
+          setIsProcessing(true);
+          try {
+            const { error } = await supabase.functions.invoke("send-tool-access-email", {
+              body: { email: pendingEmail, toolType: pendingTool },
+            });
+
+            if (error) throw error;
+
+            localStorage.removeItem(PENDING_PURCHASE_EMAIL_KEY);
+            setPendingToolType(pendingTool);
+            setShowCheckEmailDialog(true);
+            toast.success("Payment successful! Check your email for the access link.");
+          } catch (error) {
+            console.error("Failed to send access email:", error);
+            toast.error("Payment received but failed to send access email. Please contact support.");
+          } finally {
+            setIsProcessing(false);
+          }
+        } else {
+          toast.info("Payment successful! Please enter your email to receive your access link.");
+        }
+        
+        // Clear URL params
+        setSearchParams({});
+        return;
+      }
+
+      // Check stored access
+      checkStoredAccess();
+    };
+
+    init();
+  }, [searchParams, setSearchParams]);
+
+  const checkStoredAccess = () => {
     // Check resume access
     const storedResume = localStorage.getItem(RESUME_SUITE_ACCESS_KEY);
     if (storedResume) {
-      const { expiry } = JSON.parse(storedResume);
-      if (Date.now() < expiry) {
-        setHasResumeAccess(true);
-      } else {
+      try {
+        const { expiry, email, daysRemaining } = JSON.parse(storedResume);
+        if (Date.now() < expiry) {
+          const remaining = Math.ceil((expiry - Date.now()) / (1000 * 60 * 60 * 24));
+          setResumeAccess({ hasAccess: true, daysRemaining: remaining, email });
+        } else {
+          localStorage.removeItem(RESUME_SUITE_ACCESS_KEY);
+        }
+      } catch {
         localStorage.removeItem(RESUME_SUITE_ACCESS_KEY);
       }
     }
@@ -60,17 +161,22 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     // Check LinkedIn access
     const storedLinkedIn = localStorage.getItem(LINKEDIN_SUITE_ACCESS_KEY);
     if (storedLinkedIn) {
-      const { expiry } = JSON.parse(storedLinkedIn);
-      if (Date.now() < expiry) {
-        setHasLinkedInAccess(true);
-      } else {
+      try {
+        const { expiry, email, daysRemaining } = JSON.parse(storedLinkedIn);
+        if (Date.now() < expiry) {
+          const remaining = Math.ceil((expiry - Date.now()) / (1000 * 60 * 60 * 24));
+          setLinkedInAccess({ hasAccess: true, daysRemaining: remaining, email });
+        } else {
+          localStorage.removeItem(LINKEDIN_SUITE_ACCESS_KEY);
+        }
+      } catch {
         localStorage.removeItem(LINKEDIN_SUITE_ACCESS_KEY);
       }
     }
-  }, [searchParams]);
+  };
 
   const handleResumeSuiteClick = () => {
-    if (hasResumeAccess) {
+    if (resumeAccess.hasAccess) {
       onStartResumeSuite();
     } else {
       setShowPaymentDialog(true);
@@ -78,7 +184,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   };
 
   const handleLinkedInClick = () => {
-    if (hasLinkedInAccess) {
+    if (linkedInAccess.hasAccess) {
       onStartLinkedIn();
     } else {
       setShowLinkedInPaymentDialog(true);
@@ -91,25 +197,34 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       return;
     }
 
-    // Record the email for tracking before opening payment link
+    setIsProcessing(true);
+    
     try {
+      // Record the email for tracking
       await supabase.from("tool_purchases").insert({
         email,
         tool_type: "resume_suite",
         status: "pending",
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
+
+      // Store email temporarily to send access email after payment
+      localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, email);
+      
+      // Open Stripe Payment Link
+      const paymentWindow = window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
+      if (paymentWindow) {
+        paymentWindow.focus();
+      }
+      
+      setShowPaymentDialog(false);
+      toast.info("Complete your purchase in the new tab. You'll receive an access link via email.");
     } catch (error) {
       console.error("Failed to record purchase intent:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
-
-    // Open direct Stripe Payment Link and focus it
-    const paymentWindow = window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
-    if (paymentWindow) {
-      paymentWindow.focus();
-    }
-    setShowPaymentDialog(false);
-    toast.info("Complete your purchase in the new tab. Return here after payment.");
   };
 
   const handleLinkedInCheckout = async () => {
@@ -118,29 +233,70 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       return;
     }
 
-    // Record the email for tracking before opening payment link
+    setIsProcessing(true);
+    
     try {
+      // Record the email for tracking
       await supabase.from("tool_purchases").insert({
         email: linkedInEmail,
         tool_type: "linkedin_signal",
         status: "pending",
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
+
+      // Store email temporarily
+      localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, linkedInEmail);
+      
+      // Open Stripe Payment Link
+      const paymentWindow = window.open("https://buy.stripe.com/6oUcN49uhgH86kD4oz9sk0c", "_blank");
+      if (paymentWindow) {
+        paymentWindow.focus();
+      }
+      
+      setShowLinkedInPaymentDialog(false);
+      toast.info("Complete your purchase in the new tab. You'll receive an access link via email.");
     } catch (error) {
       console.error("Failed to record purchase intent:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
-
-    // Open direct Stripe Payment Link and focus it
-    const paymentWindow = window.open("https://buy.stripe.com/6oUcN49uhgH86kD4oz9sk0c", "_blank");
-    if (paymentWindow) {
-      paymentWindow.focus();
-    }
-    setShowLinkedInPaymentDialog(false);
-    toast.info("Complete your purchase in the new tab. Return here after payment.");
   };
+
+  // Expiry warning banner component
+  const ExpiryWarning = ({ daysRemaining, toolName }: { daysRemaining: number; toolName: string }) => {
+    if (daysRemaining > 7) return null;
+    
+    return (
+      <div className="mb-4 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+        <p className="text-sm text-amber-700">
+          <strong>{daysRemaining} day{daysRemaining !== 1 ? "s" : ""}</strong> remaining on your {toolName} access.
+          {daysRemaining <= 3 && " Renew soon to continue using the tool!"}
+        </p>
+      </div>
+    );
+  };
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+        <p className="text-lg text-muted-foreground">Verifying your access...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 animate-fade-up">
+      {/* Expiry Warnings */}
+      {resumeAccess.hasAccess && resumeAccess.daysRemaining && (
+        <ExpiryWarning daysRemaining={resumeAccess.daysRemaining} toolName="Resume Intelligence Suite" />
+      )}
+      {linkedInAccess.hasAccess && linkedInAccess.daysRemaining && (
+        <ExpiryWarning daysRemaining={linkedInAccess.daysRemaining} toolName="LinkedIn Signal Score" />
+      )}
+
       {/* Hero */}
       <div className="text-center max-w-2xl mx-auto mb-10">
         <div className="flex items-center justify-center gap-2 mb-4">
@@ -209,9 +365,12 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
                     <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$19.99</span>
-                    {hasResumeAccess ? (
+                    {resumeAccess.hasAccess ? (
                       <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> Active
+                        {resumeAccess.daysRemaining && resumeAccess.daysRemaining <= 7 && (
+                          <span className="ml-1">({resumeAccess.daysRemaining}d left)</span>
+                        )}
                       </span>
                     ) : (
                       <Lock className="w-4 h-4 text-muted-foreground" />
@@ -258,9 +417,12 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">LinkedIn Signal Score</h3>
                     <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$19.99</span>
-                    {hasLinkedInAccess ? (
+                    {linkedInAccess.hasAccess ? (
                       <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> Active
+                        {linkedInAccess.daysRemaining && linkedInAccess.daysRemaining <= 7 && (
+                          <span className="ml-1">({linkedInAccess.daysRemaining}d left)</span>
+                        )}
                       </span>
                     ) : (
                       <Lock className="w-4 h-4 text-muted-foreground" />
@@ -337,7 +499,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         </span>
         <span className="flex items-center gap-1">
           <CheckCircle className="w-4 h-4 text-green-500" />
-          Actionable results
+          Access on any device
         </span>
       </div>
 
@@ -350,57 +512,53 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         </p>
       </div>
 
-      {/* Payment Dialog */}
+      {/* Resume Suite Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-primary" />
+              <FileText className="w-5 h-5 text-amber-600" />
               Resume Intelligence Suite
             </DialogTitle>
-            <DialogDescription className="pt-4 space-y-4">
-              <p>
-                Get the complete resume transformation experience for just <strong className="text-foreground">$19.99</strong> with 1 month of unlimited use.
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-2 text-left">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">Initial ATS Score</strong> — See exactly how your resume performs against your target job</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">AI Content Transformation</strong> — Get your resume rewritten with missing keywords, quantified achievements & stronger language</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">New ATS Score</strong> — See your improved score and exactly what changed</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">Unlimited use</strong> — Optimize for as many roles as you want for 30 days</span>
-                </li>
-              </ul>
-              <div className="space-y-3 pt-2">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full"
-                />
-                <Button 
-                  onClick={handleCheckout} 
-                  className="w-full"
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? "Processing..." : "Get Access for $19.99"}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Secure payment via Stripe • One-time payment • 30-day access
-                </p>
-              </div>
+            <DialogDescription>
+              Get full access for 30 days. After payment, you'll receive an access link via email that works on any device.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="text-center">
+              <span className="text-4xl font-bold text-foreground">$19.99</span>
+              <span className="text-muted-foreground ml-2">/ 30 days</span>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-foreground">
+                Your email address
+              </label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Mail className="w-3 h-3" />
+                We'll send your access link to this email
+              </p>
+            </div>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> ATS scoring & analysis</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> AI-powered resume enhancement</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Before/after comparison</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Access from any device</li>
+            </ul>
+            <Button onClick={handleCheckout} className="w-full" size="lg" disabled={isProcessing}>
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+              ) : (
+                <>Continue to Payment</>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -412,49 +570,74 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               <Linkedin className="w-5 h-5 text-blue-600" />
               LinkedIn Signal Score
             </DialogTitle>
-            <DialogDescription className="pt-4 space-y-4">
-              <p>
-                Get your profile analyzed like a recruiter would for just <strong className="text-foreground">$19.99</strong> with 1 month of unlimited use.
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-2 text-left">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">Signal Score</strong> — See how recruiters view your profile across 6 dimensions</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">AI Optimization</strong> — Get headline rewrites, about section, and experience bullets</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">Projected Impact</strong> — See exactly how changes will improve your score</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span><strong className="text-foreground">Unlimited use</strong> — Optimize for different roles for 30 days</span>
-                </li>
-              </ul>
-              <div className="space-y-3 pt-2">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={linkedInEmail}
-                  onChange={(e) => setLinkedInEmail(e.target.value)}
-                  className="w-full"
-                />
-                <Button 
-                  onClick={handleLinkedInCheckout} 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? "Processing..." : "Get Access for $19.99"}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Secure payment via Stripe • One-time payment • 30-day access
-                </p>
-              </div>
+            <DialogDescription>
+              Get full access for 30 days. After payment, you'll receive an access link via email that works on any device.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="text-center">
+              <span className="text-4xl font-bold text-foreground">$19.99</span>
+              <span className="text-muted-foreground ml-2">/ 30 days</span>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="linkedin-email" className="text-sm font-medium text-foreground">
+                Your email address
+              </label>
+              <Input
+                id="linkedin-email"
+                type="email"
+                placeholder="you@example.com"
+                value={linkedInEmail}
+                onChange={(e) => setLinkedInEmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Mail className="w-3 h-3" />
+                We'll send your access link to this email
+              </p>
+            </div>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Profile signal scoring</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> AI optimization suggestions</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Section-by-section rewrites</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Access from any device</li>
+            </ul>
+            <Button onClick={handleLinkedInCheckout} className="w-full" size="lg" disabled={isProcessing}>
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+              ) : (
+                <>Continue to Payment</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Check Email Dialog */}
+      <Dialog open={showCheckEmailDialog} onOpenChange={setShowCheckEmailDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              Check Your Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4 text-center">
+            <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <p className="text-foreground">
+              We've sent an access link to your email.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Click the link in the email to access your {pendingToolType === "resume_suite" ? "Resume Intelligence Suite" : "LinkedIn Signal Score"}.
+              The link works on any device.
+            </p>
+            <div className="pt-2">
+              <Button variant="outline" onClick={() => setShowCheckEmailDialog(false)}>
+                Got it
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -463,23 +646,28 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Sparkles className="w-5 h-5 text-secondary" />
               AI Interview Prep
             </DialogTitle>
-            <DialogDescription className="pt-4 space-y-4">
-              <p>
-                Practice mock interviews with personalized AI feedback and coaching.
-              </p>
-              <div className="bg-secondary/20 rounded-lg p-4 text-center">
-                <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  This premium feature will be launching soon. Stay tuned!
-                </p>
-              </div>
+            <DialogDescription>
+              Coming soon! We're building an AI-powered interview preparation tool with mock interviews, 
+              real-time feedback, and personalized coaching.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <Button onClick={() => setShowInterviewPrepDialog(false)}>Got it</Button>
+          <div className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              Want to be notified when this launches? Book a strategy call and we'll keep you in the loop.
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowInterviewPrepDialog(false)} className="flex-1">
+                Close
+              </Button>
+              <Button asChild className="flex-1">
+                <a href="/book-call" target="_blank" rel="noopener noreferrer">
+                  Book Strategy Call
+                </a>
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
