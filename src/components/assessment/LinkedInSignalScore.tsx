@@ -985,28 +985,54 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
 
                   {/* Expandable Content for Experience Bullets */}
                   {item.id === "experience" && isExpanded && suggestions && (
-                    <div className="mt-4 pt-4 border-t space-y-4">
-                      {suggestions.experienceRewrites.slice(0, 3).map((exp, i) => (
-                        <div key={i} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-foreground">{exp.companyRole}</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 px-2"
+                    <div className="mt-4 pt-4 border-t space-y-3">
+                      {suggestions.experienceRewrites.slice(0, 3).map((exp, i) => {
+                        const expKey = `exp-${i}`;
+                        const isExpExpanded = expandedItems.has(expKey);
+                        return (
+                          <div key={i} className="space-y-2 p-3 rounded-lg bg-muted/30 border border-muted">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-foreground">{exp.companyRole}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(exp.improved);
+                                  toast.success("Improved bullet copied!");
+                                }}
+                              >
+                                <Copy className="w-3 h-3 mr-1" />
+                                <span className="text-xs">Copy</span>
+                              </Button>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{exp.whyBetter}</p>
+                            <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigator.clipboard.writeText(exp.improved);
-                                toast.success("Improved bullet copied!");
+                                setExpandedItems(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(expKey)) {
+                                    newSet.delete(expKey);
+                                  } else {
+                                    newSet.add(expKey);
+                                  }
+                                  return newSet;
+                                });
                               }}
+                              className="text-xs text-primary hover:underline flex items-center gap-1"
                             >
-                              <Copy className="w-3 h-3 mr-1" />
-                              <span className="text-xs">Copy</span>
-                            </Button>
+                              {isExpExpanded ? "Hide improved text ▲" : "View improved text ▼"}
+                            </button>
+                            {isExpExpanded && (
+                              <div className="mt-2 p-3 rounded-md bg-green-500/5 border border-green-500/20">
+                                <p className="text-sm text-foreground">{exp.improved}</p>
+                              </div>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{exp.whyBetter}</p>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <Button 
                         size="sm" 
                         className="w-full mt-2"
