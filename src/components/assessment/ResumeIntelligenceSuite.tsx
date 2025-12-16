@@ -82,6 +82,7 @@ interface EnhancedResume {
   actionVerbUpgrades: ActionVerbUpgrade[];
   summaryRewrite: string;
   bulletPointImprovements: string[];
+  transformationNotes?: string;
 }
 
 interface CoverLetterDetails {
@@ -137,6 +138,10 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const [acceptedVerbUpgrades, setAcceptedVerbUpgrades] = useState<Set<number>>(new Set());
   const [acceptedAchievements, setAcceptedAchievements] = useState<Set<number>>(new Set());
   const [finalResumeContent, setFinalResumeContent] = useState<string>("");
+  
+  // Improvements view state
+  const [viewMode, setViewMode] = useState<"comparison" | "details">("comparison");
+  const [useFullTransformation, setUseFullTransformation] = useState(true);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -255,6 +260,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           missingKeywords: initialScore?.missing_keywords || [],
           improvements: initialScore?.improvements || [],
           experienceGaps: initialScore?.experience_gaps || [],
+          skillsGaps: initialScore?.skills_gaps || [],
+          techStackGaps: initialScore?.tech_stack_gaps?.map((t: string) => ({ technology: t, gap: "Missing from resume" })) || [],
         },
       });
 
@@ -562,6 +569,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setAcceptedVerbUpgrades(new Set());
     setAcceptedAchievements(new Set());
     setFinalResumeContent("");
+    // Reset view state
+    setViewMode("comparison");
+    setUseFullTransformation(true);
   };
 
   // Download report function
@@ -1200,181 +1210,343 @@ https://theleadersrow.com
       enhancedResume.actionVerbUpgrades.length;
     const acceptedCount = acceptedContentChanges.size + acceptedVerbUpgrades.size;
 
+    const handleUseTransformed = () => {
+      setUseFullTransformation(true);
+      setFinalResumeContent(enhancedResume.enhancedContent);
+    };
+
+    const handleCustomize = () => {
+      setUseFullTransformation(false);
+      setViewMode("details");
+    };
+
+    const proceedToFinal = async () => {
+      setIsAnalyzing(true);
+      const content = useFullTransformation ? enhancedResume.enhancedContent : buildFinalResume();
+      setFinalResumeContent(content);
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ resumeText: content, jobDescription }),
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to analyze");
+
+        const data = await response.json();
+        setFinalScore(data);
+        setStep("final_score");
+      } catch (error) {
+        console.error("Final analysis error:", error);
+        toast({
+          title: "Analysis failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+
     return (
       <div className="min-h-[80vh] animate-fade-up px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button onClick={() => setStep("initial_score")} className="p-2 rounded-lg hover:bg-muted transition-colors">
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
             <div>
-              <h1 className="text-2xl font-serif font-bold text-foreground">Review Your Changes</h1>
-              <p className="text-muted-foreground">Accept or decline each suggestion to customize your resume</p>
+              <h1 className="text-2xl font-serif font-bold text-foreground">Your Resume Has Been Transformed</h1>
+              <p className="text-muted-foreground">Review the AI-optimized version and choose how to proceed</p>
             </div>
           </div>
 
           {stepIndicator}
 
-          {/* Quick Actions */}
-          <Card className="p-4 mb-6 bg-primary/5 border-primary/20">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {acceptedCount} of {totalChanges} changes accepted
-                </p>
-                <p className="text-xs text-muted-foreground">Toggle each change below or use quick actions</p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={acceptAllChanges}>
-                  <CheckCircle className="w-4 h-4 mr-1" /> Accept All
-                </Button>
-                <Button variant="outline" size="sm" onClick={declineAllChanges}>
-                  Decline All
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Content Improvements - Before/After with Accept/Decline */}
-          {enhancedResume.contentImprovements.length > 0 && (
-            <div className="mb-6">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" /> Content Improvements ({enhancedResume.contentImprovements.length})
+          {/* Transformation Summary */}
+          {enhancedResume.transformationNotes && (
+            <Card className="p-4 mb-6 bg-primary/5 border-primary/20">
+              <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" /> Transformation Strategy
               </h3>
-              <div className="space-y-4">
-                {enhancedResume.contentImprovements.map((imp, index) => {
-                  const isAccepted = acceptedContentChanges.has(index);
-                  return (
-                    <Card 
-                      key={index} 
-                      className={`p-4 transition-all ${isAccepted ? 'border-green-500/50 bg-green-500/5' : 'border-muted opacity-60'}`}
-                    >
-                      <div className="flex items-start justify-between gap-4 mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
-                            {imp.section}
-                          </span>
-                          {isAccepted && (
-                            <span className="text-xs text-green-600 flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" /> Accepted
-                            </span>
-                          )}
-                        </div>
-                        <Button
-                          variant={isAccepted ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleContentChange(index)}
-                          className={isAccepted ? "bg-green-600 hover:bg-green-700" : ""}
-                        >
-                          {isAccepted ? (
-                            <><CheckCircle className="w-4 h-4 mr-1" /> Accepted</>
-                          ) : (
-                            "Accept Change"
-                          )}
-                        </Button>
-                      </div>
-                      
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="rounded-lg bg-red-500/5 border border-red-500/20 p-3">
-                          <div className="text-xs font-medium text-red-600 mb-2 flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-red-500"></span> BEFORE
-                          </div>
-                          <p className="text-sm text-muted-foreground">{imp.original || "N/A"}</p>
-                        </div>
-                        <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3">
-                          <div className="text-xs font-medium text-green-600 mb-2 flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span> AFTER
-                          </div>
-                          <p className="text-sm text-foreground">{imp.improved || "N/A"}</p>
-                        </div>
-                      </div>
-                      
-                      <p className="text-xs text-muted-foreground mt-3 italic border-l-2 border-primary/30 pl-2">
-                        💡 {imp.reason}
-                      </p>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
+              <p className="text-sm text-muted-foreground">{enhancedResume.transformationNotes}</p>
+            </Card>
           )}
 
-          {/* Action Verb Upgrades */}
-          {enhancedResume.actionVerbUpgrades.length > 0 && (
-            <Card className="p-4 mb-6">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-primary" /> Action Verb Upgrades ({enhancedResume.actionVerbUpgrades.length})
-              </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {enhancedResume.actionVerbUpgrades.map((upgrade, index) => {
-                  const isAccepted = acceptedVerbUpgrades.has(index);
-                  return (
-                    <div
-                      key={index}
-                      onClick={() => toggleVerbUpgrade(index)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                        isAccepted 
-                          ? 'border-green-500/50 bg-green-500/10' 
-                          : 'border-muted bg-muted/20 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          isAccepted ? 'border-green-500 bg-green-500' : 'border-muted-foreground'
-                        }`}>
-                          {isAccepted && <CheckCircle className="w-3 h-3 text-white" />}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground line-through">{upgrade.original}</span>
-                        <ArrowRight className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="text-foreground font-medium">{upgrade.improved}</span>
-                      </div>
+          {/* View Mode Toggle */}
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant={viewMode === "comparison" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("comparison")}
+            >
+              <FileText className="w-4 h-4 mr-2" /> Full Resume Comparison
+            </Button>
+            <Button
+              variant={viewMode === "details" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("details")}
+            >
+              <TrendingUp className="w-4 h-4 mr-2" /> View Individual Changes ({totalChanges})
+            </Button>
+          </div>
+
+          {viewMode === "comparison" ? (
+            <>
+              {/* Side-by-Side Full Resume Comparison */}
+              <div className="grid lg:grid-cols-2 gap-6 mb-6">
+                {/* Original Resume */}
+                <Card className="p-4 border-red-500/20">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                    <h3 className="font-semibold text-foreground">Original Resume</h3>
+                    <span className="text-xs text-muted-foreground ml-auto">ATS Score: {initialScore?.ats_score || 0}</span>
+                  </div>
+                  <div className="max-h-[500px] overflow-y-auto rounded-lg bg-muted/30 p-4">
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">
+                      {resumeText}
+                    </pre>
+                  </div>
+                </Card>
+
+                {/* Transformed Resume */}
+                <Card className={`p-4 ${useFullTransformation ? 'border-green-500/50 ring-2 ring-green-500/20' : 'border-green-500/20'}`}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                    <h3 className="font-semibold text-foreground">AI-Transformed Resume</h3>
+                    {useFullTransformation && (
+                      <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded-full ml-2">
+                        Selected
+                      </span>
+                    )}
+                  </div>
+                  <div className="max-h-[500px] overflow-y-auto rounded-lg bg-green-500/5 p-4">
+                    <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
+                      {enhancedResume.enhancedContent}
+                    </pre>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <Card className="p-3 text-center bg-green-500/5 border-green-500/20">
+                  <div className="text-2xl font-bold text-green-600">{enhancedResume.addedKeywords.length}</div>
+                  <div className="text-xs text-muted-foreground">Keywords Added</div>
+                </Card>
+                <Card className="p-3 text-center bg-green-500/5 border-green-500/20">
+                  <div className="text-2xl font-bold text-green-600">{enhancedResume.quantifiedAchievements.length}</div>
+                  <div className="text-xs text-muted-foreground">Achievements Quantified</div>
+                </Card>
+                <Card className="p-3 text-center bg-green-500/5 border-green-500/20">
+                  <div className="text-2xl font-bold text-green-600">{enhancedResume.actionVerbUpgrades.length}</div>
+                  <div className="text-xs text-muted-foreground">Verbs Upgraded</div>
+                </Card>
+                <Card className="p-3 text-center bg-green-500/5 border-green-500/20">
+                  <div className="text-2xl font-bold text-green-600">{enhancedResume.contentImprovements.length}</div>
+                  <div className="text-xs text-muted-foreground">Sections Improved</div>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <Card className="p-6 mb-6">
+                <h3 className="font-semibold text-foreground mb-4">How would you like to proceed?</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <button
+                    onClick={handleUseTransformed}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      useFullTransformation 
+                        ? 'border-green-500 bg-green-500/10' 
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {useFullTransformation && <CheckCircle className="w-5 h-5 text-green-500" />}
+                      <span className="font-medium text-foreground">Use AI-Transformed Resume</span>
                     </div>
-                  );
-                })}
-              </div>
-            </Card>
-          )}
+                    <p className="text-sm text-muted-foreground">
+                      Accept the complete AI transformation. The resume has been fully rewritten to target your job description while preserving your authentic experience.
+                    </p>
+                  </button>
+                  <button
+                    onClick={handleCustomize}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      !useFullTransformation 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {!useFullTransformation && <CheckCircle className="w-5 h-5 text-primary" />}
+                      <span className="font-medium text-foreground">Customize Individual Changes</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Review and accept/decline each change individually. Build your final resume by selecting only the improvements you want.
+                    </p>
+                  </button>
+                </div>
+              </Card>
+            </>
+          ) : (
+            <>
+              {/* Individual Changes View */}
+              <Card className="p-4 mb-6 bg-muted/30">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {acceptedCount} of {totalChanges} changes accepted
+                    </p>
+                    <p className="text-xs text-muted-foreground">Toggle each change below or use quick actions</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={acceptAllChanges}>
+                      <CheckCircle className="w-4 h-4 mr-1" /> Accept All
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={declineAllChanges}>
+                      Decline All
+                    </Button>
+                  </div>
+                </div>
+              </Card>
 
-          {/* Keywords to Add */}
-          {enhancedResume.addedKeywords.length > 0 && (
-            <Card className="p-4 mb-6">
-              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                <Target className="w-4 h-4 text-primary" /> Keywords to Add ({acceptedKeywords.size}/{enhancedResume.addedKeywords.length} selected)
-              </h3>
-              <p className="text-xs text-muted-foreground mb-3">Click keywords to include them in your final resume</p>
-              <div className="flex flex-wrap gap-2">
-                {enhancedResume.addedKeywords.map((kw, index) => {
-                  const isAccepted = acceptedKeywords.has(index);
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => toggleKeyword(index)}
-                      className={`px-3 py-1.5 text-xs rounded-full transition-all border ${
-                        isAccepted
-                          ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700'
-                          : 'bg-muted/50 text-muted-foreground border-muted hover:border-primary/50'
-                      }`}
-                    >
-                      {isAccepted && <CheckCircle className="w-3 h-3 inline mr-1" />}
-                      {kw}
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-          )}
+              {/* Content Improvements */}
+              {enhancedResume.contentImprovements.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary" /> Content Improvements ({enhancedResume.contentImprovements.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {enhancedResume.contentImprovements.map((imp, index) => {
+                      const isAccepted = acceptedContentChanges.has(index);
+                      return (
+                        <Card 
+                          key={index} 
+                          className={`p-4 transition-all ${isAccepted ? 'border-green-500/50 bg-green-500/5' : 'border-muted opacity-60'}`}
+                        >
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary">
+                                {imp.section}
+                              </span>
+                              {isAccepted && (
+                                <span className="text-xs text-green-600 flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" /> Accepted
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              variant={isAccepted ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => toggleContentChange(index)}
+                              className={isAccepted ? "bg-green-600 hover:bg-green-700" : ""}
+                            >
+                              {isAccepted ? (
+                                <><CheckCircle className="w-4 h-4 mr-1" /> Accepted</>
+                              ) : (
+                                "Accept Change"
+                              )}
+                            </Button>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="rounded-lg bg-red-500/5 border border-red-500/20 p-3">
+                              <div className="text-xs font-medium text-red-600 mb-2 flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-red-500"></span> BEFORE
+                              </div>
+                              <p className="text-sm text-muted-foreground">{imp.original || "N/A"}</p>
+                            </div>
+                            <div className="rounded-lg bg-green-500/5 border border-green-500/20 p-3">
+                              <div className="text-xs font-medium text-green-600 mb-2 flex items-center gap-1">
+                                <span className="w-2 h-2 rounded-full bg-green-500"></span> AFTER
+                              </div>
+                              <p className="text-sm text-foreground">{imp.improved || "N/A"}</p>
+                            </div>
+                          </div>
+                          
+                          <p className="text-xs text-muted-foreground mt-3 italic border-l-2 border-primary/30 pl-2">
+                            💡 {imp.reason}
+                          </p>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-          {/* Summary */}
-          <Card className="p-4 mb-6 bg-muted/30">
-            <h3 className="font-semibold text-foreground mb-2">Your Customized Resume Summary</h3>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• {acceptedContentChanges.size} content improvements accepted</li>
-              <li>• {acceptedVerbUpgrades.size} action verb upgrades accepted</li>
-              <li>• {acceptedKeywords.size} keywords will be added</li>
-            </ul>
-          </Card>
+              {/* Action Verb Upgrades */}
+              {enhancedResume.actionVerbUpgrades.length > 0 && (
+                <Card className="p-4 mb-6">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-primary" /> Action Verb Upgrades ({enhancedResume.actionVerbUpgrades.length})
+                  </h3>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {enhancedResume.actionVerbUpgrades.map((upgrade, index) => {
+                      const isAccepted = acceptedVerbUpgrades.has(index);
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => toggleVerbUpgrade(index)}
+                          className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                            isAccepted 
+                              ? 'border-green-500/50 bg-green-500/10' 
+                              : 'border-muted bg-muted/20 opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              isAccepted ? 'border-green-500 bg-green-500' : 'border-muted-foreground'
+                            }`}>
+                              {isAccepted && <CheckCircle className="w-3 h-3 text-white" />}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground line-through">{upgrade.original}</span>
+                            <ArrowRight className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            <span className="text-foreground font-medium">{upgrade.improved}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              )}
+
+              {/* Keywords to Add */}
+              {enhancedResume.addedKeywords.length > 0 && (
+                <Card className="p-4 mb-6">
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" /> Keywords Added ({enhancedResume.addedKeywords.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {enhancedResume.addedKeywords.map((kw, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 text-xs rounded-full bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700"
+                      >
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {/* Summary */}
+              <Card className="p-4 mb-6 bg-muted/30">
+                <h3 className="font-semibold text-foreground mb-2">Your Customized Resume Summary</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• {acceptedContentChanges.size} content improvements accepted</li>
+                  <li>• {acceptedVerbUpgrades.size} action verb upgrades accepted</li>
+                </ul>
+              </Card>
+            </>
+          )}
 
           <div className="flex flex-wrap justify-center gap-4">
             <Button variant="outline" onClick={() => setStep("initial_score")}>
@@ -1382,19 +1554,19 @@ https://theleadersrow.com
             </Button>
             <Button 
               size="lg" 
-              onClick={handleFinalAnalysis} 
-              disabled={isAnalyzing || acceptedCount === 0}
+              onClick={proceedToFinal} 
+              disabled={isAnalyzing || (!useFullTransformation && acceptedCount === 0)}
             >
               {isAnalyzing ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Building Resume...</>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scoring Resume...</>
               ) : (
-                <>Apply Changes & Score <ArrowRight className="w-4 h-4 ml-2" /></>
+                <>Get Final Score <ArrowRight className="w-4 h-4 ml-2" /></>
               )}
             </Button>
           </div>
-          {acceptedCount === 0 && (
+          {!useFullTransformation && acceptedCount === 0 && (
             <p className="text-center text-sm text-muted-foreground mt-2">
-              Please accept at least one change to continue
+              Please accept at least one change or select the full transformation
             </p>
           )}
         </div>

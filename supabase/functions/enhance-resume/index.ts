@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText, jobDescription, selfProjection, missingKeywords, improvements, experienceGaps } = await req.json();
+    const { resumeText, jobDescription, selfProjection, missingKeywords, improvements, experienceGaps, skillsGaps, techStackGaps } = await req.json();
 
     if (!resumeText) {
       return new Response(JSON.stringify({ error: "Resume text is required" }), {
@@ -25,75 +25,100 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert resume writer, personal branding specialist, and ATS optimization expert. Your job is to transform resumes to pass ATS systems, impress hiring managers, and authentically represent the candidate's professional identity.
+    const systemPrompt = `You are an expert resume writer, personal branding specialist, and ATS optimization expert with 20+ years of experience placing candidates at Fortune 500 companies. Your job is to COMPLETELY REWRITE resumes to maximize ATS scores, impress hiring managers, and authentically represent the candidate's TRUE experience.
 
-CRITICAL RULES:
-1. Add missing keywords naturally into the content - don't just list them
-2. Quantify EVERY achievement with specific numbers, percentages, or dollar amounts
-3. Use strong action verbs that demonstrate leadership and impact
-4. Structure bullet points as: [Action Verb] + [What you did] + [Result/Impact with numbers]
-5. Make the summary/objective specifically target the job description
-6. Ensure all improvements sound natural, not keyword-stuffed
-7. MOST IMPORTANTLY: Incorporate the candidate's self-projection to make the resume authentic and personalized. Their voice, strengths, and desired perception should shine through.
+CRITICAL TRANSFORMATION RULES:
+1. REWRITE THE ENTIRE RESUME - not just add keywords. Transform every section.
+2. PRESERVE AUTHENTICITY - Keep the candidate's actual experience, companies, and dates. Don't invent new jobs or lie about experience.
+3. REFRAME EXPERIENCE - Take their actual work and reframe it to align with the target job requirements. Same experience, better positioning.
+4. QUANTIFY EVERYTHING - Add specific metrics, percentages, dollar amounts. If not provided, use realistic industry-standard estimates based on context.
+5. MATCH LANGUAGE TO JOB - Use the exact terminology from the job description where it authentically applies to their experience.
+6. STRATEGIC SUMMARY - Write a powerful professional summary that positions them as the ideal candidate.
+7. BULLET TRANSFORMATION - Rewrite every bullet point to be achievement-focused with this structure: [Strong Action Verb] + [Specific Task] + [Quantified Result/Impact]
+
+WHAT TO PRESERVE (NEVER CHANGE):
+- Actual job titles (unless minor title optimization like "Engineer" to "Software Engineer")
+- Company names
+- Employment dates
+- Education credentials
+- Core responsibilities (just reframe them better)
+
+WHAT TO TRANSFORM:
+- Professional summary (completely rewrite to target the job)
+- Bullet point wording (rewrite to be achievement-focused)
+- Skills section (reorganize to prioritize job-relevant skills)
+- Overall narrative flow and positioning
 
 Return your response as valid JSON with this exact structure:
 {
-  "enhancedContent": "The full enhanced resume in markdown format",
+  "enhancedContent": "THE COMPLETE REWRITTEN RESUME - Full resume text ready to use. Format as clean text with clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). This should be a fully usable resume document.",
   "contentImprovements": [
     {
-      "section": "Section name (e.g., Experience, Summary)",
-      "original": "Original text that was changed",
-      "improved": "New improved text",
-      "reason": "Why this change improves ATS score and appeal"
+      "section": "Section name",
+      "original": "Original text from their resume",
+      "improved": "Your rewritten version",
+      "reason": "Why this transformation better targets the job"
     }
   ],
-  "addedKeywords": ["keyword1", "keyword2"],
-  "quantifiedAchievements": ["Achievement 1 with numbers", "Achievement 2 with metrics"],
-  "actionVerbUpgrades": [
-    {"original": "helped", "improved": "spearheaded"}
-  ],
+  "addedKeywords": ["keywords that were naturally woven in"],
+  "quantifiedAchievements": ["Achievement statements with specific numbers"],
+  "actionVerbUpgrades": [{"original": "weak verb", "improved": "strong verb"}],
   "summaryRewrite": "The new professional summary",
-  "bulletPointImprovements": ["Improved bullet 1", "Improved bullet 2"]
+  "transformationNotes": "Brief explanation of the overall transformation strategy used"
 }`;
 
-    const userPrompt = `Transform this resume to maximize ATS score and hiring manager appeal for the target role. Make it authentically represent the candidate.
+    const userPrompt = `COMPLETELY TRANSFORM this resume for the target job. Rewrite it to maximize ATS score and hiring manager appeal while preserving the candidate's authentic experience.
 
-ORIGINAL RESUME:
+=== ORIGINAL RESUME ===
 ${resumeText}
 
-${jobDescription ? `TARGET JOB DESCRIPTION:
-${jobDescription}` : ''}
+${jobDescription ? `=== TARGET JOB DESCRIPTION ===
+${jobDescription}
 
-${selfProjection ? `CANDIDATE'S SELF-PROJECTION (USE THIS TO PERSONALIZE THE RESUME):
-The candidate wants to be perceived as: "${selfProjection}"
+CRITICAL: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it to show they're perfect for THIS role.` : ''}
 
-IMPORTANT: Use this self-projection to:
-- Craft a professional summary that reflects their identity and desired perception
-- Choose language and framing that matches how they see themselves
-- Highlight achievements that align with their stated strengths
-- Make the resume feel authentic to who they are, not generic` : ''}
+${selfProjection ? `=== CANDIDATE'S PROFESSIONAL IDENTITY ===
+They want to be perceived as: "${selfProjection}"
 
-${missingKeywords?.length > 0 ? `MISSING KEYWORDS TO ADD (integrate naturally):
-${missingKeywords.join(', ')}` : ''}
+Use this to:
+- Craft a professional summary reflecting their authentic voice
+- Choose language that matches how they see themselves professionally
+- Emphasize achievements that align with their stated strengths` : ''}
 
-${improvements?.length > 0 ? `SPECIFIC IMPROVEMENTS NEEDED:
+${missingKeywords?.length > 0 ? `=== CRITICAL KEYWORDS TO INTEGRATE ===
+These keywords are MISSING and must be naturally woven into the resume:
+${missingKeywords.join(', ')}
+
+Don't just list these - integrate them into actual experience descriptions where they authentically apply.` : ''}
+
+${skillsGaps?.length > 0 ? `=== SKILL GAPS TO ADDRESS ===
+The ATS identified these skill gaps. Where the candidate has related/transferable experience, reframe existing bullets to highlight it:
+${skillsGaps.map((gap: any) => `- ${gap.skill}: ${gap.gap} (Importance: ${gap.importance})`).join('\n')}` : ''}
+
+${techStackGaps?.length > 0 ? `=== TECH STACK GAPS ===
+Missing technical skills. If the candidate has experience with similar/related technologies, highlight transferable skills:
+${techStackGaps.map((gap: any) => `- ${gap.technology}: ${gap.gap}`).join('\n')}` : ''}
+
+${experienceGaps?.length > 0 ? `=== EXPERIENCE GAPS TO ADDRESS ===
+${experienceGaps.join('\n')}
+
+For gaps that CANNOT be filled (like years of experience), acknowledge in transformationNotes. For gaps that CAN be addressed through reframing (like leadership experience hidden in their current bullets), reframe to highlight it.` : ''}
+
+${improvements?.length > 0 ? `=== SPECIFIC IMPROVEMENTS NEEDED ===
 ${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''}
 
-${experienceGaps?.length > 0 ? `EXPERIENCE GAPS TO ADDRESS:
-${experienceGaps.join('\n')}` : ''}
+=== YOUR TASK ===
+1. Write a NEW PROFESSIONAL SUMMARY that positions them as ideal for this role
+2. REWRITE EVERY BULLET POINT to be achievement-focused with metrics
+3. REORGANIZE skills to prioritize job-relevant ones
+4. NATURALLY INTEGRATE all missing keywords into actual content
+5. REFRAME experience to highlight transferable skills for any gaps
 
-CRITICAL INSTRUCTIONS:
-- Rewrite the professional summary to directly address the job requirements AND reflect the candidate's self-projection
-- For EVERY bullet point, add specific metrics (e.g., "increased by 40%", "saved $50K", "managed team of 8")
-- Replace weak verbs with powerful action verbs
-- Naturally incorporate ALL missing keywords
-- Make achievements outcome-focused, not task-focused
-- The resume should feel personal and authentic to this specific candidate
-- Keep the resume concise but impactful
+The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume - not a list of suggestions. Someone should be able to copy this and submit it directly.
 
-Return the enhanced resume as JSON with the structure specified.`;
+Return the result as JSON with the specified structure.`;
 
-    console.log("Calling Lovable AI for resume enhancement...");
+    console.log("Calling Lovable AI for complete resume transformation...");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -102,7 +127,7 @@ Return the enhanced resume as JSON with the structure specified.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -158,6 +183,7 @@ Return the enhanced resume as JSON with the structure specified.`;
         actionVerbUpgrades: result.actionVerbUpgrades || [],
         summaryRewrite: result.summaryRewrite || "",
         bulletPointImprovements: result.bulletPointImprovements || [],
+        transformationNotes: result.transformationNotes || "",
       };
 
       return new Response(JSON.stringify(enhancedResult), {
@@ -175,6 +201,7 @@ Return the enhanced resume as JSON with the structure specified.`;
         actionVerbUpgrades: [],
         summaryRewrite: "",
         bulletPointImprovements: [],
+        transformationNotes: "AI returned unstructured content - showing raw transformation.",
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
