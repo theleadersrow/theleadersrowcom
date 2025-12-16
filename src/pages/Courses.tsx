@@ -134,11 +134,7 @@ const Courses = () => {
                       </ul>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
-                      <div>
-                        <span className="font-serif text-2xl font-semibold text-foreground">{course.price}</span>
-                        <span className="text-muted-foreground text-sm ml-2">one-time</span>
-                      </div>
+                    <div className="flex justify-end pt-4 border-t border-border">
                       {isComingSoon ? (
                         <Button variant="outline" size="default" disabled className="w-full sm:w-auto">
                           Coming Soon

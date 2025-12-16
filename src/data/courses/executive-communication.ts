@@ -7,7 +7,7 @@ export const executiveCommunicationCourse = {
   modules: 6,
   price: "$49.99",
   featured: true,
-  badge: "New",
+  badge: "Coming Soon",
   targetAudience: [
     "Mid-to-senior professionals ready to communicate at an executive level",
     "Leaders who want their ideas heard and acted upon",
