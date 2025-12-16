@@ -12,7 +12,7 @@ import {
   Loader2, Target, BarChart3, Brain, Compass, 
   Calendar, ArrowRight, Phone, TrendingUp, Zap,
   CheckCircle2, AlertTriangle, Sparkles, Mail, Send,
-  Download, FileText, Award
+  Download, FileText, Award, AlertCircle
 } from "lucide-react";
 
 interface Score {
@@ -48,6 +48,24 @@ interface Report {
     why: string;
     program: "200K Method" | "Weekly Edge";
   }>;
+}
+
+// Helper to extract sections from markdown
+function extractSection(markdown: string, sectionName: string): string {
+  if (!markdown) return "";
+  const patterns = [
+    new RegExp(`\\*\\*${sectionName}\\*\\*[:\\s]*([\\s\\S]*?)(?=\\*\\*[A-Z]|$)`, "i"),
+    new RegExp(`##\\s*${sectionName}[:\\s]*([\\s\\S]*?)(?=##|$)`, "i"),
+    new RegExp(`#\\s*${sectionName}[:\\s]*([\\s\\S]*?)(?=#|$)`, "i"),
+    new RegExp(`${sectionName}[:\\s-]*([\\s\\S]*?)(?=\\n\\n[A-Z#*]|$)`, "i"),
+  ];
+  for (const pattern of patterns) {
+    const match = markdown.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim().replace(/\*\*/g, "").replace(/^[-:]\s*/, "");
+    }
+  }
+  return "";
 }
 
 // Email Report Card Component - Inline version
@@ -453,6 +471,10 @@ const CareerReport = () => {
     return recommendations.slice(0, 3);
   };
 
+  // Extract key insights from AI narrative
+  const hardTruth = extractSection(report.report_markdown, "Hard Truth");
+  const immediateAction = extractSection(report.report_markdown, "Immediate Next Action");
+
   const recommendations = getSkillRecommendations();
 
   return (
@@ -557,6 +579,42 @@ const CareerReport = () => {
 
             {/* Key Insights Tab */}
             <TabsContent value="insights" className="space-y-6">
+              {/* Hard Truth Section - Prominent at top */}
+              {hardTruth && (
+                <div className="bg-gradient-to-br from-red-500/5 to-red-500/10 rounded-xl border border-red-500/20 p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="w-6 h-6 text-red-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                        Your Hard Truth
+                        <span className="text-xs bg-red-500/20 text-red-600 px-2 py-0.5 rounded-full">Important</span>
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {hardTruth}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Immediate Action - Quick win at top */}
+              {immediateAction && (
+                <div className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-xl border border-blue-500/20 p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Zap className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-2">This Week's Action</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {immediateAction}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Strengths & Gaps Visual */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-card rounded-xl border border-border p-6">

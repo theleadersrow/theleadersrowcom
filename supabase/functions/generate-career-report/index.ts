@@ -105,9 +105,10 @@ serve(async (req) => {
 
     if (responsesError) throw responsesError;
 
-    // Calculate dimension scores from options
+    // Calculate dimension scores from options with improved accuracy
     const dimensionTotals: Record<string, number> = {};
     const dimensionCounts: Record<string, number> = {};
+    const dimensionMaxScores: Record<string, number> = {}; // Track max possible per dimension
     const levelHints: string[] = [];
 
     responses?.forEach((response) => {
@@ -116,6 +117,8 @@ serve(async (req) => {
         Object.entries(scoreMap).forEach(([dim, score]) => {
           dimensionTotals[dim] = (dimensionTotals[dim] || 0) + score;
           dimensionCounts[dim] = (dimensionCounts[dim] || 0) + 1;
+          // Track the max score we've seen for this dimension (assume it's representative)
+          dimensionMaxScores[dim] = Math.max(dimensionMaxScores[dim] || 0, Math.abs(score) * 1.5);
         });
 
         const levelMap = response.option.level_map as Record<string, string>;
@@ -124,27 +127,44 @@ serve(async (req) => {
         }
       }
 
-      // Handle numeric responses
-      if (response.numeric_value && response.question) {
+      // Handle numeric responses (1-5 scale questions)
+      if (response.numeric_value !== null && response.numeric_value !== undefined && response.question) {
         const weight = response.question.weight || 1;
-        const normalizedScore = (response.numeric_value / 5) * 100 * weight;
-        dimensionTotals["general"] = (dimensionTotals["general"] || 0) + normalizedScore;
-        dimensionCounts["general"] = (dimensionCounts["general"] || 0) + 1;
+        const dimensions = response.question.skill_dimensions || ["general"];
+        // Normalize 1-5 scale to 0-100 with weight consideration
+        const normalizedScore = ((response.numeric_value - 1) / 4) * 100 * weight;
+        dimensions.forEach((dim: string) => {
+          dimensionTotals[dim] = (dimensionTotals[dim] || 0) + normalizedScore;
+          dimensionCounts[dim] = (dimensionCounts[dim] || 0) + 1;
+        });
       }
     });
 
-    // Normalize dimension scores to 0-100
+    // Normalize dimension scores to 0-100 using adaptive scaling
     const dimensionScores: Record<string, number> = {};
     Object.keys(dimensionTotals).forEach((dim) => {
       const avgScore = dimensionTotals[dim] / dimensionCounts[dim];
-      // Normalize assuming max score per question is ~10
-      dimensionScores[dim] = Math.min(100, Math.max(0, avgScore * 10));
+      const maxPossible = dimensionMaxScores[dim] || 10;
+      // Use sigmoid-like scaling for smoother distribution
+      const rawNormalized = (avgScore / maxPossible) * 100;
+      // Apply curve to spread scores more naturally (avoid clustering at extremes)
+      const curved = 50 + (rawNormalized - 50) * 0.8;
+      dimensionScores[dim] = Math.min(100, Math.max(0, curved));
     });
 
-    // Calculate overall score
-    const overallScore = Object.values(dimensionScores).length > 0
-      ? Object.values(dimensionScores).reduce((a, b) => a + b, 0) / Object.values(dimensionScores).length
-      : 50;
+    // Calculate overall score with weighted averaging (some dimensions matter more)
+    const dimensionWeights: Record<string, number> = {
+      strategy: 1.2, influence: 1.2, leadership: 1.1, narrative: 1.0,
+      execution: 0.9, visibility: 1.0, ambiguity: 1.0, data: 0.9, general: 0.8
+    };
+    let weightedSum = 0;
+    let totalWeight = 0;
+    Object.entries(dimensionScores).forEach(([dim, score]) => {
+      const weight = dimensionWeights[dim] || 1.0;
+      weightedSum += score * weight;
+      totalWeight += weight;
+    });
+    const overallScore = totalWeight > 0 ? weightedSum / totalWeight : 50;
 
     // Infer level based on scores
     let currentLevelInferred = "PM";
@@ -347,22 +367,36 @@ Keep the tone direct, specific, and actionable. No fluff. No generic advice. Wri
     const aiData = await aiResponse.json();
     const reportMarkdown = aiData.choices?.[0]?.message?.content || "";
 
-    // Generate growth plan - simplified 90-day version
-    const planPrompt = `Create a simple, actionable 90-day growth plan for a ${currentLevelInferred}-level Product Manager.
+    // Generate growth plan - personalized 90-day version with specific context
+    const planPrompt = `Create a highly personalized 90-day growth plan for this specific PM:
 
-Key Gaps: ${skillHeatmap.gaps.join(", ")}
-Blocker: ${blockerArchetype || "None"}
+**Current Level:** ${currentLevelInferred}
+**Target Level:** ${currentLevelInferred === "PM" ? "Senior PM" : currentLevelInferred === "Senior" ? "Principal PM" : currentLevelInferred === "Principal" ? "GPM" : "Director+"}
+**Overall Score:** ${overallScore.toFixed(0)}/100
+**Blocker Pattern:** ${blockerArchetype || "None identified"}
+**Top Strength:** ${skillHeatmap.strengths[0] || "execution"}
+**Critical Gaps:** ${skillHeatmap.gaps.slice(0, 2).join(", ")}
+**Experience Gaps:** ${experienceGaps.slice(0, 2).join(", ")}
 
-Return ONLY a valid JSON array with 3 monthly phases. Keep it simple and actionable:
+Return ONLY a valid JSON array with 3 monthly phases. Make each action:
+- SPECIFIC (not "improve communication" but "deliver one executive briefing to VP+ audience")
+- MEASURABLE (include a deliverable or milestone)
+- TIED TO THEIR GAPS (directly address ${skillHeatmap.gaps[0]} or ${blockerArchetype || "their ceiling"})
+
+Format:
 [
   {
     "month": 1,
-    "theme": "Month theme in 3-4 words",
-    "actions": ["One specific action", "Another specific action"]
+    "theme": "3-4 word theme addressing their biggest blocker",
+    "actions": ["Specific action with deliverable by Week 2", "Another specific action with measurable outcome"]
   }
 ]
 
-Each month should have exactly 2-3 actions. Actions must be concrete and completable. No vague advice.`;
+Month 1: Focus on breaking the ${blockerArchetype || "primary"} pattern with quick wins
+Month 2: Build capability in ${skillHeatmap.gaps[0] || "key gap area"} through practice
+Month 3: Create visible proof of growth and position for ${currentLevelInferred === "PM" ? "Senior" : "next level"} roles
+
+Each month should have exactly 2-3 actions. Actions must reference their specific situation, not generic PM advice.`;
 
     const planResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
