@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedinUrl, targetIndustry, targetRole, targetJobDescription, profileText, resumeText, requestType } = await req.json();
+    const { linkedinUrl, targetIndustry, targetRole, targetJobDescription, profileText, resumeText, requestType, currentHeadline, currentAbout } = await req.json();
     
     console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType, hasResume: !!resumeText, hasJobDesc: !!targetJobDescription });
 
@@ -203,6 +203,223 @@ ${targetJobDescription ? "IMPORTANT: Tailor all suggestions to match the provide
       console.log("LinkedIn improvement suggestions complete");
 
       return new Response(JSON.stringify({ suggestions }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    } else if (requestType === "generate_headlines") {
+      // Generate 5 headline options
+      const systemPrompt = `You are an expert LinkedIn headline writer specializing in ${targetIndustry}. Create compelling, attention-grabbing headlines for professionals targeting ${targetRole} positions.${jobContext}
+
+Headlines should:
+- Be under 220 characters (LinkedIn limit)
+- Include relevant keywords for SEO
+- Convey unique value proposition
+- Be professional yet memorable
+- Use power words that resonate with recruiters
+
+Return your headlines as valid JSON with this exact structure:
+{
+  "headlines": [
+    {
+      "headline": "<headline text>",
+      "style": "<style description: e.g., 'Impact-focused', 'Keyword-rich', 'Value proposition'>",
+      "whyItWorks": "<brief explanation of why this headline is effective>"
+    }
+  ]
+}
+
+Generate exactly 5 different headlines with different styles/approaches.`;
+
+      const resumeContext = resumeText ? `\n\nUser's resume for context:\n${resumeText.substring(0, 2000)}` : "";
+
+      const userPrompt = `Generate 5 compelling LinkedIn headline options for this professional targeting ${targetRole} in ${targetIndustry}.
+
+Current profile/background:
+${profileText.substring(0, 3000)}${resumeContext}
+
+Current headline (if any): ${currentHeadline || "Not provided"}
+
+Create 5 unique headlines with different approaches (impact-focused, keyword-rich, achievement-based, value proposition, creative).`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        throw new Error("Failed to generate headlines");
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Failed to parse headlines response");
+      }
+      
+      const result = JSON.parse(jsonMatch[0]);
+      console.log("Generated headlines:", result.headlines?.length);
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    } else if (requestType === "generate_about") {
+      // Generate About section
+      const systemPrompt = `You are an expert LinkedIn About section writer. Create a compelling, professional summary that tells the user's career story and positions them for ${targetRole} positions in ${targetIndustry}.${jobContext}
+
+The About section should:
+- Be 200-300 words (optimal length for engagement)
+- Start with a strong hook that captures attention
+- Tell their career story authentically
+- Highlight key achievements and expertise
+- Include relevant keywords for recruiter searches
+- End with a clear call-to-action or statement of what they're seeking
+- Use first person voice
+- Be professional but personable
+
+Return your response as valid JSON:
+{
+  "aboutSection": "<the complete About section text>",
+  "keyElements": ["<element 1>", "<element 2>", "<element 3>"],
+  "keywordsIncluded": ["<keyword 1>", "<keyword 2>", "<keyword 3>"]
+}`;
+
+      const resumeContext = resumeText ? `\n\nUser's resume for authentic achievements:\n${resumeText}` : "";
+
+      const userPrompt = `Write a compelling LinkedIn About section for this professional targeting ${targetRole} in ${targetIndustry}.
+
+Current profile:
+${profileText}${resumeContext}
+
+Current About section (if any): ${currentAbout || "Not provided"}
+
+Create a powerful About section that will make recruiters want to connect.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        throw new Error("Failed to generate About section");
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Failed to parse About response");
+      }
+      
+      const result = JSON.parse(jsonMatch[0]);
+      console.log("Generated About section");
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    } else if (requestType === "recruiter_simulation") {
+      // Recruiter search simulation
+      const systemPrompt = `You are an expert in LinkedIn recruiter search algorithms and SEO. Analyze how a profile would appear in recruiter searches for ${targetRole} positions in ${targetIndustry}.${jobContext}
+
+Evaluate:
+1. Search keywords that would surface this profile
+2. Missing keywords that recruiters commonly use
+3. Profile ranking factors
+4. Boolean search compatibility
+5. InMail likelihood
+
+Return your analysis as valid JSON:
+{
+  "searchVisibility": {
+    "score": <0-100>,
+    "ranking": "<e.g., 'Top 20%', 'Top 50%', etc.>"
+  },
+  "matchingKeywords": [
+    { "keyword": "<keyword>", "frequency": "<how often it appears>", "importance": "high|medium|low" }
+  ],
+  "missingKeywords": [
+    { "keyword": "<missing keyword>", "searchVolume": "high|medium|low", "recommendation": "<where to add it>" }
+  ],
+  "recruiterSearchQueries": [
+    { "query": "<example boolean search>", "wouldMatch": true|false, "reason": "<why>" }
+  ],
+  "inMailLikelihood": {
+    "score": <0-100>,
+    "factors": ["<factor 1>", "<factor 2>"]
+  },
+  "topRecommendations": [
+    { "action": "<specific action>", "impact": "<expected impact on visibility>" }
+  ]
+}`;
+
+      const userPrompt = `Simulate how recruiters would find this profile when searching for ${targetRole} candidates in ${targetIndustry}.
+
+Profile:
+${profileText}
+
+Analyze search visibility, keyword matching, and provide specific recommendations to improve recruiter discoverability.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        throw new Error("Failed to run recruiter simulation");
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Failed to parse simulation response");
+      }
+      
+      const result = JSON.parse(jsonMatch[0]);
+      console.log("Recruiter simulation complete");
+
+      return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
