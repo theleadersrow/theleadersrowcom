@@ -985,33 +985,28 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
 
                   {/* Expandable Content for Experience Bullets */}
                   {item.id === "experience" && isExpanded && suggestions && (
-                    <div className="mt-4 pt-4 border-t space-y-3">
-                      <p className="text-sm text-muted-foreground">
-                        Your experience section needs stronger impact language and quantified results. Focus on these key improvements:
-                      </p>
-                      <ul className="space-y-2">
-                        {suggestions.experienceRewrites.slice(0, 3).map((exp, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="text-orange-500 mt-0.5">•</span>
-                            <div className="flex-1">
-                              <span className="text-sm font-medium">{exp.companyRole}:</span>
-                              <span className="text-sm text-muted-foreground ml-1">{exp.whyBetter}</span>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="ml-2 h-6 px-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigator.clipboard.writeText(exp.improved);
-                                  toast.success("Improved bullet copied!");
-                                }}
-                              >
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="mt-4 pt-4 border-t space-y-4">
+                      {suggestions.experienceRewrites.slice(0, 3).map((exp, i) => (
+                        <div key={i} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-foreground">{exp.companyRole}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(exp.improved);
+                                toast.success("Improved bullet copied!");
+                              }}
+                            >
+                              <Copy className="w-3 h-3 mr-1" />
+                              <span className="text-xs">Copy</span>
+                            </Button>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{exp.whyBetter}</p>
+                        </div>
+                      ))}
                       <Button 
                         size="sm" 
                         className="w-full mt-2"
