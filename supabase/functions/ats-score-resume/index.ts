@@ -115,7 +115,25 @@ serve(async (req) => {
     // Use a more OBJECTIVE scoring system focused on measurable keyword/skill matching
     const systemPrompt = `You are an expert ATS (Applicant Tracking System) analyzer with deep knowledge of how automated resume screening works.
 
-Your job is to provide OBJECTIVE, CONSISTENT scoring based on measurable criteria:
+CRITICAL: You must CAREFULLY READ and EXTRACT specific information from BOTH documents before scoring.
+
+**STEP 1 - EXTRACT FROM JOB DESCRIPTION:**
+- Required years of experience (exact numbers)
+- Required skills and technologies (list each one)
+- Required qualifications and certifications
+- Management/leadership requirements
+- Industry/domain requirements
+- Key responsibilities and deliverables
+
+**STEP 2 - EXTRACT FROM RESUME:**
+- Total years of experience (calculate from work history dates)
+- All skills and technologies mentioned
+- Certifications and qualifications
+- Evidence of management/leadership (team sizes, scope)
+- Industries and domains worked in
+- Quantified achievements and outcomes
+
+**STEP 3 - COMPARE AND SCORE:**
 1. KEYWORD MATCHING - Count exact and semantic matches between resume and job description
 2. SKILLS ALIGNMENT - Identify required skills present vs missing
 3. EXPERIENCE LEVEL - Compare years of experience requirements vs resume evidence
@@ -128,17 +146,23 @@ SCORING MUST BE OBJECTIVE AND REPRODUCIBLE:
 - Don't penalize for format/style if content is strong
 - Focus on WHAT IS PRESENT, not subjective judgments about quality`;
 
-    const userPrompt = `Analyze this resume against the job description using OBJECTIVE, MEASURABLE criteria.
+    const userPrompt = `CAREFULLY analyze this resume against the job description. Read EVERY section of both documents.
 
-**RESUME:**
+**RESUME (Read carefully - extract all skills, experience, achievements):**
 ${safeResumeText}
 
-**JOB DESCRIPTION:**
+**JOB DESCRIPTION (Read carefully - extract all requirements):**
 ${safeJobDescription}
 
 ${isPostTransformation ? `
 **IMPORTANT CONTEXT:** This is a resume that has been optimized for this job. Score it OBJECTIVELY based on keyword matches and content alignment. Compare the actual keywords and skills present to what the job requires.
 ` : ''}
+
+**BEFORE SCORING, you MUST:**
+1. List every required skill/technology from the job description
+2. Check if each one appears in the resume (exact or semantic match)
+3. Extract the years of experience required vs. what the resume shows
+4. Identify leadership/management requirements and evidence
 
 Provide your analysis in this exact JSON format (no markdown, just JSON):
 {
@@ -147,31 +171,31 @@ Provide your analysis in this exact JSON format (no markdown, just JSON):
   "experience_match_score": <0-100 based on years alignment>,
   "skills_match_score": <0-100 based on skills present vs required>,
   "format_score": <0-100 based on ATS-readable format>,
-  "summary": "<2-3 sentence objective assessment of fit>",
-  "matched_keywords": ["keyword1", "keyword2", ...list ALL keywords from JD found in resume],
-  "missing_keywords": ["keyword1", "keyword2", ...up to 15 keywords from JD NOT found in resume],
-  "strengths": ["strength1", "strength2", "strength3"],
+  "summary": "<2-3 sentence objective assessment citing SPECIFIC matches and gaps found>",
+  "matched_keywords": ["keyword1", "keyword2", ...list ALL keywords from JD found in resume - be thorough],
+  "missing_keywords": ["keyword1", "keyword2", ...up to 15 important keywords from JD NOT found in resume],
+  "strengths": ["strength1", "strength2", "strength3" - cite SPECIFIC content from the resume],
   "improvements": [
-    {"priority": "critical|high|medium", "issue": "<specific gap>", "fix": "<specific fix>"}
+    {"priority": "critical|high|medium", "issue": "<specific gap with context>", "fix": "<specific actionable fix>"}
   ],
-  "experience_gaps": ["<specific gaps if any>"],
+  "experience_gaps": ["<specific gaps citing what JD requires vs what resume shows>"],
   "skills_gaps": [
-    {"skill": "<missing skill>", "importance": "critical|high|medium", "context": "<why needed>"}
+    {"skill": "<missing skill from JD>", "importance": "critical|high|medium", "context": "<where it's mentioned in JD and why it matters>"}
   ],
   "years_experience_analysis": {
-    "job_requires": "<years required from JD>",
-    "resume_shows": "<years evident in resume>",
-    "gap": "<difference or 'Meets requirement'>"
+    "job_requires": "<exact years from JD, e.g., '5+ years in product management'>",
+    "resume_shows": "<calculated from resume dates, e.g., '7 years based on roles from 2017-2024'>",
+    "gap": "<specific analysis or 'Meets requirement'>"
   },
   "leadership_analysis": {
-    "job_requires": "<leadership level from JD>",
-    "resume_shows": "<leadership evidence in resume>",
+    "job_requires": "<from JD, e.g., 'Manage team of 5+, cross-functional leadership'>",
+    "resume_shows": "<from resume, e.g., 'Led team of 8 engineers, partnered with 3 teams'>",
     "gap": "<specific gap or 'Meets requirement'>"
   },
-  "tech_stack_gaps": ["<missing tech if any>"],
-  "recommended_additions": ["<addition1>", "<addition2>"],
-  "role_fit_assessment": "<1 paragraph objective assessment>",
-  "deal_breakers": ["<only true disqualifying factors>"]
+  "tech_stack_gaps": ["<technologies mentioned in JD but not in resume>"],
+  "recommended_additions": ["<specific addition based on JD requirements>"],
+  "role_fit_assessment": "<1 paragraph citing SPECIFIC evidence from both documents>",
+  "deal_breakers": ["<only true disqualifying factors that cannot be addressed>"]
 }
 
 SCORING GUIDELINES (be consistent):
@@ -181,7 +205,7 @@ SCORING GUIDELINES (be consistent):
 - 40-54: Weak match (<40% keywords), significant gaps
 - Below 40: Poor alignment
 
-CRITICAL: Count the actual keyword matches. More matches = higher score. Be mathematically consistent.`;
+CRITICAL: Be thorough in reading BOTH documents. Count actual keyword matches. More matches = higher score. Cite specific evidence.`;
 
     console.log("ATS Analysis - isPostTransformation:", isPostTransformation);
 
