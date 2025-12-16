@@ -15,7 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, Table, TableRow, TableCell, WidthType, VerticalAlign, ShadingType } from "docx";
 import { saveAs } from "file-saver";
 
 interface ResumeIntelligenceSuiteProps {
@@ -426,177 +426,319 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     if (!content) return;
     
     try {
-      // Parse the content to create a beautifully formatted Word doc
-      const lines = content.split('\n');
-      const children: Paragraph[] = [];
+      // Parse the content into structured sections
+      const lines = content.split('\n').filter(l => l.trim());
       
-      // Helper function to detect section type
-      const getSectionType = (line: string): 'name' | 'contact' | 'section_header' | 'job_title' | 'company' | 'bullet' | 'skill_list' | 'paragraph' => {
-        const trimmed = line.trim();
-        if (!trimmed) return 'paragraph';
-        
-        // First non-empty line is likely the name
-        if (children.length === 0 && trimmed.length < 50 && !trimmed.includes('@') && !trimmed.includes('•')) {
-          return 'name';
-        }
-        
-        // Contact info (email, phone, LinkedIn)
-        if (trimmed.includes('@') || trimmed.match(/\(\d{3}\)|\d{3}-\d{4}|linkedin\.com|github\.com/i)) {
-          return 'contact';
-        }
-        
-        // Section headers (all caps, common resume sections)
-        const sectionHeaders = ['PROFESSIONAL SUMMARY', 'SUMMARY', 'EXPERIENCE', 'WORK EXPERIENCE', 'EDUCATION', 'SKILLS', 'TECHNICAL SKILLS', 'CERTIFICATIONS', 'PROJECTS', 'ACHIEVEMENTS', 'AWARDS', 'LANGUAGES', 'INTERESTS', 'OBJECTIVE', 'PROFILE'];
-        if (sectionHeaders.some(h => trimmed.toUpperCase().includes(h)) && trimmed.length < 40) {
-          return 'section_header';
-        }
-        if (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 40 && !trimmed.startsWith('•')) {
-          return 'section_header';
-        }
-        
-        // Job title detection (often followed by company or has specific patterns)
-        if (trimmed.match(/^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Chief|Head of)/i) && trimmed.length < 80) {
-          return 'job_title';
-        }
-        
-        // Company and date line
-        if (trimmed.match(/\d{4}\s*[-–]\s*(Present|\d{4})/i) || trimmed.match(/\|.*\d{4}/)) {
-          return 'company';
-        }
-        
-        // Bullet points
-        if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.match(/^[\u2022\u2023\u25E6\u2043]/)) {
-          return 'bullet';
-        }
-        
-        // Skill list (comma-separated items)
-        if (trimmed.includes(',') && trimmed.split(',').length >= 3 && trimmed.length < 200) {
-          return 'skill_list';
-        }
-        
-        return 'paragraph';
+      // Extract key sections from the resume content
+      let name = "";
+      let headline = "";
+      let contactInfo: string[] = [];
+      let summary = "";
+      let experiences: { title: string; company: string; dates: string; location: string; bullets: string[] }[] = [];
+      let skills: string[] = [];
+      let education: { degree: string; school: string; dates: string; location: string }[] = [];
+      let achievements: string[] = [];
+      
+      let currentSection = "";
+      let currentExperience: { title: string; company: string; dates: string; location: string; bullets: string[] } | null = null;
+      
+      const sectionKeywords = {
+        summary: ['PROFESSIONAL SUMMARY', 'SUMMARY', 'PROFILE', 'OBJECTIVE', 'ABOUT'],
+        experience: ['EXPERIENCE', 'WORK EXPERIENCE', 'EMPLOYMENT', 'CAREER HISTORY'],
+        skills: ['SKILLS', 'TECHNICAL SKILLS', 'CORE COMPETENCIES', 'COMPETENCIES', 'EXPERTISE'],
+        education: ['EDUCATION', 'ACADEMIC', 'QUALIFICATIONS'],
+        achievements: ['ACHIEVEMENTS', 'KEY ACHIEVEMENTS', 'ACCOMPLISHMENTS', 'AWARDS']
       };
       
-      let isFirstLine = true;
+      const isSection = (line: string, keywords: string[]) => keywords.some(k => line.toUpperCase().includes(k));
       
-      lines.forEach((line) => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine && children.length > 0) {
-          // Add spacing between sections
-          children.push(new Paragraph({ spacing: { before: 120, after: 0 } }));
+      lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        
+        // First line is name
+        if (index === 0 && !trimmed.includes('@') && trimmed.length < 60) {
+          name = trimmed;
           return;
         }
-        if (!trimmedLine) return;
         
-        const sectionType = isFirstLine ? 'name' : getSectionType(trimmedLine);
-        isFirstLine = false;
+        // Second line might be headline/tagline
+        if (index === 1 && !trimmed.includes('@') && !trimmed.match(/\d{3}/) && trimmed.length < 100) {
+          headline = trimmed;
+          return;
+        }
         
-        switch (sectionType) {
-          case 'name':
-            // Name - large, bold, centered
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine, bold: true, size: 36, font: "Calibri" })],
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 0, after: 60 },
-              })
-            );
+        // Contact info (early lines with email, phone, LinkedIn)
+        if (index < 5 && (trimmed.includes('@') || trimmed.match(/\d{3}[-.)]\s*\d{3}/) || trimmed.toLowerCase().includes('linkedin'))) {
+          contactInfo.push(trimmed);
+          return;
+        }
+        
+        // Detect section changes
+        if (isSection(trimmed, sectionKeywords.summary)) { currentSection = 'summary'; return; }
+        if (isSection(trimmed, sectionKeywords.experience)) { 
+          if (currentExperience) experiences.push(currentExperience);
+          currentExperience = null;
+          currentSection = 'experience'; 
+          return; 
+        }
+        if (isSection(trimmed, sectionKeywords.skills)) { currentSection = 'skills'; return; }
+        if (isSection(trimmed, sectionKeywords.education)) { currentSection = 'education'; return; }
+        if (isSection(trimmed, sectionKeywords.achievements)) { currentSection = 'achievements'; return; }
+        
+        // Process content based on current section
+        switch (currentSection) {
+          case 'summary':
+            if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
+              summary += (summary ? ' ' : '') + trimmed;
+            }
             break;
             
-          case 'contact':
-            // Contact info - centered, smaller
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine, size: 20, font: "Calibri", color: "555555" })],
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 0, after: 60 },
-              })
-            );
+          case 'experience':
+            // Job title detection
+            if (trimmed.match(/^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Chief|Head of|Product|Software|Data|Marketing|Sales|Engineering)/i) && !trimmed.startsWith('•')) {
+              if (currentExperience) experiences.push(currentExperience);
+              currentExperience = { title: trimmed, company: '', dates: '', location: '', bullets: [] };
+            }
+            // Company/dates line
+            else if (currentExperience && trimmed.match(/\d{4}/) && !trimmed.startsWith('•')) {
+              const parts = trimmed.split(/[|,]/).map(p => p.trim());
+              if (parts.length >= 1) currentExperience.company = parts[0] || '';
+              if (parts.length >= 2) currentExperience.dates = parts[1] || '';
+              if (parts.length >= 3) currentExperience.location = parts[2] || '';
+            }
+            // Bullet points
+            else if (currentExperience && (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*'))) {
+              currentExperience.bullets.push(trimmed.replace(/^[•\-\*]\s*/, ''));
+            }
             break;
             
-          case 'section_header':
-            // Section headers - bold, with bottom border
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine.toUpperCase(), bold: true, size: 24, font: "Calibri", color: "1a365d" })],
-                spacing: { before: 300, after: 100 },
-                border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 12 } },
-              })
-            );
+          case 'skills':
+            if (trimmed.includes(',')) {
+              skills.push(...trimmed.split(',').map(s => s.trim()).filter(s => s));
+            } else if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
+              skills.push(trimmed);
+            }
             break;
             
-          case 'job_title':
-            // Job title - bold
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine, bold: true, size: 22, font: "Calibri" })],
-                spacing: { before: 160, after: 40 },
-              })
-            );
+          case 'education':
+            if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
+              // Try to parse education entry
+              const hasDate = trimmed.match(/\d{4}/);
+              if (hasDate || trimmed.match(/Bachelor|Master|MBA|PhD|Degree|University|College/i)) {
+                education.push({ degree: trimmed, school: '', dates: '', location: '' });
+              }
+            }
             break;
             
-          case 'company':
-            // Company and dates - italic
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine, italics: true, size: 20, font: "Calibri", color: "666666" })],
-                spacing: { before: 0, after: 80 },
-              })
-            );
+          case 'achievements':
+            if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*')) {
+              achievements.push(trimmed.replace(/^[•\-\*]\s*/, ''));
+            } else if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
+              achievements.push(trimmed);
+            }
             break;
-            
-          case 'bullet':
-            // Bullet points - clean formatting
-            const bulletText = trimmedLine.replace(/^[•\-\*\u2022\u2023\u25E6\u2043]\s*/, '');
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: bulletText, size: 21, font: "Calibri" })],
-                bullet: { level: 0 },
-                spacing: { before: 40, after: 40 },
-                indent: { left: 360 },
-              })
-            );
-            break;
-            
-          case 'skill_list':
-            // Skills - regular text
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine, size: 21, font: "Calibri" })],
-                spacing: { before: 60, after: 60 },
-              })
-            );
-            break;
-            
-          default:
-            // Regular paragraph
-            children.push(
-              new Paragraph({
-                children: [new TextRun({ text: trimmedLine, size: 21, font: "Calibri" })],
-                spacing: { before: 60, after: 60 },
-              })
-            );
         }
       });
       
+      // Don't forget the last experience
+      if (currentExperience) experiences.push(currentExperience);
+      
+      // If no structured data found, fall back to simple formatting
+      if (!name && lines.length > 0) name = lines[0];
+      if (experiences.length === 0 && skills.length === 0) {
+        // Fallback: just format as single column
+        const children: Paragraph[] = [];
+        let isFirstLine = true;
+        
+        lines.forEach(line => {
+          const trimmed = line.trim();
+          if (!trimmed) return;
+          
+          if (isFirstLine) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed, bold: true, size: 36, font: "Calibri" })],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 200 }
+            }));
+            isFirstLine = false;
+          } else if (trimmed === trimmed.toUpperCase() && trimmed.length < 40) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed, bold: true, size: 24, font: "Calibri", color: "2563EB" })],
+              spacing: { before: 300, after: 100 },
+              border: { bottom: { color: "2563EB", style: BorderStyle.SINGLE, size: 8 } }
+            }));
+          } else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed.replace(/^[•\-]\s*/, ''), size: 21, font: "Calibri" })],
+              bullet: { level: 0 },
+              spacing: { before: 40, after: 40 }
+            }));
+          } else {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed, size: 21, font: "Calibri" })],
+              spacing: { before: 60, after: 60 }
+            }));
+          }
+        });
+        
+        const doc = new Document({
+          sections: [{ properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, children }]
+        });
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, "optimized-resume.docx");
+        toast({ title: "Downloaded!", description: "Resume saved as Word document" });
+        return;
+      }
+      
+      // Build the professional two-column resume
+      const noBorder = { top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } };
+      
+      // Helper to create section header
+      const createSectionHeader = (text: string) => new Paragraph({
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 22, font: "Calibri", color: "000000" })],
+        spacing: { before: 240, after: 80 },
+        border: { bottom: { color: "000000", style: BorderStyle.SINGLE, size: 8 } }
+      });
+      
+      // Build left column (Experience)
+      const leftColumnContent: Paragraph[] = [];
+      leftColumnContent.push(createSectionHeader("EXPERIENCE"));
+      
+      experiences.forEach(exp => {
+        // Job title - bold blue
+        leftColumnContent.push(new Paragraph({
+          children: [new TextRun({ text: exp.title, bold: true, size: 22, font: "Calibri", color: "2563EB" })],
+          spacing: { before: 160, after: 40 }
+        }));
+        // Company name
+        if (exp.company) {
+          leftColumnContent.push(new Paragraph({
+            children: [new TextRun({ text: exp.company, bold: true, size: 20, font: "Calibri" })],
+            spacing: { before: 0, after: 20 }
+          }));
+        }
+        // Dates and location
+        const metaLine = [exp.dates, exp.location].filter(Boolean).join('  •  ');
+        if (metaLine) {
+          leftColumnContent.push(new Paragraph({
+            children: [new TextRun({ text: metaLine, size: 18, font: "Calibri", color: "666666", italics: true })],
+            spacing: { before: 0, after: 60 }
+          }));
+        }
+        // Bullets
+        exp.bullets.forEach(bullet => {
+          leftColumnContent.push(new Paragraph({
+            children: [new TextRun({ text: bullet, size: 19, font: "Calibri" })],
+            bullet: { level: 0 },
+            spacing: { before: 30, after: 30 }
+          }));
+        });
+      });
+      
+      // Build right column (Summary, Key Achievements, Skills, Education)
+      const rightColumnContent: Paragraph[] = [];
+      
+      // Summary section
+      if (summary) {
+        rightColumnContent.push(createSectionHeader("SUMMARY"));
+        rightColumnContent.push(new Paragraph({
+          children: [new TextRun({ text: summary, size: 19, font: "Calibri" })],
+          spacing: { before: 60, after: 120 }
+        }));
+      }
+      
+      // Key Achievements section
+      if (achievements.length > 0) {
+        rightColumnContent.push(createSectionHeader("KEY ACHIEVEMENTS"));
+        achievements.slice(0, 5).forEach(ach => {
+          rightColumnContent.push(new Paragraph({
+            children: [
+              new TextRun({ text: "✓ ", bold: true, size: 20, font: "Calibri", color: "2563EB" }),
+              new TextRun({ text: ach, size: 19, font: "Calibri" })
+            ],
+            spacing: { before: 40, after: 40 }
+          }));
+        });
+      }
+      
+      // Competencies & Skills section
+      if (skills.length > 0) {
+        rightColumnContent.push(createSectionHeader("COMPETENCIES & SKILLS"));
+        // Display skills in a clean format
+        const skillsText = skills.slice(0, 15).join('  •  ');
+        rightColumnContent.push(new Paragraph({
+          children: [new TextRun({ text: skillsText, size: 19, font: "Calibri" })],
+          spacing: { before: 60, after: 120 }
+        }));
+      }
+      
+      // Education section
+      if (education.length > 0) {
+        rightColumnContent.push(createSectionHeader("EDUCATION"));
+        education.forEach(edu => {
+          rightColumnContent.push(new Paragraph({
+            children: [new TextRun({ text: edu.degree, bold: true, size: 19, font: "Calibri" })],
+            spacing: { before: 60, after: 40 }
+          }));
+        });
+      }
+      
+      // Create header section (name, headline, contact)
+      const headerParagraphs: Paragraph[] = [];
+      
+      // Name - large, bold
+      headerParagraphs.push(new Paragraph({
+        children: [new TextRun({ text: name.toUpperCase(), bold: true, size: 40, font: "Calibri" })],
+        spacing: { after: 80 }
+      }));
+      
+      // Headline/tagline
+      if (headline) {
+        headerParagraphs.push(new Paragraph({
+          children: [new TextRun({ text: headline, size: 22, font: "Calibri", color: "555555" })],
+          spacing: { after: 80 }
+        }));
+      }
+      
+      // Contact info on one line
+      if (contactInfo.length > 0) {
+        headerParagraphs.push(new Paragraph({
+          children: [new TextRun({ text: contactInfo.join('  |  '), size: 18, font: "Calibri", color: "666666" })],
+          spacing: { after: 200 }
+        }));
+      }
+      
+      // Create two-column table
+      const twoColumnTable = new Table({
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                children: leftColumnContent,
+                width: { size: 60, type: WidthType.PERCENTAGE },
+                borders: noBorder,
+                margins: { top: 100, bottom: 100, left: 0, right: 200 }
+              }),
+              new TableCell({
+                children: rightColumnContent,
+                width: { size: 40, type: WidthType.PERCENTAGE },
+                borders: noBorder,
+                margins: { top: 100, bottom: 100, left: 200, right: 0 },
+                shading: { fill: "F8FAFC", type: ShadingType.CLEAR }
+              })
+            ]
+          })
+        ],
+        width: { size: 100, type: WidthType.PERCENTAGE }
+      });
+      
       const doc = new Document({
-        styles: {
-          paragraphStyles: [
-            {
-              id: "Normal",
-              name: "Normal",
-              run: { font: "Calibri", size: 21 },
-            },
-          ],
-        },
         sections: [{
           properties: {
-            page: {
-              margin: { top: 720, right: 720, bottom: 720, left: 720 }, // 0.5 inch margins
-            },
+            page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } }
           },
-          children: children,
-        }],
+          children: [...headerParagraphs, twoColumnTable]
+        }]
       });
       
       const blob = await Packer.toBlob(doc);
