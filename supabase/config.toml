@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.verify-tool-access]
 verify_jwt = false
+
+[functions.send-expiry-reminders]
+verify_jwt = false

@@ -693,6 +693,7 @@ export type Database = {
           id: string
           last_used_at: string | null
           purchased_at: string
+          reminder_sent_at: string | null
           results_summary: Json | null
           status: string
           stripe_session_id: string | null
@@ -707,6 +708,7 @@ export type Database = {
           id?: string
           last_used_at?: string | null
           purchased_at?: string
+          reminder_sent_at?: string | null
           results_summary?: Json | null
           status?: string
           stripe_session_id?: string | null
@@ -721,6 +723,7 @@ export type Database = {
           id?: string
           last_used_at?: string | null
           purchased_at?: string
+          reminder_sent_at?: string | null
           results_summary?: Json | null
           status?: string
           stripe_session_id?: string | null
