@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -12,9 +12,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RefreshCw, FileText, Linkedin, XCircle, Clock, CheckCircle, AlertCircle, Mail, CalendarClock, Send } from "lucide-react";
-import { format, formatDistanceToNow, isPast, differenceInDays } from "date-fns";
+import { RefreshCw, FileText, Linkedin, Clock, CheckCircle, Mail, CalendarClock, Send, MoreHorizontal, Pencil, RotateCcw, XCircle, CalendarPlus } from "lucide-react";
+import { format, formatDistanceToNow, isPast, differenceInDays, addMonths } from "date-fns";
 
 interface ToolPurchase {
   id: string;
@@ -35,6 +51,15 @@ export function ToolPurchasesTab() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "resume_suite" | "linkedin_signal">("all");
   const [view, setView] = useState<"all" | "expiring" | "reminders">("all");
+  
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingPurchase, setEditingPurchase] = useState<ToolPurchase | null>(null);
+  const [editForm, setEditForm] = useState({
+    email: "",
+    purchased_at: "",
+    expires_at: "",
+  });
 
   const fetchPurchases = async () => {
     setLoading(true);
@@ -111,6 +136,88 @@ export function ToolPurchasesTab() {
     } catch (error) {
       console.error("Error sending reminder:", error);
       toast.error("Failed to send reminder", { id: "reminder" });
+    }
+  };
+
+  const openEditDialog = (purchase: ToolPurchase) => {
+    setEditingPurchase(purchase);
+    setEditForm({
+      email: purchase.email,
+      purchased_at: purchase.purchased_at.split("T")[0],
+      expires_at: purchase.expires_at.split("T")[0],
+    });
+    setEditDialogOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editingPurchase) return;
+    
+    try {
+      const { error } = await supabase
+        .from("tool_purchases")
+        .update({
+          email: editForm.email,
+          purchased_at: new Date(editForm.purchased_at).toISOString(),
+          expires_at: new Date(editForm.expires_at).toISOString(),
+        })
+        .eq("id", editingPurchase.id);
+
+      if (error) throw error;
+      toast.success("Purchase updated");
+      setEditDialogOpen(false);
+      fetchPurchases();
+    } catch (error) {
+      console.error("Error updating purchase:", error);
+      toast.error("Failed to update purchase");
+    }
+  };
+
+  const renewPurchase = async (purchaseId: string) => {
+    try {
+      const purchase = purchases.find(p => p.id === purchaseId);
+      if (!purchase) return;
+
+      const currentExpiry = new Date(purchase.expires_at);
+      const baseDate = isPast(currentExpiry) ? new Date() : currentExpiry;
+      const newExpiry = addMonths(baseDate, 1);
+
+      const { error } = await supabase
+        .from("tool_purchases")
+        .update({ 
+          expires_at: newExpiry.toISOString(),
+          status: "active",
+          reminder_sent_at: null, // Reset reminder so they can get another
+        })
+        .eq("id", purchaseId);
+
+      if (error) throw error;
+      toast.success(`Extended access until ${format(newExpiry, "MMM d, yyyy")}`);
+      fetchPurchases();
+    } catch (error) {
+      console.error("Error renewing purchase:", error);
+      toast.error("Failed to renew purchase");
+    }
+  };
+
+  const reactivatePurchase = async (purchaseId: string) => {
+    try {
+      const newExpiry = addMonths(new Date(), 1);
+      
+      const { error } = await supabase
+        .from("tool_purchases")
+        .update({ 
+          expires_at: newExpiry.toISOString(),
+          status: "active",
+          reminder_sent_at: null,
+        })
+        .eq("id", purchaseId);
+
+      if (error) throw error;
+      toast.success(`Reactivated until ${format(newExpiry, "MMM d, yyyy")}`);
+      fetchPurchases();
+    } catch (error) {
+      console.error("Error reactivating purchase:", error);
+      toast.error("Failed to reactivate purchase");
     }
   };
 
@@ -356,30 +463,45 @@ export function ToolPurchasesTab() {
                         <Badge variant="outline">{purchase.usage_count} times</Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          {purchase.status === "active" && !isPast(new Date(purchase.expires_at)) && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => sendManualReminder(purchase.id, purchase.email)}
-                                className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                title="Send reminder email"
-                              >
-                                <Send className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => cancelPurchase(purchase.id)}
-                                className="text-destructive hover:text-destructive"
-                                title="Cancel purchase"
-                              >
-                                <XCircle className="w-4 h-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(purchase)}>
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edit Details
+                            </DropdownMenuItem>
+                            {purchase.status === "active" && !isPast(new Date(purchase.expires_at)) && (
+                              <>
+                                <DropdownMenuItem onClick={() => sendManualReminder(purchase.id, purchase.email)}>
+                                  <Send className="w-4 h-4 mr-2" />
+                                  Send Reminder
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => renewPurchase(purchase.id)}>
+                                  <CalendarPlus className="w-4 h-4 mr-2" />
+                                  Extend 1 Month
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => cancelPurchase(purchase.id)}
+                                  className="text-destructive"
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Cancel Access
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {(purchase.status !== "active" || isPast(new Date(purchase.expires_at))) && (
+                              <DropdownMenuItem onClick={() => reactivatePurchase(purchase.id)}>
+                                <RotateCcw className="w-4 h-4 mr-2" />
+                                Reactivate (1 Month)
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
@@ -389,6 +511,56 @@ export function ToolPurchasesTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Purchase Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Purchase</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="purchased_at">Purchase Date</Label>
+                <Input
+                  id="purchased_at"
+                  type="date"
+                  value={editForm.purchased_at}
+                  onChange={(e) => setEditForm({ ...editForm, purchased_at: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="expires_at">Expiry Date</Label>
+                <Input
+                  id="expires_at"
+                  type="date"
+                  value={editForm.expires_at}
+                  onChange={(e) => setEditForm({ ...editForm, expires_at: e.target.value })}
+                />
+              </div>
+            </div>
+            {editingPurchase && (
+              <div className="text-sm text-muted-foreground">
+                Tool: {getToolLabel(editingPurchase.tool_type)} • Usage: {editingPurchase.usage_count} times
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
