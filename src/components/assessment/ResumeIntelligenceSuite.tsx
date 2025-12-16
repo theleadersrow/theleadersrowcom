@@ -435,163 +435,77 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     if (!content) return;
     
     try {
-      // Parse the content into structured sections
+      // Use the improved parseResumeContent function
+      const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
       const lines = content.split('\n').filter(l => l.trim());
       
-      // Extract key sections from the resume content
-      let name = "";
-      let headline = "";
-      let contactInfo: string[] = [];
-      let summary = "";
-      let experiences: { title: string; company: string; dates: string; location: string; bullets: string[] }[] = [];
-      let skills: string[] = [];
-      let education: { degree: string; school: string; dates: string; location: string }[] = [];
-      let achievements: string[] = [];
+      // Check if we have structured data
+      const hasGoodData = experiences.length > 0 || summary.length > 50;
       
-      let currentSection = "";
-      let currentExperience: { title: string; company: string; dates: string; location: string; bullets: string[] } | null = null;
-      
-      const sectionKeywords = {
-        summary: ['PROFESSIONAL SUMMARY', 'SUMMARY', 'PROFILE', 'OBJECTIVE', 'ABOUT'],
-        experience: ['EXPERIENCE', 'WORK EXPERIENCE', 'EMPLOYMENT', 'CAREER HISTORY'],
-        skills: ['SKILLS', 'TECHNICAL SKILLS', 'CORE COMPETENCIES', 'COMPETENCIES', 'EXPERTISE'],
-        education: ['EDUCATION', 'ACADEMIC', 'QUALIFICATIONS'],
-        achievements: ['ACHIEVEMENTS', 'KEY ACHIEVEMENTS', 'ACCOMPLISHMENTS', 'AWARDS']
-      };
-      
-      const isSection = (line: string, keywords: string[]) => keywords.some(k => line.toUpperCase().includes(k));
-      
-      lines.forEach((line, index) => {
-        const trimmed = line.trim();
-        
-        // First line is name
-        if (index === 0 && !trimmed.includes('@') && trimmed.length < 60) {
-          name = trimmed;
-          return;
-        }
-        
-        // Second line might be headline/tagline
-        if (index === 1 && !trimmed.includes('@') && !trimmed.match(/\d{3}/) && trimmed.length < 100) {
-          headline = trimmed;
-          return;
-        }
-        
-        // Contact info (early lines with email, phone, LinkedIn)
-        if (index < 5 && (trimmed.includes('@') || trimmed.match(/\d{3}[-.)]\s*\d{3}/) || trimmed.toLowerCase().includes('linkedin'))) {
-          contactInfo.push(trimmed);
-          return;
-        }
-        
-        // Detect section changes
-        if (isSection(trimmed, sectionKeywords.summary)) { currentSection = 'summary'; return; }
-        if (isSection(trimmed, sectionKeywords.experience)) { 
-          if (currentExperience) experiences.push(currentExperience);
-          currentExperience = null;
-          currentSection = 'experience'; 
-          return; 
-        }
-        if (isSection(trimmed, sectionKeywords.skills)) { currentSection = 'skills'; return; }
-        if (isSection(trimmed, sectionKeywords.education)) { currentSection = 'education'; return; }
-        if (isSection(trimmed, sectionKeywords.achievements)) { currentSection = 'achievements'; return; }
-        
-        // Process content based on current section
-        switch (currentSection) {
-          case 'summary':
-            if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
-              summary += (summary ? ' ' : '') + trimmed;
-            }
-            break;
-            
-          case 'experience':
-            // Job title detection
-            if (trimmed.match(/^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Chief|Head of|Product|Software|Data|Marketing|Sales|Engineering)/i) && !trimmed.startsWith('•')) {
-              if (currentExperience) experiences.push(currentExperience);
-              currentExperience = { title: trimmed, company: '', dates: '', location: '', bullets: [] };
-            }
-            // Company/dates line
-            else if (currentExperience && trimmed.match(/\d{4}/) && !trimmed.startsWith('•')) {
-              const parts = trimmed.split(/[|,]/).map(p => p.trim());
-              if (parts.length >= 1) currentExperience.company = parts[0] || '';
-              if (parts.length >= 2) currentExperience.dates = parts[1] || '';
-              if (parts.length >= 3) currentExperience.location = parts[2] || '';
-            }
-            // Bullet points
-            else if (currentExperience && (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*'))) {
-              currentExperience.bullets.push(trimmed.replace(/^[•\-\*]\s*/, ''));
-            }
-            break;
-            
-          case 'skills':
-            if (trimmed.includes(',')) {
-              skills.push(...trimmed.split(',').map(s => s.trim()).filter(s => s));
-            } else if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
-              skills.push(trimmed);
-            }
-            break;
-            
-          case 'education':
-            if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
-              // Try to parse education entry
-              const hasDate = trimmed.match(/\d{4}/);
-              if (hasDate || trimmed.match(/Bachelor|Master|MBA|PhD|Degree|University|College/i)) {
-                education.push({ degree: trimmed, school: '', dates: '', location: '' });
-              }
-            }
-            break;
-            
-          case 'achievements':
-            if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*')) {
-              achievements.push(trimmed.replace(/^[•\-\*]\s*/, ''));
-            } else if (trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
-              achievements.push(trimmed);
-            }
-            break;
-        }
-      });
-      
-      // Don't forget the last experience
-      if (currentExperience) experiences.push(currentExperience);
-      
-      // If no structured data found, fall back to simple formatting
-      if (!name && lines.length > 0) name = lines[0];
-      if (experiences.length === 0 && skills.length === 0) {
-        // Fallback: just format as single column
+      if (!hasGoodData) {
+        // Fallback: create a clean single-column DOCX from raw content
         const children: Paragraph[] = [];
         let isFirstLine = true;
+        let currentSection = "";
         
-        lines.forEach(line => {
+        lines.forEach((line, idx) => {
           const trimmed = line.trim();
           if (!trimmed) return;
           
+          // Name (first line)
           if (isFirstLine) {
             children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed, bold: true, size: 36, font: "Calibri" })],
+              children: [new TextRun({ text: trimmed.toUpperCase(), bold: true, size: 40, font: "Calibri" })],
               alignment: AlignmentType.CENTER,
-              spacing: { after: 200 }
+              spacing: { after: 120 }
             }));
             isFirstLine = false;
-          } else if (trimmed === trimmed.toUpperCase() && trimmed.length < 40) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed, bold: true, size: 24, font: "Calibri", color: "2563EB" })],
-              spacing: { before: 300, after: 100 },
-              border: { bottom: { color: "2563EB", style: BorderStyle.SINGLE, size: 8 } }
-            }));
-          } else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed.replace(/^[•\-]\s*/, ''), size: 21, font: "Calibri" })],
-              bullet: { level: 0 },
-              spacing: { before: 40, after: 40 }
-            }));
-          } else {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed, size: 21, font: "Calibri" })],
-              spacing: { before: 60, after: 60 }
-            }));
+            return;
           }
+          
+          // Contact info (early lines with email/phone)
+          if (idx < 5 && (trimmed.includes('@') || trimmed.match(/\d{3}/))) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed, size: 20, font: "Calibri", color: "666666" })],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 60 }
+            }));
+            return;
+          }
+          
+          // Section headers (all caps, short)
+          if (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 40) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed, bold: true, size: 24, font: "Calibri", color: "1a365d" })],
+              spacing: { before: 280, after: 80 },
+              border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 8 } }
+            }));
+            currentSection = trimmed;
+            return;
+          }
+          
+          // Bullet points
+          if (/^[•\-\*▪]/.test(trimmed)) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: trimmed.replace(/^[•\-\*▪]\s*/, ''), size: 21, font: "Calibri" })],
+              bullet: { level: 0 },
+              spacing: { before: 30, after: 30 }
+            }));
+            return;
+          }
+          
+          // Regular text
+          children.push(new Paragraph({
+            children: [new TextRun({ text: trimmed, size: 21, font: "Calibri" })],
+            spacing: { before: 50, after: 50 }
+          }));
         });
         
         const doc = new Document({
-          sections: [{ properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, children }]
+          sections: [{ 
+            properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, 
+            children 
+          }]
         });
         const blob = await Packer.toBlob(doc);
         saveAs(blob, "optimized-resume.docx");
@@ -599,154 +513,115 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         return;
       }
       
-      // Build the professional two-column resume
-      const noBorder = { top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } };
+      // Build professional single-column resume with structured data
+      const noBorder = { 
+        top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
+        bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
+        left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
+        right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } 
+      };
       
-      // Helper to create section header
       const createSectionHeader = (text: string) => new Paragraph({
-        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 22, font: "Calibri", color: "000000" })],
-        spacing: { before: 240, after: 80 },
-        border: { bottom: { color: "000000", style: BorderStyle.SINGLE, size: 8 } }
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri", color: "1a365d" })],
+        spacing: { before: 280, after: 100 },
+        border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 8 } }
       });
       
-      // Build left column (Experience)
-      const leftColumnContent: Paragraph[] = [];
-      leftColumnContent.push(createSectionHeader("EXPERIENCE"));
+      const documentChildren: Paragraph[] = [];
       
-      experiences.forEach(exp => {
-        // Job title - bold blue
-        leftColumnContent.push(new Paragraph({
-          children: [new TextRun({ text: exp.title, bold: true, size: 22, font: "Calibri", color: "2563EB" })],
-          spacing: { before: 160, after: 40 }
+      // Header - Name
+      documentChildren.push(new Paragraph({
+        children: [new TextRun({ text: (name || "Your Name").toUpperCase(), bold: true, size: 44, font: "Calibri" })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 60 }
+      }));
+      
+      // Headline
+      if (headline) {
+        documentChildren.push(new Paragraph({
+          children: [new TextRun({ text: headline, size: 24, font: "Calibri", color: "555555", italics: true })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 60 }
         }));
-        // Company name
-        if (exp.company) {
-          leftColumnContent.push(new Paragraph({
-            children: [new TextRun({ text: exp.company, bold: true, size: 20, font: "Calibri" })],
-            spacing: { before: 0, after: 20 }
-          }));
-        }
-        // Dates and location
-        const metaLine = [exp.dates, exp.location].filter(Boolean).join('  •  ');
-        if (metaLine) {
-          leftColumnContent.push(new Paragraph({
-            children: [new TextRun({ text: metaLine, size: 18, font: "Calibri", color: "666666", italics: true })],
-            spacing: { before: 0, after: 60 }
-          }));
-        }
-        // Bullets
-        exp.bullets.forEach(bullet => {
-          leftColumnContent.push(new Paragraph({
-            children: [new TextRun({ text: bullet, size: 19, font: "Calibri" })],
-            bullet: { level: 0 },
-            spacing: { before: 30, after: 30 }
-          }));
-        });
-      });
+      }
       
-      // Build right column (Summary, Key Achievements, Skills, Education)
-      const rightColumnContent: Paragraph[] = [];
+      // Contact info
+      if (contactInfo.length > 0) {
+        documentChildren.push(new Paragraph({
+          children: [new TextRun({ text: contactInfo.join('  |  '), size: 20, font: "Calibri", color: "666666" })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 }
+        }));
+      }
       
-      // Summary section
+      // Summary
       if (summary) {
-        rightColumnContent.push(createSectionHeader("SUMMARY"));
-        rightColumnContent.push(new Paragraph({
-          children: [new TextRun({ text: summary, size: 19, font: "Calibri" })],
+        documentChildren.push(createSectionHeader("Professional Summary"));
+        documentChildren.push(new Paragraph({
+          children: [new TextRun({ text: summary, size: 21, font: "Calibri" })],
           spacing: { before: 60, after: 120 }
         }));
       }
       
-      // Key Achievements section
-      if (achievements.length > 0) {
-        rightColumnContent.push(createSectionHeader("KEY ACHIEVEMENTS"));
-        achievements.slice(0, 5).forEach(ach => {
-          rightColumnContent.push(new Paragraph({
+      // Experience
+      if (experiences.length > 0) {
+        documentChildren.push(createSectionHeader("Professional Experience"));
+        
+        experiences.forEach(exp => {
+          // Job title
+          documentChildren.push(new Paragraph({
             children: [
-              new TextRun({ text: "✓ ", bold: true, size: 20, font: "Calibri", color: "2563EB" }),
-              new TextRun({ text: ach, size: 19, font: "Calibri" })
+              new TextRun({ text: exp.title || "Position", bold: true, size: 23, font: "Calibri", color: "1a365d" }),
+              exp.dates ? new TextRun({ text: `  |  ${exp.dates}`, size: 20, font: "Calibri", color: "666666", italics: true }) : new TextRun({ text: "" })
             ],
+            spacing: { before: 160, after: 40 }
+          }));
+          
+          // Company
+          if (exp.company) {
+            documentChildren.push(new Paragraph({
+              children: [new TextRun({ text: exp.company, size: 21, font: "Calibri", color: "444444" })],
+              spacing: { before: 0, after: 60 }
+            }));
+          }
+          
+          // Bullets
+          if (exp.bullets && exp.bullets.length > 0) {
+            exp.bullets.slice(0, 5).forEach((bullet: string) => {
+              documentChildren.push(new Paragraph({
+                children: [new TextRun({ text: bullet, size: 20, font: "Calibri" })],
+                bullet: { level: 0 },
+                spacing: { before: 30, after: 30 }
+              }));
+            });
+          }
+        });
+      }
+      
+      // Skills
+      if (skills.length > 0) {
+        documentChildren.push(createSectionHeader("Skills & Competencies"));
+        documentChildren.push(new Paragraph({
+          children: [new TextRun({ text: skills.slice(0, 20).join('  •  '), size: 20, font: "Calibri" })],
+          spacing: { before: 60, after: 120 }
+        }));
+      }
+      
+      // Education
+      if (education.length > 0) {
+        documentChildren.push(createSectionHeader("Education"));
+        education.slice(0, 3).forEach(edu => {
+          documentChildren.push(new Paragraph({
+            children: [new TextRun({ text: edu.degree, size: 21, font: "Calibri" })],
             spacing: { before: 40, after: 40 }
           }));
         });
       }
       
-      // Competencies & Skills section
-      if (skills.length > 0) {
-        rightColumnContent.push(createSectionHeader("COMPETENCIES & SKILLS"));
-        // Display skills in a clean format
-        const skillsText = skills.slice(0, 15).join('  •  ');
-        rightColumnContent.push(new Paragraph({
-          children: [new TextRun({ text: skillsText, size: 19, font: "Calibri" })],
-          spacing: { before: 60, after: 120 }
-        }));
-      }
-      
-      // Education section
-      if (education.length > 0) {
-        rightColumnContent.push(createSectionHeader("EDUCATION"));
-        education.forEach(edu => {
-          rightColumnContent.push(new Paragraph({
-            children: [new TextRun({ text: edu.degree, bold: true, size: 19, font: "Calibri" })],
-            spacing: { before: 60, after: 40 }
-          }));
-        });
-      }
-      
-      // Create header section (name, headline, contact)
-      const headerParagraphs: Paragraph[] = [];
-      
-      // Name - large, bold
-      headerParagraphs.push(new Paragraph({
-        children: [new TextRun({ text: name.toUpperCase(), bold: true, size: 40, font: "Calibri" })],
-        spacing: { after: 80 }
-      }));
-      
-      // Headline/tagline
-      if (headline) {
-        headerParagraphs.push(new Paragraph({
-          children: [new TextRun({ text: headline, size: 22, font: "Calibri", color: "555555" })],
-          spacing: { after: 80 }
-        }));
-      }
-      
-      // Contact info on one line
-      if (contactInfo.length > 0) {
-        headerParagraphs.push(new Paragraph({
-          children: [new TextRun({ text: contactInfo.join('  |  '), size: 18, font: "Calibri", color: "666666" })],
-          spacing: { after: 200 }
-        }));
-      }
-      
-      // Create two-column table
-      const twoColumnTable = new Table({
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({
-                children: leftColumnContent,
-                width: { size: 60, type: WidthType.PERCENTAGE },
-                borders: noBorder,
-                margins: { top: 100, bottom: 100, left: 0, right: 200 }
-              }),
-              new TableCell({
-                children: rightColumnContent,
-                width: { size: 40, type: WidthType.PERCENTAGE },
-                borders: noBorder,
-                margins: { top: 100, bottom: 100, left: 200, right: 0 },
-                shading: { fill: "F8FAFC", type: ShadingType.CLEAR }
-              })
-            ]
-          })
-        ],
-        width: { size: 100, type: WidthType.PERCENTAGE }
-      });
-      
       const doc = new Document({
         sections: [{
-          properties: {
-            page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } }
-          },
-          children: [...headerParagraphs, twoColumnTable]
+          properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+          children: documentChildren
         }]
       });
       
@@ -756,7 +631,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     } catch (error) {
       console.error("Download error:", error);
       // Fallback to text download
-      const content = finalResumeContent || enhancedResume?.enhancedContent || "";
       const blob = new Blob([content], { type: "text/plain" });
       saveAs(blob, "optimized-resume.txt");
       toast({ title: "Downloaded!", description: "Resume saved as text file" });
@@ -975,9 +849,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
   };
 
-  // Parse resume content into structured sections
+  // Parse resume content into structured sections - improved parsing
   const parseResumeContent = (content: string) => {
-    const lines = content.split('\n').filter(l => l.trim());
+    const lines = content.split('\n');
     let name = "";
     let headline = "";
     let contactInfo: string[] = [];
@@ -988,182 +862,325 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     
     let currentSection = "";
     let currentExperience: { title: string; company: string; dates: string; bullets: string[] } | null = null;
+    let summaryLines: string[] = [];
     
+    const sectionHeaders = {
+      summary: /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$/i,
+      experience: /^(PROFESSIONAL\s+|WORK\s+)?EXPERIENCE|^EMPLOYMENT(\s+HISTORY)?|^CAREER(\s+HISTORY)?$/i,
+      skills: /^(TECHNICAL\s+|CORE\s+)?SKILLS|^COMPETENCIES|^EXPERTISE|^TECHNOLOGIES$/i,
+      education: /^EDUCATION|^ACADEMIC|^QUALIFICATIONS$/i,
+      achievements: /^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i
+    };
+
     lines.forEach((line, index) => {
       const trimmed = line.trim();
-      const upper = trimmed.toUpperCase();
+      if (!trimmed) return;
       
-      if (index === 0 && !trimmed.includes('@') && trimmed.length < 60) {
-        name = trimmed;
-        return;
-      }
-      if (index === 1 && !trimmed.includes('@') && !trimmed.match(/\d{3}/) && trimmed.length < 100) {
-        headline = trimmed;
-        return;
-      }
-      if (index < 5 && (trimmed.includes('@') || trimmed.match(/\d{3}[-.)]\s*\d{3}/) || trimmed.toLowerCase().includes('linkedin'))) {
-        contactInfo.push(trimmed);
+      const cleanLine = trimmed.replace(/^[#*_]+|[#*_]+$/g, '').trim();
+      
+      // First non-empty line is usually the name
+      if (!name && index < 5 && cleanLine.length < 60 && !cleanLine.includes('@') && !cleanLine.match(/\d{3}/)) {
+        name = cleanLine;
         return;
       }
       
-      if (upper.includes('SUMMARY') || upper.includes('PROFILE') || upper.includes('OBJECTIVE')) {
-        currentSection = 'summary';
-        return;
-      }
-      if (upper.includes('EXPERIENCE') || upper.includes('EMPLOYMENT')) {
-        if (currentExperience) experiences.push(currentExperience);
-        currentExperience = null;
-        currentSection = 'experience';
-        return;
-      }
-      if (upper.includes('SKILLS') || upper.includes('COMPETENCIES')) {
-        currentSection = 'skills';
-        return;
-      }
-      if (upper.includes('EDUCATION')) {
-        currentSection = 'education';
+      // Contact info detection (within first 8 lines)
+      if (index < 8 && (cleanLine.includes('@') || cleanLine.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) || cleanLine.toLowerCase().includes('linkedin.com'))) {
+        // Split by common delimiters and add each part
+        const parts = cleanLine.split(/[|•·]/).map(p => p.trim()).filter(p => p);
+        contactInfo.push(...parts);
         return;
       }
       
-      if (currentSection === 'summary' && trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
-        summary += (summary ? ' ' : '') + trimmed;
-      }
-      if (currentSection === 'experience') {
-        if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*')) {
-          if (currentExperience) {
-            currentExperience.bullets.push(trimmed.replace(/^[•\-*]\s*/, ''));
-          }
-        } else if (trimmed && !trimmed.match(/^[A-Z\s&]+$/) && trimmed.length > 10) {
-          if (currentExperience) experiences.push(currentExperience);
-          const dateMatch = trimmed.match(/(\d{4}|\w+\s+\d{4})\s*[-–]\s*(\d{4}|Present|Current)/i);
-          currentExperience = {
-            title: trimmed.split(/[|,@]|at\s/i)[0]?.trim() || trimmed,
-            company: trimmed.split(/[|,@]|at\s/i)[1]?.trim() || "",
-            dates: dateMatch ? dateMatch[0] : "",
-            bullets: []
-          };
+      // Headline detection (line after name, before sections)
+      if (!headline && index < 5 && !currentSection && cleanLine.length < 100 && !cleanLine.includes('@')) {
+        if (cleanLine.match(/Manager|Engineer|Developer|Designer|Analyst|Director|Lead|Specialist|Consultant|Executive/i)) {
+          headline = cleanLine;
+          return;
         }
       }
-      if (currentSection === 'skills') {
-        const skillItems = trimmed.split(/[,;|•]/).map(s => s.trim()).filter(s => s && s.length > 1);
-        skills.push(...skillItems);
+      
+      // Section header detection
+      if (sectionHeaders.summary.test(cleanLine)) { currentSection = 'summary'; return; }
+      if (sectionHeaders.experience.test(cleanLine)) { 
+        if (currentExperience) experiences.push(currentExperience);
+        currentExperience = null;
+        currentSection = 'experience'; 
+        return; 
       }
-      if (currentSection === 'education' && trimmed && !trimmed.match(/^[A-Z\s&]+$/)) {
-        education.push({ degree: trimmed.split(',')[0] || trimmed, school: trimmed.split(',')[1] || "", dates: "" });
+      if (sectionHeaders.skills.test(cleanLine)) { currentSection = 'skills'; return; }
+      if (sectionHeaders.education.test(cleanLine)) { currentSection = 'education'; return; }
+      if (sectionHeaders.achievements.test(cleanLine)) { currentSection = 'achievements'; return; }
+      
+      // Skip pure section headers
+      if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 30) return;
+      
+      // Process based on current section
+      switch (currentSection) {
+        case 'summary':
+          if (cleanLine && cleanLine.length > 5) {
+            summaryLines.push(cleanLine);
+          }
+          break;
+          
+        case 'experience':
+          const isBullet = /^[•\-\*▪◦‣→]/.test(cleanLine);
+          const datePattern = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
+          const hasDate = datePattern.test(cleanLine);
+          const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
+          
+          if (isBullet && currentExperience) {
+            currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
+          } else if (isJobTitle && !isBullet) {
+            if (currentExperience && currentExperience.bullets.length > 0) {
+              experiences.push(currentExperience);
+            }
+            const dateMatch = cleanLine.match(datePattern);
+            currentExperience = {
+              title: cleanLine.replace(datePattern, '').replace(/[|,].*$/, '').trim(),
+              company: '',
+              dates: dateMatch ? dateMatch[0] : '',
+              bullets: []
+            };
+          } else if (currentExperience && !currentExperience.company && cleanLine.length > 3 && !isBullet) {
+            // This might be company info
+            const dateMatch = cleanLine.match(datePattern);
+            if (dateMatch && !currentExperience.dates) {
+              currentExperience.dates = dateMatch[0];
+              currentExperience.company = cleanLine.replace(datePattern, '').replace(/[|,]\s*$/, '').trim();
+            } else if (!hasDate) {
+              currentExperience.company = cleanLine.split(/[|,]/)[0].trim();
+            }
+          }
+          break;
+          
+        case 'skills':
+          // Handle various skill formats
+          const skillItems = cleanLine.split(/[,;|•·]/).map(s => s.trim()).filter(s => s.length > 1 && s.length < 50);
+          if (skillItems.length > 0) {
+            skills.push(...skillItems);
+          } else if (cleanLine.length > 2 && cleanLine.length < 50) {
+            skills.push(cleanLine);
+          }
+          break;
+          
+        case 'education':
+          if (cleanLine.length > 5 && !cleanLine.match(/^[A-Z\s&]+$/)) {
+            education.push({ 
+              degree: cleanLine, 
+              school: '', 
+              dates: '' 
+            });
+          }
+          break;
       }
     });
     
-    if (currentExperience) experiences.push(currentExperience);
+    // Don't forget the last experience
+    if (currentExperience && currentExperience.title) {
+      experiences.push(currentExperience);
+    }
     
-    return { name, headline, contactInfo, summary, experiences, skills: [...new Set(skills)], education };
+    // Combine summary lines
+    summary = summaryLines.join(' ');
+    
+    // Remove duplicate skills
+    skills = [...new Set(skills)];
+    
+    return { name, headline, contactInfo: [...new Set(contactInfo)], summary, experiences, skills, education };
   };
 
-  // Generate Classic Resume HTML
+  // Generate Classic Resume HTML - clean professional single-column format
   const generateClassicResumeHTML = (name: string, headline: string, contactInfo: string[], summary: string, experiences: any[], skills: string[], education: any[]) => {
+    const content = finalResumeContent || enhancedResume?.enhancedContent || "";
+    
+    // If parsing didn't yield good results, use a simple formatted version
+    const hasGoodData = experiences.length > 0 || summary.length > 50;
+    
+    if (!hasGoodData) {
+      // Fallback: format content directly as a clean resume
+      const lines = content.split('\n').filter(l => l.trim());
+      let formattedContent = '';
+      let isFirstLine = true;
+      
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        
+        if (isFirstLine) {
+          formattedContent += `<h1 style="font-size: 26px; text-align: center; margin: 0 0 5px 0; letter-spacing: 1px;">${trimmed}</h1>`;
+          isFirstLine = false;
+        } else if (trimmed === trimmed.toUpperCase() && trimmed.length < 40 && trimmed.length > 3) {
+          formattedContent += `<h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 18px 0 10px 0; color: #333;">${trimmed}</h2>`;
+        } else if (/^[•\-\*▪]/.test(trimmed)) {
+          formattedContent += `<p style="font-size: 11px; margin: 3px 0 3px 15px; line-height: 1.5;">• ${trimmed.replace(/^[•\-\*▪]\s*/, '')}</p>`;
+        } else {
+          formattedContent += `<p style="font-size: 11px; margin: 4px 0; line-height: 1.5;">${trimmed}</p>`;
+        }
+      });
+      
+      return `<div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">${formattedContent}</div>`;
+    }
+    
+    // Use structured data if available
     return `
-      <div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 800px; margin: 0 auto; color: #333;">
-        <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px;">
-          <h1 style="font-size: 28px; margin: 0; letter-spacing: 2px; text-transform: uppercase;">${name || "Your Name"}</h1>
-          ${headline ? `<p style="font-size: 14px; color: #666; margin-top: 8px; font-style: italic;">${headline}</p>` : ""}
-          <p style="font-size: 12px; color: #666; margin-top: 8px;">${contactInfo.join(" | ") || "email@example.com | (555) 123-4567"}</p>
+      <div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 12px;">
+          <h1 style="font-size: 26px; margin: 0; letter-spacing: 2px; text-transform: uppercase;">${name || "Your Name"}</h1>
+          ${headline ? `<p style="font-size: 13px; color: #555; margin: 6px 0 0 0; font-style: italic;">${headline}</p>` : ""}
+          ${contactInfo.length > 0 ? `<p style="font-size: 11px; color: #666; margin: 8px 0 0 0;">${contactInfo.join(" | ")}</p>` : ""}
         </div>
         
         ${summary ? `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 10px;">Professional Summary</h2>
-          <p style="font-size: 12px; line-height: 1.6; color: #444;">${summary}</p>
+        <div style="margin-bottom: 18px;">
+          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Professional Summary</h2>
+          <p style="font-size: 11px; line-height: 1.6; color: #444; margin: 0;">${summary}</p>
         </div>
         ` : ""}
         
         ${experiences.length > 0 ? `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 10px;">Professional Experience</h2>
+        <div style="margin-bottom: 18px;">
+          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 10px 0;">Professional Experience</h2>
           ${experiences.map(exp => `
-            <div style="margin-bottom: 15px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <strong style="font-size: 13px;">${exp.title}</strong>
-                <span style="font-size: 11px; color: #666;">${exp.dates}</span>
+            <div style="margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+                <strong style="font-size: 12px; color: #222;">${exp.title || "Position"}</strong>
+                ${exp.dates ? `<span style="font-size: 10px; color: #666;">${exp.dates}</span>` : ""}
               </div>
-              ${exp.company ? `<div style="font-size: 12px; color: #666; font-style: italic;">${exp.company}</div>` : ""}
-              <ul style="margin: 8px 0 0 0; padding-left: 18px;">
-                ${exp.bullets.slice(0, 4).map((b: string) => `<li style="font-size: 11px; line-height: 1.5; margin-bottom: 4px;">${b}</li>`).join('')}
-              </ul>
+              ${exp.company ? `<div style="font-size: 11px; color: #555; font-style: italic; margin-top: 2px;">${exp.company}</div>` : ""}
+              ${exp.bullets && exp.bullets.length > 0 ? `
+                <ul style="margin: 6px 0 0 0; padding-left: 16px;">
+                  ${exp.bullets.slice(0, 5).map((b: string) => `<li style="font-size: 10px; line-height: 1.5; margin-bottom: 3px; color: #444;">${b}</li>`).join('')}
+                </ul>
+              ` : ""}
             </div>
           `).join('')}
         </div>
         ` : ""}
         
         ${skills.length > 0 ? `
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 10px;">Skills</h2>
-          <p style="font-size: 11px; line-height: 1.6;">${skills.slice(0, 20).join(" • ")}</p>
+        <div style="margin-bottom: 18px;">
+          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Skills</h2>
+          <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${skills.slice(0, 25).join(" • ")}</p>
         </div>
         ` : ""}
         
         ${education.length > 0 ? `
         <div>
-          <h2 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 10px;">Education</h2>
-          ${education.map(edu => `<p style="font-size: 12px; margin-bottom: 5px;">${edu.degree}${edu.school ? ` - ${edu.school}` : ""}</p>`).join('')}
+          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Education</h2>
+          ${education.map(edu => `<p style="font-size: 11px; margin: 4px 0; color: #444;">${edu.degree}</p>`).join('')}
         </div>
         ` : ""}
       </div>
     `;
   };
 
-  // Generate Modern Resume HTML
+  // Generate Modern Resume HTML - two-column professional format
   const generateModernResumeHTML = (name: string, headline: string, contactInfo: string[], summary: string, experiences: any[], skills: string[], education: any[]) => {
-    return `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 0 auto; display: flex;">
-        <div style="width: 35%; background: #1a365d; color: white; padding: 30px 20px;">
-          <h1 style="font-size: 22px; margin: 0 0 5px 0;">${name || "Your Name"}</h1>
-          ${headline ? `<p style="font-size: 12px; color: #90cdf4; margin: 0 0 20px 0;">${headline}</p>` : ""}
-          
-          <div style="margin-bottom: 25px;">
-            <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 10px 0; border-bottom: 1px solid #2c5282; padding-bottom: 5px;">Contact</h3>
-            ${contactInfo.map(c => `<p style="font-size: 10px; margin: 5px 0; word-break: break-all;">${c}</p>`).join('')}
-          </div>
-          
-          ${skills.length > 0 ? `
-          <div style="margin-bottom: 25px;">
-            <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 10px 0; border-bottom: 1px solid #2c5282; padding-bottom: 5px;">Skills</h3>
-            ${skills.slice(0, 15).map(s => `<p style="font-size: 10px; margin: 4px 0; padding: 3px 8px; background: #2c5282; border-radius: 3px; display: inline-block; margin-right: 4px;">${s}</p>`).join('')}
-          </div>
-          ` : ""}
-          
-          ${education.length > 0 ? `
-          <div>
-            <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 10px 0; border-bottom: 1px solid #2c5282; padding-bottom: 5px;">Education</h3>
-            ${education.map(edu => `<p style="font-size: 10px; margin: 5px 0;">${edu.degree}</p>`).join('')}
-          </div>
-          ` : ""}
-        </div>
+    const content = finalResumeContent || enhancedResume?.enhancedContent || "";
+    
+    const hasGoodData = experiences.length > 0 || summary.length > 50;
+    
+    if (!hasGoodData) {
+      // Fallback: create a modern single-column version with accent
+      const lines = content.split('\n').filter(l => l.trim());
+      let headerContent = '';
+      let bodyContent = '';
+      let lineIndex = 0;
+      
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
         
-        <div style="width: 65%; padding: 30px 25px;">
-          ${summary ? `
-          <div style="margin-bottom: 20px;">
-            <h2 style="font-size: 13px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 10px 0; border-bottom: 2px solid #1a365d; padding-bottom: 5px;">Professional Summary</h2>
-            <p style="font-size: 11px; line-height: 1.6; color: #444;">${summary}</p>
+        if (lineIndex === 0) {
+          headerContent += `<h1 style="font-size: 24px; margin: 0; color: #1a365d;">${trimmed}</h1>`;
+        } else if (lineIndex < 3 && (trimmed.includes('@') || trimmed.match(/\d{3}/))) {
+          headerContent += `<p style="font-size: 10px; color: #666; margin: 4px 0;">${trimmed}</p>`;
+        } else if (trimmed === trimmed.toUpperCase() && trimmed.length < 40 && trimmed.length > 3) {
+          bodyContent += `<h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #1a365d; border-bottom: 2px solid #1a365d; padding-bottom: 4px; margin: 16px 0 8px 0;">${trimmed}</h2>`;
+        } else if (/^[•\-\*▪]/.test(trimmed)) {
+          bodyContent += `<p style="font-size: 10px; margin: 3px 0 3px 12px; line-height: 1.5; color: #444;">• ${trimmed.replace(/^[•\-\*▪]\s*/, '')}</p>`;
+        } else {
+          bodyContent += `<p style="font-size: 10px; margin: 4px 0; line-height: 1.5; color: #444;">${trimmed}</p>`;
+        }
+        lineIndex++;
+      });
+      
+      return `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #1a365d, #2c5282); color: white; padding: 25px 30px; margin-bottom: 0;">
+            ${headerContent}
           </div>
-          ` : ""}
-          
-          ${experiences.length > 0 ? `
-          <div>
-            <h2 style="font-size: 13px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 15px 0; border-bottom: 2px solid #1a365d; padding-bottom: 5px;">Experience</h2>
-            ${experiences.map(exp => `
-              <div style="margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between;">
-                  <strong style="font-size: 12px; color: #1a365d;">${exp.title}</strong>
-                  <span style="font-size: 10px; color: #666;">${exp.dates}</span>
-                </div>
-                ${exp.company ? `<div style="font-size: 11px; color: #666;">${exp.company}</div>` : ""}
-                <ul style="margin: 6px 0 0 0; padding-left: 15px;">
-                  ${exp.bullets.slice(0, 4).map((b: string) => `<li style="font-size: 10px; line-height: 1.5; margin-bottom: 3px; color: #444;">${b}</li>`).join('')}
-                </ul>
-              </div>
-            `).join('')}
+          <div style="padding: 25px 30px;">
+            ${bodyContent}
           </div>
-          ` : ""}
         </div>
+      `;
+    }
+    
+    // Use structured two-column layout
+    return `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 0 auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 35%; background: linear-gradient(180deg, #1a365d, #234876); color: white; padding: 25px 18px; vertical-align: top;">
+              <h1 style="font-size: 20px; margin: 0 0 4px 0; word-wrap: break-word;">${name || "Your Name"}</h1>
+              ${headline ? `<p style="font-size: 11px; color: #90cdf4; margin: 0 0 18px 0;">${headline}</p>` : ""}
+              
+              ${contactInfo.length > 0 ? `
+              <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Contact</h3>
+                ${contactInfo.map(c => `<p style="font-size: 9px; margin: 4px 0; word-break: break-all; color: #e2e8f0;">${c}</p>`).join('')}
+              </div>
+              ` : ""}
+              
+              ${skills.length > 0 ? `
+              <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Skills</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                  ${skills.slice(0, 12).map(s => `<span style="font-size: 8px; padding: 3px 6px; background: #2c5282; border-radius: 2px; color: #e2e8f0; display: inline-block; margin: 2px;">${s}</span>`).join('')}
+                </div>
+              </div>
+              ` : ""}
+              
+              ${education.length > 0 ? `
+              <div>
+                <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Education</h3>
+                ${education.slice(0, 2).map(edu => `<p style="font-size: 9px; margin: 4px 0; color: #e2e8f0;">${edu.degree}</p>`).join('')}
+              </div>
+              ` : ""}
+            </td>
+            
+            <td style="width: 65%; padding: 25px 22px; vertical-align: top;">
+              ${summary ? `
+              <div style="margin-bottom: 16px;">
+                <h2 style="font-size: 12px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 8px 0; border-bottom: 2px solid #1a365d; padding-bottom: 4px;">Summary</h2>
+                <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${summary}</p>
+              </div>
+              ` : ""}
+              
+              ${experiences.length > 0 ? `
+              <div>
+                <h2 style="font-size: 12px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 12px 0; border-bottom: 2px solid #1a365d; padding-bottom: 4px;">Experience</h2>
+                ${experiences.map(exp => `
+                  <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                      <strong style="font-size: 11px; color: #1a365d;">${exp.title || "Position"}</strong>
+                      ${exp.dates ? `<span style="font-size: 9px; color: #666;">${exp.dates}</span>` : ""}
+                    </div>
+                    ${exp.company ? `<div style="font-size: 10px; color: #666; margin-top: 1px;">${exp.company}</div>` : ""}
+                    ${exp.bullets && exp.bullets.length > 0 ? `
+                      <ul style="margin: 5px 0 0 0; padding-left: 14px;">
+                        ${exp.bullets.slice(0, 4).map((b: string) => `<li style="font-size: 9px; line-height: 1.5; margin-bottom: 2px; color: #444;">${b}</li>`).join('')}
+                      </ul>
+                    ` : ""}
+                  </div>
+                `).join('')}
+              </div>
+              ` : ""}
+            </td>
+          </tr>
+        </table>
       </div>
     `;
   };
