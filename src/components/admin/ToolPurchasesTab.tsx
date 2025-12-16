@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { RefreshCw, FileText, Linkedin, Clock, CheckCircle, Mail, CalendarClock, Send, MoreHorizontal, Pencil, RotateCcw, XCircle, CalendarPlus } from "lucide-react";
 import { format, formatDistanceToNow, isPast, differenceInDays, addMonths } from "date-fns";
@@ -59,6 +60,14 @@ export function ToolPurchasesTab() {
     email: "",
     purchased_at: "",
     expires_at: "",
+  });
+  
+  // Create dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    email: "",
+    tool_type: "resume_suite" as "resume_suite" | "linkedin_signal",
+    duration_months: 1,
   });
 
   const fetchPurchases = async () => {
@@ -221,6 +230,39 @@ export function ToolPurchasesTab() {
     }
   };
 
+  const createPurchase = async () => {
+    if (!createForm.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+    
+    try {
+      const now = new Date();
+      const expiresAt = addMonths(now, createForm.duration_months);
+      
+      const { error } = await supabase
+        .from("tool_purchases")
+        .insert({
+          email: createForm.email.trim().toLowerCase(),
+          tool_type: createForm.tool_type,
+          status: "active",
+          purchased_at: now.toISOString(),
+          expires_at: expiresAt.toISOString(),
+          usage_count: 0,
+        });
+
+      if (error) throw error;
+      
+      toast.success(`Access created for ${createForm.email} until ${format(expiresAt, "MMM d, yyyy")}`);
+      setCreateDialogOpen(false);
+      setCreateForm({ email: "", tool_type: "resume_suite", duration_months: 1 });
+      fetchPurchases();
+    } catch (error) {
+      console.error("Error creating purchase:", error);
+      toast.error("Failed to create purchase");
+    }
+  };
+
   const getToolLabel = (toolType: string) => {
     return toolType === "resume_suite" ? "Resume Intelligence Suite" : "LinkedIn Signal Score";
   };
@@ -362,6 +404,10 @@ export function ToolPurchasesTab() {
           </TabsList>
         </Tabs>
         <div className="flex gap-2">
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+            <CalendarPlus className="w-4 h-4 mr-2" />
+            Create Access
+          </Button>
           <Button variant="outline" size="sm" onClick={expireOldPurchases}>
             <Clock className="w-4 h-4 mr-2" />
             Expire Old
@@ -558,6 +604,76 @@ export function ToolPurchasesTab() {
               Cancel
             </Button>
             <Button onClick={saveEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Purchase Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Manual Access</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-email">Email</Label>
+              <Input
+                id="create-email"
+                type="email"
+                placeholder="user@example.com"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tool-type">Tool</Label>
+              <Select
+                value={createForm.tool_type}
+                onValueChange={(v) => setCreateForm({ ...createForm, tool_type: v as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="resume_suite">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-amber-600" />
+                      Resume Intelligence Suite
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="linkedin_signal">
+                    <div className="flex items-center gap-2">
+                      <Linkedin className="w-4 h-4 text-blue-600" />
+                      LinkedIn Signal Score
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration</Label>
+              <Select
+                value={createForm.duration_months.toString()}
+                onValueChange={(v) => setCreateForm({ ...createForm, duration_months: parseInt(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 Month</SelectItem>
+                  <SelectItem value="2">2 Months</SelectItem>
+                  <SelectItem value="3">3 Months</SelectItem>
+                  <SelectItem value="6">6 Months</SelectItem>
+                  <SelectItem value="12">12 Months</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createPurchase}>Create Access</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
