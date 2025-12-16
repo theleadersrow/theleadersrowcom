@@ -147,8 +147,17 @@ serve(async (req) => {
 
     logStep("Access email sent successfully", { email });
 
+    // Calculate expiry
+    const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    
+    // Return access token so frontend can grant immediate access
     return new Response(
-      JSON.stringify({ success: true, message: "Access email sent" }),
+      JSON.stringify({ 
+        success: true, 
+        message: "Access email sent",
+        accessToken,
+        expiresAt: expiryDate.toISOString(),
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {

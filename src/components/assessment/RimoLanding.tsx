@@ -34,14 +34,12 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
-  const [showCheckEmailDialog, setShowCheckEmailDialog] = useState(false);
   const [email, setEmail] = useState("");
   const [linkedInEmail, setLinkedInEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [resumeAccess, setResumeAccess] = useState<AccessInfo>({ hasAccess: false });
   const [linkedInAccess, setLinkedInAccess] = useState<AccessInfo>({ hasAccess: false });
-  const [pendingToolType, setPendingToolType] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -100,7 +98,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         return;
       }
 
-      // Check for purchase success - send access email
+      // Check for purchase success - grant immediate access
       const purchaseType = searchParams.get("purchase");
       if (purchaseType === "resume_success" || purchaseType === "linkedin_success") {
         const pendingEmail = localStorage.getItem(PENDING_PURCHASE_EMAIL_KEY);
@@ -109,24 +107,51 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         if (pendingEmail) {
           setIsProcessing(true);
           try {
-            const { error } = await supabase.functions.invoke("send-tool-access-email", {
+            const { data, error } = await supabase.functions.invoke("send-tool-access-email", {
               body: { email: pendingEmail, toolType: pendingTool },
             });
 
             if (error) throw error;
 
+            // Grant immediate access using the returned token
+            if (data.accessToken && data.expiresAt) {
+              const accessData = {
+                expiry: new Date(data.expiresAt).getTime(),
+                email: pendingEmail,
+                daysRemaining: 30,
+              };
+              
+              if (pendingTool === "resume_suite") {
+                localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+                setResumeAccess({ 
+                  hasAccess: true, 
+                  expiresAt: data.expiresAt, 
+                  daysRemaining: 30,
+                  email: pendingEmail 
+                });
+                toast.success("Payment successful! Your Resume Intelligence Suite access is now active.");
+              } else {
+                localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+                setLinkedInAccess({ 
+                  hasAccess: true, 
+                  expiresAt: data.expiresAt, 
+                  daysRemaining: 30,
+                  email: pendingEmail 
+                });
+                toast.success("Payment successful! Your LinkedIn Signal Score access is now active.");
+              }
+            }
+
             localStorage.removeItem(PENDING_PURCHASE_EMAIL_KEY);
-            setPendingToolType(pendingTool);
-            setShowCheckEmailDialog(true);
-            toast.success("Payment successful! Check your email for the access link.");
+            // Access granted immediately - no need to show "check email" dialog
           } catch (error) {
-            console.error("Failed to send access email:", error);
-            toast.error("Payment received but failed to send access email. Please contact support.");
+            console.error("Failed to activate access:", error);
+            toast.error("Payment received but failed to activate. Please contact support.");
           } finally {
             setIsProcessing(false);
           }
         } else {
-          toast.info("Payment successful! Please enter your email to receive your access link.");
+          toast.info("Payment successful! Please enter your email to activate your access.");
         }
         
         // Clear URL params
@@ -218,7 +243,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       }
       
       setShowPaymentDialog(false);
-      toast.info("Complete your purchase in the new tab. You'll receive an access link via email.");
+      toast.info("Complete your purchase in the new tab. Access activates automatically when you return.");
     } catch (error) {
       console.error("Failed to record purchase intent:", error);
       toast.error("Something went wrong. Please try again.");
@@ -254,7 +279,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       }
       
       setShowLinkedInPaymentDialog(false);
-      toast.info("Complete your purchase in the new tab. You'll receive an access link via email.");
+      toast.info("Complete your purchase in the new tab. Access activates automatically when you return.");
     } catch (error) {
       console.error("Failed to record purchase intent:", error);
       toast.error("Something went wrong. Please try again.");
@@ -521,7 +546,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               Resume Intelligence Suite
             </DialogTitle>
             <DialogDescription>
-              Get full access for 30 days. After payment, you'll receive an access link via email that works on any device.
+              Get 30 days of full access. Your access activates immediately after payment.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
@@ -542,7 +567,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               />
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Mail className="w-3 h-3" />
-                We'll send your access link to this email
+                For access confirmation & backup access link
               </p>
             </div>
             <ul className="text-sm text-muted-foreground space-y-1">
@@ -571,7 +596,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               LinkedIn Signal Score
             </DialogTitle>
             <DialogDescription>
-              Get full access for 30 days. After payment, you'll receive an access link via email that works on any device.
+              Get 30 days of full access. Your access activates immediately after payment.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
@@ -592,7 +617,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               />
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Mail className="w-3 h-3" />
-                We'll send your access link to this email
+                For access confirmation & backup access link
               </p>
             </div>
             <ul className="text-sm text-muted-foreground space-y-1">
@@ -611,36 +636,6 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Check Email Dialog */}
-      <Dialog open={showCheckEmailDialog} onOpenChange={setShowCheckEmailDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-primary" />
-              Check Your Email
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-4 text-center">
-            <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-            <p className="text-foreground">
-              We've sent an access link to your email.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Click the link in the email to access your {pendingToolType === "resume_suite" ? "Resume Intelligence Suite" : "LinkedIn Signal Score"}.
-              The link works on any device.
-            </p>
-            <div className="pt-2">
-              <Button variant="outline" onClick={() => setShowCheckEmailDialog(false)}>
-                Got it
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Interview Prep Coming Soon Dialog */}
       <Dialog open={showInterviewPrepDialog} onOpenChange={setShowInterviewPrepDialog}>
         <DialogContent className="sm:max-w-md">
