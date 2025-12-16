@@ -585,9 +585,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             }));
           }
           
-          // Bullets
+          // Bullets - include ALL bullets
           if (exp.bullets && exp.bullets.length > 0) {
-            exp.bullets.slice(0, 5).forEach((bullet: string) => {
+            exp.bullets.forEach((bullet: string) => {
               documentChildren.push(new Paragraph({
                 children: [new TextRun({ text: bullet, size: 20, font: "Calibri" })],
                 bullet: { level: 0 },
@@ -598,19 +598,19 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         });
       }
       
-      // Skills
+      // Skills - include ALL skills
       if (skills.length > 0) {
         documentChildren.push(createSectionHeader("Skills & Competencies"));
         documentChildren.push(new Paragraph({
-          children: [new TextRun({ text: skills.slice(0, 20).join('  •  '), size: 20, font: "Calibri" })],
+          children: [new TextRun({ text: skills.join('  •  '), size: 20, font: "Calibri" })],
           spacing: { before: 60, after: 120 }
         }));
       }
       
-      // Education
+      // Education - include ALL education
       if (education.length > 0) {
         documentChildren.push(createSectionHeader("Education"));
-        education.slice(0, 3).forEach(edu => {
+        education.forEach(edu => {
           documentChildren.push(new Paragraph({
             children: [new TextRun({ text: edu.degree, size: 21, font: "Calibri" })],
             spacing: { before: 40, after: 40 }
@@ -1050,7 +1050,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               ${exp.company ? `<div style="font-size: 11px; color: #555; font-style: italic; margin-top: 2px;">${exp.company}</div>` : ""}
               ${exp.bullets && exp.bullets.length > 0 ? `
                 <ul style="margin: 6px 0 0 0; padding-left: 16px;">
-                  ${exp.bullets.slice(0, 5).map((b: string) => `<li style="font-size: 10px; line-height: 1.5; margin-bottom: 3px; color: #444;">${b}</li>`).join('')}
+                  ${exp.bullets.map((b: string) => `<li style="font-size: 10px; line-height: 1.5; margin-bottom: 3px; color: #444;">${b}</li>`).join('')}
                 </ul>
               ` : ""}
             </div>
@@ -1061,7 +1061,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         ${skills.length > 0 ? `
         <div style="margin-bottom: 18px;">
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Skills</h2>
-          <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${skills.slice(0, 25).join(" • ")}</p>
+          <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${skills.join(" • ")}</p>
         </div>
         ` : ""}
         
@@ -1138,7 +1138,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               <div style="margin-bottom: 20px;">
                 <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Skills</h3>
                 <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                  ${skills.slice(0, 12).map(s => `<span style="font-size: 8px; padding: 3px 6px; background: #2c5282; border-radius: 2px; color: #e2e8f0; display: inline-block; margin: 2px;">${s}</span>`).join('')}
+                  ${skills.map(s => `<span style="font-size: 8px; padding: 3px 6px; background: #2c5282; border-radius: 2px; color: #e2e8f0; display: inline-block; margin: 2px;">${s}</span>`).join('')}
                 </div>
               </div>
               ` : ""}
@@ -1146,7 +1146,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               ${education.length > 0 ? `
               <div>
                 <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Education</h3>
-                ${education.slice(0, 2).map(edu => `<p style="font-size: 9px; margin: 4px 0; color: #e2e8f0;">${edu.degree}</p>`).join('')}
+                ${education.map(edu => `<p style="font-size: 9px; margin: 4px 0; color: #e2e8f0;">${edu.degree}</p>`).join('')}
               </div>
               ` : ""}
             </td>
@@ -1171,7 +1171,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
                     ${exp.company ? `<div style="font-size: 10px; color: #666; margin-top: 1px;">${exp.company}</div>` : ""}
                     ${exp.bullets && exp.bullets.length > 0 ? `
                       <ul style="margin: 5px 0 0 0; padding-left: 14px;">
-                        ${exp.bullets.slice(0, 4).map((b: string) => `<li style="font-size: 9px; line-height: 1.5; margin-bottom: 2px; color: #444;">${b}</li>`).join('')}
+                        ${exp.bullets.map((b: string) => `<li style="font-size: 9px; line-height: 1.5; margin-bottom: 2px; color: #444;">${b}</li>`).join('')}
                       </ul>
                     ` : ""}
                   </div>
