@@ -19,8 +19,8 @@ serve(async (req) => {
   }
 
   try {
-    const { email, toolType } = await req.json();
-    logStep("Request received", { email, toolType });
+    const { email, toolType, recoveryOnly } = await req.json();
+    logStep("Request received", { email, toolType, recoveryOnly });
 
     if (!email || !toolType) {
       throw new Error("Email and toolType are required");
@@ -36,51 +36,82 @@ serve(async (req) => {
     const accessToken = crypto.randomUUID() + "-" + crypto.randomUUID();
     logStep("Generated access token");
 
-    // Find the most recent pending purchase for this email and tool
-    const { data: purchase, error: findError } = await supabaseAdmin
+    // First, check for existing active purchase (for recovery)
+    const { data: activePurchase } = await supabaseAdmin
       .from("tool_purchases")
       .select("*")
       .eq("email", email)
       .eq("tool_type", toolType)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
+      .eq("status", "active")
+      .gt("expires_at", new Date().toISOString())
+      .order("expires_at", { ascending: false })
       .limit(1)
       .single();
 
-    if (findError || !purchase) {
-      logStep("No pending purchase found, creating new one", { findError });
-      // Create a new active purchase record
-      const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    if (activePurchase) {
+      // Update existing active purchase with new token
+      await supabaseAdmin
+        .from("tool_purchases")
+        .update({ access_token: accessToken })
+        .eq("id", activePurchase.id);
       
-      const { error: insertError } = await supabaseAdmin
-        .from("tool_purchases")
-        .insert({
-          email,
-          tool_type: toolType,
-          status: "active",
-          access_token: accessToken,
-          expires_at: expiryDate.toISOString(),
-          purchased_at: new Date().toISOString(),
-        });
-
-      if (insertError) {
-        throw new Error(`Failed to create purchase: ${insertError.message}`);
-      }
+      logStep("Found existing active purchase, updated token", { purchaseId: activePurchase.id });
+    } else if (recoveryOnly) {
+      // Recovery mode but no active purchase found
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "No active purchase found for this email",
+          notFound: true
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     } else {
-      // Update existing pending purchase to active with token
-      const { error: updateError } = await supabaseAdmin
+      // No active purchase, check for pending
+      const { data: pendingPurchase } = await supabaseAdmin
         .from("tool_purchases")
-        .update({
-          status: "active",
-          access_token: accessToken,
-          purchased_at: new Date().toISOString(),
-        })
-        .eq("id", purchase.id);
+        .select("*")
+        .eq("email", email)
+        .eq("tool_type", toolType)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
 
-      if (updateError) {
-        throw new Error(`Failed to update purchase: ${updateError.message}`);
+      if (pendingPurchase) {
+        // Update pending purchase to active with token
+        const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await supabaseAdmin
+          .from("tool_purchases")
+          .update({
+            status: "active",
+            access_token: accessToken,
+            purchased_at: new Date().toISOString(),
+            expires_at: expiryDate.toISOString(),
+          })
+          .eq("id", pendingPurchase.id);
+        
+        logStep("Updated pending purchase to active", { purchaseId: pendingPurchase.id });
+      } else {
+        // Create a new active purchase record
+        const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        
+        const { error: insertError } = await supabaseAdmin
+          .from("tool_purchases")
+          .insert({
+            email,
+            tool_type: toolType,
+            status: "active",
+            access_token: accessToken,
+            expires_at: expiryDate.toISOString(),
+            purchased_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          throw new Error(`Failed to create purchase: ${insertError.message}`);
+        }
+        logStep("Created new purchase record");
       }
-      logStep("Updated purchase to active", { purchaseId: purchase.id });
     }
 
     // Determine tool name for email
