@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -137,6 +137,70 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
+
+  // Change detection for rescore
+  const detectedChanges = useMemo(() => {
+    if (!profileText || !updatedProfileText) return null;
+    
+    const originalLines = profileText.trim().split('\n').filter(l => l.trim());
+    const updatedLines = updatedProfileText.trim().split('\n').filter(l => l.trim());
+    
+    const originalSet = new Set(originalLines.map(l => l.trim().toLowerCase()));
+    const updatedSet = new Set(updatedLines.map(l => l.trim().toLowerCase()));
+    
+    const added: string[] = [];
+    const removed: string[] = [];
+    const modified: string[] = [];
+    
+    // Find added lines
+    updatedLines.forEach(line => {
+      const normalized = line.trim().toLowerCase();
+      if (!originalSet.has(normalized)) {
+        // Check if it's a modification of an existing line
+        const similarOriginal = originalLines.find(ol => {
+          const olNorm = ol.trim().toLowerCase();
+          const similarity = calculateSimilarity(olNorm, normalized);
+          return similarity > 0.5 && similarity < 0.95;
+        });
+        if (similarOriginal) {
+          modified.push(line.trim());
+        } else {
+          added.push(line.trim());
+        }
+      }
+    });
+    
+    // Find removed lines
+    originalLines.forEach(line => {
+      const normalized = line.trim().toLowerCase();
+      if (!updatedSet.has(normalized)) {
+        const similarUpdated = updatedLines.find(ul => {
+          const ulNorm = ul.trim().toLowerCase();
+          const similarity = calculateSimilarity(ulNorm, normalized);
+          return similarity > 0.5 && similarity < 0.95;
+        });
+        if (!similarUpdated) {
+          removed.push(line.trim());
+        }
+      }
+    });
+    
+    const hasChanges = added.length > 0 || removed.length > 0 || modified.length > 0;
+    const normalizedOriginal = profileText.trim().replace(/\r\n/g, '\n').replace(/\s+/g, ' ').toLowerCase();
+    const normalizedUpdated = updatedProfileText.trim().replace(/\r\n/g, '\n').replace(/\s+/g, ' ').toLowerCase();
+    const isIdentical = normalizedOriginal === normalizedUpdated;
+    
+    return { added, removed, modified, hasChanges, isIdentical };
+  }, [profileText, updatedProfileText]);
+
+  // Simple similarity calculation (Jaccard-like)
+  const calculateSimilarity = (str1: string, str2: string): number => {
+    const words1 = new Set(str1.split(/\s+/));
+    const words2 = new Set(str2.split(/\s+/));
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+    return intersection.size / union.size;
+  };
 
   // Initialize checklist when suggestions are available
   useEffect(() => {
@@ -1682,9 +1746,113 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
               />
             </div>
 
-            <Button onClick={handleRescore} className="w-full" size="lg">
+            {/* Change Detection Indicator */}
+            {updatedProfileText.length > 50 && detectedChanges && (
+              <Card className={`border-2 ${
+                detectedChanges.isIdentical 
+                  ? 'border-yellow-500/50 bg-yellow-500/5' 
+                  : detectedChanges.hasChanges 
+                    ? 'border-green-500/50 bg-green-500/5' 
+                    : 'border-muted'
+              }`}>
+                <CardContent className="py-4">
+                  {detectedChanges.isIdentical ? (
+                    <div className="flex items-center gap-3 text-yellow-600 dark:text-yellow-400">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">No Changes Detected</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your profile content appears identical to the original. Make updates to see score improvements.
+                        </p>
+                      </div>
+                    </div>
+                  ) : detectedChanges.hasChanges ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-medium">Changes Detected!</span>
+                      </div>
+                      
+                      <div className="grid gap-2 text-sm">
+                        {detectedChanges.added.length > 0 && (
+                          <div className="p-2 rounded bg-green-500/10 border border-green-500/20">
+                            <p className="font-medium text-green-700 dark:text-green-400 mb-1">
+                              + {detectedChanges.added.length} New Content Added
+                            </p>
+                            <ul className="space-y-1 max-h-24 overflow-y-auto">
+                              {detectedChanges.added.slice(0, 3).map((line, i) => (
+                                <li key={i} className="text-xs text-muted-foreground truncate">
+                                  "{line.substring(0, 80)}{line.length > 80 ? '...' : ''}"
+                                </li>
+                              ))}
+                              {detectedChanges.added.length > 3 && (
+                                <li className="text-xs text-muted-foreground italic">
+                                  ...and {detectedChanges.added.length - 3} more
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {detectedChanges.modified.length > 0 && (
+                          <div className="p-2 rounded bg-blue-500/10 border border-blue-500/20">
+                            <p className="font-medium text-blue-700 dark:text-blue-400 mb-1">
+                              ↻ {detectedChanges.modified.length} Lines Modified
+                            </p>
+                            <ul className="space-y-1 max-h-24 overflow-y-auto">
+                              {detectedChanges.modified.slice(0, 3).map((line, i) => (
+                                <li key={i} className="text-xs text-muted-foreground truncate">
+                                  "{line.substring(0, 80)}{line.length > 80 ? '...' : ''}"
+                                </li>
+                              ))}
+                              {detectedChanges.modified.length > 3 && (
+                                <li className="text-xs text-muted-foreground italic">
+                                  ...and {detectedChanges.modified.length - 3} more
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {detectedChanges.removed.length > 0 && (
+                          <div className="p-2 rounded bg-red-500/10 border border-red-500/20">
+                            <p className="font-medium text-red-700 dark:text-red-400 mb-1">
+                              − {detectedChanges.removed.length} Lines Removed
+                            </p>
+                            <ul className="space-y-1 max-h-24 overflow-y-auto">
+                              {detectedChanges.removed.slice(0, 3).map((line, i) => (
+                                <li key={i} className="text-xs text-muted-foreground truncate line-through">
+                                  "{line.substring(0, 80)}{line.length > 80 ? '...' : ''}"
+                                </li>
+                              ))}
+                              {detectedChanges.removed.length > 3 && (
+                                <li className="text-xs text-muted-foreground italic">
+                                  ...and {detectedChanges.removed.length - 3} more
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <AlertCircle className="w-5 h-5" />
+                      <p className="text-sm">Analyzing changes...</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            <Button 
+              onClick={handleRescore} 
+              className="w-full" 
+              size="lg"
+              disabled={detectedChanges?.isIdentical}
+            >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Re-Score My Profile
+              {detectedChanges?.isIdentical ? 'No Changes to Score' : 'Re-Score My Profile'}
             </Button>
           </CardContent>
         </Card>
