@@ -221,6 +221,29 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI parsing error:", response.status, errorText);
+      
+      // Check for specific error types
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: "Service temporarily unavailable",
+          error_type: "payment_required",
+          message: "Our AI service has reached its usage limit. Please try again later."
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ 
+          error: "High demand",
+          error_type: "rate_limited",
+          message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
       return new Response(JSON.stringify({ 
         error: "Failed to parse resume",
         details: errorText
