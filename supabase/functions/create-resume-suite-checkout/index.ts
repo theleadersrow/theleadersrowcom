@@ -31,8 +31,8 @@ serve(async (req) => {
     const toolType = successParam === "linkedin_success" ? "linkedin_signal" : "resume_suite";
     // Use different prices for each tool
     const priceId = successParam === "linkedin_success" 
-      ? "price_1SelWOCD119gx37UqjCdenCV"  // LinkedIn Signal Score price ($19.99)
-      : "price_1Sf2uYCD119gx37UFHVwbcSc"; // Resume Intelligence Suite price ($29.99)
+      ? "price_1SfTfFCD119gx37Umb303uCK"  // LinkedIn Signal Score price ($29.99)
+      : "price_1SfTd2CD119gx37Ua1RjLoYg"; // Resume Intelligence Suite price ($49.99)
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
