@@ -412,7 +412,31 @@ Keep the tone direct, specific, and actionable. No fluff. No generic advice. Wri
     });
 
     if (!aiResponse.ok) {
-      console.error("AI response error:", await aiResponse.text());
+      const errorText = await aiResponse.text();
+      console.error("AI response error:", errorText);
+      
+      // Check for specific error types
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: "AI credits exhausted",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later or contact support."
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Rate limit exceeded",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high demand. Please wait a moment and try again."
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       throw new Error("Failed to generate AI report");
     }
 

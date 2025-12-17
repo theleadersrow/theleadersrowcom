@@ -316,6 +316,28 @@ const CareerReport = () => {
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Report generation failed:", response.status, errorText);
+          
+          // Parse error response for specific error types
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.error_type === "payment_required" || response.status === 402) {
+              setError("Service Temporarily Unavailable");
+              setErrorDetails("Our AI report generation service has reached its daily limit. Your assessment data is saved — please check back in a few hours to view your full Career Intelligence Report.");
+              setIsLoading(false);
+              setIsRetrying(false);
+              return;
+            }
+            if (errorData.error_type === "rate_limited" || response.status === 429) {
+              setError("High Demand");
+              setErrorDetails("Our AI service is experiencing high traffic right now. Please wait a minute and try again.");
+              setIsLoading(false);
+              setIsRetrying(false);
+              return;
+            }
+          } catch (e) {
+            // Error text wasn't JSON, continue with generic error
+          }
+          
           throw new Error(`Report generation failed: ${response.status}`);
         }
 
