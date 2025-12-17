@@ -547,17 +547,8 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
-                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
-                    {resumeAccess.hasAccess ? (
-                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Active
-                        {resumeAccess.daysRemaining && resumeAccess.daysRemaining <= 7 && (
-                          <span className="ml-1">({resumeAccess.daysRemaining}d left)</span>
-                        )}
-                      </span>
-                    ) : (
-                      <Lock className="w-4 h-4 text-muted-foreground" />
-                    )}
+                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$49.99</span>
+                    <Lock className="w-4 h-4 text-muted-foreground" />
                     <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3">
@@ -585,14 +576,12 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               <div>
                 <span className="font-medium">You provide:</span> Resume + Job Description + How you want to be perceived → <span className="font-medium">You get:</span> ATS Score + Personalized AI Rewrite + New Score
               </div>
-              {!resumeAccess.hasAccess && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
-                  className="text-amber-600 hover:text-amber-700 underline underline-offset-2 whitespace-nowrap ml-4"
-                >
-                  Already purchased?
-                </button>
-              )}
+              <button 
+                onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
+                className="text-amber-600 hover:text-amber-700 underline underline-offset-2 whitespace-nowrap ml-4"
+              >
+                Already purchased?
+              </button>
             </div>
           </div>
 
@@ -609,17 +598,8 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">LinkedIn Signal Score</h3>
-                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$19.99</span>
-                    {linkedInAccess.hasAccess ? (
-                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Active
-                        {linkedInAccess.daysRemaining && linkedInAccess.daysRemaining <= 7 && (
-                          <span className="ml-1">({linkedInAccess.daysRemaining}d left)</span>
-                        )}
-                      </span>
-                    ) : (
-                      <Lock className="w-4 h-4 text-muted-foreground" />
-                    )}
+                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
+                    <Lock className="w-4 h-4 text-muted-foreground" />
                     <ArrowRight className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3">
@@ -647,14 +627,12 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               <div>
                 <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
               </div>
-              {!linkedInAccess.hasAccess && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
-                  className="text-blue-600 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap ml-4"
-                >
-                  Already purchased?
-                </button>
-              )}
+              <button 
+                onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
+                className="text-blue-600 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap ml-4"
+              >
+                Already purchased?
+              </button>
             </div>
           </div>
 
@@ -729,7 +707,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$29.99</span>
+              <span className="text-4xl font-bold text-foreground">$49.99</span>
               <span className="text-muted-foreground ml-2">/ 30 days</span>
             </div>
             <div className="space-y-2">
@@ -779,7 +757,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$19.99</span>
+              <span className="text-4xl font-bold text-foreground">$29.99</span>
               <span className="text-muted-foreground ml-2">/ 30 days</span>
             </div>
             <div className="space-y-2">
