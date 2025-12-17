@@ -84,6 +84,29 @@ Provide a comprehensive scoring analysis.`;
       if (!response.ok) {
         const errorText = await response.text();
         console.error("AI gateway error:", response.status, errorText);
+        
+        // Check for specific error types
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ 
+            error: "Service temporarily unavailable",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later."
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ 
+            error: "High demand",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
         throw new Error("Failed to analyze LinkedIn profile");
       }
 
@@ -187,6 +210,28 @@ ${targetJobDescription ? "IMPORTANT: Tailor all suggestions to match the provide
       if (!response.ok) {
         const errorText = await response.text();
         console.error("AI gateway error:", response.status, errorText);
+        
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ 
+            error: "Service temporarily unavailable",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later."
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ 
+            error: "High demand",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
         throw new Error("Failed to generate improvement suggestions");
       }
 
@@ -259,6 +304,28 @@ Create 5 unique headlines with different approaches (impact-focused, keyword-ric
       if (!response.ok) {
         const errorText = await response.text();
         console.error("AI gateway error:", response.status, errorText);
+        
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ 
+            error: "Service temporarily unavailable",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later."
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ 
+            error: "High demand",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
         throw new Error("Failed to generate headlines");
       }
 
@@ -327,6 +394,28 @@ Create a powerful About section that will make recruiters want to connect.`;
       if (!response.ok) {
         const errorText = await response.text();
         console.error("AI gateway error:", response.status, errorText);
+        
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ 
+            error: "Service temporarily unavailable",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later."
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ 
+            error: "High demand",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
         throw new Error("Failed to generate About section");
       }
 
@@ -405,6 +494,28 @@ Analyze search visibility, keyword matching, and provide specific recommendation
       if (!response.ok) {
         const errorText = await response.text();
         console.error("AI gateway error:", response.status, errorText);
+        
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ 
+            error: "Service temporarily unavailable",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later."
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ 
+            error: "High demand",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
         throw new Error("Failed to run recruiter simulation");
       }
 
