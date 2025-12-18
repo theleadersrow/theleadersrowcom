@@ -858,7 +858,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               new Paragraph({
                 children: [new TextRun({ text: clean.replace(/^[•\-\*▪◦‣→]\s*/, ""), size: 21, font: "Calibri" })],
                 bullet: { level: 0 },
-                spacing: { before: 30, after: 30 },
+                indent: { left: 420, hanging: 180 },
+                spacing: { before: 0, after: 40 },
               })
             );
             return;
@@ -964,11 +965,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           }
           if (exp.bullets && exp.bullets.length > 0) {
             exp.bullets.forEach((bullet: string) => {
-              documentChildren.push(new Paragraph({
-                children: [new TextRun({ text: bullet, size: 20, font: "Calibri" })],
-                bullet: { level: 0 },
-                spacing: { before: 30, after: 30 }
-              }));
+                documentChildren.push(new Paragraph({
+                  children: [new TextRun({ text: bullet, size: 20, font: "Calibri" })],
+                  bullet: { level: 0 },
+                  indent: { left: 420, hanging: 180 },
+                  spacing: { before: 0, after: 40 }
+                }));
             });
           }
         });
@@ -1502,11 +1504,27 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       </div>
     `;
     
+    const overlay = document.createElement("div");
+    overlay.setAttribute("data-export-overlay", "true");
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "hsl(var(--background) / 0.92)";
+    overlay.style.color = "hsl(var(--foreground))";
+    overlay.style.zIndex = "2147483647";
+    overlay.innerHTML = `
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 14px; padding: 12px 14px; border-radius: 12px; background: hsl(var(--card)); color: hsl(var(--card-foreground)); border: 1px solid hsl(var(--border)); box-shadow: 0 12px 40px hsl(var(--foreground) / 0.12);">
+        Generating your ATS report PDF…
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
     const element = document.createElement("div");
-    // Put the export DOM off-screen (but fully opaque) so html2canvas captures real pixels.
-    // NOTE: opacity: 0 will produce a blank PDF because the rendered pixels are transparent.
+    // Keep the export DOM in the viewport so html2canvas captures correct pixels.
     element.style.position = "fixed";
-    element.style.left = "-10000px";
+    element.style.left = "0";
     element.style.top = "0";
     element.style.width = "800px";
     element.style.background = "#ffffff";
@@ -1514,7 +1532,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     element.style.opacity = "1";
     element.style.pointerEvents = "none";
     element.style.overflow = "visible";
-    element.style.zIndex = "2147483647";
+    element.style.zIndex = "0";
+    element.style.transform = "translateZ(0)";
     element.innerHTML = reportHtml;
     document.body.appendChild(element);
     
@@ -1531,7 +1550,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           margin: 10,
           filename: "resume-analysis-report.pdf",
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, backgroundColor: "#ffffff" },
+          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["css", "legacy"], avoid: ["div", "h2", "ul", "li", "p"] },
         })
@@ -1543,7 +1562,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       console.error("PDF generation error:", error);
       toast({ title: "Download failed", description: "Please try again", variant: "destructive" });
     } finally {
-      document.body.removeChild(element);
+      if (element.parentNode) document.body.removeChild(element);
+      if (overlay.parentNode) document.body.removeChild(overlay);
     }
   };
 
@@ -1556,11 +1576,27 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     
     const resumeHtml = generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, skills, education);
     
+    const overlay = document.createElement("div");
+    overlay.setAttribute("data-export-overlay", "true");
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.background = "hsl(var(--background) / 0.92)";
+    overlay.style.color = "hsl(var(--foreground))";
+    overlay.style.zIndex = "2147483647";
+    overlay.innerHTML = `
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 14px; padding: 12px 14px; border-radius: 12px; background: hsl(var(--card)); color: hsl(var(--card-foreground)); border: 1px solid hsl(var(--border)); box-shadow: 0 12px 40px hsl(var(--foreground) / 0.12);">
+        Generating your optimized resume PDF…
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
     const element = document.createElement("div");
-    // Put the export DOM off-screen (but fully opaque) so html2canvas captures real pixels.
-    // NOTE: opacity: 0 will produce a blank PDF because the rendered pixels are transparent.
+    // Keep the export DOM in the viewport so html2canvas captures correct pixels.
     element.style.position = "fixed";
-    element.style.left = "-10000px";
+    element.style.left = "0";
     element.style.top = "0";
     element.style.width = "800px";
     element.style.background = "#ffffff";
@@ -1568,7 +1604,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     element.style.opacity = "1";
     element.style.pointerEvents = "none";
     element.style.overflow = "visible";
-    element.style.zIndex = "2147483647";
+    element.style.zIndex = "0";
+    element.style.transform = "translateZ(0)";
     element.innerHTML = resumeHtml;
     document.body.appendChild(element);
     
@@ -1585,7 +1622,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           margin: 10,
           filename: "optimized-resume.pdf",
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, backgroundColor: "#ffffff" },
+          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["css", "legacy"] },
         })
@@ -1597,7 +1634,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       console.error("PDF generation error:", error);
       toast({ title: "Download failed", variant: "destructive" });
     } finally {
-      document.body.removeChild(element);
+      if (element.parentNode) document.body.removeChild(element);
+      if (overlay.parentNode) document.body.removeChild(overlay);
     }
   };
 
