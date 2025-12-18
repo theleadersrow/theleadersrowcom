@@ -142,9 +142,9 @@ Return your response as valid JSON with this exact structure:
   "enhancedContent": "THE COMPLETE REWRITTEN RESUME - Full resume text ready to use. Format as clean text with clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). This should be a fully usable resume document.",
   "contentImprovements": [
     {
-      "section": "Section name (e.g., 'Experience - Company Name' or 'Professional Summary')",
-      "original": "Original text from their resume",
-      "improved": "Your rewritten version",
+      "section": "Section name with company (e.g., 'Experience - Google' or 'Professional Summary')",
+      "original": "The EXACT original bullet point or paragraph from their resume",
+      "improved": "Your rewritten version of that specific bullet/paragraph",
       "reason": "Why this transformation better targets the job"
     }
   ],
@@ -155,7 +155,14 @@ Return your response as valid JSON with this exact structure:
   "transformationNotes": "Brief explanation of the overall transformation strategy used"
 }
 
-IMPORTANT: contentImprovements array must include improvements from ALL work experiences in the resume, not just the first or most recent job. Label each improvement clearly with the company name so users know which job it refers to.`;
+CRITICAL REQUIREMENTS FOR contentImprovements:
+1. Include EVERY SINGLE bullet point you improved from the resume - not a summary, but each individual change
+2. For each job/position, include ALL bullet points that were changed (typically 3-5+ per job)
+3. The "original" field must contain the EXACT text from the original resume
+4. The "improved" field must contain your rewritten version
+5. Include improvements from ALL work experiences, not just the most recent
+6. Aim for 10-20+ contentImprovements entries for a typical resume
+7. Label each improvement clearly with "Experience - [Company Name]" format`;
 
     const userPrompt = `COMPLETELY TRANSFORM this resume for the target job. Rewrite it to maximize ATS score and hiring manager appeal while preserving the candidate's authentic experience.
 
