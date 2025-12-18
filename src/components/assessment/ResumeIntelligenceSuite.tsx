@@ -1724,7 +1724,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       achievements: /^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i
     };
 
-    const datePattern = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
+    // Matches common date ranges like:
+    // - 2020 - 2023
+    // - Jan 2020 – Present
+    // - January 2020 to March 2022
+    // - 01/2020 - 03/2022
+    const datePattern = /((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})))\s*(?:[-–—]|to)\s*((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})|Present|Current|Now))/i;
     const singleDatePattern = /(\d{2}\/\d{4}|\d{4})\s*[-–·]?\s*([A-Za-z]+,?\s+[A-Za-z]+)?$/;
 
     lines.forEach((line, index) => {
@@ -2013,8 +2018,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const sectionHeaderRegex =
         /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$|^(PROFESSIONAL\s+|WORK\s+)?EXPERIENCE|^EMPLOYMENT(\s+HISTORY)?|^CAREER(\s+HISTORY)?$|^(TECHNICAL\s+|CORE\s+)?SKILLS|^COMPETENCIES|^EXPERTISE|^TECHNOLOGIES$|^EDUCATION|^ACADEMIC|^QUALIFICATIONS$|^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i;
       const dateLineRegex =
-        /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
-
+        /((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})))\s*(?:[-–—]|to)\s*((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})|Present|Current|Now))/i;
       lines.forEach((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) {
