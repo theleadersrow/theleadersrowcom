@@ -248,10 +248,37 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const storedAccess = localStorage.getItem("resume_suite_access");
       if (storedAccess) {
         const parsed = JSON.parse(storedAccess);
-        return parsed.email;
+        if (parsed.email) {
+          return parsed.email;
+        }
+      }
+      // Fallback: check URL for access token and try to get email from there
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get("access");
+      if (accessToken) {
+        // Store it for future calls
+        console.log("Found access token in URL, will use for verification");
       }
     } catch (e) {
       console.error("Error reading stored access:", e);
+    }
+    return undefined;
+  };
+
+  // Helper to get access token from URL or storage
+  const getAccessToken = (): string | undefined => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get("access");
+      if (accessToken) return accessToken;
+      
+      const storedAccess = localStorage.getItem("resume_suite_access");
+      if (storedAccess) {
+        const parsed = JSON.parse(storedAccess);
+        return parsed.accessToken;
+      }
+    } catch (e) {
+      console.error("Error reading access token:", e);
     }
     return undefined;
   };
@@ -322,6 +349,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
       const userEmail = getStoredEmail();
+      const accessToken = getAccessToken();
+      
+      // Ensure we have at least one form of authentication
+      if (!userEmail && !accessToken) {
+        throw new Error("Access verification failed. Please return to the tool access link from your email to re-verify your access.");
+      }
       
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
@@ -331,7 +364,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText, jobDescription, email: userEmail }),
+          body: JSON.stringify({ resumeText, jobDescription, email: userEmail, accessToken }),
           signal: controller.signal,
         }
       );
@@ -407,6 +440,19 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setIsEnhancing(true);
 
     const userEmail = getStoredEmail();
+    const accessToken = getAccessToken();
+    
+    // Ensure we have at least one form of authentication
+    if (!userEmail && !accessToken) {
+      toast({
+        title: "Access verification failed",
+        description: "Please return to the tool access link from your email to re-verify your access.",
+        variant: "destructive",
+      });
+      setStep("initial_score");
+      setIsEnhancing(false);
+      return;
+    }
     
     try {
       const { data, error } = await supabase.functions.invoke("enhance-resume", {
@@ -420,6 +466,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           skillsGaps: initialScore?.skills_gaps || [],
           techStackGaps: initialScore?.tech_stack_gaps?.map((t: string) => ({ technology: t, gap: "Missing from resume" })) || [],
           email: userEmail,
+          accessToken,
         },
       });
 
@@ -561,6 +608,18 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       const userEmail = getStoredEmail();
+      const accessToken = getAccessToken();
+      
+      // Ensure we have at least one form of authentication
+      if (!userEmail && !accessToken) {
+        toast({
+          title: "Access verification failed",
+          description: "Please return to the tool access link from your email to re-verify your access.",
+          variant: "destructive",
+        });
+        setIsAnalyzing(false);
+        return;
+      }
       
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
@@ -570,7 +629,13 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText: finalContent, jobDescription, isPostTransformation: true, email: userEmail }),
+          body: JSON.stringify({ 
+            resumeText: finalContent, 
+            jobDescription, 
+            isPostTransformation: true, 
+            email: userEmail,
+            accessToken: accessToken 
+          }),
           signal: controller.signal,
         }
       );
