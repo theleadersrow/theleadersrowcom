@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
@@ -241,6 +241,86 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // localStorage key for crash recovery
+  const RESUME_SUITE_PROGRESS_KEY = "resume_suite_progress";
+
+  // Save progress to localStorage for crash recovery
+  const saveProgress = () => {
+    try {
+      const progressData = {
+        step,
+        resumeText,
+        jobDescription,
+        selfProjection,
+        initialScore,
+        enhancedResume,
+        finalScore,
+        resumeFileName,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(RESUME_SUITE_PROGRESS_KEY, JSON.stringify(progressData));
+    } catch (e) {
+      console.error("Error saving progress:", e);
+    }
+  };
+
+  // Clear saved progress
+  const clearSavedProgress = () => {
+    try {
+      localStorage.removeItem(RESUME_SUITE_PROGRESS_KEY);
+    } catch (e) {
+      console.error("Error clearing progress:", e);
+    }
+  };
+
+  // Restore progress from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedProgress = localStorage.getItem(RESUME_SUITE_PROGRESS_KEY);
+      if (savedProgress) {
+        const parsed = JSON.parse(savedProgress);
+        // Only restore if saved within last 2 hours
+        const savedAt = new Date(parsed.savedAt);
+        const hoursSinceSave = (Date.now() - savedAt.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursSinceSave < 2 && parsed.step !== "input") {
+          // Restore state
+          if (parsed.resumeText) setResumeText(parsed.resumeText);
+          if (parsed.jobDescription) setJobDescription(parsed.jobDescription);
+          if (parsed.selfProjection) setSelfProjection(parsed.selfProjection);
+          if (parsed.initialScore) setInitialScore(parsed.initialScore);
+          if (parsed.enhancedResume) {
+            setEnhancedResume(parsed.enhancedResume);
+            // Re-initialize accepted changes
+            setAcceptedContentChanges(new Set((parsed.enhancedResume.contentImprovements || []).map((_: any, i: number) => i)));
+            setAcceptedKeywords(new Set((parsed.enhancedResume.addedKeywords || []).map((_: any, i: number) => i)));
+            setAcceptedVerbUpgrades(new Set((parsed.enhancedResume.actionVerbUpgrades || []).map((_: any, i: number) => i)));
+            setAcceptedAchievements(new Set((parsed.enhancedResume.quantifiedAchievements || []).map((_: any, i: number) => i)));
+          }
+          if (parsed.finalScore) setFinalScore(parsed.finalScore);
+          if (parsed.resumeFileName) setResumeFileName(parsed.resumeFileName);
+          
+          // Set step last to trigger proper render
+          setStep(parsed.step);
+          
+          toast({
+            title: "Progress restored",
+            description: "Your previous session was recovered. You can continue where you left off.",
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Error restoring progress:", e);
+    }
+  }, []);
+
+  // Save progress when important state changes
+  useEffect(() => {
+    if (step !== "input" || initialScore || enhancedResume) {
+      saveProgress();
+    }
+  }, [step, initialScore, enhancedResume, finalScore]);
 
   // Helper to get email from localStorage
   const getStoredEmail = (): string | undefined => {
@@ -500,14 +580,31 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         }
         throw error;
       }
-      if (data.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.error);
 
-      setEnhancedResume(data);
+      // Defensive parsing - validate the data structure
+      if (!data || typeof data !== 'object') {
+        throw new Error("Invalid response from enhancement service. Please try again.");
+      }
+
+      // Safely extract arrays with fallbacks
+      const safeData = {
+        enhancedContent: data.enhancedContent || "",
+        contentImprovements: Array.isArray(data.contentImprovements) ? data.contentImprovements : [],
+        addedKeywords: Array.isArray(data.addedKeywords) ? data.addedKeywords : [],
+        quantifiedAchievements: Array.isArray(data.quantifiedAchievements) ? data.quantifiedAchievements : [],
+        actionVerbUpgrades: Array.isArray(data.actionVerbUpgrades) ? data.actionVerbUpgrades : [],
+        summaryRewrite: data.summaryRewrite || "",
+        bulletPointImprovements: Array.isArray(data.bulletPointImprovements) ? data.bulletPointImprovements : [],
+        transformationNotes: data.transformationNotes || "",
+      };
+
+      setEnhancedResume(safeData);
       // Initialize all changes as accepted by default
-      setAcceptedContentChanges(new Set((data.contentImprovements || []).map((_: any, i: number) => i)));
-      setAcceptedKeywords(new Set((data.addedKeywords || []).map((_: any, i: number) => i)));
-      setAcceptedVerbUpgrades(new Set((data.actionVerbUpgrades || []).map((_: any, i: number) => i)));
-      setAcceptedAchievements(new Set((data.quantifiedAchievements || []).map((_: any, i: number) => i)));
+      setAcceptedContentChanges(new Set(safeData.contentImprovements.map((_: any, i: number) => i)));
+      setAcceptedKeywords(new Set(safeData.addedKeywords.map((_: any, i: number) => i)));
+      setAcceptedVerbUpgrades(new Set(safeData.actionVerbUpgrades.map((_: any, i: number) => i)));
+      setAcceptedAchievements(new Set(safeData.quantifiedAchievements.map((_: any, i: number) => i)));
       setStep("improvements");
     } catch (error: any) {
       console.error("Enhancement error:", error);
@@ -877,6 +974,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   };
 
   const handleReset = () => {
+    // Clear saved progress when resetting
+    clearSavedProgress();
+    
     setStep("input");
     setResumeText("");
     setJobDescription("");
@@ -3362,7 +3462,10 @@ Generated by The Leader's Row - Rimo AI Coach`;
             <Button variant="outline" onClick={handleReset}>
               <RefreshCw className="w-4 h-4 mr-2" /> Try Another
             </Button>
-            <Button onClick={onComplete}>
+            <Button onClick={() => {
+              clearSavedProgress();
+              onComplete();
+            }}>
               Done
             </Button>
           </div>
