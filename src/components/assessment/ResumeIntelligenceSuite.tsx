@@ -403,13 +403,18 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       }
 
       if (file.type === "application/pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        const base64 = btoa(
-          new Uint8Array(arrayBuffer).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ''
-          )
-        );
+        // Use FileReader for more reliable base64 encoding
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // Extract base64 part from data URL
+            const base64Data = result.split(',')[1];
+            resolve(base64Data);
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
 
         const userEmail = getStoredEmail();
 
