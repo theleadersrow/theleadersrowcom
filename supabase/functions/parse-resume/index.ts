@@ -6,9 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Rate limiting configuration
+// Rate limiting configuration - more generous limits
 const RATE_LIMIT = {
-  maxRequests: 10,
+  maxRequests: 100,
   windowMinutes: 60,
 };
 
