@@ -1,9 +1,82 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Verify tool access by email or access token
+async function verifyToolAccess(
+  email: string | undefined,
+  accessToken: string | undefined,
+  toolType: string
+): Promise<{ valid: boolean; error?: string }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // If access token provided, verify it
+  if (accessToken) {
+    const { data: purchase, error } = await supabase
+      .from("tool_purchases")
+      .select("*")
+      .eq("access_token", accessToken)
+      .eq("tool_type", toolType)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (error || !purchase) {
+      return { valid: false, error: "Invalid access token" };
+    }
+
+    if (new Date(purchase.expires_at) < new Date()) {
+      return { valid: false, error: "Access has expired" };
+    }
+
+    // Update usage tracking
+    await supabase
+      .from("tool_purchases")
+      .update({
+        usage_count: (purchase.usage_count || 0) + 1,
+        last_used_at: new Date().toISOString(),
+      })
+      .eq("id", purchase.id);
+
+    return { valid: true };
+  }
+
+  // If email provided, verify via email
+  if (email) {
+    const { data: purchase, error } = await supabase
+      .from("tool_purchases")
+      .select("*")
+      .eq("email", email.toLowerCase())
+      .eq("tool_type", toolType)
+      .eq("status", "active")
+      .gt("expires_at", new Date().toISOString())
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !purchase) {
+      return { valid: false, error: "No active access found for this email" };
+    }
+
+    // Update usage tracking
+    await supabase
+      .from("tool_purchases")
+      .update({
+        usage_count: (purchase.usage_count || 0) + 1,
+        last_used_at: new Date().toISOString(),
+      })
+      .eq("id", purchase.id);
+
+    return { valid: true };
+  }
+
+  return { valid: false, error: "Email or access token required" };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,7 +84,17 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedinUrl } = await req.json();
+    const { linkedinUrl, email, accessToken } = await req.json();
+
+    // Verify tool access
+    const accessCheck = await verifyToolAccess(email, accessToken, "linkedin_signal");
+    if (!accessCheck.valid) {
+      console.log("Access denied:", accessCheck.error);
+      return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!linkedinUrl || !linkedinUrl.includes("linkedin.com")) {
       return new Response(
