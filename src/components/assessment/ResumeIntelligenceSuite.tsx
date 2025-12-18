@@ -1870,11 +1870,29 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
                 currentExperience.company += ' | ' + parts.slice(1).join(' | ');
               }
             }
-          } else if (currentExperience && !currentExperience.company && cleanLine.length > 3 && cleanLine.length < 80) {
+          } else if (
+            currentExperience &&
+            !currentExperience.company &&
+            cleanLine.length > 3 &&
+            cleanLine.length < 80 &&
+            /^[A-Z]/.test(cleanLine)
+          ) {
             // Short line after title without company yet - likely company name
             currentExperience.company = cleanLine;
+          } else if (
+            currentExperience &&
+            currentExperience.bullets.length > 0 &&
+            !isCompanyLine &&
+            !hasDate &&
+            cleanLine.length < 140 &&
+            (/^[a-z(,]/.test(cleanLine) ||
+              /^(and|or|to|that|which|who|with|by|for|across|into|through)\s/i.test(cleanLine))
+          ) {
+            // Continuation line for a wrapped bullet point (prevents each wrapped line rendering as its own bullet)
+            const lastIdx = currentExperience.bullets.length - 1;
+            currentExperience.bullets[lastIdx] = `${currentExperience.bullets[lastIdx]} ${cleanLine}`.replace(/\s+/g, " ").trim();
           } else if (currentExperience && cleanLine.length > 15 && !isCompanyLine) {
-            // Long substantial text that isn't company info - treat as bullet
+            // Long substantial text that isn't company info - treat as a bullet
             currentExperience.bullets.push(cleanLine);
           }
           break;
