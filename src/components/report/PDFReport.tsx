@@ -156,10 +156,10 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
           </div>
 
           {/* Two Column Layout */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "8px", pageBreakInside: "avoid" }}>
             {/* Left Column - Strengths & Gaps */}
             <div style={{ flex: 1 }}>
-              <div style={{ background: "#f0fdf4", borderRadius: "4px", padding: "8px", marginBottom: "6px" }}>
+              <div style={{ background: "#f0fdf4", borderRadius: "4px", padding: "8px", marginBottom: "6px", pageBreakInside: "avoid" }}>
                 <h3 style={{ color: "#166534", fontSize: "8pt", margin: "0 0 4px 0", fontWeight: "bold" }}>
                   ✓ Strengths
                 </h3>
@@ -169,7 +169,7 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
                   </p>
                 ))}
               </div>
-              <div style={{ background: "#fffbeb", borderRadius: "4px", padding: "8px" }}>
+              <div style={{ background: "#fffbeb", borderRadius: "4px", padding: "8px", pageBreakInside: "avoid" }}>
                 <h3 style={{ color: "#92400e", fontSize: "8pt", margin: "0 0 4px 0", fontWeight: "bold" }}>
                   ⚡ Priority Gaps
                 </h3>
@@ -182,7 +182,7 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
             </div>
 
             {/* Right Column - Skill Bars */}
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, pageBreakInside: "avoid" }}>
               <h3 style={{ color: "#1a2332", fontSize: "8pt", margin: "0 0 6px 0", fontWeight: "bold" }}>
                 Skill Assessment
               </h3>
@@ -214,7 +214,8 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
               borderLeft: "3px solid #dc2626", 
               padding: "8px 10px", 
               marginBottom: "8px",
-              borderRadius: "0 4px 4px 0"
+              borderRadius: "0 4px 4px 0",
+              pageBreakInside: "avoid"
             }}>
               <h3 style={{ color: "#dc2626", fontSize: "8pt", margin: 0, fontWeight: "bold" }}>
                 Hard Truth
@@ -232,7 +233,8 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
               borderLeft: "3px solid #9333ea", 
               padding: "8px 10px", 
               marginBottom: "8px",
-              borderRadius: "0 4px 4px 0"
+              borderRadius: "0 4px 4px 0",
+              pageBreakInside: "avoid"
             }}>
               <h3 style={{ color: "#9333ea", fontSize: "8pt", margin: 0, fontWeight: "bold" }}>
                 Blocker: {score.blocker_archetype}
@@ -245,7 +247,7 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
 
           {/* 30-Day Actions - Compact */}
           {score.thirty_day_actions && score.thirty_day_actions.length > 0 && (
-            <div style={{ marginBottom: "8px" }}>
+            <div style={{ marginBottom: "8px", pageBreakInside: "avoid" }}>
               <h3 style={{ color: "#1a2332", fontSize: "9pt", margin: "0 0 4px 0", fontWeight: "bold" }}>
                 30-Day Actions
               </h3>
@@ -261,7 +263,7 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
 
           {/* 90-Day Growth Plan - Compact */}
           {report.growth_plan_json && report.growth_plan_json.length > 0 && (
-            <div style={{ marginBottom: "8px" }}>
+            <div style={{ marginBottom: "8px", pageBreakInside: "avoid" }}>
               <h3 style={{ color: "#1a2332", fontSize: "9pt", margin: "0 0 4px 0", fontWeight: "bold" }}>
                 90-Day Plan
               </h3>
@@ -272,7 +274,8 @@ export const PDFReport = forwardRef<HTMLDivElement, PDFReportProps>(
                     background: "#f8f9fa", 
                     borderRadius: "4px", 
                     padding: "6px",
-                    borderTop: `2px solid ${i === 0 ? "#B8860B" : i === 1 ? "#f59e0b" : "#10b981"}`
+                    borderTop: `2px solid ${i === 0 ? "#B8860B" : i === 1 ? "#f59e0b" : "#10b981"}`,
+                    pageBreakInside: "avoid"
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "3px" }}>
                       <div style={{ 
