@@ -1739,16 +1739,38 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         return;
       }
       
-      // Contact info detection (within first 10 lines)
-      if (index < 10 && (cleanLine.includes('@') || cleanLine.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) || cleanLine.toLowerCase().includes('linkedin.com'))) {
-        const parts = cleanLine.split(/[|•·]/).map(p => p.trim()).filter(p => p);
+      // Contact info detection (within first ~12 lines)
+      if (
+        index < 12 &&
+        (cleanLine.includes('@') ||
+          cleanLine.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) ||
+          cleanLine.toLowerCase().includes('linkedin.com'))
+      ) {
+        const parts = cleanLine
+          .split(/[|•·]/)
+          .map((p) => p.trim())
+          .filter((p) => p);
         contactInfo.push(...parts);
         return;
       }
-      
-      // Headline detection
+
+      // Location line often appears in the header; treat it as contact info.
+      const looksLikeHeaderLocation =
+        index < 12 &&
+        !currentSection &&
+        /^[A-Za-z.\s'’-]+,\s*(?:[A-Z]{2}|Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\s+Hampshire|New\s+Jersey|New\s+Mexico|New\s+York|North\s+Carolina|North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming|DC|Ontario|ON|British\s+Columbia|BC|Alberta|AB|Quebec|QC|Canada|United\s+States|USA|United\s+Kingdom|UK)$/i.test(
+          cleanLine
+        );
+
+      if (looksLikeHeaderLocation) {
+        contactInfo.push(cleanLine);
+        return;
+      }
+
+      // Headline detection (be strict to avoid grabbing bullet text)
       if (!headline && index < 6 && !currentSection && cleanLine.length < 100 && !cleanLine.includes('@')) {
-        if (cleanLine.match(/Manager|Engineer|Developer|Designer|Analyst|Director|Lead|Specialist|Consultant|Executive|Product|Senior|Principal/i)) {
+        const looksLikeTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief)?\s*(Product\s+Manager|Program\s+Manager|Project\s+Manager|Software\s+Engineer|Engineer|Data\s+Scientist|Analyst|Designer|Consultant|Specialist|Executive)\b/i.test(cleanLine);
+        if (looksLikeTitle) {
           headline = cleanLine;
           return;
         }
@@ -1799,105 +1821,153 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const hasDate = datePattern.test(cleanLine);
       
       switch (currentSection) {
-        case 'summary':
+        case 'summary': {
           // Filter out city/state/location lines from summary - they belong in contact info
-          const looksLikeLocationOnly = /^[A-Za-z\s]+,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|United States|USA|Canada|UK)$/i.test(cleanLine);
+          const looksLikeLocationOnly =
+            /^[A-Za-z.\s'’-]+,\s*(?:[A-Z]{2}|Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\s+Hampshire|New\s+Jersey|New\s+Mexico|New\s+York|North\s+Carolina|North\s+Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\s+Island|South\s+Carolina|South\s+Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\s+Virginia|Wisconsin|Wyoming|DC|Ontario|ON|British\s+Columbia|BC|Alberta|AB|Quebec|QC|Canada|United\s+States|USA|United\s+Kingdom|UK)$/i.test(
+              cleanLine
+            );
+
           if (cleanLine && cleanLine.length > 5 && !looksLikeLocationOnly) {
             summaryLines.push(cleanLine);
           } else if (looksLikeLocationOnly) {
-            // Add location to contact info instead
             contactInfo.push(cleanLine);
           }
           break;
+        }
           
         case 'experience': {
-          // Job title patterns - must start with these keywords AND be properly capitalized
           const startsWithUppercase = /^[A-Z]/.test(cleanLine);
-          const isJobTitleKeyword = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
-          
-          // Reject lines that look like sentence fragments
-          const looksLikeSentenceFragment = /[,.]$/.test(cleanLine) || 
-            /^(and|or|to|the|a|an|for|with|by|at|from|in|on|of|that|which|who|whom|whose|this|these|those)\s/i.test(cleanLine) ||
-            /\b(and|or|to|for|with|by|at|from|in|on|across|into|through)\s+\w+[,.]?$/i.test(cleanLine);
-          
-          const isJobTitle = startsWithUppercase && isJobTitleKeyword && !looksLikeSentenceFragment;
-          
-          // Company detection - includes major company names like Apple, RBC, etc.
-          const hasCompanySuffix = /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting|Financial|Capital|Partners|Associates|Healthcare|Media|Entertainment|Retail|Insurance)\b/i.test(cleanLine);
-          const hasLocationMarker = /,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|UK|Germany|Canada|India|Singapore|Australia|Remote)\b/i.test(cleanLine) ||
-            /\|\s*[A-Z][a-z]+,?\s*[A-Z]{2}\b/.test(cleanLine);
-          
-          // Check for known major company names that should trigger a new experience
-          const isMajorCompany = /^(Apple|Google|Microsoft|Amazon|Meta|Facebook|Netflix|Tesla|Uber|Airbnb|RBC|Royal Bank|TD Bank|BMO|Scotiabank|CIBC|JPMorgan|Goldman Sachs|Morgan Stanley|Deloitte|McKinsey|BCG|Bain|Accenture|IBM|Oracle|Salesforce|Adobe|Intel|Nvidia|Qualcomm|Samsung|Sony|Walmart|Target|Nike|Starbucks|McDonald's)\b/i.test(cleanLine);
-          
+
+          // Strict job title detection (prevents misclassifying lines like "Product strategy..." as a new role)
+          const jobTitlePattern =
+            /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief)?\s*(Product\s+Manager|Program\s+Manager|Project\s+Manager|Software\s+Engineer|Engineer|Data\s+Scientist|Analyst|Designer|UX\s+Designer|UI\s+Designer|Consultant|Specialist|Executive|Architect)\b/i;
+
+          const wordCount = cleanLine.split(/\s+/).filter(Boolean).length;
+
+          // Reject lines that look like sentence fragments / bullet continuations
+          const looksLikeSentenceFragment =
+            /[,.]$/.test(cleanLine) ||
+            /^(and|or|to|the|a|an|for|with|by|at|from|in|on|of|that|which|who|whom|whose|this|these|those)\s/i.test(
+              cleanLine
+            ) ||
+            /\b(and|or|to|for|with|by|at|from|in|on|across|into|through)\s+\w+[,.]?$/i.test(
+              cleanLine
+            );
+
+          const isJobTitle =
+            startsWithUppercase &&
+            jobTitlePattern.test(cleanLine) &&
+            wordCount <= 10 &&
+            !/:/.test(cleanLine) &&
+            !looksLikeSentenceFragment;
+
+          // Company detection
+          const hasCompanySuffix =
+            /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting|Financial|Capital|Partners|Associates|Healthcare|Media|Entertainment|Retail|Insurance)\b/i.test(
+              cleanLine
+            );
+
+          const hasLocationMarker =
+            /,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|UK|Germany|Canada|India|Singapore|Australia|Remote)\b/i.test(
+              cleanLine
+            ) || /\|\s*[A-Z][a-z]+,?\s*[A-Z]{2}\b/.test(cleanLine);
+
+          // Known big brands (keeps headers like "Apple" / "RBC" stable)
+          const isMajorCompany =
+            /^(Apple|Google|Microsoft|Amazon|Meta|Facebook|Netflix|Tesla|Uber|Airbnb|RBC|Royal\s+Bank(\s+of\s+Canada)?|TD\s+Bank|BMO|Scotiabank|CIBC|JPMorgan|Goldman\s+Sachs|Morgan\s+Stanley|Deloitte|McKinsey|BCG|Bain|Accenture|IBM|Oracle|Salesforce|Adobe|Intel|Nvidia|Qualcomm|Samsung|Sony|Walmart|Target|Nike|Starbucks|McDonald\'s)\b/i.test(
+              cleanLine
+            );
+
+          const isAllCapsCompany =
+            cleanLine === cleanUpper &&
+            cleanLine.length >= 2 &&
+            cleanLine.length <= 35 &&
+            /^[A-Z&.,\s]+$/.test(cleanLine) &&
+            !/^(PROFESSIONAL\s+SUMMARY|SUMMARY|PROFILE|OBJECTIVE|ABOUT|PROFESSIONAL\s+EXPERIENCE|EXPERIENCE|WORK\s+EXPERIENCE|SKILLS|EDUCATION|KEY\s+ACHIEVEMENTS|ACHIEVEMENTS)$/i.test(
+              cleanUpper
+            );
+
+          const isCompanyHeader = (isMajorCompany || isAllCapsCompany) && !hasDate;
           const isCompanyLine = hasCompanySuffix || hasLocationMarker || isMajorCompany;
-          
-          // New job entry detection
-          const isNewJobEntry = (isJobTitle && !isBullet && !hasCompanySuffix && !hasLocationMarker && !isMajorCompany) || 
-            (hasDate && cleanLine.length < 80 && !isBullet && isJobTitle && !hasCompanySuffix);
-          
-          // Company info line: has date OR company markers, but NOT a job title pattern at start
-          const isCompanyInfoLine = (hasDate || isCompanyLine) && !isJobTitle;
-          
-          // Detect if this is a standalone major company name that starts a new experience section
-          const isNewCompanyHeader = isMajorCompany && !isBullet && cleanLine.length < 50 && !hasDate;
-          
-          if (isBullet) {
-            // Always add bullets to current experience
-            if (!currentExperience) {
-              currentExperience = { title: "Position", company: "", dates: "", bullets: [] };
-            }
-            currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
-          } else if (isNewCompanyHeader && currentExperience && currentExperience.bullets.length > 0) {
-            // Major company name after bullets = new experience section
-            experiences.push(currentExperience);
-            currentExperience = { title: "Position", company: cleanLine, dates: "", bullets: [] };
-          } else if (isNewJobEntry) {
-            if (currentExperience && (currentExperience.title !== "Position" || currentExperience.bullets.length > 0)) {
+
+          // If resume is in "company first" format (common): treat the company header as start of a new role.
+          if (!isBullet && isCompanyHeader) {
+            if (currentExperience && (currentExperience.company || currentExperience.bullets.length > 0 || currentExperience.title !== 'Position')) {
               experiences.push(currentExperience);
             }
+            currentExperience = { title: 'Position', company: cleanLine, dates: '', bullets: [] };
+            break;
+          }
+
+          // Job title line
+          if (!isBullet && isJobTitle) {
             const dateMatch = cleanLine.match(datePattern);
-            currentExperience = {
-              title: cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim() || "Position",
-              company: '',
-              dates: dateMatch ? dateMatch[0] : '',
-              bullets: []
-            };
-          } else if (currentExperience && isCompanyInfoLine) {
-            const dateMatch = cleanLine.match(datePattern);
-            if (dateMatch) {
-              currentExperience.dates = dateMatch[0];
+            const titleText = cleanLine
+              .replace(datePattern, '')
+              .replace(/[|,–—-]\s*$/, '')
+              .trim();
+
+            if (!currentExperience) {
+              currentExperience = { title: titleText || 'Position', company: '', dates: dateMatch ? dateMatch[0] : '', bullets: [] };
+              break;
             }
+
+            // If we already collected bullets, this is definitely a new role.
+            if (currentExperience.bullets.length > 0) {
+              experiences.push(currentExperience);
+              currentExperience = { title: titleText || 'Position', company: '', dates: dateMatch ? dateMatch[0] : '', bullets: [] };
+              break;
+            }
+
+            // Otherwise, set/replace the title
+            currentExperience.title = titleText || currentExperience.title || 'Position';
+            if (dateMatch) currentExperience.dates = dateMatch[0];
+            break;
+          }
+
+          // Company + dates / location line
+          if (!isBullet && currentExperience && (hasDate || isCompanyLine || hasLocationMarker)) {
+            const dateMatch = cleanLine.match(datePattern);
+            if (dateMatch) currentExperience.dates = dateMatch[0];
+
             const companyText = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
-            if (companyText && !currentExperience.company) {
-              const parts = companyText.split(/\s*[|–—]\s*/);
-              currentExperience.company = parts[0].trim();
-              if (parts.length > 1) {
-                currentExperience.company += ' | ' + parts.slice(1).join(' | ');
+            if (companyText) {
+              if (!currentExperience.company) {
+                currentExperience.company = companyText;
+              } else if (!currentExperience.company.includes(companyText) && companyText.length <= 60) {
+                // Append extra company/location context (keeps uploaded formatting feel)
+                currentExperience.company = `${currentExperience.company} | ${companyText}`;
               }
             }
-          } else if (
-            currentExperience &&
-            !currentExperience.company &&
-            cleanLine.length > 3 &&
-            cleanLine.length < 80 &&
-            /^[A-Z]/.test(cleanLine)
-          ) {
-            currentExperience.company = cleanLine;
-          } else if (
+            break;
+          }
+
+          // Bullet
+          if (isBullet) {
+            if (!currentExperience) {
+              currentExperience = { title: 'Position', company: '', dates: '', bullets: [] };
+            }
+            currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
+            break;
+          }
+
+          // Continuation line for wrapped bullet
+          if (
             currentExperience &&
             currentExperience.bullets.length > 0 &&
             !isCompanyLine &&
             !hasDate &&
             cleanLine.length < 140 &&
-            (/^[a-z(,]/.test(cleanLine) ||
-              /^(and|or|to|that|which|who|with|by|for|across|into|through)\s/i.test(cleanLine))
+            (/^[a-z(,]/.test(cleanLine) || /^(and|or|to|that|which|who|with|by|for|across|into|through)\s/i.test(cleanLine))
           ) {
-            // Continuation line for wrapped bullet
             const lastIdx = currentExperience.bullets.length - 1;
-            currentExperience.bullets[lastIdx] = `${currentExperience.bullets[lastIdx]} ${cleanLine}`.replace(/\s+/g, " ").trim();
-          } else if (currentExperience && cleanLine.length > 15 && !isCompanyLine && !isNewCompanyHeader) {
-            // Treat as a bullet point (not bold/highlighted)
+            currentExperience.bullets[lastIdx] = `${currentExperience.bullets[lastIdx]} ${cleanLine}`.replace(/\s+/g, ' ').trim();
+            break;
+          }
+
+          // Default: treat as a bullet point (never as a new header/title)
+          if (currentExperience && cleanLine.length > 10) {
             currentExperience.bullets.push(cleanLine);
           }
           break;
@@ -4567,13 +4637,15 @@ Generated by The Leader's Row - Rimo AI Coach`;
                     {experiences.length > 0 && (
                       <div className="mb-6">
                         <h2 className="text-sm uppercase tracking-wider border-b border-gray-400 pb-1 mb-3 font-semibold">Professional Experience</h2>
-                        {experiences.map((exp, idx) => (
+                          {experiences.map((exp, idx) => (
                           <div key={idx} className="mb-4">
                             <div className="flex justify-between items-start">
-                              <span className="font-semibold text-gray-900">{exp.title || "Position"}</span>
+                              <span className="font-semibold text-gray-900">{exp.company || exp.title || "Position"}</span>
                               {exp.dates && <span className="text-xs text-gray-500 italic">{exp.dates}</span>}
                             </div>
-                            {exp.company && <div className="text-sm text-gray-600 italic">{exp.company}</div>}
+                            {exp.company && exp.title && exp.title !== "Position" && (
+                              <div className="text-sm text-gray-600 italic">{exp.title}</div>
+                            )}
                             {exp.bullets && exp.bullets.length > 0 && (
                               <ul className="mt-2 space-y-1">
                                 {exp.bullets.map((bullet, bIdx) => (
