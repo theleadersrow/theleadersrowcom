@@ -250,6 +250,25 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">{result.summary}</p>
         </div>
 
+        {/* Low Match Warning */}
+        {result.ats_score < 40 && (
+          <Card className="p-4 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                  This role may not be the best match for your profile
+                </h4>
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  Based on our analysis, there's a significant gap between your current experience and what this role requires. 
+                  This doesn't mean you can't apply, but consider whether this is the right opportunity or if there are roles 
+                  that better align with your background. Optimizing your resume can only go so far — the right role match matters more.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Score Breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
