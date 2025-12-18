@@ -1800,51 +1800,59 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       
       switch (currentSection) {
         case 'summary':
-          if (cleanLine && cleanLine.length > 5) {
+          // Filter out city/state/location lines from summary - they belong in contact info
+          const looksLikeLocationOnly = /^[A-Za-z\s]+,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|United States|USA|Canada|UK)$/i.test(cleanLine);
+          if (cleanLine && cleanLine.length > 5 && !looksLikeLocationOnly) {
             summaryLines.push(cleanLine);
+          } else if (looksLikeLocationOnly) {
+            // Add location to contact info instead
+            contactInfo.push(cleanLine);
           }
           break;
           
         case 'experience': {
           // Job title patterns - must start with these keywords AND be properly capitalized
-          // Also require the first character to be uppercase (prevents "product and..." being matched)
           const startsWithUppercase = /^[A-Z]/.test(cleanLine);
           const isJobTitleKeyword = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
           
-          // Reject lines that look like sentence fragments (end with period, comma, or lowercase continuation words)
+          // Reject lines that look like sentence fragments
           const looksLikeSentenceFragment = /[,.]$/.test(cleanLine) || 
             /^(and|or|to|the|a|an|for|with|by|at|from|in|on|of|that|which|who|whom|whose|this|these|those)\s/i.test(cleanLine) ||
             /\b(and|or|to|for|with|by|at|from|in|on|across|into|through)\s+\w+[,.]?$/i.test(cleanLine);
           
-          // Job title must start with uppercase, match keyword, and NOT look like a sentence fragment
           const isJobTitle = startsWithUppercase && isJobTitleKeyword && !looksLikeSentenceFragment;
           
-          // Detect company/location pattern - company names often have:
-          // - Location markers (City, State/Country) 
-          // - Common company suffixes (Inc, Corp, LLC, Ltd, Bank, Group, etc.)
-          // - Separators like | or - between company and location
+          // Company detection - includes major company names like Apple, RBC, etc.
           const hasCompanySuffix = /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting|Financial|Capital|Partners|Associates|Healthcare|Media|Entertainment|Retail|Insurance)\b/i.test(cleanLine);
           const hasLocationMarker = /,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|UK|Germany|Canada|India|Singapore|Australia|Remote)\b/i.test(cleanLine) ||
             /\|\s*[A-Z][a-z]+,?\s*[A-Z]{2}\b/.test(cleanLine);
-          const isCompanyLine = hasCompanySuffix || hasLocationMarker;
           
-          // A new job entry is detected when:
-          // 1. Line starts with job title keyword AND doesn't have company suffix (prevents company lines being treated as titles)
-          // 2. OR: Has a date, is short, not a bullet, AND the line starts with title-like text (not company)
-          const isNewJobEntry = (isJobTitle && !isBullet && !hasCompanySuffix && !hasLocationMarker) || 
+          // Check for known major company names that should trigger a new experience
+          const isMajorCompany = /^(Apple|Google|Microsoft|Amazon|Meta|Facebook|Netflix|Tesla|Uber|Airbnb|RBC|Royal Bank|TD Bank|BMO|Scotiabank|CIBC|JPMorgan|Goldman Sachs|Morgan Stanley|Deloitte|McKinsey|BCG|Bain|Accenture|IBM|Oracle|Salesforce|Adobe|Intel|Nvidia|Qualcomm|Samsung|Sony|Walmart|Target|Nike|Starbucks|McDonald's)\b/i.test(cleanLine);
+          
+          const isCompanyLine = hasCompanySuffix || hasLocationMarker || isMajorCompany;
+          
+          // New job entry detection
+          const isNewJobEntry = (isJobTitle && !isBullet && !hasCompanySuffix && !hasLocationMarker && !isMajorCompany) || 
             (hasDate && cleanLine.length < 80 && !isBullet && isJobTitle && !hasCompanySuffix);
           
           // Company info line: has date OR company markers, but NOT a job title pattern at start
           const isCompanyInfoLine = (hasDate || isCompanyLine) && !isJobTitle;
           
+          // Detect if this is a standalone major company name that starts a new experience section
+          const isNewCompanyHeader = isMajorCompany && !isBullet && cleanLine.length < 50 && !hasDate;
+          
           if (isBullet) {
-            // Always add bullets to current experience or create one
+            // Always add bullets to current experience
             if (!currentExperience) {
               currentExperience = { title: "Position", company: "", dates: "", bullets: [] };
             }
             currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
+          } else if (isNewCompanyHeader && currentExperience && currentExperience.bullets.length > 0) {
+            // Major company name after bullets = new experience section
+            experiences.push(currentExperience);
+            currentExperience = { title: "Position", company: cleanLine, dates: "", bullets: [] };
           } else if (isNewJobEntry) {
-            // Save current experience if it has content
             if (currentExperience && (currentExperience.title !== "Position" || currentExperience.bullets.length > 0)) {
               experiences.push(currentExperience);
             }
@@ -1856,18 +1864,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               bullets: []
             };
           } else if (currentExperience && isCompanyInfoLine) {
-            // This is company/location/date info for current position
             const dateMatch = cleanLine.match(datePattern);
             if (dateMatch) {
               currentExperience.dates = dateMatch[0];
             }
-            // Extract company name - remove date and trailing separators
             const companyText = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
             if (companyText && !currentExperience.company) {
-              // Split on separators and take company part (usually first)
               const parts = companyText.split(/\s*[|–—]\s*/);
               currentExperience.company = parts[0].trim();
-              // If there's a location part, could append it
               if (parts.length > 1) {
                 currentExperience.company += ' | ' + parts.slice(1).join(' | ');
               }
@@ -1879,7 +1883,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             cleanLine.length < 80 &&
             /^[A-Z]/.test(cleanLine)
           ) {
-            // Short line after title without company yet - likely company name
             currentExperience.company = cleanLine;
           } else if (
             currentExperience &&
@@ -1890,11 +1893,11 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             (/^[a-z(,]/.test(cleanLine) ||
               /^(and|or|to|that|which|who|with|by|for|across|into|through)\s/i.test(cleanLine))
           ) {
-            // Continuation line for a wrapped bullet point (prevents each wrapped line rendering as its own bullet)
+            // Continuation line for wrapped bullet
             const lastIdx = currentExperience.bullets.length - 1;
             currentExperience.bullets[lastIdx] = `${currentExperience.bullets[lastIdx]} ${cleanLine}`.replace(/\s+/g, " ").trim();
-          } else if (currentExperience && cleanLine.length > 15 && !isCompanyLine) {
-            // Long substantial text that isn't company info - treat as a bullet
+          } else if (currentExperience && cleanLine.length > 15 && !isCompanyLine && !isNewCompanyHeader) {
+            // Treat as a bullet point (not bold/highlighted)
             currentExperience.bullets.push(cleanLine);
           }
           break;
