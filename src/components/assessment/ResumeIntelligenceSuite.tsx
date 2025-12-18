@@ -805,11 +805,13 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
       const lines = content.split("\n");
 
-      // Only use the structured renderer when parsing looks reliable.
+      // Only use the structured renderer when parsing looks *very* reliable.
+      // If parsing is even slightly off, use the robust raw renderer to preserve all text.
       const hasStructuredData =
-        experiences.length > 0 &&
-        experiences.some((e) => (e.title && e.title !== "Position") || e.company || e.dates || (e.bullets?.length ?? 0) > 0) &&
-        experiences.some((e) => (e.bullets?.length ?? 0) > 0);
+        experiences.length >= 1 &&
+        experiences.every((e) => (e.bullets?.length ?? 0) > 0) &&
+        experiences.some((e) => Boolean(e.company)) &&
+        experiences.some((e) => e.title && e.title !== "Position");
 
       // Fallback (more robust): create a clean single-column DOCX from ALL raw content
       // This preserves every line/experience even if parsing is imperfect.
@@ -1554,25 +1556,35 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     const resumeHtml = generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, skills, education);
     
     const element = document.createElement("div");
-    // Keep the export DOM off-screen and visually isolated from app styles
+    // Keep the export DOM isolated but still *renderable* by html2canvas/html2pdf
+    // (moving far off-screen can cause blank/partial captures in some browsers)
     element.style.position = "fixed";
-    element.style.left = "-10000px";
+    element.style.left = "0";
     element.style.top = "0";
     element.style.width = "800px";
     element.style.background = "#ffffff";
     element.style.color = "#111111";
+    element.style.opacity = "0";
+    element.style.pointerEvents = "none";
     element.style.zIndex = "-1";
     element.innerHTML = resumeHtml;
     document.body.appendChild(element);
     
     try {
-      await html2pdf().set({
-        margin: 10,
-        filename: "optimized-resume.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      }).from(element).save();
+      // Give the browser a tick to layout the export DOM before html2canvas captures it.
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+
+      await html2pdf()
+        .set({
+          margin: 10,
+          filename: "optimized-resume.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, backgroundColor: "#ffffff" },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["css", "legacy"] },
+        })
+        .from(element)
+        .save();
       
       toast({ title: "Downloaded!", description: "Resume saved as PDF" });
     } catch (error) {
@@ -1911,15 +1923,21 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 10px 0; page-break-after: avoid;">Professional Experience</h2>
           ${experiences.map((exp: any) => `
             <div style="margin-bottom: 14px; page-break-inside: avoid;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
-                <strong style="font-size: 12px; color: #222;">${escapeHtml(exp?.title || "Position")}</strong>
-                ${exp?.dates ? `<span style="font-size: 10px; color: #666;">${escapeHtml(exp.dates)}</span>` : ""}
+              <div style="font-size: 12px; color: #222; font-weight: 700;">
+                <span>${escapeHtml(exp?.title || "Position")}</span>
+                ${exp?.dates ? `<span style="float: right; font-size: 10px; color: #666; font-weight: 400;">${escapeHtml(exp.dates)}</span>` : ""}
+                <div style="clear: both;"></div>
               </div>
               ${exp?.company ? `<div style="font-size: 11px; color: #555; font-style: italic; margin-top: 2px;">${escapeHtml(exp.company)}</div>` : ""}
               ${(exp?.bullets?.length ?? 0) > 0 ? `
-                <ul style="margin: 6px 0 0 0; padding-left: 16px; list-style-type: disc;">
-                  ${exp.bullets.map((b: string) => `<li style="font-size: 10px; line-height: 1.5; margin-bottom: 3px; color: #444;">${escapeHtml(b)}</li>`).join("")}
-                </ul>
+                <div style="margin-top: 6px;">
+                  ${exp.bullets
+                    .map(
+                      (b: string) =>
+                        `<div style=\"font-size: 10px; line-height: 1.5; margin: 0 0 3px 0; color: #444;\">• ${escapeHtml(b)}</div>`
+                    )
+                    .join("")}
+                </div>
               ` : ""}
             </div>
           `).join("")}
