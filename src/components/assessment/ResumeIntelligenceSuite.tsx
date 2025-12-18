@@ -228,6 +228,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
+        if (response.status === 403) {
+          const errorMsg = errorData.error || "Access denied";
+          if (errorMsg.includes("expired")) {
+            throw new Error("Your access has expired. Please renew your subscription to continue using this tool.");
+          }
+          throw new Error("You don't have access to this tool. Please purchase the Resume Intelligence Suite to use this feature.");
+        }
+        
         if (response.status === 429) {
           // Rate limited - retry after delay
           if (retryCount < 2) {
@@ -301,6 +309,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
 
       if (error) {
         // Check for specific error types
+        if (error.message?.includes('403') || error.message?.includes('Access denied') || error.message?.includes('access')) {
+          if (error.message?.includes('expired')) {
+            throw new Error("Your access has expired. Please renew your subscription to continue using this tool.");
+          }
+          throw new Error("You don't have access to this tool. Please purchase the Resume Intelligence Suite to use this feature.");
+        }
         if (error.message?.includes('429') || error.message?.includes('rate')) {
           throw new Error("Service is busy. Please wait a moment and try again.");
         }
@@ -447,6 +461,13 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403) {
+          const errorMsg = errorData.error || "Access denied";
+          if (errorMsg.includes("expired")) {
+            throw new Error("Your access has expired. Please renew your subscription to continue using this tool.");
+          }
+          throw new Error("You don't have access to this tool. Please purchase the Resume Intelligence Suite to use this feature.");
+        }
         if (response.status === 429) {
           throw new Error("Service is busy. Please wait a moment and try again.");
         }
