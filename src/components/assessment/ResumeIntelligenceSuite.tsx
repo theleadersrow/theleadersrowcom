@@ -488,12 +488,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     if (!content) return;
     
     try {
-      // Use the improved parseResumeContent function
       const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
       const lines = content.split('\n');
-      
-      // Check if we have structured data (experiences are key)
       const hasStructuredData = experiences.length > 0;
+      
+      // Check if modern format is selected
+      const isModern = selectedFormat === "modern";
       
       if (!hasStructuredData) {
         // Fallback: create a clean single-column DOCX from ALL raw content
@@ -502,14 +502,10 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         
         lines.forEach((line, idx) => {
           const trimmed = line.trim();
-          
-          // Add spacing for empty lines
           if (!trimmed) {
             children.push(new Paragraph({ text: "", spacing: { before: 60 } }));
             return;
           }
-          
-          // Name (first line)
           if (isFirstLine) {
             children.push(new Paragraph({
               children: [new TextRun({ text: trimmed.toUpperCase(), bold: true, size: 40, font: "Calibri" })],
@@ -519,8 +515,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             isFirstLine = false;
             return;
           }
-          
-          // Contact info (early lines with email/phone)
           if (idx < 8 && (trimmed.includes('@') || trimmed.match(/\d{3}[-.\s]?\d{3}/))) {
             children.push(new Paragraph({
               children: [new TextRun({ text: trimmed, size: 20, font: "Calibri", color: "666666" })],
@@ -529,8 +523,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             }));
             return;
           }
-          
-          // Section headers (all caps, short)
           if (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 40) {
             children.push(new Paragraph({
               children: [new TextRun({ text: trimmed, bold: true, size: 24, font: "Calibri", color: "1a365d" })],
@@ -539,8 +531,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             }));
             return;
           }
-          
-          // Bullet points
           if (/^[•\-\*▪◦‣→]/.test(trimmed)) {
             children.push(new Paragraph({
               children: [new TextRun({ text: trimmed.replace(/^[•\-\*▪◦‣→]\s*/, ''), size: 21, font: "Calibri" })],
@@ -549,8 +539,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             }));
             return;
           }
-          
-          // Regular text - include everything
           children.push(new Paragraph({
             children: [new TextRun({ text: trimmed, size: 21, font: "Calibri" })],
             spacing: { before: 50, after: 50 }
@@ -569,30 +557,179 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         return;
       }
       
-      // Build professional single-column resume with structured data
-      const noBorder = { 
-        top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
-        bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
-        left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
-        right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } 
-      };
-      
-      const createSectionHeader = (text: string) => new Paragraph({
-        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri", color: "1a365d" })],
+      // Helper function for section headers
+      const createSectionHeader = (text: string, color: string = "1a365d") => new Paragraph({
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri", color })],
         spacing: { before: 280, after: 100 },
-        border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 8 } }
+        border: { bottom: { color, style: BorderStyle.SINGLE, size: 8 } }
       });
       
+      if (isModern && hasStructuredData) {
+        // Modern Two-Column Format using Table
+        const noBorder = { 
+          top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
+          bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
+          left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
+          right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } 
+        };
+        
+        // Build left sidebar content (name, contact, skills, education)
+        const leftContent: Paragraph[] = [
+          new Paragraph({
+            children: [new TextRun({ text: (name || "Your Name").toUpperCase(), bold: true, size: 36, font: "Calibri", color: "FFFFFF" })],
+            spacing: { after: 60 }
+          })
+        ];
+        
+        if (headline) {
+          leftContent.push(new Paragraph({
+            children: [new TextRun({ text: headline, size: 20, font: "Calibri", color: "90cdf4", italics: true })],
+            spacing: { after: 200 }
+          }));
+        }
+        
+        // Contact section
+        if (contactInfo.length > 0) {
+          leftContent.push(new Paragraph({
+            children: [new TextRun({ text: "CONTACT", bold: true, size: 18, font: "Calibri", color: "90cdf4" })],
+            spacing: { before: 200, after: 80 },
+            border: { bottom: { color: "3182ce", style: BorderStyle.SINGLE, size: 4 } }
+          }));
+          contactInfo.forEach(c => {
+            leftContent.push(new Paragraph({
+              children: [new TextRun({ text: c, size: 18, font: "Calibri", color: "e2e8f0" })],
+              spacing: { before: 40, after: 40 }
+            }));
+          });
+        }
+        
+        // Skills section
+        if (skills.length > 0) {
+          leftContent.push(new Paragraph({
+            children: [new TextRun({ text: "SKILLS", bold: true, size: 18, font: "Calibri", color: "90cdf4" })],
+            spacing: { before: 200, after: 80 },
+            border: { bottom: { color: "3182ce", style: BorderStyle.SINGLE, size: 4 } }
+          }));
+          skills.forEach(s => {
+            leftContent.push(new Paragraph({
+              children: [new TextRun({ text: `• ${s}`, size: 17, font: "Calibri", color: "e2e8f0" })],
+              spacing: { before: 30, after: 30 }
+            }));
+          });
+        }
+        
+        // Education section
+        if (education.length > 0) {
+          leftContent.push(new Paragraph({
+            children: [new TextRun({ text: "EDUCATION", bold: true, size: 18, font: "Calibri", color: "90cdf4" })],
+            spacing: { before: 200, after: 80 },
+            border: { bottom: { color: "3182ce", style: BorderStyle.SINGLE, size: 4 } }
+          }));
+          education.forEach(edu => {
+            leftContent.push(new Paragraph({
+              children: [new TextRun({ text: edu.degree, size: 17, font: "Calibri", color: "e2e8f0" })],
+              spacing: { before: 40, after: 40 }
+            }));
+          });
+        }
+        
+        // Build right main content (summary, experience)
+        const rightContent: Paragraph[] = [];
+        
+        if (summary) {
+          rightContent.push(new Paragraph({
+            children: [new TextRun({ text: "PROFESSIONAL SUMMARY", bold: true, size: 22, font: "Calibri", color: "1a365d" })],
+            spacing: { after: 80 },
+            border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 6 } }
+          }));
+          rightContent.push(new Paragraph({
+            children: [new TextRun({ text: summary, size: 20, font: "Calibri" })],
+            spacing: { before: 60, after: 160 }
+          }));
+        }
+        
+        if (experiences.length > 0) {
+          rightContent.push(new Paragraph({
+            children: [new TextRun({ text: "PROFESSIONAL EXPERIENCE", bold: true, size: 22, font: "Calibri", color: "1a365d" })],
+            spacing: { after: 80 },
+            border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 6 } }
+          }));
+          
+          experiences.forEach(exp => {
+            rightContent.push(new Paragraph({
+              children: [
+                new TextRun({ text: exp.title || "Position", bold: true, size: 21, font: "Calibri", color: "1a365d" }),
+                exp.dates ? new TextRun({ text: `  |  ${exp.dates}`, size: 18, font: "Calibri", color: "666666", italics: true }) : new TextRun({ text: "" })
+              ],
+              spacing: { before: 140, after: 30 }
+            }));
+            if (exp.company) {
+              rightContent.push(new Paragraph({
+                children: [new TextRun({ text: exp.company, size: 19, font: "Calibri", color: "444444" })],
+                spacing: { after: 50 }
+              }));
+            }
+            if (exp.bullets && exp.bullets.length > 0) {
+              exp.bullets.forEach((bullet: string) => {
+                rightContent.push(new Paragraph({
+                  children: [new TextRun({ text: bullet, size: 18, font: "Calibri" })],
+                  bullet: { level: 0 },
+                  spacing: { before: 25, after: 25 }
+                }));
+              });
+            }
+          });
+        }
+        
+        // Create two-column table
+        const table = new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 35, type: WidthType.PERCENTAGE },
+                  shading: { fill: "1a365d", type: ShadingType.SOLID, color: "1a365d" },
+                  children: leftContent,
+                  verticalAlign: VerticalAlign.TOP,
+                  borders: { top: { style: BorderStyle.NONE, size: 0, color: "1a365d" }, bottom: { style: BorderStyle.NONE, size: 0, color: "1a365d" }, left: { style: BorderStyle.NONE, size: 0, color: "1a365d" }, right: { style: BorderStyle.NONE, size: 0, color: "1a365d" } },
+                  margins: { top: 400, bottom: 400, left: 300, right: 200 }
+                }),
+                new TableCell({
+                  width: { size: 65, type: WidthType.PERCENTAGE },
+                  children: rightContent,
+                  verticalAlign: VerticalAlign.TOP,
+                  borders: { top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } },
+                  margins: { top: 400, bottom: 400, left: 300, right: 300 }
+                })
+              ]
+            })
+          ],
+          borders: { top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } }
+        });
+        
+        const doc = new Document({
+          sections: [{
+            properties: { page: { margin: { top: 0, right: 0, bottom: 0, left: 0 } } },
+            children: [table]
+          }]
+        });
+        
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, "optimized-resume.docx");
+        toast({ title: "Downloaded!", description: "Modern resume saved as Word document" });
+        return;
+      }
+      
+      // Classic single-column format
       const documentChildren: Paragraph[] = [];
       
-      // Header - Name
       documentChildren.push(new Paragraph({
         children: [new TextRun({ text: (name || "Your Name").toUpperCase(), bold: true, size: 44, font: "Calibri" })],
         alignment: AlignmentType.CENTER,
         spacing: { after: 60 }
       }));
       
-      // Headline
       if (headline) {
         documentChildren.push(new Paragraph({
           children: [new TextRun({ text: headline, size: 24, font: "Calibri", color: "555555", italics: true })],
@@ -601,7 +738,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         }));
       }
       
-      // Contact info
       if (contactInfo.length > 0) {
         documentChildren.push(new Paragraph({
           children: [new TextRun({ text: contactInfo.join('  |  '), size: 20, font: "Calibri", color: "666666" })],
@@ -610,7 +746,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         }));
       }
       
-      // Summary
       if (summary) {
         documentChildren.push(createSectionHeader("Professional Summary"));
         documentChildren.push(new Paragraph({
@@ -619,12 +754,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         }));
       }
       
-      // Experience
       if (experiences.length > 0) {
         documentChildren.push(createSectionHeader("Professional Experience"));
-        
         experiences.forEach(exp => {
-          // Job title
           documentChildren.push(new Paragraph({
             children: [
               new TextRun({ text: exp.title || "Position", bold: true, size: 23, font: "Calibri", color: "1a365d" }),
@@ -632,16 +764,12 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             ],
             spacing: { before: 160, after: 40 }
           }));
-          
-          // Company
           if (exp.company) {
             documentChildren.push(new Paragraph({
               children: [new TextRun({ text: exp.company, size: 21, font: "Calibri", color: "444444" })],
               spacing: { before: 0, after: 60 }
             }));
           }
-          
-          // Bullets - include ALL bullets
           if (exp.bullets && exp.bullets.length > 0) {
             exp.bullets.forEach((bullet: string) => {
               documentChildren.push(new Paragraph({
@@ -654,7 +782,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         });
       }
       
-      // Skills - include ALL skills
       if (skills.length > 0) {
         documentChildren.push(createSectionHeader("Skills & Competencies"));
         documentChildren.push(new Paragraph({
@@ -663,7 +790,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         }));
       }
       
-      // Education - include ALL education
       if (education.length > 0) {
         documentChildren.push(createSectionHeader("Education"));
         education.forEach(edu => {
@@ -686,7 +812,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       toast({ title: "Downloaded!", description: "Resume saved as Word document" });
     } catch (error) {
       console.error("Download error:", error);
-      // Fallback to text download
       const blob = new Blob([content], { type: "text/plain" });
       saveAs(blob, "optimized-resume.txt");
       toast({ title: "Downloaded!", description: "Resume saved as text file" });
@@ -735,6 +860,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       return "#dc2626";
     };
     
+    const atsScore = typeof initialScore.ats_score === 'number' ? Math.round(initialScore.ats_score) : 0;
+    
     const reportHtml = `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #d4af37; padding-bottom: 20px;">
@@ -744,7 +871,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         
         <div style="text-align: center; margin-bottom: 30px;">
           <div style="display: inline-block; padding: 20px 40px; background: linear-gradient(135deg, #f8f8f8, #fff); border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <div style="font-size: 48px; font-weight: bold; color: ${getScoreColorHex(initialScore.ats_score || 0)};">${Math.round(initialScore.ats_score || 0)}<span style="font-size: 24px; color: #999;">/100</span></div>
+            <div style="font-size: 48px; font-weight: bold; color: ${getScoreColorHex(atsScore)};">${atsScore}<span style="font-size: 24px; color: #999;">/100</span></div>
             <div style="color: #666; font-size: 14px;">Overall ATS Score</div>
           </div>
         </div>
