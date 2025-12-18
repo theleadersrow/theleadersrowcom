@@ -1882,12 +1882,22 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               cleanLine
             );
 
+          // Detect if line looks like descriptive text (bullet content) rather than a header
+          const looksLikeDescriptiveText = 
+            wordCount > 4 &&
+            (
+              /\b(to|with|for|and|the|of|in|on|at|by|from|as|that|which|this|their|our|your|its|deliver|provide|ensure|support|manage|develop|create|implement|coordinate|collaborate|work|partner|lead|drive)\b/i.test(cleanLine) ||
+              /ing\s/i.test(cleanLine) || // Contains -ing verbs mid-sentence
+              /,\s+(and|or)\s+/i.test(cleanLine) // Has comma + conjunction pattern
+            );
+
           // Detect company-like lines that start with a capitalized name followed by location/date
           const looksLikeCompanyLine = 
             startsWithUppercase &&
             wordCount <= 8 &&
             !isBullet &&
             !isJobTitle &&
+            !looksLikeDescriptiveText &&
             (hasCompanySuffix || hasLocationMarker || /^[A-Z][a-zA-Z\s&]+,\s*[A-Z][a-z]+/i.test(cleanLine));
 
           const isAllCapsCompany =
