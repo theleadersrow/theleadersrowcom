@@ -36,6 +36,11 @@ CRITICAL TRANSFORMATION RULES:
 6. STRATEGIC SUMMARY - Write a powerful professional summary that positions them as the ideal candidate.
 7. BULLET TRANSFORMATION - Rewrite every bullet point to be achievement-focused with this structure: [Strong Action Verb] + [Specific Task] + [Quantified Result/Impact]
 
+CRITICAL: ANALYZE AND IMPROVE ALL WORK EXPERIENCES
+- You MUST provide contentImprovements for EVERY job/position in the resume, not just the most recent one
+- Each work experience has value - older experiences often contain foundational skills and achievements
+- Provide at least 2-3 improvements per job position in the resume
+
 WHAT TO PRESERVE (NEVER CHANGE):
 - Actual job titles (unless minor title optimization like "Engineer" to "Software Engineer")
 - Company names
@@ -54,7 +59,7 @@ Return your response as valid JSON with this exact structure:
   "enhancedContent": "THE COMPLETE REWRITTEN RESUME - Full resume text ready to use. Format as clean text with clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). This should be a fully usable resume document.",
   "contentImprovements": [
     {
-      "section": "Section name",
+      "section": "Section name (e.g., 'Experience - Company Name' or 'Professional Summary')",
       "original": "Original text from their resume",
       "improved": "Your rewritten version",
       "reason": "Why this transformation better targets the job"
@@ -65,7 +70,9 @@ Return your response as valid JSON with this exact structure:
   "actionVerbUpgrades": [{"original": "weak verb", "improved": "strong verb"}],
   "summaryRewrite": "The new professional summary",
   "transformationNotes": "Brief explanation of the overall transformation strategy used"
-}`;
+}
+
+IMPORTANT: contentImprovements array must include improvements from ALL work experiences in the resume, not just the first or most recent job. Label each improvement clearly with the company name so users know which job it refers to.`;
 
     const userPrompt = `COMPLETELY TRANSFORM this resume for the target job. Rewrite it to maximize ATS score and hiring manager appeal while preserving the candidate's authentic experience.
 
@@ -109,10 +116,12 @@ ${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''
 
 === YOUR TASK ===
 1. Write a NEW PROFESSIONAL SUMMARY that positions them as ideal for this role
-2. REWRITE EVERY BULLET POINT to be achievement-focused with metrics
+2. REWRITE EVERY BULLET POINT across ALL work experiences to be achievement-focused with metrics
 3. REORGANIZE skills to prioritize job-relevant ones
 4. NATURALLY INTEGRATE all missing keywords into actual content
 5. REFRAME experience to highlight transferable skills for any gaps
+
+CRITICAL: In contentImprovements, you MUST include improvements from EVERY job/company listed in the resume. Do not only improve the most recent job - improve ALL experiences. Label each improvement with the company name (e.g., "Experience - Apple Inc", "Experience - RBC Bank").
 
 The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume - not a list of suggestions. Someone should be able to copy this and submit it directly.
 
