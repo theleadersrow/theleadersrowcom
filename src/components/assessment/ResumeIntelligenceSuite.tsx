@@ -803,87 +803,141 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     
     try {
       const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
-      const lines = content.split('\n');
-      
-      const hasStructuredData = experiences.length > 0;
-      if (!hasStructuredData) {
-        // Fallback: create a clean single-column DOCX from ALL raw content
+      const lines = content.split("\n");
+
+      // Only use the structured renderer when parsing looks reliable.
+      const hasStructuredData =
+        experiences.length > 0 &&
+        experiences.some((e) => (e.title && e.title !== "Position") || e.company || e.dates || (e.bullets?.length ?? 0) > 0) &&
+        experiences.some((e) => (e.bullets?.length ?? 0) > 0);
+
+      // Fallback (more robust): create a clean single-column DOCX from ALL raw content
+      // This preserves every line/experience even if parsing is imperfect.
+      const sectionHeaderRegex = /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$|^(PROFESSIONAL\s+|WORK\s+)?EXPERIENCE|^EMPLOYMENT(\s+HISTORY)?|^CAREER(\s+HISTORY)?$|^(TECHNICAL\s+|CORE\s+)?SKILLS|^COMPETENCIES|^EXPERTISE|^TECHNOLOGIES$|^EDUCATION|^ACADEMIC|^QUALIFICATIONS$|^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i;
+      const dateLineRegex = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
+
+      const buildRawDocx = async () => {
         const children: Paragraph[] = [];
-        let isFirstLine = true;
-        
+        let wroteName = false;
+
         lines.forEach((line, idx) => {
           const trimmed = line.trim();
           if (!trimmed) {
             children.push(new Paragraph({ text: "", spacing: { before: 60 } }));
             return;
           }
-          if (isFirstLine) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed.toUpperCase(), bold: true, size: 40, font: "Calibri" })],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 120 }
-            }));
-            isFirstLine = false;
+
+          const clean = trimmed.replace(/^[#*_]+|[#*_]+$/g, "").trim();
+
+          // Name (first meaningful line, but never treat a section header as name)
+          if (!wroteName && idx < 6 && clean.length < 60 && !clean.includes("@") && !sectionHeaderRegex.test(clean)) {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: clean.toUpperCase(), bold: true, size: 40, font: "Calibri" })],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 120 },
+              })
+            );
+            wroteName = true;
             return;
           }
-          if (idx < 8 && (trimmed.includes('@') || trimmed.match(/\d{3}[-.\s]?\d{3}/))) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed, size: 20, font: "Calibri", color: "666666" })],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 60 }
-            }));
+
+          // Contact line (early)
+          if (
+            idx < 10 &&
+            (clean.includes("@") || clean.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) || clean.toLowerCase().includes("linkedin.com"))
+          ) {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: clean, size: 20, font: "Calibri", color: "666666" })],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 60 },
+              })
+            );
             return;
           }
-          if (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 40) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed, bold: true, size: 24, font: "Calibri", color: "1a365d" })],
-              spacing: { before: 280, after: 80 },
-              border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 8 } }
-            }));
+
+          // Section headers (case-insensitive)
+          if (sectionHeaderRegex.test(clean)) {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: clean.toUpperCase(), bold: true, size: 24, font: "Calibri", color: "1a365d" })],
+                spacing: { before: 280, after: 80 },
+                border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 8 } },
+              })
+            );
             return;
           }
-          if (/^[•\-\*▪◦‣→]/.test(trimmed)) {
-            children.push(new Paragraph({
-              children: [new TextRun({ text: trimmed.replace(/^[•\-\*▪◦‣→]\s*/, ''), size: 21, font: "Calibri" })],
-              bullet: { level: 0 },
-              spacing: { before: 30, after: 30 }
-            }));
+
+          // Bullets
+          if (/^[•\-\*▪◦‣→]/.test(clean)) {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: clean.replace(/^[•\-\*▪◦‣→]\s*/, ""), size: 21, font: "Calibri" })],
+                bullet: { level: 0 },
+                spacing: { before: 30, after: 30 },
+              })
+            );
             return;
           }
-          children.push(new Paragraph({
-            children: [new TextRun({ text: trimmed, size: 21, font: "Calibri" })],
-            spacing: { before: 50, after: 50 }
-          }));
+
+          // Role line heuristic (often includes dates)
+          if (dateLineRegex.test(clean) && clean.length < 120) {
+            children.push(
+              new Paragraph({
+                children: [new TextRun({ text: clean, bold: true, size: 22, font: "Calibri", color: "1a365d" })],
+                spacing: { before: 120, after: 40 },
+              })
+            );
+            return;
+          }
+
+          // Default paragraph
+          children.push(
+            new Paragraph({
+              children: [new TextRun({ text: clean, size: 21, font: "Calibri" })],
+              spacing: { before: 50, after: 50 },
+            })
+          );
         });
-        
+
         const doc = new Document({
-          sections: [{ 
-            properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, 
-            children 
-          }]
+          sections: [
+            {
+              properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+              children,
+            },
+          ],
         });
+
         const blob = await Packer.toBlob(doc);
         saveAs(blob, "optimized-resume.docx");
         toast({ title: "Downloaded!", description: "Resume saved as Word document" });
+      };
+
+      if (!hasStructuredData) {
+        await buildRawDocx();
         return;
       }
-      
+
       // Helper function for section headers
-      const createSectionHeader = (text: string, color: string = "1a365d") => new Paragraph({
-        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri", color })],
-        spacing: { before: 280, after: 100 },
-        border: { bottom: { color, style: BorderStyle.SINGLE, size: 8 } }
-      });
-      
-      
+      const createSectionHeader = (text: string, color: string = "1a365d") =>
+        new Paragraph({
+          children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri", color })],
+          spacing: { before: 280, after: 100 },
+          border: { bottom: { color, style: BorderStyle.SINGLE, size: 8 } },
+        });
+
       // Classic single-column format
       const documentChildren: Paragraph[] = [];
-      
-      documentChildren.push(new Paragraph({
-        children: [new TextRun({ text: (name || "Your Name").toUpperCase(), bold: true, size: 44, font: "Calibri" })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 60 }
-      }));
+
+      documentChildren.push(
+        new Paragraph({
+          children: [new TextRun({ text: (name || "Your Name").toUpperCase(), bold: true, size: 44, font: "Calibri" })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 60 },
+        })
+      );
       
       if (headline) {
         documentChildren.push(new Paragraph({
