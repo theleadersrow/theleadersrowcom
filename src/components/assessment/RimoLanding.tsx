@@ -547,8 +547,16 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
-                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$49.99</span>
-                    <Lock className="w-4 h-4 text-muted-foreground" />
+                    {resumeAccess.hasAccess ? (
+                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Active
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$49.99</span>
+                        <Lock className="w-4 h-4 text-muted-foreground" />
+                      </>
+                    )}
                     <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3">
@@ -598,8 +606,16 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">LinkedIn Signal Score</h3>
-                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
-                    <Lock className="w-4 h-4 text-muted-foreground" />
+                    {linkedInAccess.hasAccess ? (
+                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Active
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
+                        <Lock className="w-4 h-4 text-muted-foreground" />
+                      </>
+                    )}
                     <ArrowRight className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3">
