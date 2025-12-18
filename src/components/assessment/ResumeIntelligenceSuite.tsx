@@ -1724,12 +1724,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       achievements: /^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i
     };
 
-    // Matches common date ranges like:
-    // - 2020 - 2023
-    // - Jan 2020 – Present
-    // - January 2020 to March 2022
-    // - 01/2020 - 03/2022
-    const datePattern = /((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})))\s*(?:[-–—]|to)\s*((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})|Present|Current|Now))/i;
+    const datePattern = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
     const singleDatePattern = /(\d{2}\/\d{4}|\d{4})\s*[-–·]?\s*([A-Za-z]+,?\s+[A-Za-z]+)?$/;
 
     lines.forEach((line, index) => {
@@ -1833,21 +1828,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             /\|\s*[A-Z][a-z]+,?\s*[A-Z]{2}\b/.test(cleanLine);
           const isCompanyLine = hasCompanySuffix || hasLocationMarker;
           
-          // Check if line contains BOTH a job title AND company info (combined header)
-          // Format: "Product Manager | RBC | New York, NY | Jan 2020 – Present"
-          const hasSeparators = /\s*[|]\s*/.test(cleanLine);
-          const isCombinedHeaderLine = hasSeparators && isJobTitleKeyword && cleanLine.length < 120;
-          
           // A new job entry is detected when:
           // 1. Line starts with job title keyword AND doesn't have company suffix (prevents company lines being treated as titles)
           // 2. OR: Has a date, is short, not a bullet, AND the line starts with title-like text (not company)
-          // 3. OR: It's a combined header line with separators
-          const isNewJobEntry = isCombinedHeaderLine ||
-            (isJobTitle && !isBullet && !hasCompanySuffix && !hasLocationMarker) || 
+          const isNewJobEntry = (isJobTitle && !isBullet && !hasCompanySuffix && !hasLocationMarker) || 
             (hasDate && cleanLine.length < 80 && !isBullet && isJobTitle && !hasCompanySuffix);
           
           // Company info line: has date OR company markers, but NOT a job title pattern at start
-          const isCompanyInfoLine = (hasDate || isCompanyLine) && !isJobTitle && !isCombinedHeaderLine;
+          const isCompanyInfoLine = (hasDate || isCompanyLine) && !isJobTitle;
           
           if (isBullet) {
             // Always add bullets to current experience or create one
@@ -1860,53 +1848,29 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             if (currentExperience && (currentExperience.title !== "Position" || currentExperience.bullets.length > 0)) {
               experiences.push(currentExperience);
             }
-            
-            // Extract date first
             const dateMatch = cleanLine.match(datePattern);
-            const dates = dateMatch ? dateMatch[0] : '';
-            
-            // Remove date from line for further parsing
-            const lineWithoutDate = cleanLine.replace(datePattern, '').trim();
-            
-            // Parse combined header: "Title | Company | Location" or "Title | Company, Location"
-            if (hasSeparators) {
-              const parts = lineWithoutDate.split(/\s*[|]\s*/).map(p => p.trim()).filter(p => p && !datePattern.test(p));
-              
-              // First part is usually the title
-              const titlePart = parts[0] || "Position";
-              
-              // Remaining parts are company and location
-              const companyParts = parts.slice(1);
-              const companyText = companyParts.join(' | ');
-              
-              currentExperience = {
-                title: titlePart,
-                company: companyText,
-                dates: dates,
-                bullets: []
-              };
-            } else {
-              // Single-part header
-              currentExperience = {
-                title: lineWithoutDate.replace(/[|,–—-]\s*$/, '').trim() || "Position",
-                company: '',
-                dates: dates,
-                bullets: []
-              };
-            }
+            currentExperience = {
+              title: cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim() || "Position",
+              company: '',
+              dates: dateMatch ? dateMatch[0] : '',
+              bullets: []
+            };
           } else if (currentExperience && isCompanyInfoLine) {
             // This is company/location/date info for current position
             const dateMatch = cleanLine.match(datePattern);
-            if (dateMatch && !currentExperience.dates) {
+            if (dateMatch) {
               currentExperience.dates = dateMatch[0];
             }
             // Extract company name - remove date and trailing separators
             const companyText = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
             if (companyText && !currentExperience.company) {
-              const parts = companyText.split(/\s*[|–—]\s*/).filter(p => p.trim());
-              currentExperience.company = parts.join(' | ');
-            } else if (companyText && currentExperience.company) {
-              currentExperience.company += ' | ' + companyText;
+              // Split on separators and take company part (usually first)
+              const parts = companyText.split(/\s*[|–—]\s*/);
+              currentExperience.company = parts[0].trim();
+              // If there's a location part, could append it
+              if (parts.length > 1) {
+                currentExperience.company += ' | ' + parts.slice(1).join(' | ');
+              }
             }
           } else if (
             currentExperience &&
@@ -2049,7 +2013,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const sectionHeaderRegex =
         /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$|^(PROFESSIONAL\s+|WORK\s+)?EXPERIENCE|^EMPLOYMENT(\s+HISTORY)?|^CAREER(\s+HISTORY)?$|^(TECHNICAL\s+|CORE\s+)?SKILLS|^COMPETENCIES|^EXPERTISE|^TECHNOLOGIES$|^EDUCATION|^ACADEMIC|^QUALIFICATIONS$|^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i;
       const dateLineRegex =
-        /((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})))\s*(?:[-–—]|to)\s*((?:\d{2}\/\d{4}|\d{4}|[A-Za-z]{3,}\.?(?:\s+\d{4})|Present|Current|Now))/i;
+        /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
+
       lines.forEach((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) {
