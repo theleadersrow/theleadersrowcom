@@ -1550,9 +1550,10 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           margin: 10,
           filename: "resume-analysis-report.pdf",
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
+          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true, windowWidth: 800 },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"], avoid: ["div", "h2", "ul", "li", "p"] },
+          // Let html2pdf split pages normally; overly-aggressive "avoid" rules can result in blank output.
+          pagebreak: { mode: ["css", "legacy"] },
         })
         .from(element)
         .save();
