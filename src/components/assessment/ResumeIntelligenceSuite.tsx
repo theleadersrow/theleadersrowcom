@@ -1804,8 +1804,18 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           break;
           
         case 'experience': {
-          // Job title patterns - must start with these keywords
-          const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
+          // Job title patterns - must start with these keywords AND be properly capitalized
+          // Also require the first character to be uppercase (prevents "product and..." being matched)
+          const startsWithUppercase = /^[A-Z]/.test(cleanLine);
+          const isJobTitleKeyword = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
+          
+          // Reject lines that look like sentence fragments (end with period, comma, or lowercase continuation words)
+          const looksLikeSentenceFragment = /[,.]$/.test(cleanLine) || 
+            /^(and|or|to|the|a|an|for|with|by|at|from|in|on|of|that|which|who|whom|whose|this|these|those)\s/i.test(cleanLine) ||
+            /\b(and|or|to|for|with|by|at|from|in|on|across|into|through)\s+\w+[,.]?$/i.test(cleanLine);
+          
+          // Job title must start with uppercase, match keyword, and NOT look like a sentence fragment
+          const isJobTitle = startsWithUppercase && isJobTitleKeyword && !looksLikeSentenceFragment;
           
           // Detect company/location pattern - company names often have:
           // - Location markers (City, State/Country) 
