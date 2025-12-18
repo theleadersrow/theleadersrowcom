@@ -1288,14 +1288,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     // Use structured data - ensure ALL bullets are included
     return `
       <div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 12px;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 12px; page-break-inside: avoid;">
           <h1 style="font-size: 26px; margin: 0; letter-spacing: 2px; text-transform: uppercase;">${name || "Your Name"}</h1>
           ${headline ? `<p style="font-size: 13px; color: #555; margin: 6px 0 0 0; font-style: italic;">${headline}</p>` : ""}
           ${contactInfo.length > 0 ? `<p style="font-size: 11px; color: #666; margin: 8px 0 0 0;">${contactInfo.join(" | ")}</p>` : ""}
         </div>
         
         ${summary ? `
-        <div style="margin-bottom: 18px;">
+        <div style="margin-bottom: 18px; page-break-inside: avoid;">
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Professional Summary</h2>
           <p style="font-size: 11px; line-height: 1.6; color: #444; margin: 0;">${summary}</p>
         </div>
@@ -1303,9 +1303,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         
         ${experiences.length > 0 ? `
         <div style="margin-bottom: 18px;">
-          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 10px 0;">Professional Experience</h2>
+          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 10px 0; page-break-after: avoid;">Professional Experience</h2>
           ${experiences.map(exp => `
-            <div style="margin-bottom: 14px;">
+            <div style="margin-bottom: 14px; page-break-inside: avoid;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
                 <strong style="font-size: 12px; color: #222;">${exp.title || "Position"}</strong>
                 ${exp.dates ? `<span style="font-size: 10px; color: #666;">${exp.dates}</span>` : ""}
@@ -1322,14 +1322,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         ` : ""}
         
         ${skills.length > 0 ? `
-        <div style="margin-bottom: 18px;">
+        <div style="margin-bottom: 18px; page-break-inside: avoid;">
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Skills</h2>
           <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${skills.join(" • ")}</p>
         </div>
         ` : ""}
         
         ${education.length > 0 ? `
-        <div>
+        <div style="page-break-inside: avoid;">
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Education</h2>
           ${education.map(edu => `<p style="font-size: 11px; margin: 4px 0; color: #444;">${edu.degree}</p>`).join('')}
         </div>
@@ -1394,14 +1394,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               ${headline ? `<p style="font-size: 11px; color: #90cdf4; margin: 0 0 18px 0;">${headline}</p>` : ""}
               
               ${contactInfo.length > 0 ? `
-              <div style="margin-bottom: 20px;">
+              <div style="margin-bottom: 20px; page-break-inside: avoid;">
                 <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Contact</h3>
                 ${contactInfo.map(c => `<p style="font-size: 9px; margin: 4px 0; word-break: break-all; color: #e2e8f0;">${c}</p>`).join('')}
               </div>
               ` : ""}
               
               ${skills.length > 0 ? `
-              <div style="margin-bottom: 20px;">
+              <div style="margin-bottom: 20px; page-break-inside: avoid;">
                 <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Skills</h3>
                 <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                   ${skills.map(s => `<span style="font-size: 8px; padding: 3px 6px; background: #2c5282; border-radius: 2px; color: #e2e8f0; display: inline-block; margin: 2px;">${s}</span>`).join('')}
@@ -1410,7 +1410,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               ` : ""}
               
               ${education.length > 0 ? `
-              <div>
+              <div style="page-break-inside: avoid;">
                 <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #90cdf4; margin: 0 0 8px 0; border-bottom: 1px solid #3182ce; padding-bottom: 4px;">Education</h3>
                 ${education.map(edu => `<p style="font-size: 9px; margin: 4px 0; color: #e2e8f0;">${edu.degree}</p>`).join('')}
               </div>
@@ -1419,7 +1419,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             
             <td style="width: 65%; padding: 25px 22px; vertical-align: top;">
               ${summary ? `
-              <div style="margin-bottom: 16px;">
+              <div style="margin-bottom: 16px; page-break-inside: avoid;">
                 <h2 style="font-size: 12px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 8px 0; border-bottom: 2px solid #1a365d; padding-bottom: 4px;">Summary</h2>
                 <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${summary}</p>
               </div>
@@ -1427,9 +1427,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               
               ${experiences.length > 0 ? `
               <div>
-                <h2 style="font-size: 12px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 12px 0; border-bottom: 2px solid #1a365d; padding-bottom: 4px;">Experience</h2>
+                <h2 style="font-size: 12px; text-transform: uppercase; color: #1a365d; letter-spacing: 1px; margin: 0 0 12px 0; border-bottom: 2px solid #1a365d; padding-bottom: 4px; page-break-after: avoid;">Experience</h2>
                 ${experiences.map(exp => `
-                  <div style="margin-bottom: 12px;">
+                  <div style="margin-bottom: 12px; page-break-inside: avoid;">
                     <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
                       <strong style="font-size: 11px; color: #1a365d;">${exp.title || "Position"}</strong>
                       ${exp.dates ? `<span style="font-size: 9px; color: #666;">${exp.dates}</span>` : ""}
@@ -1582,8 +1582,8 @@ Generated by The Leader's Row - Rimo AI Coach`;
     
     const coverLetterHtml = `
       <div style="font-family: 'Georgia', serif; padding: 60px; max-width: 700px; margin: 0 auto; line-height: 1.7;">
-        <div style="white-space: pre-wrap; font-size: 14px; color: #333;">
-          ${generatedCoverLetter.replace(/\n/g, '<br>')}
+        <div style="white-space: pre-wrap; font-size: 14px; color: #333; page-break-inside: avoid;">
+          ${generatedCoverLetter.split('\n\n').map(para => `<p style="margin: 0 0 16px 0; page-break-inside: avoid;">${para.replace(/\n/g, '<br>')}</p>`).join('')}
         </div>
       </div>
     `;
