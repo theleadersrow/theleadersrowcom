@@ -756,7 +756,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setViewMode("comparison");
     setUseFullTransformation(true);
     // Reset format selection
-    setSelectedFormat(null);
+    setSelectedFormat("classic");
   };
 
   // Download report function - PDF
@@ -1320,6 +1320,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setIsGeneratingCoverLetter(true);
     setShowCoverLetterDetailsDialog(false);
 
+    const userEmail = getStoredEmail();
+
     try {
       const { data, error } = await supabase.functions.invoke("generate-cover-letter", {
         body: {
@@ -1332,18 +1334,24 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           hiringManagerName: coverLetterDetails.hiringManagerName,
           selfProjection,
           coverLetterLength,
+          email: userEmail,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('403') || error.message?.includes('Access denied')) {
+          throw new Error("You don't have access to this tool. Please purchase the Resume Intelligence Suite.");
+        }
+        throw error;
+      }
       if (data.error) throw new Error(data.error);
 
       setGeneratedCoverLetter(data.coverLetter);
       setShowCoverLetterResult(true);
       toast({ title: "Cover letter generated!", description: "Your personalized cover letter is ready" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Cover letter error:", error);
-      toast({ title: "Generation failed", description: "Please try again", variant: "destructive" });
+      toast({ title: "Generation failed", description: error.message || "Please try again", variant: "destructive" });
     } finally {
       setIsGeneratingCoverLetter(false);
     }
