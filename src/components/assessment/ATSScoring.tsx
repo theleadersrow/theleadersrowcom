@@ -48,6 +48,45 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
     setResumeFile(null);
   };
 
+  const getStoredEmail = (): string | undefined => {
+    try {
+      const storedAccess = localStorage.getItem("resume_suite_access");
+      if (storedAccess) {
+        const parsed = JSON.parse(storedAccess);
+        if (parsed.email) return parsed.email;
+      }
+    } catch {
+      // ignore
+    }
+    return undefined;
+  };
+
+  const getAccessToken = (): string | undefined => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get("access");
+      if (accessToken) return accessToken;
+
+      const storedAccess = localStorage.getItem("resume_suite_access");
+      if (storedAccess) {
+        const parsed = JSON.parse(storedAccess);
+        return parsed.accessToken;
+      }
+    } catch {
+      // ignore
+    }
+    return undefined;
+  };
+
+  const clearResume = () => {
+    setResumeText("");
+    setResumeFile(null);
+  };
+
+  const clearJobDescription = () => {
+    setJobDescription("");
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -140,6 +179,9 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
     setIsAnalyzing(true);
 
     try {
+      const email = getStoredEmail();
+      const accessToken = getAccessToken();
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
         {
@@ -148,23 +190,32 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText, jobDescription }),
+          body: JSON.stringify({ resumeText, jobDescription, email, accessToken }),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Failed to analyze resume");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          const retryAfter = Number(response.headers.get("Retry-After") || errorData.retry_after_seconds || 0);
+          throw new Error(
+            retryAfter
+              ? `Service is busy. Please wait ${retryAfter}s and try again.`
+              : "Service is busy. Please wait a moment and try again."
+          );
+        }
+        throw new Error(errorData.error || errorData.message || "Failed to analyze resume");
       }
 
       const data = await response.json();
       console.log("ATS Result:", data);
       setResult(data);
       // Don't auto-advance - let user see results first
-    } catch (error) {
+    } catch (error: any) {
       console.error("ATS analysis error:", error);
       toast({
         title: "Analysis failed",
-        description: "Please try again in a moment.",
+        description: error?.message || "Please try again in a moment.",
         variant: "destructive",
       });
     } finally {
@@ -374,35 +425,57 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Resume Input */}
-        <Card className="p-4">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Your Resume
-          </h3>
-          <Textarea
-            placeholder="Paste your resume text here..."
-            value={resumeText}
-            onChange={(e) => setResumeText(e.target.value)}
-            className="min-h-[200px] text-sm"
-          />
-        </Card>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Resume Input */}
+          <Card className="p-4">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Your Resume
+              </h3>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearResume}
+                disabled={!resumeText.trim() && !resumeFile}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" /> Clear
+              </Button>
+            </div>
+            <Textarea
+              placeholder="Paste your resume text here..."
+              value={resumeText}
+              onChange={(e) => setResumeText(e.target.value)}
+              className="min-h-[200px] text-sm"
+            />
+          </Card>
 
-        {/* Job Description Input */}
-        <Card className="p-4">
-          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Target className="w-4 h-4" />
-            Target Job Description
-          </h3>
-          <Textarea
-            placeholder="Paste the job description you're applying to..."
-            value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-            className="min-h-[200px] text-sm"
-          />
-        </Card>
-      </div>
+          {/* Job Description Input */}
+          <Card className="p-4">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Target Job Description
+              </h3>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearJobDescription}
+                disabled={!jobDescription.trim()}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" /> Clear
+              </Button>
+            </div>
+            <Textarea
+              placeholder="Paste the job description you're applying to..."
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              className="min-h-[200px] text-sm"
+            />
+          </Card>
+        </div>
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
