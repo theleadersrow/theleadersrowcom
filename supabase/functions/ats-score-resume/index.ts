@@ -277,15 +277,7 @@ CRITICAL: Be thorough in reading BOTH documents. Count actual keyword matches. M
       };
     }
 
-    // Save to assessment session if provided
-    if (sessionId) {
-      await supabase
-        .from("assessment_sessions")
-        .update({
-          // Store ATS data in the session for later use
-        })
-        .eq("id", sessionId);
-    }
+    // Note: Resume data is not saved to database - session-only processing
 
     return new Response(
       JSON.stringify(atsResult),
