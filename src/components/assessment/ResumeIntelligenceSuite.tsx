@@ -1629,9 +1629,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     const content = finalResumeContent || enhancedResume?.enhancedContent;
     if (!content) return;
     
-    const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
+    const { name, headline, contactInfo, summary, experiences, keyAchievements, skills, education } = parseResumeContent(content);
     
-    const resumeHtml = generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, skills, education);
+    const resumeHtml = generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, keyAchievements, skills, education);
     
     const overlay = document.createElement("div");
     overlay.setAttribute("data-export-overlay", "true");
@@ -1707,13 +1707,14 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     let contactInfo: string[] = [];
     let summary = "";
     let experiences: { title: string; company: string; dates: string; bullets: string[] }[] = [];
+    let keyAchievements: string[] = []; // Separate from experiences
     let skills: string[] = [];
     let education: { degree: string; school: string; dates: string }[] = [];
     
     let currentSection = "";
     let currentExperience: { title: string; company: string; dates: string; bullets: string[] } | null = null;
     let summaryLines: string[] = [];
-    let pendingText: string[] = [];
+    let pendingEducation: { degree: string; school: string; dates: string } | null = null;
     
     const sectionHeaders = {
       summary: /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$/i,
@@ -1724,6 +1725,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     };
 
     const datePattern = /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
+    const singleDatePattern = /(\d{2}\/\d{4}|\d{4})\s*[-–·]?\s*([A-Za-z]+,?\s+[A-Za-z]+)?$/;
 
     lines.forEach((line, index) => {
       const trimmed = line.trim();
@@ -1908,19 +1910,44 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           break;
         }
           
-        case 'education':
-          if (cleanLine.length > 5) {
-            education.push({ degree: cleanLine, school: '', dates: '' });
+        case 'education': {
+          // Parse education entries - consolidate degree, school, dates into single entries
+          const hasEducationDate = datePattern.test(cleanLine) || singleDatePattern.test(cleanLine);
+          const looksLikeDegree = /^(Bachelor|Master|Doctor|PhD|MBA|MS|MA|BS|BA|B\.S\.|M\.S\.|M\.A\.|B\.A\.|Associate|Certificate|Diploma|Leading|Product\s+leadership)/i.test(cleanLine);
+          const looksLikeSchool = /University|College|School|Institute|Academy/i.test(cleanLine);
+          const looksLikeLocation = /^(\d{2}\/\d{4}|\d{4})\s*[-–·]?\s*[A-Za-z]+,?\s+(USA|Texas|Florida|California|United\s+Kingdom|Canada|UK|States)/i.test(cleanLine) ||
+            /^[·•-]?\s*[A-Za-z]+,?\s+(USA|Texas|Florida|California|United\s+Kingdom|Canada|UK|States)/i.test(cleanLine);
+          
+          if (looksLikeDegree) {
+            // Save previous education entry if exists
+            if (pendingEducation && pendingEducation.degree) {
+              education.push(pendingEducation);
+            }
+            pendingEducation = { degree: cleanLine.replace(/,\s*$/, ''), school: '', dates: '' };
+          } else if (pendingEducation && looksLikeSchool && !pendingEducation.school) {
+            pendingEducation.school = cleanLine;
+          } else if (pendingEducation && (hasEducationDate || looksLikeLocation)) {
+            // Extract date and location
+            const dateMatch = cleanLine.match(datePattern) || cleanLine.match(singleDatePattern);
+            if (dateMatch) {
+              pendingEducation.dates = dateMatch[0];
+            }
+            // If there's location info, append to school
+            const locationPart = cleanLine.replace(datePattern, '').replace(singleDatePattern, '').replace(/^[·•-]\s*/, '').trim();
+            if (locationPart && !pendingEducation.school.includes(locationPart)) {
+              pendingEducation.school = pendingEducation.school ? `${pendingEducation.school}, ${locationPart}` : locationPart;
+            }
+          } else if (pendingEducation && cleanLine.length > 5 && !pendingEducation.school) {
+            // Treat as school name if we don't have one yet
+            pendingEducation.school = cleanLine;
           }
           break;
+        }
           
         case 'achievements':
-          // Add achievements as bullets to a special experience entry or current one
+          // Store achievements separately (not in experiences)
           if (isBullet || cleanLine.length > 10) {
-            if (!currentExperience) {
-              currentExperience = { title: "Key Achievements", company: "", dates: "", bullets: [] };
-            }
-            currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
+            keyAchievements.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
           }
           break;
       }
@@ -1931,13 +1958,18 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       experiences.push(currentExperience);
     }
     
+    // Don't forget the last education entry
+    if (pendingEducation && pendingEducation.degree) {
+      education.push(pendingEducation);
+    }
+    
     // Combine summary lines
     summary = summaryLines.join(' ');
     
     // Remove duplicate skills
     skills = [...new Set(skills)];
     
-    return { name, headline, contactInfo: [...new Set(contactInfo)], summary, experiences, skills, education };
+    return { name, headline, contactInfo: [...new Set(contactInfo)], summary, experiences, keyAchievements, skills, education };
   };
 
   // Generate Classic Resume HTML - clean professional single-column format
@@ -1947,6 +1979,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     contactInfo: string[],
     summary: string,
     experiences: any[],
+    keyAchievements: string[],
     skills: string[],
     education: any[]
   ) => {
@@ -2050,6 +2083,15 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         </div>
         ` : ""}
 
+        ${keyAchievements.length > 0 ? `
+        <div style="margin-bottom: 18px; page-break-inside: avoid;">
+          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Key Achievements</h2>
+          <div style="margin-top: 6px;">
+            ${keyAchievements.map((a: string) => `<div style="font-size: 10px; line-height: 1.5; margin: 0 0 3px 0; color: #444;">• ${escapeHtml(a)}</div>`).join("")}
+          </div>
+        </div>
+        ` : ""}
+
         ${experiences.length > 0 ? `
         <div style="margin-bottom: 18px;">
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 10px 0; page-break-after: avoid;">Professional Experience</h2>
@@ -2086,7 +2128,10 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         ${education.length > 0 ? `
         <div style="page-break-inside: avoid;">
           <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Education</h2>
-          ${education.map((edu: any) => `<p style="font-size: 11px; margin: 4px 0; color: #444;">${escapeHtml(edu?.degree ?? "")}</p>`).join("")}
+          ${education.map((edu: any) => {
+            const parts = [edu?.degree, edu?.school, edu?.dates].filter(Boolean);
+            return `<p style="font-size: 11px; margin: 4px 0; color: #444;">${parts.map(escapeHtml).join(" · ")}</p>`;
+          }).join("")}
         </div>
         ` : ""}
       </div>
@@ -4480,7 +4525,7 @@ Generated by The Leader's Row - Rimo AI Coach`;
               </DialogHeader>
               {(finalResumeContent || enhancedResume?.enhancedContent) && (() => {
                 const content = finalResumeContent || enhancedResume?.enhancedContent || "";
-                const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
+                const { name, headline, contactInfo, summary, experiences, keyAchievements, skills, education } = parseResumeContent(content);
                 
                 return (
                   <div className="mt-4 bg-white text-black p-8 rounded-lg border shadow-sm" style={{ fontFamily: 'Georgia, serif' }}>
@@ -4498,6 +4543,20 @@ Generated by The Leader's Row - Rimo AI Coach`;
                       <div className="mb-6">
                         <h2 className="text-sm uppercase tracking-wider border-b border-gray-400 pb-1 mb-3 font-semibold">Professional Summary</h2>
                         <p className="text-sm leading-relaxed text-gray-700">{summary}</p>
+                      </div>
+                    )}
+                    
+                    {/* Key Achievements - after summary, before experience */}
+                    {keyAchievements.length > 0 && (
+                      <div className="mb-6">
+                        <h2 className="text-sm uppercase tracking-wider border-b border-gray-400 pb-1 mb-3 font-semibold">Key Achievements</h2>
+                        <ul className="space-y-1">
+                          {keyAchievements.map((achievement, idx) => (
+                            <li key={idx} className="text-sm text-gray-700 pl-4 relative before:content-['•'] before:absolute before:left-0">
+                              {achievement}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                     
@@ -4534,13 +4593,14 @@ Generated by The Leader's Row - Rimo AI Coach`;
                       </div>
                     )}
                     
-                    {/* Education */}
+                    {/* Education - each degree on one line with school and dates */}
                     {education.length > 0 && (
                       <div>
                         <h2 className="text-sm uppercase tracking-wider border-b border-gray-400 pb-1 mb-3 font-semibold">Education</h2>
-                        {education.map((edu, idx) => (
-                          <p key={idx} className="text-sm text-gray-700">{edu.degree}</p>
-                        ))}
+                        {education.map((edu, idx) => {
+                          const parts = [edu.degree, edu.school, edu.dates].filter(Boolean);
+                          return <p key={idx} className="text-sm text-gray-700 mb-1">{parts.join(" · ")}</p>;
+                        })}
                       </div>
                     )}
                   </div>
