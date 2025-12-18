@@ -275,7 +275,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, email);
       
       // Open Stripe Payment Link
-      const paymentWindow = window.open("https://buy.stripe.com/bJeeVc6i5cqS5gz3kv9sk0b", "_blank");
+      const paymentWindow = window.open("https://buy.stripe.com/eVq00i9uh3UmdN508j9sk0e", "_blank");
       if (paymentWindow) {
         paymentWindow.focus();
       }
@@ -311,7 +311,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, linkedInEmail);
       
       // Open Stripe Payment Link
-      const paymentWindow = window.open("https://buy.stripe.com/6oUcN49uhgH86kD4oz9sk0c", "_blank");
+      const paymentWindow = window.open("https://buy.stripe.com/14A00iayl2Qi9wP4oz9sk0d", "_blank");
       if (paymentWindow) {
         paymentWindow.focus();
       }
