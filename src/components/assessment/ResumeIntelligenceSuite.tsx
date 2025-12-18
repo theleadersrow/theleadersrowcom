@@ -802,15 +802,19 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const buildRawDocx = async () => {
         const children: Paragraph[] = [];
         let wroteName = false;
+        let lastWasRoleLine = false;
 
         lines.forEach((line, idx) => {
           const trimmed = line.trim();
           if (!trimmed) {
-            children.push(new Paragraph({ text: "", spacing: { after: 120 } }));
+            children.push(new Paragraph({ text: "", spacing: { after: 140 } }));
+            lastWasRoleLine = false;
             return;
           }
 
           const clean = trimmed.replace(/^[#*_]+|[#*_]+$/g, "").trim();
+          const prevWasRole = lastWasRoleLine;
+          lastWasRoleLine = false;
 
           // Name (first meaningful line, but never treat a section header as name)
           if (!wroteName && idx < 6 && clean.length < 60 && !clean.includes("@") && !sectionHeaderRegex.test(clean)) {
@@ -852,14 +856,41 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             return;
           }
 
+          // Company line (often follows a role/date line)
+          if (
+            prevWasRole &&
+            clean.length < 100 &&
+            !clean.includes("@") &&
+            !clean.toLowerCase().includes("linkedin.com") &&
+            !dateLineRegex.test(clean) &&
+            !sectionHeaderRegex.test(clean) &&
+            !/^[•\-\*▪◦‣→]/.test(clean)
+          ) {
+            children.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: clean,
+                    size: 21,
+                    font: "Calibri",
+                    italics: true,
+                    color: "444444",
+                  }),
+                ],
+                spacing: { before: 0, after: 100, line: 276 },
+              })
+            );
+            return;
+          }
+
           // Bullets
           if (/^[•\-\*▪◦‣→]/.test(clean)) {
             children.push(
               new Paragraph({
                 children: [new TextRun({ text: clean.replace(/^[•\-\*▪◦‣→]\s*/, ""), size: 21, font: "Calibri" })],
                 bullet: { level: 0 },
-                indent: { left: 420, hanging: 180 },
-                spacing: { before: 0, after: 40 },
+                indent: { left: 540, hanging: 180 },
+                spacing: { before: 0, after: 80, line: 276 },
               })
             );
             return;
@@ -870,9 +901,10 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             children.push(
               new Paragraph({
                 children: [new TextRun({ text: clean, bold: true, size: 22, font: "Calibri", color: "1a365d" })],
-                spacing: { before: 120, after: 40 },
+                spacing: { before: 180, after: 40, line: 276 },
               })
             );
+            lastWasRoleLine = true;
             return;
           }
 
@@ -880,7 +912,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           children.push(
             new Paragraph({
               children: [new TextRun({ text: clean, size: 21, font: "Calibri" })],
-              spacing: { before: 50, after: 50 },
+              spacing: { before: 40, after: 80, line: 276 },
             })
           );
         });
@@ -950,27 +982,41 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       if (experiences.length > 0) {
         documentChildren.push(createSectionHeader("Professional Experience"));
         experiences.forEach(exp => {
-          documentChildren.push(new Paragraph({
-            children: [
-              new TextRun({ text: exp.title || "Position", bold: true, size: 23, font: "Calibri", color: "1a365d" }),
-              exp.dates ? new TextRun({ text: `  |  ${exp.dates}`, size: 20, font: "Calibri", color: "666666", italics: true }) : new TextRun({ text: "" })
-            ],
-            spacing: { before: 160, after: 40 }
-          }));
+          documentChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: exp.title || "Position", bold: true, size: 23, font: "Calibri", color: "1a365d" }),
+                exp.dates
+                  ? new TextRun({
+                      text: `  |  ${exp.dates}`,
+                      size: 20,
+                      font: "Calibri",
+                      color: "666666",
+                      italics: true,
+                    })
+                  : new TextRun({ text: "" }),
+              ],
+              spacing: { before: 220, after: 20, line: 276 },
+            })
+          );
           if (exp.company) {
-            documentChildren.push(new Paragraph({
-              children: [new TextRun({ text: exp.company, size: 21, font: "Calibri", color: "444444" })],
-              spacing: { before: 0, after: 60 }
-            }));
+            documentChildren.push(
+              new Paragraph({
+                children: [new TextRun({ text: exp.company, size: 21, font: "Calibri", color: "444444", italics: true })],
+                spacing: { before: 0, after: 80, line: 276 },
+              })
+            );
           }
           if (exp.bullets && exp.bullets.length > 0) {
             exp.bullets.forEach((bullet: string) => {
-                documentChildren.push(new Paragraph({
+              documentChildren.push(
+                new Paragraph({
                   children: [new TextRun({ text: bullet, size: 20, font: "Calibri" })],
                   bullet: { level: 0 },
-                  indent: { left: 420, hanging: 180 },
-                  spacing: { before: 0, after: 40 }
-                }));
+                  indent: { left: 540, hanging: 180 },
+                  spacing: { before: 0, after: 60, line: 276 },
+                })
+              );
             });
           }
         });
@@ -1522,18 +1568,22 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     document.body.appendChild(overlay);
 
     const element = document.createElement("div");
-    // Keep the export DOM in the viewport so html2canvas captures correct pixels.
-    element.style.position = "fixed";
+    // html2canvas is notoriously flaky with `position: fixed` (can render blank on some browsers).
+    // Use an in-document, in-viewport absolute container instead.
+    const exportTop = window.scrollY || document.documentElement.scrollTop || 0;
+    element.style.position = "absolute";
     element.style.left = "0";
-    element.style.top = "0";
+    element.style.top = `${exportTop}px`;
     element.style.width = "800px";
     element.style.background = "#ffffff";
     element.style.color = "#111111";
     element.style.opacity = "1";
+    element.style.display = "block";
+    element.style.visibility = "visible";
     element.style.pointerEvents = "none";
     element.style.overflow = "visible";
-    element.style.zIndex = "0";
-    element.style.transform = "translateZ(0)";
+    element.style.zIndex = "2147483646";
+    element.style.transform = "none";
     element.innerHTML = reportHtml;
     document.body.appendChild(element);
     
@@ -1595,18 +1645,21 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     document.body.appendChild(overlay);
 
     const element = document.createElement("div");
-    // Keep the export DOM in the viewport so html2canvas captures correct pixels.
-    element.style.position = "fixed";
+    // html2canvas can render blank with `position: fixed` in some browsers.
+    const exportTop = window.scrollY || document.documentElement.scrollTop || 0;
+    element.style.position = "absolute";
     element.style.left = "0";
-    element.style.top = "0";
+    element.style.top = `${exportTop}px`;
     element.style.width = "800px";
     element.style.background = "#ffffff";
     element.style.color = "#111111";
     element.style.opacity = "1";
+    element.style.display = "block";
+    element.style.visibility = "visible";
     element.style.pointerEvents = "none";
     element.style.overflow = "visible";
-    element.style.zIndex = "0";
-    element.style.transform = "translateZ(0)";
+    element.style.zIndex = "2147483646";
+    element.style.transform = "none";
     element.innerHTML = resumeHtml;
     document.body.appendChild(element);
     
@@ -1623,7 +1676,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           margin: 10,
           filename: "optimized-resume.pdf",
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
+          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true, windowWidth: 800 },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["css", "legacy"] },
         })
