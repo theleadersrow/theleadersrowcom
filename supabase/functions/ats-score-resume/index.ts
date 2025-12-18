@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Rate limiting configuration - tuned for interactive use
 const RATE_LIMIT = {
-  maxRequests: 30,
+  maxRequests: 120,
   windowMinutes: 30,
 };
 
