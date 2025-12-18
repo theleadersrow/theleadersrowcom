@@ -50,27 +50,32 @@ export function AssessmentProgress({
         </div>
 
         {/* Module steps */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1">
           {modules.map((module, index) => {
             const isComplete = index < currentModuleIndex;
             const isCurrent = index === currentModuleIndex;
             
+            // Get short name for mobile (first word or abbreviation)
+            const shortName = module.name.split(" ")[0].slice(0, 8);
+            const mediumName = module.name.split(" ").slice(0, 2).join(" ");
+            
             return (
-              <div key={module.id} className="flex-1">
+              <div key={module.id} className="flex-1 min-w-[60px] sm:min-w-[80px]">
                 <div 
                   className={`h-1.5 rounded-full transition-colors ${
                     isComplete ? "bg-primary" : isCurrent ? "bg-primary/60" : "bg-muted"
                   }`}
                 />
-                <div className="flex items-center gap-1 mt-2">
+                <div className="flex items-center gap-0.5 sm:gap-1 mt-2">
                   {isComplete && (
-                    <Check className="w-3 h-3 text-primary" />
+                    <Check className="w-3 h-3 text-primary flex-shrink-0" />
                   )}
-                  <span className={`text-xs truncate ${
+                  <span className={`text-[10px] sm:text-xs whitespace-nowrap ${
                     isCurrent ? "text-primary font-medium" : 
                     isComplete ? "text-primary" : "text-muted-foreground"
                   }`}>
-                    {module.name.split(" ").slice(0, 2).join(" ")}
+                    <span className="sm:hidden">{index + 1}. {shortName}</span>
+                    <span className="hidden sm:inline">{mediumName}</span>
                   </span>
                 </div>
               </div>
