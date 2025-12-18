@@ -273,7 +273,7 @@ export function ATSScoring({ onComplete, onSkip, onBack }: ATSScoringProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Keywords", score: result.keyword_match_score },
-            { label: "Experience", score: result.experience_match_score },
+            { label: "Years of Exp.", score: result.experience_match_score },
             { label: "Skills", score: result.skills_match_score },
             { label: "Format", score: result.format_score },
           ].map((item) => (
