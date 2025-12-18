@@ -810,6 +810,14 @@ export type Database = {
           is_valid: boolean
         }[]
       }
+      check_tool_access: {
+        Args: { p_email: string; p_tool_type: string }
+        Returns: {
+          expires_at: string
+          has_access: boolean
+          usage_count: number
+        }[]
+      }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       create_session_by_token: {
         Args: { p_session_token: string }
