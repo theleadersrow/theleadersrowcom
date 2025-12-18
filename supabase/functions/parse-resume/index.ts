@@ -275,43 +275,68 @@ serve(async (req) => {
       mimeType = fileType || 'application/pdf';
     }
 
-    console.log("Parsing resume with AI, file type:", mimeType);
+    console.log("Parsing resume with AI, file type:", mimeType, "size:", base64Content.length);
 
-    // Use AI to parse the resume content
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: [
+    // Use AI to parse the resume content with retry logic
+    let response: Response | null = null;
+    let lastError: string = "";
+    
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
               {
-                type: "text",
-                text: "Extract and return the full text content from this resume document. Preserve the structure and formatting as much as possible. Include all sections like contact info, work experience, education, skills, etc. Return only the extracted text, nothing else."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${mimeType};base64,${base64Content}`
-                }
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: "Extract and return the full text content from this resume document. Preserve the structure and formatting as much as possible. Include all sections like contact info, work experience, education, skills, etc. Return only the extracted text, nothing else."
+                  },
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: `data:${mimeType};base64,${base64Content}`
+                    }
+                  }
+                ]
               }
-            ]
-          }
-        ],
-      }),
-    });
+            ],
+          }),
+        });
+        
+        if (response.ok) break;
+        
+        lastError = await response.text();
+        console.error(`AI parsing attempt ${attempt + 1} failed:`, response.status, lastError);
+        
+        // Don't retry on payment/auth errors
+        if (response.status === 402 || response.status === 403) break;
+        
+        // Wait before retry
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 2000));
+        }
+      } catch (fetchError) {
+        console.error(`AI fetch attempt ${attempt + 1} error:`, fetchError);
+        lastError = fetchError instanceof Error ? fetchError.message : "Network error";
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 2000));
+        }
+      }
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI parsing error:", response.status, errorText);
+    if (!response || !response.ok) {
+      console.error("AI parsing failed after retries:", lastError);
       
       // Check for specific error types
-      if (response.status === 402) {
+      if (response?.status === 402) {
         return new Response(JSON.stringify({ 
           error: "Service temporarily unavailable",
           error_type: "payment_required",
@@ -321,7 +346,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 429) {
+      if (response?.status === 429) {
         return new Response(JSON.stringify({ 
           error: "High demand",
           error_type: "rate_limited",
@@ -334,7 +359,7 @@ serve(async (req) => {
       
       return new Response(JSON.stringify({ 
         error: "Failed to parse resume",
-        details: errorText
+        details: lastError
       }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

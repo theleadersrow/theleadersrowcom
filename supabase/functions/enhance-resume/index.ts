@@ -234,39 +234,65 @@ Return the result as JSON with the specified structure.`;
 
     console.log("Calling Lovable AI for complete resume transformation...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    // Retry logic for AI calls
+    let response: Response | null = null;
+    let lastError: string = "";
+    
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-pro",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        });
+        
+        if (response.ok) break;
+        
+        lastError = await response.text();
+        console.error(`AI enhancement attempt ${attempt + 1} failed:`, response.status, lastError);
+        
+        // Don't retry on payment/auth errors
+        if (response.status === 402 || response.status === 403) break;
+        
+        // Wait before retry with exponential backoff
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 3000));
+        }
+      } catch (fetchError) {
+        console.error(`AI fetch attempt ${attempt + 1} error:`, fetchError);
+        lastError = fetchError instanceof Error ? fetchError.message : "Network error";
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 3000));
+        }
+      }
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+    if (!response || !response.ok) {
+      console.error("AI enhancement failed after retries:", lastError);
       
-      if (response.status === 429) {
+      if (response?.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response?.status === 402) {
         return new Response(JSON.stringify({ error: "Payment required. AI service unavailable." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       
-      throw new Error(`AI gateway error: ${response.status}`);
+      throw new Error(`AI gateway error after retries: ${lastError}`);
     }
 
     const data = await response.json();

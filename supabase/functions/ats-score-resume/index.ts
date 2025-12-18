@@ -322,38 +322,64 @@ Return ONLY valid JSON in this exact format:
 
     console.log("Phase 1: Extracting keywords from documents...");
 
-    const extractionResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: extractionPrompt },
-          { role: "user", content: `**JOB DESCRIPTION:**\n${safeJobDescription}\n\n**RESUME:**\n${safeResumeText}` },
-        ],
-      }),
-    });
+    // Retry logic for AI calls
+    let extractionResponse: Response | null = null;
+    let lastError: string = "";
+    
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        extractionResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: extractionPrompt },
+              { role: "user", content: `**JOB DESCRIPTION:**\n${safeJobDescription}\n\n**RESUME:**\n${safeResumeText}` },
+            ],
+          }),
+        });
+        
+        if (extractionResponse.ok) break;
+        
+        lastError = await extractionResponse.text();
+        console.error(`Extraction attempt ${attempt + 1} failed:`, extractionResponse.status, lastError);
+        
+        // Don't retry on payment/auth errors
+        if (extractionResponse.status === 402 || extractionResponse.status === 403) break;
+        
+        // Wait before retry with exponential backoff
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 2000));
+        }
+      } catch (fetchError) {
+        console.error(`Extraction fetch attempt ${attempt + 1} error:`, fetchError);
+        lastError = fetchError instanceof Error ? fetchError.message : "Network error";
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 2000));
+        }
+      }
+    }
 
-    if (!extractionResponse.ok) {
-      const errorText = await extractionResponse.text();
-      console.error("Extraction error:", extractionResponse.status, errorText);
+    if (!extractionResponse || !extractionResponse.ok) {
+      console.error("Extraction failed after retries:", lastError);
       
-      if (extractionResponse.status === 402) {
+      if (extractionResponse?.status === 402) {
         return new Response(JSON.stringify({ 
           error: "Service temporarily unavailable",
           error_type: "payment_required",
         }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      if (extractionResponse.status === 429) {
+      if (extractionResponse?.status === 429) {
         return new Response(JSON.stringify({ 
           error: "High demand, please try again",
           error_type: "rate_limited",
         }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      throw new Error("Failed to extract keywords");
+      throw new Error(`Failed to extract keywords: ${lastError}`);
     }
 
     const extractionData = await extractionResponse.json();
