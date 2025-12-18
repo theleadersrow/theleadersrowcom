@@ -124,12 +124,20 @@ CRITICAL: ANALYZE AND IMPROVE ALL WORK EXPERIENCES
 - Each work experience has value - older experiences often contain foundational skills and achievements
 - Provide at least 2-3 improvements per job position in the resume
 
+**ABSOLUTELY CRITICAL - PRESERVE ALL JOBS:**
+- The "enhancedContent" MUST contain EVERY SINGLE job/position from the original resume
+- NEVER remove, omit, or skip any work experience - even if it seems less relevant
+- If the original resume has 5 jobs, the enhanced resume MUST have ALL 5 jobs
+- Each job must retain its: company name, job title, dates, and bullet points (rewritten)
+- Missing even ONE job is a critical failure
+
 WHAT TO PRESERVE (NEVER CHANGE):
 - Actual job titles (unless minor title optimization like "Engineer" to "Software Engineer")
-- Company names
-- Employment dates
+- Company names - KEEP ALL OF THEM
+- Employment dates - KEEP ALL OF THEM
 - Education credentials
 - Core responsibilities (just reframe them better)
+- THE NUMBER OF JOBS - Do not remove any positions
 
 WHAT TO TRANSFORM:
 - Professional summary (completely rewrite to target the job)
@@ -139,7 +147,7 @@ WHAT TO TRANSFORM:
 
 Return your response as valid JSON with this exact structure:
 {
-  "enhancedContent": "THE COMPLETE REWRITTEN RESUME - Full resume text ready to use. Format as clean text with clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). This should be a fully usable resume document.",
+  "enhancedContent": "THE COMPLETE REWRITTEN RESUME - Full resume text ready to use. MUST INCLUDE ALL jobs from the original. Format as clean text with clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). This should be a fully usable resume document with EVERY job preserved.",
   "contentImprovements": [
     {
       "section": "Section name with company (e.g., 'Experience - Google' or 'Professional Summary')",
@@ -211,9 +219,16 @@ ${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''
 4. NATURALLY INTEGRATE all missing keywords into actual content
 5. REFRAME experience to highlight transferable skills for any gaps
 
-CRITICAL: In contentImprovements, you MUST include improvements from EVERY job/company listed in the resume. Do not only improve the most recent job - improve ALL experiences. Label each improvement with the company name (e.g., "Experience - Apple Inc", "Experience - RBC Bank").
+**CRITICAL - ALL JOBS MUST BE INCLUDED:**
+- Count all the jobs in the original resume
+- The "enhancedContent" MUST include EVERY SINGLE ONE of those jobs
+- If the original has positions at Apple, Google, and Amazon - your output MUST have all three
+- Do NOT skip, omit, or truncate any work experience
+- Each job section must have: Job Title, Company Name, Dates, and rewritten bullet points
 
-The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume - not a list of suggestions. Someone should be able to copy this and submit it directly.
+In contentImprovements, you MUST include improvements from EVERY job/company listed in the resume. Do not only improve the most recent job - improve ALL experiences. Label each improvement with the company name (e.g., "Experience - Apple Inc", "Experience - RBC Bank").
+
+The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume - not a list of suggestions. Someone should be able to copy this and submit it directly. IT MUST CONTAIN ALL ORIGINAL JOBS.
 
 Return the result as JSON with the specified structure.`;
 
@@ -274,7 +289,7 @@ Return the result as JSON with the specified structure.`;
       const result = JSON.parse(jsonContent);
 
       // Ensure all required fields exist with defaults
-      const enhancedResult = {
+      let enhancedResult = {
         enhancedContent: result.enhancedContent || resumeText,
         contentImprovements: result.contentImprovements || [],
         addedKeywords: result.addedKeywords || missingKeywords || [],
@@ -284,6 +299,45 @@ Return the result as JSON with the specified structure.`;
         bulletPointImprovements: result.bulletPointImprovements || [],
         transformationNotes: result.transformationNotes || "",
       };
+
+      // CRITICAL: Validate that enhanced content contains all companies from original
+      // Extract likely company names from original resume (lines with Inc, Corp, LLC, etc. or known patterns)
+      const companyPatterns = /\b([A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*)\s*(?:Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions)\b/gi;
+      const originalCompanies: string[] = [];
+      let match;
+      while ((match = companyPatterns.exec(resumeText)) !== null) {
+        const company = match[1].trim();
+        if (company.length > 2 && !originalCompanies.includes(company)) {
+          originalCompanies.push(company);
+        }
+      }
+      
+      // Also look for well-known companies without suffixes
+      const wellKnownCompanies = ['Apple', 'Google', 'Amazon', 'Microsoft', 'Meta', 'Facebook', 'Netflix', 'Tesla', 'Uber', 'Airbnb', 'Twitter', 'LinkedIn', 'Salesforce', 'Oracle', 'IBM', 'Intel', 'Adobe', 'Stripe', 'Shopify', 'Spotify', 'Snap', 'Pinterest', 'Reddit', 'Square', 'PayPal', 'Visa', 'Mastercard', 'JPMorgan', 'Goldman', 'Morgan Stanley', 'Deloitte', 'McKinsey', 'BCG', 'Bain', 'Accenture', 'KPMG', 'EY', 'PwC'];
+      wellKnownCompanies.forEach(company => {
+        const regex = new RegExp(`\\b${company}\\b`, 'i');
+        if (regex.test(resumeText) && !originalCompanies.some(c => c.toLowerCase().includes(company.toLowerCase()))) {
+          originalCompanies.push(company);
+        }
+      });
+
+      if (originalCompanies.length > 0) {
+        const missingCompanies = originalCompanies.filter(company => {
+          const regex = new RegExp(company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+          return !regex.test(enhancedResult.enhancedContent);
+        });
+
+        if (missingCompanies.length > 0) {
+          console.log("[ENHANCE-RESUME] WARNING: Missing companies in enhanced content:", missingCompanies);
+          console.log("[ENHANCE-RESUME] Original companies detected:", originalCompanies);
+          
+          // If companies are missing, fall back to original resume content but keep improvements
+          console.log("[ENHANCE-RESUME] Falling back to original resume to preserve all experiences");
+          enhancedResult.enhancedContent = resumeText;
+          enhancedResult.transformationNotes = (enhancedResult.transformationNotes || "") + 
+            " Note: Enhanced version preserved original resume structure to ensure all experiences were maintained.";
+        }
+      }
 
       // If the model returned an overly short change list, ask once more for an expanded bullet-level diff.
       if (enhancedResult.contentImprovements.length < 8) {
