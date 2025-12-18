@@ -262,16 +262,30 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         body: { linkedinUrl },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('403') || error.message?.includes('Access denied') || error.message?.includes('access')) {
+          if (error.message?.includes('expired')) {
+            toast.error("Your access has expired. Please renew your subscription.");
+          } else {
+            toast.error("You don't have access to this tool. Please purchase the LinkedIn Signal Score to use this feature.");
+          }
+          return;
+        }
+        throw error;
+      }
 
       if (data.profileContent) {
         setProfileText(data.profileContent);
         toast.success("Profile content generated! Please review and edit to match your actual profile.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching LinkedIn profile:", error);
-      toast.error("Could not fetch profile. Please paste your content manually.");
-      window.open(linkedinUrl, "_blank");
+      if (error.message?.includes('access') || error.message?.includes('403')) {
+        toast.error(error.message);
+      } else {
+        toast.error("Could not fetch profile. Please paste your content manually.");
+        window.open(linkedinUrl, "_blank");
+      }
     } finally {
       setIsFetchingProfile(false);
     }
@@ -386,12 +400,27 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('403') || error.message?.includes('Access denied') || error.message?.includes('access')) {
+          if (error.message?.includes('expired')) {
+            toast.error("Your access has expired. Please renew your subscription to continue using this tool.");
+          } else {
+            toast.error("You don't have access to this tool. Please purchase the LinkedIn Signal Score to use this feature.");
+          }
+          setStep("input");
+          return;
+        }
+        throw error;
+      }
       setAnalysis(data.analysis);
       setStep("score");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error analyzing LinkedIn:", error);
-      toast.error("Failed to analyze profile. Please try again.");
+      if (error.message?.includes('access') || error.message?.includes('403')) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to analyze profile. Please try again.");
+      }
       setStep("input");
     }
   };
@@ -412,12 +441,27 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('403') || error.message?.includes('Access denied') || error.message?.includes('access')) {
+          if (error.message?.includes('expired')) {
+            toast.error("Your access has expired. Please renew your subscription.");
+          } else {
+            toast.error("You don't have access to this tool. Please purchase the LinkedIn Signal Score.");
+          }
+          setStep("score");
+          return;
+        }
+        throw error;
+      }
       setSuggestions(data.suggestions);
       setStep("checklist"); // Go to interactive checklist instead of suggestions
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting suggestions:", error);
-      toast.error("Failed to generate suggestions. Please try again.");
+      if (error.message?.includes('access') || error.message?.includes('403')) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to generate suggestions. Please try again.");
+      }
       setStep("score");
     }
   };
