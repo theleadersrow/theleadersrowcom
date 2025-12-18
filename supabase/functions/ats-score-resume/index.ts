@@ -194,14 +194,15 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Use a more OBJECTIVE scoring system focused on measurable keyword/skill matching
-    const systemPrompt = `You are an expert ATS (Applicant Tracking System) analyzer with deep knowledge of how automated resume screening works.
+    // Enhanced Jobscan-style OBJECTIVE scoring system with formatting checks, hard/soft skills split, and keyword format tips
+    const systemPrompt = `You are an expert ATS (Applicant Tracking System) analyzer with deep knowledge of how automated resume screening works, inspired by industry-leading tools like Jobscan.
 
 CRITICAL: You must CAREFULLY READ and EXTRACT specific information from BOTH documents before scoring.
 
 **STEP 1 - EXTRACT FROM JOB DESCRIPTION:**
 - Required years of experience (exact numbers)
-- Required skills and technologies (list each one)
+- HARD SKILLS: Technical skills, tools, software, certifications, methodologies (e.g., Python, AWS, Scrum, Six Sigma)
+- SOFT SKILLS: Interpersonal and leadership skills (e.g., communication, collaboration, problem-solving, leadership)
 - Required qualifications and certifications
 - Management/leadership requirements
 - Industry/domain requirements
@@ -209,24 +210,43 @@ CRITICAL: You must CAREFULLY READ and EXTRACT specific information from BOTH doc
 
 **STEP 2 - EXTRACT FROM RESUME:**
 - Total years of experience (calculate from work history dates)
-- All skills and technologies mentioned
+- All HARD SKILLS and SOFT SKILLS mentioned (categorize them)
 - Certifications and qualifications
 - Evidence of management/leadership (team sizes, scope)
 - Industries and domains worked in
 - Quantified achievements and outcomes
 
-**STEP 3 - COMPARE AND SCORE:**
+**STEP 3 - ANALYZE FORMATTING (ATS-KILLING ISSUES):**
+Check for formatting elements that commonly break ATS parsing:
+- Tables or multi-column layouts (ATS often can't parse columns correctly)
+- Text boxes or graphics (invisible to ATS)
+- Headers/footers (often skipped by ATS)
+- Non-standard fonts or special characters
+- Images or logos embedded in text
+- Unusual section headers that ATS may not recognize
+- Missing standard sections (Summary, Experience, Education, Skills)
+
+**STEP 4 - KEYWORD FORMAT ANALYSIS:**
+Check if resume uses BOTH acronym and full-form versions of key terms:
+- Good: "Search Engine Optimization (SEO)" - ATS can match either
+- Bad: Only "SEO" without context - may miss keyword match
+- Good: "Machine Learning (ML)" with both forms
+- Bad: Abbreviations without expansion
+
+**STEP 5 - COMPARE AND SCORE:**
 1. KEYWORD MATCHING - Count exact and semantic matches between resume and job description
-2. SKILLS ALIGNMENT - Identify required skills present vs missing
-3. EXPERIENCE LEVEL - Compare years of experience requirements vs resume evidence
-4. LEADERSHIP/SCOPE - Match management requirements to resume evidence
-5. TECHNICAL FIT - Match tech stack, tools, and methodologies
+2. HARD SKILLS ALIGNMENT - Identify required technical skills present vs missing
+3. SOFT SKILLS ALIGNMENT - Identify required interpersonal skills present vs missing
+4. EXPERIENCE LEVEL - Compare years of experience requirements vs resume evidence
+5. LEADERSHIP/SCOPE - Match management requirements to resume evidence
+6. FORMAT/SEARCHABILITY - Check for ATS-friendly formatting
 
 SCORING MUST BE OBJECTIVE AND REPRODUCIBLE:
 - Base scores on COUNTABLE factors (keywords found, skills matched, years shown)
 - A resume with MORE job keywords should ALWAYS score higher than one with fewer
-- Don't penalize for format/style if content is strong
-- Focus on WHAT IS PRESENT, not subjective judgments about quality`;
+- Penalize for formatting issues that break ATS parsing
+- Focus on WHAT IS PRESENT, not subjective judgments about quality
+- TARGET: 75%+ match rate is the goal for strong ATS compatibility`;
 
     const userPrompt = `CAREFULLY analyze this resume against the job description. Read EVERY section of both documents.
 
@@ -242,20 +262,36 @@ ${isPostTransformation ? `
 
 **BEFORE SCORING, you MUST:**
 1. List every required skill/technology from the job description
-2. Check if each one appears in the resume (exact or semantic match)
-3. Extract the years of experience required vs. what the resume shows
-4. Identify leadership/management requirements and evidence
+2. Separate them into HARD SKILLS (technical) and SOFT SKILLS (interpersonal)
+3. Check if each one appears in the resume (exact or semantic match)
+4. Extract the years of experience required vs. what the resume shows
+5. Identify leadership/management requirements and evidence
+6. Check for ATS-unfriendly formatting issues
+7. Check keyword formats (acronym + full form usage)
 
 Provide your analysis in this exact JSON format (no markdown, just JSON):
 {
-  "ats_score": <number 0-100 - calculate as: (keyword_match * 0.35) + (skills_match * 0.25) + (experience_match * 0.25) + (format * 0.15)>,
+  "ats_score": <number 0-100 - calculate as: (keyword_match * 0.30) + (hard_skills * 0.20) + (soft_skills * 0.10) + (experience_match * 0.20) + (format * 0.10) + (searchability * 0.10)>,
   "keyword_match_score": <0-100 based on: (matched keywords / total required keywords) * 100>,
   "experience_match_score": <0-100 based on years alignment>,
-  "skills_match_score": <0-100 based on skills present vs required>,
-  "format_score": <0-100 based on ATS-readable format>,
+  "skills_match_score": <0-100 based on combined hard+soft skills present vs required>,
+  "format_score": <0-100 based on ATS-readable format - deduct for tables, columns, graphics>,
+  "hard_skills_score": <0-100 based on technical/tool skills match>,
+  "soft_skills_score": <0-100 based on interpersonal/leadership skills match>,
+  "searchability_score": <0-100 based on keyword formats, section headers, and overall ATS parseability>,
   "summary": "<2-3 sentence objective assessment citing SPECIFIC matches and gaps found>",
   "matched_keywords": ["keyword1", "keyword2", ...list ALL keywords from JD found in resume - be thorough],
   "missing_keywords": ["keyword1", "keyword2", ...up to 15 important keywords from JD NOT found in resume],
+  "hard_skills_matched": ["skill1", "skill2", ...technical skills from JD found in resume],
+  "hard_skills_missing": ["skill1", "skill2", ...critical technical skills from JD NOT in resume],
+  "soft_skills_matched": ["skill1", "skill2", ...interpersonal skills from JD found in resume],
+  "soft_skills_missing": ["skill1", "skill2", ...important soft skills from JD NOT in resume],
+  "formatting_issues": [
+    {"issue": "<specific formatting problem>", "severity": "critical|warning|minor", "fix": "<how to fix it>"}
+  ],
+  "keyword_format_suggestions": [
+    {"term": "<keyword that should have both forms>", "current": "<how it appears now>", "suggested": "<recommended format with both acronym and full form>"}
+  ],
   "strengths": ["strength1", "strength2", "strength3" - cite SPECIFIC content from the resume],
   "improvements": [
     {"priority": "critical|high|medium", "issue": "<specific gap with context>", "fix": "<specific actionable fix>"}
@@ -277,17 +313,18 @@ Provide your analysis in this exact JSON format (no markdown, just JSON):
   "tech_stack_gaps": ["<technologies mentioned in JD but not in resume>"],
   "recommended_additions": ["<specific addition based on JD requirements>"],
   "role_fit_assessment": "<1 paragraph citing SPECIFIC evidence from both documents>",
-  "deal_breakers": ["<only true disqualifying factors that cannot be addressed>"]
+  "deal_breakers": ["<only true disqualifying factors that cannot be addressed>"],
+  "match_rate_target": "<'On track for 75%+ target' or 'Below 75% target - needs improvement'>"
 }
 
 SCORING GUIDELINES (be consistent):
-- 85-100: Strong keyword match (>80% of required terms), meets experience requirements
-- 70-84: Good match (60-80% keywords), minor gaps
-- 55-69: Moderate match (40-60% keywords), some gaps
-- 40-54: Weak match (<40% keywords), significant gaps
-- Below 40: Poor alignment
+- 85-100: Strong keyword match (>80% of required terms), meets experience requirements, no major formatting issues
+- 70-84: Good match (60-80% keywords), minor gaps, minor formatting issues
+- 55-69: Moderate match (40-60% keywords), some gaps, some formatting issues
+- 40-54: Weak match (<40% keywords), significant gaps, formatting problems
+- Below 40: Poor alignment, major gaps
 
-CRITICAL: Be thorough in reading BOTH documents. Count actual keyword matches. More matches = higher score. Cite specific evidence.`;
+CRITICAL: Be thorough in reading BOTH documents. Count actual keyword matches. More matches = higher score. Cite specific evidence. Check formatting issues that break ATS.`;
 
     console.log("ATS Analysis - isPostTransformation:", isPostTransformation);
 
