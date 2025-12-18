@@ -1614,6 +1614,10 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       }
       
       // Process based on current section
+      // Define variables outside switch to avoid temporal dead zone issues
+      const isBullet = /^[•\-\*▪◦‣→]/.test(cleanLine);
+      const hasDate = datePattern.test(cleanLine);
+      
       switch (currentSection) {
         case 'summary':
           if (cleanLine && cleanLine.length > 5) {
@@ -1621,10 +1625,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           }
           break;
           
-        case 'experience':
-          const isBullet = /^[•\-\*▪◦‣→]/.test(cleanLine);
-          const hasDate = datePattern.test(cleanLine);
-          
+        case 'experience': {
           // Job title patterns - must start with these keywords
           const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
           
@@ -1689,8 +1690,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             currentExperience.bullets.push(cleanLine);
           }
           break;
+        }
           
-        case 'skills':
+        case 'skills': {
           const skillItems = cleanLine.split(/[,;|•·]/).map(s => s.trim()).filter(s => s.length > 1 && s.length < 60);
           if (skillItems.length > 0) {
             skills.push(...skillItems);
@@ -1698,6 +1700,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             skills.push(cleanLine);
           }
           break;
+        }
           
         case 'education':
           if (cleanLine.length > 5) {
