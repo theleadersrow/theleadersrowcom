@@ -206,6 +206,67 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
   };
 
+  const performAnalysis = async (retryCount: number): Promise<void> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ resumeText, jobDescription }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        if (response.status === 429) {
+          // Rate limited - retry after delay
+          if (retryCount < 2) {
+            toast({
+              title: "High demand",
+              description: `Retrying in ${(retryCount + 1) * 5} seconds...`,
+            });
+            await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 5000));
+            return performAnalysis(retryCount + 1);
+          }
+          throw new Error("Service is busy. Please wait a moment and try again.");
+        }
+        
+        if (response.status === 402) {
+          throw new Error("AI service temporarily unavailable. Please try again later.");
+        }
+        
+        throw new Error(errorData.error || errorData.message || "Failed to analyze resume");
+      }
+
+      const data = await response.json();
+      setInitialScore(data);
+      setStep("initial_score");
+    } catch (error: any) {
+      console.error("Analysis error:", error);
+      
+      const errorMessage = error.name === 'AbortError' 
+        ? "Analysis timed out. Please try again with a shorter resume."
+        : error.message || "Please try again.";
+      
+      toast({
+        title: "Analysis failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleInitialAnalysis = async () => {
     if (!resumeText.trim() || !jobDescription.trim()) {
       toast({
@@ -217,35 +278,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
 
     setIsAnalyzing(true);
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ resumeText, jobDescription }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to analyze resume");
-
-      const data = await response.json();
-      setInitialScore(data);
-      setStep("initial_score");
-    } catch (error) {
-      console.error("Analysis error:", error);
-      toast({
-        title: "Analysis failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
+    await performAnalysis(0);
+    setIsAnalyzing(false);
   };
 
   const handleEnhanceResume = async () => {
@@ -266,7 +300,16 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check for specific error types
+        if (error.message?.includes('429') || error.message?.includes('rate')) {
+          throw new Error("Service is busy. Please wait a moment and try again.");
+        }
+        if (error.message?.includes('402')) {
+          throw new Error("AI service temporarily unavailable. Please try again later.");
+        }
+        throw error;
+      }
       if (data.error) throw new Error(data.error);
 
       setEnhancedResume(data);
@@ -276,11 +319,11 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       setAcceptedVerbUpgrades(new Set((data.actionVerbUpgrades || []).map((_: any, i: number) => i)));
       setAcceptedAchievements(new Set((data.quantifiedAchievements || []).map((_: any, i: number) => i)));
       setStep("improvements");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Enhancement error:", error);
       toast({
         title: "Enhancement failed",
-        description: "Please try again.",
+        description: error.message || "Please try again.",
         variant: "destructive",
       });
       setStep("initial_score");
@@ -385,6 +428,9 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setIsAnalyzing(true);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
         {
@@ -394,19 +440,34 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({ resumeText: finalContent, jobDescription, isPostTransformation: true }),
+          signal: controller.signal,
         }
       );
 
-      if (!response.ok) throw new Error("Failed to analyze");
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error("Service is busy. Please wait a moment and try again.");
+        }
+        if (response.status === 402) {
+          throw new Error("AI service temporarily unavailable. Please try again later.");
+        }
+        throw new Error(errorData.error || "Failed to analyze");
+      }
 
       const data = await response.json();
       setFinalScore(data);
       setStep("final_score");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Final analysis error:", error);
+      const errorMessage = error.name === 'AbortError' 
+        ? "Analysis timed out. Please try again."
+        : error.message || "Please try again.";
       toast({
         title: "Analysis failed",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -1828,6 +1889,9 @@ Generated by The Leader's Row - Rimo AI Coach`;
       setFinalResumeContent(content);
 
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
+
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
           {
@@ -1837,19 +1901,34 @@ Generated by The Leader's Row - Rimo AI Coach`;
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
             body: JSON.stringify({ resumeText: content, jobDescription, isPostTransformation: true }),
+            signal: controller.signal,
           }
         );
 
-        if (!response.ok) throw new Error("Failed to analyze");
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 429) {
+            throw new Error("Service is busy. Please wait a moment and try again.");
+          }
+          if (response.status === 402) {
+            throw new Error("AI service temporarily unavailable. Please try again later.");
+          }
+          throw new Error(errorData.error || "Failed to analyze");
+        }
 
         const data = await response.json();
         setFinalScore(data);
         setStep("final_score");
-      } catch (error) {
+      } catch (error: any) {
         console.error("Final analysis error:", error);
+        const errorMessage = error.name === 'AbortError' 
+          ? "Analysis timed out. Please try again."
+          : error.message || "Please try again.";
         toast({
           title: "Analysis failed",
-          description: "Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {

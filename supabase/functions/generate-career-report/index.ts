@@ -11,9 +11,9 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-// Rate limiting configuration - lower limit for AI-powered endpoint
+// Rate limiting configuration - increased for beta testing
 const RATE_LIMIT = {
-  maxRequests: 3,
+  maxRequests: 10,
   windowMinutes: 60,
 };
 
