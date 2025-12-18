@@ -1864,7 +1864,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
 
           // Company detection
           const hasCompanySuffix =
-            /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting|Financial|Capital|Partners|Associates|Healthcare|Media|Entertainment|Retail|Insurance)\b/i.test(
+            /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Technology|Solutions|Services|Consulting|Financial|Capital|Partners|Associates|Healthcare|Media|Entertainment|Retail|Insurance|Schwab|Fidelity|Vanguard|Apex)\b/i.test(
               cleanLine
             );
 
@@ -1875,9 +1875,17 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
 
           // Known big brands (keeps headers like "Apple" / "RBC" stable)
           const isMajorCompany =
-            /^(Apple|Google|Microsoft|Amazon|Meta|Facebook|Netflix|Tesla|Uber|Airbnb|RBC|Royal\s+Bank(\s+of\s+Canada)?|TD\s+Bank|BMO|Scotiabank|CIBC|JPMorgan|Goldman\s+Sachs|Morgan\s+Stanley|Deloitte|McKinsey|BCG|Bain|Accenture|IBM|Oracle|Salesforce|Adobe|Intel|Nvidia|Qualcomm|Samsung|Sony|Walmart|Target|Nike|Starbucks|McDonald\'s)\b/i.test(
+            /^(Apple|Google|Microsoft|Amazon|Meta|Facebook|Netflix|Tesla|Uber|Airbnb|RBC|Royal\s+Bank(\s+of\s+Canada)?|TD\s+Bank|TD\s+Ameritrade|BMO|Scotiabank|CIBC|JPMorgan|Goldman\s+Sachs|Morgan\s+Stanley|Charles\s+Schwab|Fidelity|Vanguard|Deloitte|McKinsey|BCG|Bain|Accenture|IBM|Oracle|Salesforce|Adobe|Intel|Nvidia|Qualcomm|Samsung|Sony|Walmart|Target|Nike|Starbucks|McDonald\'s|Apex\s+Technology|AKG\s+Exam)\b/i.test(
               cleanLine
             );
+
+          // Detect company-like lines that start with a capitalized name followed by location/date
+          const looksLikeCompanyLine = 
+            startsWithUppercase &&
+            wordCount <= 8 &&
+            !isBullet &&
+            !isJobTitle &&
+            (hasCompanySuffix || hasLocationMarker || /^[A-Z][a-zA-Z\s&]+,\s*[A-Z][a-z]+/i.test(cleanLine));
 
           const isAllCapsCompany =
             cleanLine === cleanUpper &&
@@ -1888,8 +1896,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               cleanUpper
             );
 
-          const isCompanyHeader = (isMajorCompany || isAllCapsCompany) && !hasDate;
-          const isCompanyLine = hasCompanySuffix || hasLocationMarker || isMajorCompany;
+          const isCompanyHeader = (isMajorCompany || isAllCapsCompany || looksLikeCompanyLine) && !hasDate && !isJobTitle;
+          const isCompanyLine = hasCompanySuffix || hasLocationMarker || isMajorCompany || looksLikeCompanyLine;
 
           // If resume is in "company first" format (common): treat the company header as start of a new role.
           if (!isBullet && isCompanyHeader) {
@@ -1926,19 +1934,39 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             break;
           }
 
-          // Company + dates / location line
-          if (!isBullet && currentExperience && (hasDate || isCompanyLine || hasLocationMarker)) {
+          // Company + dates / location line - check if this might be a NEW company
+          if (!isBullet && (hasDate || isCompanyLine || hasLocationMarker)) {
             const dateMatch = cleanLine.match(datePattern);
-            if (dateMatch) currentExperience.dates = dateMatch[0];
-
             const companyText = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
-            if (companyText) {
-              if (!currentExperience.company) {
-                currentExperience.company = companyText;
-              } else if (!currentExperience.company.includes(companyText) && companyText.length <= 60) {
-                // Append extra company/location context (keeps uploaded formatting feel)
-                currentExperience.company = `${currentExperience.company} | ${companyText}`;
+            
+            // Check if this looks like a completely new company (not just additional info for current)
+            const isNewCompany = currentExperience && 
+              currentExperience.bullets.length > 0 && 
+              companyText && 
+              !currentExperience.company.toLowerCase().includes(companyText.toLowerCase().split(/[,|]/)[0].trim()) &&
+              (hasCompanySuffix || looksLikeCompanyLine || isMajorCompany);
+            
+            if (isNewCompany) {
+              // This is a new experience entry
+              experiences.push(currentExperience);
+              currentExperience = { title: 'Position', company: companyText, dates: dateMatch ? dateMatch[0] : '', bullets: [] };
+              break;
+            }
+            
+            if (currentExperience) {
+              if (dateMatch) currentExperience.dates = dateMatch[0];
+              
+              if (companyText) {
+                if (!currentExperience.company) {
+                  currentExperience.company = companyText;
+                } else if (!currentExperience.company.includes(companyText) && companyText.length <= 60) {
+                  // Append extra company/location context (keeps uploaded formatting feel)
+                  currentExperience.company = `${currentExperience.company} | ${companyText}`;
+                }
               }
+            } else {
+              // No current experience, create one
+              currentExperience = { title: 'Position', company: companyText, dates: dateMatch ? dateMatch[0] : '', bullets: [] };
             }
             break;
           }
