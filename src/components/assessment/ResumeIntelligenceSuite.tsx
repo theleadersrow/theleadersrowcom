@@ -806,7 +806,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         lines.forEach((line, idx) => {
           const trimmed = line.trim();
           if (!trimmed) {
-            children.push(new Paragraph({ text: "", spacing: { before: 60 } }));
+            children.push(new Paragraph({ text: "", spacing: { after: 120 } }));
             return;
           }
 
@@ -1503,21 +1503,27 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     `;
     
     const element = document.createElement("div");
-    // Keep element on-screen at 0,0 but invisible so html2canvas can render it properly
+    // Put the export DOM off-screen (but fully opaque) so html2canvas captures real pixels.
+    // NOTE: opacity: 0 will produce a blank PDF because the rendered pixels are transparent.
     element.style.position = "fixed";
-    element.style.left = "0";
+    element.style.left = "-10000px";
     element.style.top = "0";
     element.style.width = "800px";
     element.style.background = "#ffffff";
     element.style.color = "#111111";
-    element.style.opacity = "0";
+    element.style.opacity = "1";
     element.style.pointerEvents = "none";
-    element.style.zIndex = "-1";
+    element.style.overflow = "visible";
+    element.style.zIndex = "2147483647";
     element.innerHTML = reportHtml;
     document.body.appendChild(element);
     
     try {
-      // Give browser a tick to layout before capture
+      // Give the browser time to layout + load fonts before capture (prevents blank PDFs).
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
       await new Promise((r) => requestAnimationFrame(() => r(null)));
 
       await html2pdf()
@@ -1551,22 +1557,27 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     const resumeHtml = generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, skills, education);
     
     const element = document.createElement("div");
-    // Keep the export DOM isolated but still *renderable* by html2canvas/html2pdf
-    // (moving far off-screen can cause blank/partial captures in some browsers)
+    // Put the export DOM off-screen (but fully opaque) so html2canvas captures real pixels.
+    // NOTE: opacity: 0 will produce a blank PDF because the rendered pixels are transparent.
     element.style.position = "fixed";
-    element.style.left = "0";
+    element.style.left = "-10000px";
     element.style.top = "0";
     element.style.width = "800px";
     element.style.background = "#ffffff";
     element.style.color = "#111111";
-    element.style.opacity = "0";
+    element.style.opacity = "1";
     element.style.pointerEvents = "none";
-    element.style.zIndex = "-1";
+    element.style.overflow = "visible";
+    element.style.zIndex = "2147483647";
     element.innerHTML = resumeHtml;
     document.body.appendChild(element);
     
     try {
-      // Give the browser a tick to layout the export DOM before html2canvas captures it.
+      // Give the browser time to layout + load fonts before capture (prevents blank PDFs).
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
       await new Promise((r) => requestAnimationFrame(() => r(null)));
 
       await html2pdf()
