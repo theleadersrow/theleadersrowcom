@@ -296,12 +296,15 @@ Return the result as JSON with the specified structure.`;
           const followupSystemPrompt = `You are an expert resume editor. Return ONLY valid JSON with this structure:
 { "contentImprovements": [{ "section": string, "original": string, "improved": string, "reason": string }] }
 
-Rules:
+CRITICAL RULES:
 - Provide a BULLET-LEVEL list of changes (aim for 15-30 items for a typical resume).
 - Include multiple items per company/role (not 1 summary per job).
-- "original" MUST be exact snippets from the ORIGINAL resume.
-- "improved" MUST be exact snippets from the REWRITTEN resume.
-- "section" should be "Experience - [Company]" (or "Professional Summary", "Skills", etc.).`;
+- "original" MUST be the EXACT bullet point TEXT or sentence from the ORIGINAL resume - NOT the job title, company name, or section header. Copy the actual description/achievement text verbatim.
+- "improved" MUST be the corresponding rewritten bullet point from the REWRITTEN resume.
+- "section" should be "Experience - [Company]" (or "Professional Summary", "Skills", etc.).
+- NEVER put job titles or role names in the "original" field - only the descriptive content/bullets.
+- Example of WRONG: { "original": "Senior Product Manager at Google" } - this is a title, not content.
+- Example of CORRECT: { "original": "Led cross-functional team to deliver product features" } - this is actual bullet content.`;
 
           const followupUserPrompt = `Create an expanded bullet-level change list by comparing the ORIGINAL resume to the REWRITTEN resume.
 
