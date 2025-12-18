@@ -194,7 +194,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Enhanced Jobscan-style OBJECTIVE scoring system with formatting checks, hard/soft skills split, and keyword format tips
+    // Enhanced Jobscan-style OBJECTIVE scoring system with comprehensive analysis
     const systemPrompt = `You are an expert ATS (Applicant Tracking System) analyzer with deep knowledge of how automated resume screening works, inspired by industry-leading tools like Jobscan.
 
 CRITICAL: You must CAREFULLY READ and EXTRACT specific information from BOTH documents before scoring.
@@ -207,6 +207,7 @@ CRITICAL: You must CAREFULLY READ and EXTRACT specific information from BOTH doc
 - Management/leadership requirements
 - Industry/domain requirements
 - Key responsibilities and deliverables
+- Target job title (exact title from the posting)
 
 **STEP 2 - EXTRACT FROM RESUME:**
 - Total years of experience (calculate from work history dates)
@@ -214,7 +215,9 @@ CRITICAL: You must CAREFULLY READ and EXTRACT specific information from BOTH doc
 - Certifications and qualifications
 - Evidence of management/leadership (team sizes, scope)
 - Industries and domains worked in
-- Quantified achievements and outcomes
+- Quantified achievements and outcomes (count them!)
+- Current/most recent job title
+- Contact information completeness
 
 **STEP 3 - ANALYZE FORMATTING (ATS-KILLING ISSUES):**
 Check for formatting elements that commonly break ATS parsing:
@@ -230,16 +233,20 @@ Check for formatting elements that commonly break ATS parsing:
 Check if resume uses BOTH acronym and full-form versions of key terms:
 - Good: "Search Engine Optimization (SEO)" - ATS can match either
 - Bad: Only "SEO" without context - may miss keyword match
-- Good: "Machine Learning (ML)" with both forms
-- Bad: Abbreviations without expansion
 
-**STEP 5 - COMPARE AND SCORE:**
-1. KEYWORD MATCHING - Count exact and semantic matches between resume and job description
-2. HARD SKILLS ALIGNMENT - Identify required technical skills present vs missing
-3. SOFT SKILLS ALIGNMENT - Identify required interpersonal skills present vs missing
-4. EXPERIENCE LEVEL - Compare years of experience requirements vs resume evidence
-5. LEADERSHIP/SCOPE - Match management requirements to resume evidence
-6. FORMAT/SEARCHABILITY - Check for ATS-friendly formatting
+**STEP 5 - MEASURABLE RESULTS ANALYSIS:**
+Count and analyze quantified achievements:
+- Percentages (increased sales by 25%)
+- Dollar amounts (managed $2M budget)
+- Time savings (reduced processing time by 3 hours)
+- Team/scope sizes (led team of 12)
+- Counts (launched 5 products)
+
+**STEP 6 - RESUME QUALITY METRICS:**
+- Word count (ideal: 400-800 words for 1-page, 600-1000 for 2-page)
+- Bullet point analysis (ideal: 3-6 bullets per role, starting with action verbs)
+- Sentence length (avoid overly long bullets >25 words)
+- Section completeness (Contact, Summary, Experience, Skills, Education)
 
 SCORING MUST BE OBJECTIVE AND REPRODUCIBLE:
 - Base scores on COUNTABLE factors (keywords found, skills matched, years shown)
@@ -268,10 +275,13 @@ ${isPostTransformation ? `
 5. Identify leadership/management requirements and evidence
 6. Check for ATS-unfriendly formatting issues
 7. Check keyword formats (acronym + full form usage)
+8. Count measurable results/quantified achievements
+9. Analyze resume structure and completeness
+10. Compare job title alignment
 
 Provide your analysis in this exact JSON format (no markdown, just JSON):
 {
-  "ats_score": <number 0-100 - calculate as: (keyword_match * 0.30) + (hard_skills * 0.20) + (soft_skills * 0.10) + (experience_match * 0.20) + (format * 0.10) + (searchability * 0.10)>,
+  "ats_score": <number 0-100 - calculate as: (keyword_match * 0.25) + (hard_skills * 0.20) + (soft_skills * 0.10) + (experience_match * 0.15) + (format * 0.10) + (searchability * 0.10) + (measurable_results * 0.10)>,
   "keyword_match_score": <0-100 based on: (matched keywords / total required keywords) * 100>,
   "experience_match_score": <0-100 based on years alignment>,
   "skills_match_score": <0-100 based on combined hard+soft skills present vs required>,
@@ -279,19 +289,74 @@ Provide your analysis in this exact JSON format (no markdown, just JSON):
   "hard_skills_score": <0-100 based on technical/tool skills match>,
   "soft_skills_score": <0-100 based on interpersonal/leadership skills match>,
   "searchability_score": <0-100 based on keyword formats, section headers, and overall ATS parseability>,
+  "measurable_results_score": <0-100 based on quantified achievements - 0 for none, 100 for 10+ strong metrics>,
+  
   "summary": "<2-3 sentence objective assessment citing SPECIFIC matches and gaps found>",
+  
+  "job_title_match": {
+    "target_title": "<exact job title from posting>",
+    "resume_title": "<current/most recent title from resume>",
+    "match_level": "exact|strong|partial|weak",
+    "recommendation": "<specific suggestion if not exact match>"
+  },
+  
+  "word_count_analysis": {
+    "estimated_words": <approximate word count of resume>,
+    "ideal_range": "400-800 for 1-page, 600-1000 for 2-page",
+    "assessment": "optimal|too_short|too_long",
+    "recommendation": "<specific feedback>"
+  },
+  
+  "measurable_results": {
+    "count": <number of quantified achievements found>,
+    "examples_found": ["<list 3-5 specific quantified statements from resume>"],
+    "missing_opportunities": ["<areas where metrics could be added, e.g., 'Add revenue impact to sales role'>"],
+    "ideal_count": "8-12 quantified achievements across experience section"
+  },
+  
+  "contact_info_check": {
+    "has_email": <true/false>,
+    "has_phone": <true/false>,
+    "has_linkedin": <true/false>,
+    "has_location": <true/false>,
+    "issues": ["<any problems like personal email, missing info>"]
+  },
+  
+  "section_analysis": {
+    "sections_found": ["<list all sections detected: Summary, Experience, Skills, Education, etc.>"],
+    "sections_missing": ["<important sections not found>"],
+    "section_order_optimal": <true/false>,
+    "recommendations": ["<specific section improvements>"]
+  },
+  
+  "bullet_point_analysis": {
+    "total_bullets": <count of bullet points in experience>,
+    "bullets_with_metrics": <count starting with action verbs AND containing numbers>,
+    "average_bullets_per_role": <number>,
+    "weak_bullets": ["<examples of vague or weak bullet points that need improvement>"],
+    "strong_bullets": ["<examples of strong action-oriented bullets>"]
+  },
+  
+  "recruiter_tips": [
+    "<3-5 specific, actionable tips a recruiter would give, e.g., 'Move Python to top of skills - it appears 4x in JD'>",
+    "<e.g., 'Add a Professional Summary - most ATS look for this section'>",
+    "<e.g., 'Your most recent title doesn't match - consider adding a headline'>"
+  ],
+  
   "matched_keywords": ["keyword1", "keyword2", ...list ALL keywords from JD found in resume - be thorough],
   "missing_keywords": ["keyword1", "keyword2", ...up to 15 important keywords from JD NOT found in resume],
   "hard_skills_matched": ["skill1", "skill2", ...technical skills from JD found in resume],
   "hard_skills_missing": ["skill1", "skill2", ...critical technical skills from JD NOT in resume],
   "soft_skills_matched": ["skill1", "skill2", ...interpersonal skills from JD found in resume],
   "soft_skills_missing": ["skill1", "skill2", ...important soft skills from JD NOT in resume],
+  
   "formatting_issues": [
     {"issue": "<specific formatting problem>", "severity": "critical|warning|minor", "fix": "<how to fix it>"}
   ],
   "keyword_format_suggestions": [
     {"term": "<keyword that should have both forms>", "current": "<how it appears now>", "suggested": "<recommended format with both acronym and full form>"}
   ],
+  
   "strengths": ["strength1", "strength2", "strength3" - cite SPECIFIC content from the resume],
   "improvements": [
     {"priority": "critical|high|medium", "issue": "<specific gap with context>", "fix": "<specific actionable fix>"}
@@ -300,6 +365,7 @@ Provide your analysis in this exact JSON format (no markdown, just JSON):
   "skills_gaps": [
     {"skill": "<missing skill from JD>", "importance": "critical|high|medium", "context": "<where it's mentioned in JD and why it matters>"}
   ],
+  
   "years_experience_analysis": {
     "job_requires": "<exact years from JD, e.g., '5+ years in product management'>",
     "resume_shows": "<calculated from resume dates, e.g., '7 years based on roles from 2017-2024'>",
@@ -310,21 +376,49 @@ Provide your analysis in this exact JSON format (no markdown, just JSON):
     "resume_shows": "<from resume, e.g., 'Led team of 8 engineers, partnered with 3 teams'>",
     "gap": "<specific gap or 'Meets requirement'>"
   },
+  
+  "industry_alignment": {
+    "job_industry": "<industry from JD>",
+    "resume_industries": ["<industries evident from resume experience>"],
+    "alignment": "strong|moderate|weak",
+    "recommendation": "<how to better position for this industry>"
+  },
+  
+  "education_match": {
+    "job_requires": "<education requirements from JD>",
+    "resume_shows": "<education from resume>",
+    "meets_requirement": <true/false>,
+    "notes": "<any gaps or equivalencies>"
+  },
+  
+  "certification_analysis": {
+    "required_certs": ["<certifications mentioned as required or preferred in JD>"],
+    "resume_certs": ["<certifications found in resume>"],
+    "missing_certs": ["<important certs to consider adding>"],
+    "bonus_certs": ["<certs in resume that add value>"]
+  },
+  
   "tech_stack_gaps": ["<technologies mentioned in JD but not in resume>"],
   "recommended_additions": ["<specific addition based on JD requirements>"],
   "role_fit_assessment": "<1 paragraph citing SPECIFIC evidence from both documents>",
   "deal_breakers": ["<only true disqualifying factors that cannot be addressed>"],
-  "match_rate_target": "<'On track for 75%+ target' or 'Below 75% target - needs improvement'>"
+  "match_rate_target": "<'On track for 75%+ target' or 'Below 75% target - needs improvement'>",
+  
+  "quick_wins": [
+    "<3-5 changes that would immediately improve score, e.g., 'Add Agile to skills section - mentioned 3x in JD'>",
+    "<e.g., 'Add metrics to your most recent 2 bullet points'>",
+    "<e.g., 'Include both 'Machine Learning' and 'ML' in skills'>"
+  ]
 }
 
 SCORING GUIDELINES (be consistent):
-- 85-100: Strong keyword match (>80% of required terms), meets experience requirements, no major formatting issues
-- 70-84: Good match (60-80% keywords), minor gaps, minor formatting issues
-- 55-69: Moderate match (40-60% keywords), some gaps, some formatting issues
-- 40-54: Weak match (<40% keywords), significant gaps, formatting problems
+- 85-100: Strong keyword match (>80% of required terms), meets experience requirements, no major formatting issues, 8+ quantified achievements
+- 70-84: Good match (60-80% keywords), minor gaps, minor formatting issues, 5-7 quantified achievements
+- 55-69: Moderate match (40-60% keywords), some gaps, some formatting issues, 3-4 quantified achievements
+- 40-54: Weak match (<40% keywords), significant gaps, formatting problems, <3 quantified achievements
 - Below 40: Poor alignment, major gaps
 
-CRITICAL: Be thorough in reading BOTH documents. Count actual keyword matches. More matches = higher score. Cite specific evidence. Check formatting issues that break ATS.`;
+CRITICAL: Be thorough in reading BOTH documents. Count actual keyword matches. More matches = higher score. Cite specific evidence. Check formatting issues that break ATS. Provide actionable recruiter tips.`;
 
     console.log("ATS Analysis - isPostTransformation:", isPostTransformation);
 
