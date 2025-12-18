@@ -6,9 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Rate limiting configuration - more generous limits
+// Rate limiting configuration - very generous for production testing
 const RATE_LIMIT = {
-  maxRequests: 100,
+  maxRequests: 1000, // Increased for high-volume production testing
   windowMinutes: 60,
 };
 
