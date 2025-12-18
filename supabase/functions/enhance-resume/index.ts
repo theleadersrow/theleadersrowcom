@@ -272,7 +272,7 @@ Return the result as JSON with the specified structure.`;
 
     try {
       const result = JSON.parse(jsonContent);
-      
+
       // Ensure all required fields exist with defaults
       const enhancedResult = {
         enhancedContent: result.enhancedContent || resumeText,
@@ -284,6 +284,71 @@ Return the result as JSON with the specified structure.`;
         bulletPointImprovements: result.bulletPointImprovements || [],
         transformationNotes: result.transformationNotes || "",
       };
+
+      // If the model returned an overly short change list, ask once more for an expanded bullet-level diff.
+      if (enhancedResult.contentImprovements.length < 8) {
+        console.log(
+          "[ENHANCE-RESUME] contentImprovements too short, requesting expanded list:",
+          enhancedResult.contentImprovements.length,
+        );
+
+        try {
+          const followupSystemPrompt = `You are an expert resume editor. Return ONLY valid JSON with this structure:
+{ "contentImprovements": [{ "section": string, "original": string, "improved": string, "reason": string }] }
+
+Rules:
+- Provide a BULLET-LEVEL list of changes (aim for 15-30 items for a typical resume).
+- Include multiple items per company/role (not 1 summary per job).
+- "original" MUST be exact snippets from the ORIGINAL resume.
+- "improved" MUST be exact snippets from the REWRITTEN resume.
+- "section" should be "Experience - [Company]" (or "Professional Summary", "Skills", etc.).`;
+
+          const followupUserPrompt = `Create an expanded bullet-level change list by comparing the ORIGINAL resume to the REWRITTEN resume.
+
+=== ORIGINAL RESUME ===
+${resumeText}
+
+=== REWRITTEN RESUME ===
+${enhancedResult.enhancedContent}`;
+
+          const followup = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                { role: "system", content: followupSystemPrompt },
+                { role: "user", content: followupUserPrompt },
+              ],
+            }),
+          });
+
+          if (followup.ok) {
+            const followupData = await followup.json();
+            const followupContent = followupData.choices?.[0]?.message?.content || "";
+
+            let followupJson = followupContent;
+            const followupMatch = followupContent.match(/```(?:json)?\s*([\s\S]*?)```/);
+            if (followupMatch) followupJson = followupMatch[1].trim();
+
+            const expanded = JSON.parse(followupJson);
+            const expandedList = Array.isArray(expanded?.contentImprovements)
+              ? expanded.contentImprovements
+              : [];
+
+            if (expandedList.length > enhancedResult.contentImprovements.length) {
+              enhancedResult.contentImprovements = expandedList;
+            }
+          } else {
+            console.log("[ENHANCE-RESUME] followup generation failed", followup.status);
+          }
+        } catch (e) {
+          console.log("[ENHANCE-RESUME] followup parse/generation failed", e);
+        }
+      }
 
       return new Response(JSON.stringify(enhancedResult), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
