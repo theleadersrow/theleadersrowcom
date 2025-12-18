@@ -584,12 +584,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               <div>
                 <span className="font-medium">You provide:</span> Resume + Job Description + How you want to be perceived → <span className="font-medium">You get:</span> ATS Score + Personalized AI Rewrite + New Score
               </div>
-              <button 
-                onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
-                className="text-amber-600 hover:text-amber-700 underline underline-offset-2 whitespace-nowrap ml-4"
-              >
-                Already purchased?
-              </button>
+              {!resumeAccess.hasAccess && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
+                  className="text-amber-600 hover:text-amber-700 underline underline-offset-2 whitespace-nowrap ml-4"
+                >
+                  Already purchased?
+                </button>
+              )}
             </div>
           </div>
 
@@ -643,12 +645,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               <div>
                 <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
               </div>
-              <button 
-                onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
-                className="text-blue-600 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap ml-4"
-              >
-                Already purchased?
-              </button>
+              {!linkedInAccess.hasAccess && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
+                  className="text-blue-600 hover:text-blue-700 underline underline-offset-2 whitespace-nowrap ml-4"
+                >
+                  Already purchased?
+                </button>
+              )}
             </div>
           </div>
 
