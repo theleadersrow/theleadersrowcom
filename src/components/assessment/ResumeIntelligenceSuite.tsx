@@ -172,6 +172,20 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Helper to get email from localStorage
+  const getStoredEmail = (): string | undefined => {
+    try {
+      const storedAccess = localStorage.getItem("resume_suite_access");
+      if (storedAccess) {
+        const parsed = JSON.parse(storedAccess);
+        return parsed.email;
+      }
+    } catch (e) {
+      console.error("Error reading stored access:", e);
+    }
+    return undefined;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -206,17 +220,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           )
         );
 
-        // Get email from localStorage for access verification
-        let userEmail: string | undefined;
-        try {
-          const storedAccess = localStorage.getItem("resume_suite_access");
-          if (storedAccess) {
-            const parsed = JSON.parse(storedAccess);
-            userEmail = parsed.email;
-          }
-        } catch (e) {
-          console.error("Error reading stored access:", e);
-        }
+        const userEmail = getStoredEmail();
 
         const { data, error } = await supabase.functions.invoke('parse-resume', {
           body: { fileBase64: base64, fileName: file.name, fileType: file.type, email: userEmail },
@@ -242,12 +246,13 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       setIsUploadingResume(false);
     }
   };
-
   const performAnalysis = async (retryCount: number): Promise<void> => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
+      const userEmail = getStoredEmail();
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
         {
@@ -256,7 +261,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText, jobDescription }),
+          body: JSON.stringify({ resumeText, jobDescription, email: userEmail }),
           signal: controller.signal,
         }
       );
@@ -331,6 +336,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setStep("enhancing");
     setIsEnhancing(true);
 
+    const userEmail = getStoredEmail();
+    
     try {
       const { data, error } = await supabase.functions.invoke("enhance-resume", {
         body: { 
@@ -342,6 +349,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           experienceGaps: initialScore?.experience_gaps || [],
           skillsGaps: initialScore?.skills_gaps || [],
           techStackGaps: initialScore?.tech_stack_gaps?.map((t: string) => ({ technology: t, gap: "Missing from resume" })) || [],
+          email: userEmail,
         },
       });
 
@@ -482,6 +490,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
+      const userEmail = getStoredEmail();
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
         {
@@ -490,7 +500,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ resumeText: finalContent, jobDescription, isPostTransformation: true }),
+          body: JSON.stringify({ resumeText: finalContent, jobDescription, isPostTransformation: true, email: userEmail }),
           signal: controller.signal,
         }
       );
