@@ -263,6 +263,26 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     setIsProcessing(true);
     
     try {
+      // First check if user already has access
+      const { data: accessData, error: accessError } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email, toolType: "resume_suite", action: "check" },
+      });
+
+      if (!accessError && accessData?.hasAccess) {
+        setShowPaymentDialog(false);
+        toast.success(`You already have access with this email! ${accessData.daysRemaining} days remaining.`, {
+          duration: 5000,
+        });
+        // Store email and grant access directly
+        setResumeAccess({ hasAccess: true, email, expiresAt: accessData.expiresAt });
+        localStorage.setItem(RESUME_SUITE_ACCESS_KEY, JSON.stringify({ 
+          hasAccess: true, 
+          email, 
+          expiresAt: accessData.expiresAt 
+        }));
+        return;
+      }
+
       // Record the email for tracking
       await supabase.from("tool_purchases").insert({
         email,
@@ -299,6 +319,26 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     setIsProcessing(true);
     
     try {
+      // First check if user already has access
+      const { data: accessData, error: accessError } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email: linkedInEmail, toolType: "linkedin_signal", action: "check" },
+      });
+
+      if (!accessError && accessData?.hasAccess) {
+        setShowLinkedInPaymentDialog(false);
+        toast.success(`You already have access with this email! ${accessData.daysRemaining} days remaining.`, {
+          duration: 5000,
+        });
+        // Store email and grant access directly
+        setLinkedInAccess({ hasAccess: true, email: linkedInEmail, expiresAt: accessData.expiresAt });
+        localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify({ 
+          hasAccess: true, 
+          email: linkedInEmail, 
+          expiresAt: accessData.expiresAt 
+        }));
+        return;
+      }
+
       // Record the email for tracking
       await supabase.from("tool_purchases").insert({
         email: linkedInEmail,
