@@ -206,8 +206,20 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           )
         );
 
+        // Get email from localStorage for access verification
+        let userEmail: string | undefined;
+        try {
+          const storedAccess = localStorage.getItem("resume_suite_access");
+          if (storedAccess) {
+            const parsed = JSON.parse(storedAccess);
+            userEmail = parsed.email;
+          }
+        } catch (e) {
+          console.error("Error reading stored access:", e);
+        }
+
         const { data, error } = await supabase.functions.invoke('parse-resume', {
-          body: { fileBase64: base64, fileName: file.name, fileType: file.type },
+          body: { fileBase64: base64, fileName: file.name, fileType: file.type, email: userEmail },
         });
 
         if (error) throw error;
