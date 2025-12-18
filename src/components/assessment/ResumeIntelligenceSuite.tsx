@@ -377,6 +377,33 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     setJobDescription("");
   };
 
+  // Retry helper for API calls
+  const withRetry = async <T,>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    delayMs: number = 2000,
+    retryName: string = "Request"
+  ): Promise<T> => {
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        lastError = error;
+        // Don't retry on auth/access errors
+        if (error.message?.includes('403') || error.message?.includes('Access') || error.message?.includes('expired')) {
+          throw error;
+        }
+        if (attempt < maxRetries - 1) {
+          const waitTime = delayMs * (attempt + 1);
+          console.log(`${retryName} attempt ${attempt + 1} failed, retrying in ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+    throw lastError || new Error(`${retryName} failed after ${maxRetries} attempts`);
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -418,23 +445,25 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
 
         const userEmail = getStoredEmail();
 
-        const { data, error } = await supabase.functions.invoke('parse-resume', {
-          body: { fileBase64: base64, fileName: file.name, fileType: file.type, email: userEmail },
-        });
+        // Use retry wrapper for resilience
+        const data = await withRetry(async () => {
+          const { data, error } = await supabase.functions.invoke('parse-resume', {
+            body: { fileBase64: base64, fileName: file.name, fileType: file.type, email: userEmail },
+          });
+          if (error) throw error;
+          if (!data?.resumeText) throw new Error("No text extracted");
+          return data;
+        }, 3, 2000, "Resume parsing");
 
-        if (error) throw error;
-        if (data?.resumeText) {
-          setResumeText(data.resumeText);
-          toast({ title: "Resume parsed", description: "Your resume has been extracted." });
-        } else {
-          throw new Error("No text extracted");
-        }
+        setResumeText(data.resumeText);
+        toast({ title: "Resume parsed", description: "Your resume has been extracted." });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload error:", error);
+      const isAccessError = error.message?.includes('403') || error.message?.includes('Access');
       toast({
-        title: "Upload failed",
-        description: "Please paste your resume text manually.",
+        title: isAccessError ? "Access denied" : "Upload failed",
+        description: isAccessError ? error.message : "Please paste your resume text manually or try again.",
         variant: "destructive",
       });
       setResumeFileName(null);
@@ -554,43 +583,48 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     }
     
     try {
-      const { data, error } = await supabase.functions.invoke("enhance-resume", {
-        body: { 
-          resumeText, 
-          jobDescription,
-          selfProjection,
-          missingKeywords: initialScore?.missing_keywords || [],
-          improvements: initialScore?.improvements || [],
-          experienceGaps: initialScore?.experience_gaps || [],
-          skillsGaps: initialScore?.skills_gaps || [],
-          techStackGaps: initialScore?.tech_stack_gaps?.map((t: string) => ({ technology: t, gap: "Missing from resume" })) || [],
-          email: userEmail,
-          accessToken,
-        },
-      });
+      // Use retry wrapper for resilience
+      const data = await withRetry(async () => {
+        const { data, error } = await supabase.functions.invoke("enhance-resume", {
+          body: { 
+            resumeText, 
+            jobDescription,
+            selfProjection,
+            missingKeywords: initialScore?.missing_keywords || [],
+            improvements: initialScore?.improvements || [],
+            experienceGaps: initialScore?.experience_gaps || [],
+            skillsGaps: initialScore?.skills_gaps || [],
+            techStackGaps: initialScore?.tech_stack_gaps?.map((t: string) => ({ technology: t, gap: "Missing from resume" })) || [],
+            email: userEmail,
+            accessToken,
+          },
+        });
 
-      if (error) {
-        // Check for specific error types
-        if (error.message?.includes('403') || error.message?.includes('Access denied') || error.message?.includes('access')) {
-          if (error.message?.includes('expired')) {
-            throw new Error("Your access has expired. Please renew your subscription to continue using this tool.");
+        if (error) {
+          // Check for specific error types
+          if (error.message?.includes('403') || error.message?.includes('Access denied') || error.message?.includes('access')) {
+            if (error.message?.includes('expired')) {
+              throw new Error("Your access has expired. Please renew your subscription to continue using this tool.");
+            }
+            throw new Error("You don't have access to this tool. Please purchase the Resume Intelligence Suite to use this feature.");
           }
-          throw new Error("You don't have access to this tool. Please purchase the Resume Intelligence Suite to use this feature.");
+          if (error.message?.includes('429') || error.message?.includes('rate')) {
+            throw new Error("Service is busy. Please wait a moment and try again.");
+          }
+          if (error.message?.includes('402')) {
+            throw new Error("AI service temporarily unavailable. Please try again later.");
+          }
+          throw error;
         }
-        if (error.message?.includes('429') || error.message?.includes('rate')) {
-          throw new Error("Service is busy. Please wait a moment and try again.");
-        }
-        if (error.message?.includes('402')) {
-          throw new Error("AI service temporarily unavailable. Please try again later.");
-        }
-        throw error;
-      }
-      if (data?.error) throw new Error(data.error);
+        if (data?.error) throw new Error(data.error);
 
-      // Defensive parsing - validate the data structure
-      if (!data || typeof data !== 'object') {
-        throw new Error("Invalid response from enhancement service. Please try again.");
-      }
+        // Defensive parsing - validate the data structure
+        if (!data || typeof data !== 'object') {
+          throw new Error("Invalid response from enhancement service. Please try again.");
+        }
+        
+        return data;
+      }, 2, 3000, "Resume enhancement");
 
       // Safely extract arrays with fallbacks
       const safeData = {
