@@ -97,7 +97,7 @@ interface CoverLetterDetails {
 
 type Step = "input" | "initial_score" | "enhancing" | "improvements" | "format_selection" | "final_score";
 type CoverLetterLength = "short" | "medium" | "detailed";
-type ResumeFormat = "classic" | "modern";
+type ResumeFormat = "classic";
 
 export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligenceSuiteProps) {
   const [step, setStep] = useState<Step>("input");
@@ -138,9 +138,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
   const [viewMode, setViewMode] = useState<"comparison" | "details">("comparison");
   const [useFullTransformation, setUseFullTransformation] = useState(true);
   
-  // Format selection state
-  const [selectedFormat, setSelectedFormat] = useState<ResumeFormat | null>(null);
-  const [showFormatSelection, setShowFormatSelection] = useState(false);
+  // Format selection state - classic only now
+  const [selectedFormat, setSelectedFormat] = useState<ResumeFormat>("classic");
   const [isGeneratingFormatted, setIsGeneratingFormatted] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -490,11 +489,8 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     try {
       const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
       const lines = content.split('\n');
+      
       const hasStructuredData = experiences.length > 0;
-      
-      // Check if modern format is selected
-      const isModern = selectedFormat === "modern";
-      
       if (!hasStructuredData) {
         // Fallback: create a clean single-column DOCX from ALL raw content
         const children: Paragraph[] = [];
@@ -564,162 +560,6 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         border: { bottom: { color, style: BorderStyle.SINGLE, size: 8 } }
       });
       
-      if (isModern && hasStructuredData) {
-        // Modern Two-Column Format using Table
-        const noBorder = { 
-          top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
-          bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
-          left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, 
-          right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } 
-        };
-        
-        // Build left sidebar content (name, contact, skills, education)
-        const leftContent: Paragraph[] = [
-          new Paragraph({
-            children: [new TextRun({ text: (name || "Your Name").toUpperCase(), bold: true, size: 36, font: "Calibri", color: "FFFFFF" })],
-            spacing: { after: 60 }
-          })
-        ];
-        
-        if (headline) {
-          leftContent.push(new Paragraph({
-            children: [new TextRun({ text: headline, size: 20, font: "Calibri", color: "90cdf4", italics: true })],
-            spacing: { after: 200 }
-          }));
-        }
-        
-        // Contact section
-        if (contactInfo.length > 0) {
-          leftContent.push(new Paragraph({
-            children: [new TextRun({ text: "CONTACT", bold: true, size: 18, font: "Calibri", color: "90cdf4" })],
-            spacing: { before: 200, after: 80 },
-            border: { bottom: { color: "3182ce", style: BorderStyle.SINGLE, size: 4 } }
-          }));
-          contactInfo.forEach(c => {
-            leftContent.push(new Paragraph({
-              children: [new TextRun({ text: c, size: 18, font: "Calibri", color: "e2e8f0" })],
-              spacing: { before: 40, after: 40 }
-            }));
-          });
-        }
-        
-        // Skills section
-        if (skills.length > 0) {
-          leftContent.push(new Paragraph({
-            children: [new TextRun({ text: "SKILLS", bold: true, size: 18, font: "Calibri", color: "90cdf4" })],
-            spacing: { before: 200, after: 80 },
-            border: { bottom: { color: "3182ce", style: BorderStyle.SINGLE, size: 4 } }
-          }));
-          skills.forEach(s => {
-            leftContent.push(new Paragraph({
-              children: [new TextRun({ text: `• ${s}`, size: 17, font: "Calibri", color: "e2e8f0" })],
-              spacing: { before: 30, after: 30 }
-            }));
-          });
-        }
-        
-        // Education section
-        if (education.length > 0) {
-          leftContent.push(new Paragraph({
-            children: [new TextRun({ text: "EDUCATION", bold: true, size: 18, font: "Calibri", color: "90cdf4" })],
-            spacing: { before: 200, after: 80 },
-            border: { bottom: { color: "3182ce", style: BorderStyle.SINGLE, size: 4 } }
-          }));
-          education.forEach(edu => {
-            leftContent.push(new Paragraph({
-              children: [new TextRun({ text: edu.degree, size: 17, font: "Calibri", color: "e2e8f0" })],
-              spacing: { before: 40, after: 40 }
-            }));
-          });
-        }
-        
-        // Build right main content (summary, experience)
-        const rightContent: Paragraph[] = [];
-        
-        if (summary) {
-          rightContent.push(new Paragraph({
-            children: [new TextRun({ text: "PROFESSIONAL SUMMARY", bold: true, size: 22, font: "Calibri", color: "1a365d" })],
-            spacing: { after: 80 },
-            border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 6 } }
-          }));
-          rightContent.push(new Paragraph({
-            children: [new TextRun({ text: summary, size: 20, font: "Calibri" })],
-            spacing: { before: 60, after: 160 }
-          }));
-        }
-        
-        if (experiences.length > 0) {
-          rightContent.push(new Paragraph({
-            children: [new TextRun({ text: "PROFESSIONAL EXPERIENCE", bold: true, size: 22, font: "Calibri", color: "1a365d" })],
-            spacing: { after: 80 },
-            border: { bottom: { color: "1a365d", style: BorderStyle.SINGLE, size: 6 } }
-          }));
-          
-          experiences.forEach(exp => {
-            rightContent.push(new Paragraph({
-              children: [
-                new TextRun({ text: exp.title || "Position", bold: true, size: 21, font: "Calibri", color: "1a365d" }),
-                exp.dates ? new TextRun({ text: `  |  ${exp.dates}`, size: 18, font: "Calibri", color: "666666", italics: true }) : new TextRun({ text: "" })
-              ],
-              spacing: { before: 140, after: 30 }
-            }));
-            if (exp.company) {
-              rightContent.push(new Paragraph({
-                children: [new TextRun({ text: exp.company, size: 19, font: "Calibri", color: "444444" })],
-                spacing: { after: 50 }
-              }));
-            }
-            if (exp.bullets && exp.bullets.length > 0) {
-              exp.bullets.forEach((bullet: string) => {
-                rightContent.push(new Paragraph({
-                  children: [new TextRun({ text: bullet, size: 18, font: "Calibri" })],
-                  bullet: { level: 0 },
-                  spacing: { before: 25, after: 25 }
-                }));
-              });
-            }
-          });
-        }
-        
-        // Create two-column table
-        const table = new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  width: { size: 35, type: WidthType.PERCENTAGE },
-                  shading: { fill: "1a365d", type: ShadingType.SOLID, color: "1a365d" },
-                  children: leftContent,
-                  verticalAlign: VerticalAlign.TOP,
-                  borders: { top: { style: BorderStyle.NONE, size: 0, color: "1a365d" }, bottom: { style: BorderStyle.NONE, size: 0, color: "1a365d" }, left: { style: BorderStyle.NONE, size: 0, color: "1a365d" }, right: { style: BorderStyle.NONE, size: 0, color: "1a365d" } },
-                  margins: { top: 400, bottom: 400, left: 300, right: 200 }
-                }),
-                new TableCell({
-                  width: { size: 65, type: WidthType.PERCENTAGE },
-                  children: rightContent,
-                  verticalAlign: VerticalAlign.TOP,
-                  borders: { top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } },
-                  margins: { top: 400, bottom: 400, left: 300, right: 300 }
-                })
-              ]
-            })
-          ],
-          borders: { top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" }, insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } }
-        });
-        
-        const doc = new Document({
-          sections: [{
-            properties: { page: { margin: { top: 0, right: 0, bottom: 0, left: 0 } } },
-            children: [table]
-          }]
-        });
-        
-        const blob = await Packer.toBlob(doc);
-        saveAs(blob, "optimized-resume.docx");
-        toast({ title: "Downloaded!", description: "Modern resume saved as Word document" });
-        return;
-      }
       
       // Classic single-column format
       const documentChildren: Paragraph[] = [];
@@ -966,9 +806,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     
     const { name, headline, contactInfo, summary, experiences, skills, education } = parseResumeContent(content);
     
-    const resumeHtml = selectedFormat === "modern" 
-      ? generateModernResumeHTML(name, headline, contactInfo, summary, experiences, skills, education)
-      : generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, skills, education);
+    const resumeHtml = generateClassicResumeHTML(name, headline, contactInfo, summary, experiences, skills, education);
     
     const element = document.createElement("div");
     element.innerHTML = resumeHtml;
@@ -1097,35 +935,48 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
           const hasDate = datePattern.test(cleanLine);
           const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
           
+          // Detect company/location pattern - company names often have:
+          // - Location markers (City, State/Country) 
+          // - Common company suffixes (Inc, Corp, LLC, Ltd, Bank, etc.)
+          // - Separators like | or - between company and location
+          const isCompanyLine = /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting)\b/i.test(cleanLine) ||
+            /,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|UK|Germany|Canada|India|Singapore|Australia)\b/i.test(cleanLine) ||
+            /\|\s*[A-Z][a-z]+,?\s*[A-Z]{2}\b/.test(cleanLine);
+          
+          // Detect if this looks like a new job entry (title + date on same line, or just a strong title pattern)
+          const isNewJobEntry = (isJobTitle && !isBullet) || (hasDate && cleanLine.length < 80 && !isBullet);
+          
           if (isBullet) {
             // Always add bullets to current experience or create one
             if (!currentExperience) {
               currentExperience = { title: "Position", company: "", dates: "", bullets: [] };
             }
             currentExperience.bullets.push(cleanLine.replace(/^[•\-\*▪◦‣→]\s*/, ''));
-          } else if (isJobTitle || hasDate) {
+          } else if (isNewJobEntry) {
             // Save current experience if it has content
             if (currentExperience && (currentExperience.title !== "Position" || currentExperience.bullets.length > 0)) {
               experiences.push(currentExperience);
             }
             const dateMatch = cleanLine.match(datePattern);
             currentExperience = {
-              title: cleanLine.replace(datePattern, '').replace(/[|,]\s*$/, '').trim() || "Position",
+              title: cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim() || "Position",
               company: '',
               dates: dateMatch ? dateMatch[0] : '',
               bullets: []
             };
-          } else if (currentExperience && !currentExperience.company && cleanLine.length > 3 && cleanLine.length < 100) {
-            // This is likely company info
+          } else if (currentExperience && !currentExperience.company && (isCompanyLine || (cleanLine.length > 3 && cleanLine.length < 80))) {
+            // This is likely company info - extract company and location/dates
             const dateMatch = cleanLine.match(datePattern);
             if (dateMatch && !currentExperience.dates) {
               currentExperience.dates = dateMatch[0];
-              currentExperience.company = cleanLine.replace(datePattern, '').replace(/[|,]\s*$/, '').trim();
+              currentExperience.company = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
             } else {
-              currentExperience.company = cleanLine.split(/[|,]/)[0].trim();
+              // Split on common separators and take the company part
+              const companyPart = cleanLine.split(/\s*[|–—]\s*/)[0].trim();
+              currentExperience.company = companyPart || cleanLine;
             }
-          } else if (currentExperience && cleanLine.length > 10) {
-            // Treat as a bullet point even without bullet character
+          } else if (currentExperience && cleanLine.length > 15 && !isCompanyLine) {
+            // Treat as a bullet point only if it's substantial and doesn't look like company info
             currentExperience.bullets.push(cleanLine);
           }
           break;
@@ -2601,65 +2452,18 @@ Generated by The Leader's Row - Rimo AI Coach`;
                 </div>
               </div>
               
-              {/* Format Selection */}
-              {!selectedFormat ? (
-                <div className="border-t pt-4">
-                  <p className="text-sm text-muted-foreground mb-4">Select a format to download your resume:</p>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <div 
-                      onClick={() => setSelectedFormat("classic")}
-                      className="cursor-pointer border-2 border-muted rounded-lg p-3 hover:border-primary/50 transition-colors flex items-center gap-3"
-                    >
-                      <div className="w-12 h-14 bg-white rounded border shadow-sm flex-shrink-0 p-1">
-                        <div className="h-1.5 bg-gray-300 rounded w-3/4 mx-auto mb-1"></div>
-                        <div className="h-0.5 bg-gray-200 rounded w-full mb-0.5"></div>
-                        <div className="h-0.5 bg-gray-200 rounded w-5/6 mb-0.5"></div>
-                        <div className="h-0.5 bg-gray-200 rounded w-full"></div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground text-sm">Professional Classic</h4>
-                        <p className="text-xs text-muted-foreground">Traditional single-column</p>
-                      </div>
-                    </div>
-                    <div 
-                      onClick={() => setSelectedFormat("modern")}
-                      className="cursor-pointer border-2 border-muted rounded-lg p-3 hover:border-primary/50 transition-colors flex items-center gap-3"
-                    >
-                      <div className="w-12 h-14 bg-white rounded border shadow-sm flex-shrink-0 flex overflow-hidden">
-                        <div className="w-1/3 bg-slate-700"></div>
-                        <div className="w-2/3 p-1">
-                          <div className="h-0.5 bg-gray-200 rounded w-full mb-0.5"></div>
-                          <div className="h-0.5 bg-gray-200 rounded w-5/6 mb-0.5"></div>
-                          <div className="h-0.5 bg-gray-200 rounded w-full"></div>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground text-sm">Modern Two-Column</h4>
-                        <p className="text-xs text-muted-foreground">Contemporary with sidebar</p>
-                      </div>
-                    </div>
-                  </div>
+              {/* Download Options */}
+              <div className="border-t pt-4">
+                <p className="text-sm text-muted-foreground mb-3">Download your optimized resume:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={handleDownloadFormattedPDF}>
+                    <FileDown className="w-4 h-4 mr-1" /> PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleDownloadResume}>
+                    <Download className="w-4 h-4 mr-1" /> DOCX
+                  </Button>
                 </div>
-              ) : (
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Format: <strong>{selectedFormat === "classic" ? "Professional Classic" : "Modern Two-Column"}</strong>
-                    </span>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedFormat(null)}>
-                      Change
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <Button size="sm" onClick={handleDownloadFormattedPDF}>
-                      <FileDown className="w-4 h-4 mr-1" /> PDF
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleDownloadResume}>
-                      <Download className="w-4 h-4 mr-1" /> DOCX
-                    </Button>
-                  </div>
-                </div>
-              )}
+              </div>
             </Card>
           </div>
 

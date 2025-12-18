@@ -55,9 +55,11 @@ export function AssessmentProgress({
             const isComplete = index < currentModuleIndex;
             const isCurrent = index === currentModuleIndex;
             
-            // Get short name for mobile (first word or abbreviation)
+            // Get short name for mobile and fuller name for desktop
             const shortName = module.name.split(" ")[0].slice(0, 8);
-            const mediumName = module.name.split(" ").slice(0, 2).join(" ");
+            // Use first 3 words to avoid cutting off "&" words like "Experience & Exposure"
+            const words = module.name.split(" ");
+            const mediumName = words.length <= 3 ? module.name : words.slice(0, 3).join(" ");
             
             return (
               <div key={module.id} className="flex-1 min-w-[60px] sm:min-w-[80px]">
