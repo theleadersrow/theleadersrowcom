@@ -933,18 +933,27 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         case 'experience':
           const isBullet = /^[•\-\*▪◦‣→]/.test(cleanLine);
           const hasDate = datePattern.test(cleanLine);
+          
+          // Job title patterns - must start with these keywords
           const isJobTitle = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief|Product|Software|Data|UX|UI|Marketing|Sales|Engineering|Technical|Business|Project|Program|Operations)/i.test(cleanLine);
           
           // Detect company/location pattern - company names often have:
           // - Location markers (City, State/Country) 
-          // - Common company suffixes (Inc, Corp, LLC, Ltd, Bank, etc.)
+          // - Common company suffixes (Inc, Corp, LLC, Ltd, Bank, Group, etc.)
           // - Separators like | or - between company and location
-          const isCompanyLine = /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting)\b/i.test(cleanLine) ||
-            /,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|UK|Germany|Canada|India|Singapore|Australia)\b/i.test(cleanLine) ||
+          const hasCompanySuffix = /\b(Inc\.?|Corp\.?|LLC|Ltd\.?|Bank|Group|Company|Co\.?|Technologies|Solutions|Services|Consulting|Financial|Capital|Partners|Associates|Healthcare|Media|Entertainment|Retail|Insurance)\b/i.test(cleanLine);
+          const hasLocationMarker = /,\s*(CA|NY|TX|FL|WA|MA|IL|PA|OH|GA|NC|NJ|VA|AZ|CO|TN|MD|OR|MN|WI|SC|AL|LA|KY|OK|CT|UT|NV|AR|MS|KS|NM|NE|WV|ID|HI|NH|ME|MT|RI|DE|SD|ND|AK|VT|WY|DC|ON|BC|AB|QC|UK|Germany|Canada|India|Singapore|Australia|Remote)\b/i.test(cleanLine) ||
             /\|\s*[A-Z][a-z]+,?\s*[A-Z]{2}\b/.test(cleanLine);
+          const isCompanyLine = hasCompanySuffix || hasLocationMarker;
           
-          // Detect if this looks like a new job entry (title + date on same line, or just a strong title pattern)
-          const isNewJobEntry = (isJobTitle && !isBullet) || (hasDate && cleanLine.length < 80 && !isBullet);
+          // A new job entry is detected when:
+          // 1. Line starts with job title keyword AND doesn't have company suffix (prevents company lines being treated as titles)
+          // 2. OR: Has a date, is short, not a bullet, AND the line starts with title-like text (not company)
+          const isNewJobEntry = (isJobTitle && !isBullet && !hasCompanySuffix && !hasLocationMarker) || 
+            (hasDate && cleanLine.length < 80 && !isBullet && isJobTitle && !hasCompanySuffix);
+          
+          // Company info line: has date OR company markers, but NOT a job title pattern at start
+          const isCompanyInfoLine = (hasDate || isCompanyLine) && !isJobTitle;
           
           if (isBullet) {
             // Always add bullets to current experience or create one
@@ -964,19 +973,28 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
               dates: dateMatch ? dateMatch[0] : '',
               bullets: []
             };
-          } else if (currentExperience && !currentExperience.company && (isCompanyLine || (cleanLine.length > 3 && cleanLine.length < 80))) {
-            // This is likely company info - extract company and location/dates
+          } else if (currentExperience && isCompanyInfoLine) {
+            // This is company/location/date info for current position
             const dateMatch = cleanLine.match(datePattern);
-            if (dateMatch && !currentExperience.dates) {
+            if (dateMatch) {
               currentExperience.dates = dateMatch[0];
-              currentExperience.company = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
-            } else {
-              // Split on common separators and take the company part
-              const companyPart = cleanLine.split(/\s*[|–—]\s*/)[0].trim();
-              currentExperience.company = companyPart || cleanLine;
             }
+            // Extract company name - remove date and trailing separators
+            const companyText = cleanLine.replace(datePattern, '').replace(/[|,–—-]\s*$/, '').trim();
+            if (companyText && !currentExperience.company) {
+              // Split on separators and take company part (usually first)
+              const parts = companyText.split(/\s*[|–—]\s*/);
+              currentExperience.company = parts[0].trim();
+              // If there's a location part, could append it
+              if (parts.length > 1) {
+                currentExperience.company += ' | ' + parts.slice(1).join(' | ');
+              }
+            }
+          } else if (currentExperience && !currentExperience.company && cleanLine.length > 3 && cleanLine.length < 80) {
+            // Short line after title without company yet - likely company name
+            currentExperience.company = cleanLine;
           } else if (currentExperience && cleanLine.length > 15 && !isCompanyLine) {
-            // Treat as a bullet point only if it's substantial and doesn't look like company info
+            // Long substantial text that isn't company info - treat as bullet
             currentExperience.bullets.push(cleanLine);
           }
           break;
