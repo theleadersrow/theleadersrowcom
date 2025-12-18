@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +9,60 @@ const corsHeaders = {
 const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[COVER-LETTER] ${step}`, details ? JSON.stringify(details) : "");
 };
+
+// Verify tool access by email or access token
+async function verifyToolAccess(
+  email: string | undefined,
+  accessToken: string | undefined,
+  toolType: string
+): Promise<{ valid: boolean; error?: string }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // If access token provided, verify it
+  if (accessToken) {
+    const { data: purchase, error } = await supabase
+      .from("tool_purchases")
+      .select("*")
+      .eq("access_token", accessToken)
+      .eq("tool_type", toolType)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (error || !purchase) {
+      return { valid: false, error: "Invalid access token" };
+    }
+
+    if (new Date(purchase.expires_at) < new Date()) {
+      return { valid: false, error: "Access has expired" };
+    }
+
+    return { valid: true };
+  }
+
+  // If email provided, verify via email
+  if (email) {
+    const { data: purchase, error } = await supabase
+      .from("tool_purchases")
+      .select("*")
+      .eq("email", email.toLowerCase())
+      .eq("tool_type", toolType)
+      .eq("status", "active")
+      .gt("expires_at", new Date().toISOString())
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !purchase) {
+      return { valid: false, error: "No active access found for this email" };
+    }
+
+    return { valid: true };
+  }
+
+  return { valid: false, error: "Email or access token required" };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -24,15 +79,28 @@ serve(async (req) => {
       companyName,
       hiringManagerName,
       selfProjection,
-      coverLetterLength = "medium" // "short", "medium", "detailed"
+      coverLetterLength = "medium", // "short", "medium", "detailed"
+      email,
+      accessToken
     } = await req.json();
 
     logStep("Request received", { 
       hasResume: !!resumeText, 
       hasJob: !!jobDescription,
       candidateName,
-      coverLetterLength
+      coverLetterLength,
+      hasEmail: !!email
     });
+
+    // Verify tool access
+    const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
+    if (!accessCheck.valid) {
+      logStep("Access denied", { error: accessCheck.error });
+      return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!resumeText || !jobDescription) {
       return new Response(JSON.stringify({ error: "Resume and job description are required" }), {
