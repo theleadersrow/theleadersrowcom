@@ -7,10 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Rate limiting configuration - stricter for AI endpoints
+// Rate limiting configuration - tuned for interactive use
 const RATE_LIMIT = {
-  maxRequests: 10,
-  windowMinutes: 60,
+  maxRequests: 30,
+  windowMinutes: 30,
 };
 
 // Verify tool access by email or access token
@@ -85,14 +85,20 @@ async function verifyToolAccess(
   return { valid: false, error: "Email or access token required" };
 }
 
+type RateLimitResult = {
+  allowed: boolean;
+  remaining: number;
+  retryAfterSec?: number;
+};
+
 // Check and update rate limit
-async function checkRateLimit(identifier: string, endpoint: string): Promise<{ allowed: boolean; remaining: number }> {
+async function checkRateLimit(identifier: string, endpoint: string): Promise<RateLimitResult> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
+
   const windowStart = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60 * 1000).toISOString();
-  
+
   const { data: existing } = await supabase
     .from("rate_limits")
     .select("*")
@@ -103,33 +109,40 @@ async function checkRateLimit(identifier: string, endpoint: string): Promise<{ a
 
   if (existing) {
     if (existing.request_count >= RATE_LIMIT.maxRequests) {
-      return { allowed: false, remaining: 0 };
+      const windowEndMs = new Date(existing.window_start).getTime() + RATE_LIMIT.windowMinutes * 60 * 1000;
+      const retryAfterSec = Math.max(5, Math.ceil((windowEndMs - Date.now()) / 1000));
+      return { allowed: false, remaining: 0, retryAfterSec };
     }
-    
+
     await supabase
       .from("rate_limits")
       .update({ request_count: existing.request_count + 1 })
       .eq("id", existing.id);
-    
+
     return { allowed: true, remaining: RATE_LIMIT.maxRequests - existing.request_count - 1 };
   }
-  
+
   await supabase
     .from("rate_limits")
-    .upsert({
-      identifier,
-      endpoint,
-      request_count: 1,
-      window_start: new Date().toISOString(),
-    }, { onConflict: "identifier,endpoint" });
-  
+    .upsert(
+      {
+        identifier,
+        endpoint,
+        request_count: 1,
+        window_start: new Date().toISOString(),
+      },
+      { onConflict: "identifier,endpoint" }
+    );
+
   return { allowed: true, remaining: RATE_LIMIT.maxRequests - 1 };
 }
 
 function getClientIP(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
-    || req.headers.get("x-real-ip") 
-    || "unknown";
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
 }
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -143,25 +156,18 @@ serve(async (req) => {
 
   try {
     const clientIP = getClientIP(req);
-    
-    // Check rate limit
-    const rateLimit = await checkRateLimit(clientIP, "ats-score-resume");
-    if (!rateLimit.allowed) {
-      console.log("Rate limit exceeded for:", clientIP);
-      return new Response(
-        JSON.stringify({ error: "Too many requests. Please try again later." }),
-        {
-          status: 429,
-          headers: { 
-            "Content-Type": "application/json", 
-            "Retry-After": String(RATE_LIMIT.windowMinutes * 60),
-            ...corsHeaders 
-          },
-        }
-      );
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-    
-    const { resumeText, jobDescription, sessionId, isPostTransformation, email, accessToken } = await req.json();
+
+    const { resumeText, jobDescription, sessionId, isPostTransformation, email, accessToken } = body || {};
 
     // Verify tool access
     const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
@@ -173,7 +179,34 @@ serve(async (req) => {
       });
     }
 
-    // Input validation
+    // Rate limit AFTER verifying access (to avoid blocking valid users due to random traffic)
+    const rateLimitId = accessToken
+      ? `token:${accessToken}`
+      : email
+        ? `email:${String(email).toLowerCase()}`
+        : `ip:${clientIP}`;
+
+    const rateLimit = await checkRateLimit(rateLimitId, "ats-score-resume");
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for:", rateLimitId);
+      const retryAfter = rateLimit.retryAfterSec ?? RATE_LIMIT.windowMinutes * 60;
+      return new Response(
+        JSON.stringify({
+          error: "Too many requests. Please try again later.",
+          error_type: "rate_limited",
+          retry_after_seconds: retryAfter,
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(retryAfter),
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+
     if (!resumeText || typeof resumeText !== "string") {
       return new Response(JSON.stringify({ error: "Resume text is required" }), {
         status: 400,
