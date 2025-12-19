@@ -6,18 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Upload, Loader2, FileText, Target, 
-  Zap, CheckCircle, Lock, Download, Eye, X
+  Zap, CheckCircle, Lock, Download, Eye, X, Crown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface ResumeWelcomeProps {
   onBack: () => void;
   onStartScan: (resumeText: string, jobDescription: string, targetRole?: string, targetIndustry?: string) => void;
   isAnalyzing: boolean;
+  hasPaidAccess?: boolean;
 }
 
-export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcomeProps) {
+export function ResumeWelcome({ onBack, onStartScan, isAnalyzing, hasPaidAccess }: ResumeWelcomeProps) {
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [targetRole, setTargetRole] = useState<string>("");
@@ -142,6 +144,12 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
             <h1 className="text-2xl font-serif font-bold text-foreground">Resume Intelligence</h1>
             <p className="text-muted-foreground">Step 1 of 4</p>
           </div>
+          {hasPaidAccess && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md px-3 py-1.5 flex items-center gap-1.5">
+              <Crown className="w-4 h-4" />
+              <span className="font-medium">Paid Access</span>
+            </Badge>
+          )}
         </div>
 
         {/* Value Proposition */}
