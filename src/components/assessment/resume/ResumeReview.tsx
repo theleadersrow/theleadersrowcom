@@ -5,10 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Check, X, Edit3, Save, RotateCcw,
-  ChevronDown, ChevronUp, Sparkles, FileText, Briefcase
+  ChevronDown, ChevronUp, Sparkles, FileText, Briefcase,
+  Copy, Eye, EyeOff
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FormattedResumeDisplay } from "./FormattedResumeDisplay";
+import { toast } from "sonner";
 interface ResumeSection {
   id: string;
   title: string;
@@ -385,6 +387,49 @@ export function ResumeReview({
   const [sections, setSections] = useState<ResumeSection[]>([]);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handleCopySection = (content: string, sectionTitle: string) => {
+    navigator.clipboard.writeText(content).then(() => {
+      toast.success(`${sectionTitle} copied to clipboard`);
+    }).catch(() => {
+      toast.error("Failed to copy");
+    });
+  };
+
+  const getPreviewContent = () => {
+    const finalParts: string[] = [];
+    let inExperienceSection = false;
+    
+    sections.forEach(section => {
+      if (section.title === "EXPERIENCE" && !section.isRole) {
+        finalParts.push("EXPERIENCE");
+        inExperienceSection = true;
+        return;
+      }
+      
+      let content = "";
+      if (section.status === "accepted" || section.status === "edited") {
+        content = section.editedContent || section.improvedContent;
+      } else if (section.status === "declined") {
+        content = section.originalContent;
+      } else {
+        content = section.improvedContent;
+      }
+      
+      if (section.isRole) {
+        finalParts.push(content.trim());
+      } else {
+        if (section.title !== "HEADER" && section.title !== "EXPERIENCE") {
+          inExperienceSection = false;
+          finalParts.push(section.title);
+        }
+        finalParts.push(content.trim());
+      }
+    });
+    
+    return finalParts.join('\n\n');
+  };
 
   useEffect(() => {
     // Parse both resumes into sections - split experience into individual roles
@@ -669,9 +714,20 @@ export function ResumeReview({
                 
                 {/* Improved - Formatted Display */}
                 <div>
-                  <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    AI Optimized
+                  <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      AI Optimized
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => handleCopySection(section.improvedContent, section.title)}
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      Copy
+                    </Button>
                   </div>
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 max-h-[300px] overflow-y-auto">
                     {section.title === "HEADER" ? (
@@ -808,6 +864,50 @@ export function ResumeReview({
             </div>
           </div>
         </Card>
+
+        {/* Preview Toggle */}
+        <div className="mb-6">
+          <Button
+            variant={showPreview ? "default" : "outline"}
+            onClick={() => setShowPreview(!showPreview)}
+            className="w-full"
+          >
+            {showPreview ? (
+              <>
+                <EyeOff className="w-4 h-4 mr-2" />
+                Hide Full Resume Preview
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Show Full Resume Preview
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Full Preview Mode */}
+        {showPreview && (
+          <Card className="p-6 mb-6 bg-background border-2 border-primary/30">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" />
+                Complete Resume Preview
+              </h3>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleCopySection(getPreviewContent(), "Full Resume")}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copy All
+              </Button>
+            </div>
+            <div className="border rounded-lg p-6 bg-white dark:bg-slate-900 max-h-[600px] overflow-y-auto">
+              <FormattedResumeDisplay content={getPreviewContent()} />
+            </div>
+          </Card>
+        )}
 
         {/* Sections */}
         <div className="space-y-4 mb-8">
