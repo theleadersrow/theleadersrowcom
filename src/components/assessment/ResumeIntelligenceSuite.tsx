@@ -2106,7 +2106,7 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
     return { name, headline, contactInfo: [...new Set(contactInfo)], summary, experiences, keyAchievements, skills, education };
   };
 
-  // Generate Classic Resume HTML - clean professional single-column format
+  // Generate Classic Resume HTML - executive single-column format following strict formatting contract
   const generateClassicResumeHTML = (
     name: string,
     headline: string,
@@ -2129,6 +2129,11 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         .replace(/'/g, "&#39;");
     };
 
+    // Bold metrics pattern - wrap **text** in strong tags
+    const formatMetrics = (text: string) => {
+      return escapeHtml(text).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    };
+
     // Only use structured rendering when parsing looks reliable.
     const structuredOk =
       experiences.length > 0 &&
@@ -2139,110 +2144,141 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
       );
 
     if (!structuredOk) {
-      // Fallback: format ALL content directly (preserves every line exactly)
+      // Fallback: format ALL content directly following executive format
       const lines = content.split("\n");
       let formattedContent = "";
       let wroteName = false;
+      let wroteHeadline = false;
 
       const sectionHeaderRegex =
-        /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$|^(PROFESSIONAL\s+|WORK\s+)?EXPERIENCE|^EMPLOYMENT(\s+HISTORY)?|^CAREER(\s+HISTORY)?$|^(TECHNICAL\s+|CORE\s+)?SKILLS|^COMPETENCIES|^EXPERTISE|^TECHNOLOGIES$|^EDUCATION|^ACADEMIC|^QUALIFICATIONS$|^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$/i;
+        /^(PROFESSIONAL\s+)?SUMMARY|^PROFILE|^OBJECTIVE|^ABOUT(\s+ME)?$|^(PROFESSIONAL\s+|WORK\s+)?EXPERIENCE|^EMPLOYMENT(\s+HISTORY)?|^CAREER(\s+HISTORY)?$|^(TECHNICAL\s+|CORE\s+)?SKILLS|^COMPETENCIES|^EXPERTISE|^TECHNOLOGIES$|^EDUCATION|^ACADEMIC|^QUALIFICATIONS$|^(KEY\s+)?ACHIEVEMENTS|^ACCOMPLISHMENTS|^AWARDS$|^INDUSTRY\s+EXPERTISE$/i;
       const dateLineRegex =
         /(\d{4}|\w+\.?\s+\d{4})\s*[-–—to]+\s*(\d{4}|Present|Current|Now)/i;
 
       lines.forEach((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) {
-          formattedContent += '<div style="height: 8px;"></div>';
+          formattedContent += '<div style="height: 10px;"></div>';
           return;
         }
 
         const clean = trimmed.replace(/^[#*_]+|[#*_]+$/g, "").trim();
-        const safe = escapeHtml(clean);
 
-        // Name (first meaningful line, but never treat a section header as name)
+        // Name (first meaningful line - largest text, title case, centered)
         if (!wroteName && idx < 6 && clean.length < 60 && !clean.includes("@") && !sectionHeaderRegex.test(clean)) {
-          formattedContent += `<h1 style="font-size: 26px; text-align: center; margin: 0 0 6px 0; letter-spacing: 1px; text-transform: uppercase;">${safe}</h1>`;
+          formattedContent += `<h1 style="font-size: 28px; text-align: left; margin: 0 0 4px 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #111;">${escapeHtml(clean)}</h1>`;
           wroteName = true;
           return;
         }
 
-        // Contact line (early)
+        // Headline line (Primary Title | Core Strengths - pipe-separated)
+        if (wroteName && !wroteHeadline && idx < 8 && clean.includes("|") && clean.length < 120 && !clean.includes("@")) {
+          formattedContent += `<p style="font-size: 12px; margin: 0 0 4px 0; color: #444;">${escapeHtml(clean)}</p>`;
+          wroteHeadline = true;
+          return;
+        }
+
+        // Contact line (Email | LinkedIn | City, State)
         if (
-          idx < 10 &&
+          idx < 12 &&
           (clean.includes("@") || clean.match(/\(\d{3}\)|\d{3}[-.\s]\d{3}/) || clean.toLowerCase().includes("linkedin.com"))
         ) {
-          formattedContent += `<p style="font-size: 11px; text-align: center; margin: 0 0 6px 0; color: #666;">${safe}</p>`;
+          formattedContent += `<p style="font-size: 11px; margin: 0 0 16px 0; color: #666;">${escapeHtml(clean)}</p>`;
           return;
         }
 
-        // Section header
+        // Section header - ALL CAPS, left-aligned, border-bottom
         if (sectionHeaderRegex.test(clean)) {
-          formattedContent += `<h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 18px 0 10px 0; color: #333;">${safe}</h2>`;
+          formattedContent += `<h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 20px 0 12px 0; color: #111; font-weight: 700;">${escapeHtml(clean.toUpperCase())}</h2>`;
           return;
         }
 
-        // Role/date line
+        // Role title line (bold, in experience section)
+        const isRoleTitlePattern = /^(Senior|Lead|Principal|Staff|Junior|Associate|Director|Manager|VP|Vice\s+President|Head|Chief)?\s*(Product\s+Manager|Program\s+Manager|Project\s+Manager|Software\s+Engineer|Engineer|Data\s+Scientist|Analyst|Designer|Consultant|Specialist|Executive|Architect)\b/i;
+        if (isRoleTitlePattern.test(clean) && clean.length < 80 && !dateLineRegex.test(clean)) {
+          formattedContent += `<p style="font-size: 12px; margin: 14px 0 2px 0; font-weight: 700; color: #111;">${escapeHtml(clean)}</p>`;
+          return;
+        }
+
+        // Company/date line
         if (dateLineRegex.test(clean) && clean.length < 120) {
-          formattedContent += `<p style="font-size: 11px; margin: 10px 0 4px 0; line-height: 1.5; font-weight: 700; color: #222;">${safe}</p>`;
+          formattedContent += `<p style="font-size: 11px; margin: 2px 0 6px 0; color: #444; font-weight: 600;">${escapeHtml(clean)}</p>`;
           return;
         }
 
-        // Bullet
+        // Bullet points - only in Experience sections
         if (/^[•\-\*▪◦‣→]/.test(clean)) {
-          const bulletText = escapeHtml(clean.replace(/^[•\-\*▪◦‣→]\s*/, ""));
-          formattedContent += `<p style="font-size: 11px; margin: 3px 0 3px 15px; line-height: 1.5; color: #444;">• ${bulletText}</p>`;
+          const bulletText = clean.replace(/^[•\-\*▪◦‣→]\s*/, "");
+          formattedContent += `<p style="font-size: 11px; margin: 3px 0 3px 16px; line-height: 1.55; color: #333;">• ${formatMetrics(bulletText)}</p>`;
           return;
         }
 
-        // Default paragraph
-        formattedContent += `<p style="font-size: 11px; margin: 4px 0; line-height: 1.5; color: #444;">${safe}</p>`;
+        // Key Achievement block (bolded headline followed by explanation)
+        if (clean.startsWith("**") || /^[A-Z][a-zA-Z\s]{2,30}:/.test(clean)) {
+          const formatted = formatMetrics(clean.replace(/^\*\*|\*\*$/g, ""));
+          formattedContent += `<p style="font-size: 11px; margin: 8px 0 4px 0; line-height: 1.5; color: #333;"><strong>${formatted.split(":")[0]}:</strong>${formatted.includes(":") ? formatted.split(":").slice(1).join(":") : ""}</p>`;
+          return;
+        }
+
+        // Industry expertise line (pipe-separated categories)
+        if (clean.includes("|") && clean.split("|").length >= 3 && clean.length < 200) {
+          formattedContent += `<p style="font-size: 11px; margin: 4px 0; color: #444;">${escapeHtml(clean)}</p>`;
+          return;
+        }
+
+        // Default paragraph (summary text, etc.)
+        formattedContent += `<p style="font-size: 11px; margin: 4px 0; line-height: 1.6; color: #333;">${formatMetrics(clean)}</p>`;
       });
 
-      return `<div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">${formattedContent}</div>`;
+      return `<div style="font-family: 'Georgia', 'Times New Roman', serif; padding: 48px 56px; max-width: 750px; margin: 0 auto; color: #111; background: #fff;">${formattedContent}</div>`;
     }
 
-    // Structured format
+    // Structured format - executive layout
     return `
-      <div style="font-family: 'Georgia', serif; padding: 40px 50px; max-width: 750px; margin: 0 auto; color: #333;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 12px; page-break-inside: avoid;">
-          <h1 style="font-size: 26px; margin: 0; letter-spacing: 2px; text-transform: uppercase;">${escapeHtml(name || "Your Name")}</h1>
-          ${headline ? `<p style="font-size: 13px; color: #555; margin: 6px 0 0 0; font-style: italic;">${escapeHtml(headline)}</p>` : ""}
-          ${contactInfo.length > 0 ? `<p style="font-size: 11px; color: #666; margin: 8px 0 0 0;">${contactInfo.map(escapeHtml).join(" | ")}</p>` : ""}
+      <div style="font-family: 'Georgia', 'Times New Roman', serif; padding: 48px 56px; max-width: 750px; margin: 0 auto; color: #111; background: #fff;">
+        <!-- HEADER -->
+        <div style="margin-bottom: 20px; page-break-inside: avoid;">
+          <h1 style="font-size: 28px; margin: 0 0 6px 0; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #111;">${escapeHtml(name || "Your Name")}</h1>
+          ${headline ? `<p style="font-size: 12px; color: #444; margin: 0 0 4px 0;">${escapeHtml(headline)}</p>` : ""}
+          ${contactInfo.length > 0 ? `<p style="font-size: 11px; color: #666; margin: 0;">${contactInfo.map(escapeHtml).join(" | ")}</p>` : ""}
         </div>
 
+        <!-- SUMMARY -->
         ${summary ? `
         <div style="margin-bottom: 18px; page-break-inside: avoid;">
-          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Professional Summary</h2>
-          <p style="font-size: 11px; line-height: 1.6; color: #444; margin: 0;">${escapeHtml(summary)}</p>
+          <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 0 0 10px 0; font-weight: 700;">SUMMARY</h2>
+          <p style="font-size: 11px; line-height: 1.6; color: #333; margin: 0;">${formatMetrics(summary)}</p>
         </div>
         ` : ""}
 
+        <!-- KEY ACHIEVEMENTS -->
         ${keyAchievements.length > 0 ? `
         <div style="margin-bottom: 18px; page-break-inside: avoid;">
-          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Key Achievements</h2>
+          <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 0 0 10px 0; font-weight: 700;">KEY ACHIEVEMENTS</h2>
           <div style="margin-top: 6px;">
-            ${keyAchievements.map((a: string) => `<div style="font-size: 10px; line-height: 1.5; margin: 0 0 3px 0; color: #444;">• ${escapeHtml(a)}</div>`).join("")}
+            ${keyAchievements.map((a: string) => {
+              const formatted = formatMetrics(a);
+              return `<div style="font-size: 11px; line-height: 1.5; margin: 0 0 8px 0; color: #333;">${formatted}</div>`;
+            }).join("")}
           </div>
         </div>
         ` : ""}
 
+        <!-- EXPERIENCE -->
         ${experiences.length > 0 ? `
         <div style="margin-bottom: 18px;">
-          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 10px 0; page-break-after: avoid;">Professional Experience</h2>
+          <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 0 0 12px 0; font-weight: 700; page-break-after: avoid;">EXPERIENCE</h2>
           ${experiences.map((exp: any) => `
-            <div style="margin-bottom: 14px; page-break-inside: avoid;">
-              <div style="font-size: 12px; color: #222; font-weight: 700;">
-                <span>${escapeHtml(exp?.title || "Position")}</span>
-                ${exp?.dates ? `<span style="float: right; font-size: 10px; color: #666; font-weight: 400;">${escapeHtml(exp.dates)}</span>` : ""}
-                <div style="clear: both;"></div>
-              </div>
-              ${exp?.company ? `<div style="font-size: 11px; color: #555; font-style: italic; margin-top: 2px;">${escapeHtml(exp.company)}</div>` : ""}
+            <div style="margin-bottom: 16px; page-break-inside: avoid;">
+              <p style="font-size: 12px; color: #111; font-weight: 700; margin: 0 0 2px 0;">${escapeHtml(exp?.title || "Position")}</p>
+              ${exp?.company ? `<p style="font-size: 11px; color: #333; font-weight: 600; margin: 0 0 2px 0;">${escapeHtml(exp.company)}</p>` : ""}
+              ${exp?.dates ? `<p style="font-size: 10px; color: #666; margin: 0 0 6px 0;">${escapeHtml(exp.dates)}</p>` : ""}
               ${(exp?.bullets?.length ?? 0) > 0 ? `
-                <div style="margin-top: 6px;">
+                <div style="margin-top: 4px;">
                   ${exp.bullets
                     .map(
                       (b: string) =>
-                        `<div style=\"font-size: 10px; line-height: 1.5; margin: 0 0 3px 0; color: #444;\">• ${escapeHtml(b)}</div>`
+                        `<p style="font-size: 11px; line-height: 1.55; margin: 3px 0 3px 16px; color: #333;">• ${formatMetrics(b)}</p>`
                     )
                     .join("")}
                 </div>
@@ -2252,20 +2288,24 @@ export function ResumeIntelligenceSuite({ onBack, onComplete }: ResumeIntelligen
         </div>
         ` : ""}
 
-        ${skills.length > 0 ? `
+        <!-- EDUCATION -->
+        ${education.length > 0 ? `
         <div style="margin-bottom: 18px; page-break-inside: avoid;">
-          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Skills</h2>
-          <p style="font-size: 10px; line-height: 1.6; color: #444; margin: 0;">${skills.map(escapeHtml).join(" • ")}</p>
+          <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 0 0 10px 0; font-weight: 700;">EDUCATION</h2>
+          ${education.map((edu: any) => `
+            <div style="margin-bottom: 6px;">
+              ${edu?.degree ? `<p style="font-size: 11px; font-weight: 600; margin: 0; color: #111;">${escapeHtml(edu.degree)}</p>` : ""}
+              ${edu?.school ? `<p style="font-size: 11px; margin: 0; color: #444;">${escapeHtml(edu.school)}</p>` : ""}
+            </div>
+          `).join("")}
         </div>
         ` : ""}
 
-        ${education.length > 0 ? `
+        <!-- INDUSTRY EXPERTISE -->
+        ${skills.length > 0 ? `
         <div style="page-break-inside: avoid;">
-          <h2 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #666; padding-bottom: 4px; margin: 0 0 8px 0;">Education</h2>
-          ${education.map((edu: any) => {
-            const parts = [edu?.degree, edu?.school, edu?.dates].filter(Boolean);
-            return `<p style="font-size: 11px; margin: 4px 0; color: #444;">${parts.map(escapeHtml).join(" · ")}</p>`;
-          }).join("")}
+          <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 4px; margin: 0 0 10px 0; font-weight: 700;">INDUSTRY EXPERTISE</h2>
+          <p style="font-size: 11px; line-height: 1.6; color: #333; margin: 0;">${skills.slice(0, 6).map(escapeHtml).join(" | ")}</p>
         </div>
         ` : ""}
       </div>
