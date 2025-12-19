@@ -785,6 +785,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             onBack={() => setStep("clarification")}
             onFinalize={handleReviewFinalize}
             isGenerating={isGenerating}
+            originalATSScore={freeScore?.ats_score}
           />
         );
         

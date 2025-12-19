@@ -29,6 +29,7 @@ interface RealTimeATSScoreProps {
   sectionsOptimized: number;
   totalSections: number;
   jobDescription?: string;
+  originalATSScore?: number; // Backend-calculated score to use as baseline
 }
 
 // Keywords that boost ATS scores
@@ -150,22 +151,43 @@ export function RealTimeATSScore({
   currentContent,
   sectionsOptimized,
   totalSections,
-  jobDescription
+  jobDescription,
+  originalATSScore
 }: RealTimeATSScoreProps) {
   const [previousScore, setPreviousScore] = useState<number | null>(null);
   const [showChange, setShowChange] = useState(false);
   
-  // Calculate baseline (original) metrics
-  const baselineMetrics = useMemo(() => 
+  // Calculate baseline (original) metrics - use backend score if provided
+  const calculatedBaselineMetrics = useMemo(() => 
     calculateATSMetrics(originalResume, originalResume, 0, totalSections, jobDescription),
     [originalResume, totalSections, jobDescription]
   );
   
+  // Use backend score if provided, otherwise use calculated
+  const baselineMetrics = useMemo(() => ({
+    ...calculatedBaselineMetrics,
+    overallScore: originalATSScore ?? calculatedBaselineMetrics.overallScore
+  }), [calculatedBaselineMetrics, originalATSScore]);
+  
   // Calculate current metrics
-  const currentMetrics = useMemo(() => 
-    calculateATSMetrics(originalResume, currentContent, sectionsOptimized, totalSections, jobDescription),
-    [originalResume, currentContent, sectionsOptimized, totalSections, jobDescription]
-  );
+  const currentMetrics = useMemo(() => {
+    const calculated = calculateATSMetrics(originalResume, currentContent, sectionsOptimized, totalSections, jobDescription);
+    
+    // If we have a backend baseline score, calculate improvement relative to that
+    if (originalATSScore !== undefined) {
+      // Calculate improvement percentage based on optimization progress
+      const optimizationProgress = sectionsOptimized / Math.max(totalSections, 1);
+      const maxImprovement = 25; // Max possible improvement from optimizations
+      const improvement = Math.round(optimizationProgress * maxImprovement);
+      
+      return {
+        ...calculated,
+        overallScore: Math.min(100, originalATSScore + improvement)
+      };
+    }
+    
+    return calculated;
+  }, [originalResume, currentContent, sectionsOptimized, totalSections, jobDescription, originalATSScore]);
   
   // Track score changes
   useEffect(() => {
