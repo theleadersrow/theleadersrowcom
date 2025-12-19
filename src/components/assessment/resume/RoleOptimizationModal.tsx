@@ -210,7 +210,7 @@ export function RoleOptimizationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
         {/* Modal Header - Sticky */}
         <DialogHeader className="p-6 pb-4 border-b bg-background sticky top-0 z-10">
           <div className="flex items-start justify-between gap-4">
@@ -436,8 +436,8 @@ export function RoleOptimizationModal({
           )}
         </div>
 
-        {/* Modal Footer - Sticky */}
-        <div className="p-4 border-t bg-background sticky bottom-0 z-10">
+        {/* Modal Footer - Fixed at bottom */}
+        <div className="p-4 border-t bg-background flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
             {/* Left side actions */}
             <div className="flex items-center gap-2">
