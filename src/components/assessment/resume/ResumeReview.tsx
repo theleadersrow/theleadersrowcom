@@ -11,6 +11,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FormattedResumeDisplay } from "./FormattedResumeDisplay";
 import { RoleOptimizationModal, RoleData, AISuggestion, RoleStatus } from "./RoleOptimizationModal";
+import { SectionOptimizationModal } from "./SectionOptimizationModal";
 import { toast } from "sonner";
 
 interface ResumeSection {
@@ -728,6 +729,7 @@ export function ResumeReview({
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [openRoleModal, setOpenRoleModal] = useState<string | null>(null);
+  const [openSectionModal, setOpenSectionModal] = useState<string | null>(null);
 
   const handleCopySection = (content: string, sectionTitle: string) => {
     navigator.clipboard.writeText(content).then(() => {
@@ -1008,6 +1010,17 @@ export function ResumeReview({
     return result;
   };
   
+  // Helper to determine section type for the modal
+  const getSectionType = (title: string): "header" | "summary" | "education" | "skills" | "achievements" | "other" => {
+    const upperTitle = title.toUpperCase();
+    if (upperTitle.includes("HEADER") || upperTitle === "CONTACT") return "header";
+    if (upperTitle.includes("SUMMARY") || upperTitle.includes("PROFILE") || upperTitle.includes("OBJECTIVE")) return "summary";
+    if (upperTitle.includes("EDUCATION") || upperTitle.includes("ACADEMIC")) return "education";
+    if (upperTitle.includes("SKILL") || upperTitle.includes("EXPERTISE") || upperTitle.includes("COMPETENC") || upperTitle.includes("TECHNICAL")) return "skills";
+    if (upperTitle.includes("ACHIEVEMENT") || upperTitle.includes("AWARD") || upperTitle.includes("ACCOMPLISHMENT")) return "achievements";
+    return "other";
+  };
+
   const renderSectionCard = (section: ResumeSection, isRole: boolean) => {
     const roleData = section.roleData;
     
@@ -1016,98 +1029,79 @@ export function ResumeReview({
       return renderRoleCard(section, roleData);
     }
     
-    // For non-role sections, render standard card
+    // For non-role sections, render collapsed card with Review & Optimize CTA (like roles)
+    const sectionType = getSectionType(section.title);
+    
     return (
-      <Collapsible 
+      <Card 
         key={section.id}
-        open={expandedSection === section.id}
-        onOpenChange={(open) => setExpandedSection(open ? section.id : null)}
-      >
-        <Card className={`overflow-hidden transition-all ${
-          section.status === "accepted" ? "border-green-500/50" :
+        className={`overflow-hidden transition-all hover:shadow-md ${
+          section.status === "accepted" ? "border-green-500/50 bg-green-50/30 dark:bg-green-950/10" :
           section.status === "declined" ? "border-red-500/30" :
-          section.status === "edited" ? "border-blue-500/50" : ""
-        }`}>
-          <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                {expandedSection === section.id ? (
-                  <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                )}
-                <span className="font-semibold text-foreground text-left">
-                  {section.title}
-                </span>
-                {getStatusBadge(section.status)}
+          section.status === "edited" ? "border-blue-500/50 bg-blue-50/30 dark:bg-blue-950/10" : ""
+        }`}
+      >
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted rounded-lg">
+                {section.title.includes("SUMMARY") ? <FileText className="w-4 h-4 text-muted-foreground" /> :
+                 section.title.includes("EDUCATION") ? <FileText className="w-4 h-4 text-muted-foreground" /> :
+                 <FileText className="w-4 h-4 text-muted-foreground" />}
               </div>
-              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                {section.status !== "pending" && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleResetSection(section.id)}
-                    className="text-muted-foreground"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                )}
+              <div>
+                <h3 className="font-semibold text-foreground">{section.title}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {section.originalContent.slice(0, 60).trim()}...
+                </p>
               </div>
             </div>
-          </CollapsibleTrigger>
-          
-          <CollapsibleContent>
-            <div className="border-t p-4 space-y-4">
-              {editingSection !== section.id && (
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                      Original
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3 text-sm max-h-[300px] overflow-y-auto">
-                      <div className="whitespace-pre-wrap font-mono text-xs text-muted-foreground">
-                        {section.originalContent.trim() || "(No content)"}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center justify-between">
-                      <span className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        AI Optimized
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-2 text-xs"
-                        onClick={() => handleCopySection(section.improvedContent, section.title)}
-                      >
-                        <Copy className="w-3 h-3 mr-1" />
-                        Copy
-                      </Button>
-                    </div>
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 max-h-[300px] overflow-y-auto">
-                      {section.title === "HEADER" ? (
-                        <FormattedResumeDisplay content={section.improvedContent} />
-                      ) : (
-                        <FormattedSectionContent 
-                          title={section.title} 
-                          content={section.improvedContent} 
-                          isRole={section.isRole}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {editingSection === section.id && renderEditMode(section)}
-              {renderActionButtons(section)}
+            
+            <div className="flex items-center gap-3">
+              {getStatusBadge(section.status)}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setOpenSectionModal(section.id)}
+                className="flex items-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                Review & Optimize
+                <ArrowRight className="w-3 h-3" />
+              </Button>
             </div>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+          </div>
+        </div>
+        
+        {/* Section Optimization Modal */}
+        {openSectionModal === section.id && (
+          <SectionOptimizationModal
+            isOpen={true}
+            onClose={() => setOpenSectionModal(null)}
+            sectionTitle={section.title}
+            sectionType={sectionType}
+            originalContent={section.originalContent}
+            improvedContent={section.editedContent || section.improvedContent}
+            status={section.status}
+            onAccept={() => {
+              handleAccept(section.id);
+              setOpenSectionModal(null);
+            }}
+            onDecline={() => {
+              handleDecline(section.id);
+              setOpenSectionModal(null);
+            }}
+            onSaveEdit={(content) => {
+              handleEditChange(section.id, content);
+              handleSaveEdit(section.id);
+            }}
+            onMarkOptimized={() => {
+              handleAccept(section.id);
+              toast.success(`${section.title} marked as AI Optimized`);
+            }}
+          />
+        )}
+      </Card>
     );
   };
   
