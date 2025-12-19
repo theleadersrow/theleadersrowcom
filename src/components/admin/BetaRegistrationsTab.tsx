@@ -498,7 +498,8 @@ export function BetaRegistrationsTab() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {format(new Date(reg.created_at), "MMM d, h:mm a")}
+                        <div className="font-medium">{format(new Date(reg.created_at), "MMM d, yyyy")}</div>
+                        <div className="text-xs text-muted-foreground">{format(new Date(reg.created_at), "h:mm a")}</div>
                       </div>
                     </TableCell>
                     <TableCell>
