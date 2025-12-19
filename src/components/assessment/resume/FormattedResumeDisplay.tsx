@@ -405,12 +405,18 @@ export function FormattedResumeDisplay({ content, className = "" }: FormattedRes
           )}
           
           {section.type === "achievements" && Array.isArray(section.content) && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {(section.content as Achievement[]).map((achievement, i) => (
-                <div key={i} className="text-sm">
-                  <span className="font-semibold">{achievement.headline}</span>
+                <div key={i} className="achievement-block">
+                  {/* Achievement Title - Bold, slightly larger */}
+                  <h4 className="text-sm font-bold text-foreground leading-tight">
+                    {achievement.headline}
+                  </h4>
+                  {/* Supporting Impact Statement - Regular weight, max 2 lines */}
                   {achievement.description && (
-                    <span className="text-foreground/80"> — {formatTextWithMetrics(achievement.description)}</span>
+                    <p className="text-sm text-foreground/85 leading-relaxed mt-1">
+                      {formatTextWithMetrics(achievement.description)}
+                    </p>
                   )}
                 </div>
               ))}
