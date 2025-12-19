@@ -37,12 +37,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 import { LeadsTab } from "@/components/admin/LeadsTab";
 import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
 import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
 import { ToolPurchasesTab } from "@/components/admin/ToolPurchasesTab";
+import { BetaRegistrationsTab } from "@/components/admin/BetaRegistrationsTab";
 import InvoiceList from "@/components/InvoiceList";
 
 interface Enrollment {
@@ -458,7 +459,7 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-6">
         <Tabs defaultValue="enrollments" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
             <TabsTrigger value="enrollments" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Enrollments</span>
@@ -466,6 +467,10 @@ const Admin = () => {
             <TabsTrigger value="tools" className="flex items-center gap-2">
               <Wrench className="h-4 w-4" />
               <span className="hidden sm:inline">AI Tools</span>
+            </TabsTrigger>
+            <TabsTrigger value="beta" className="flex items-center gap-2">
+              <CalendarCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Beta Event</span>
             </TabsTrigger>
             <TabsTrigger value="leads" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
@@ -483,6 +488,10 @@ const Admin = () => {
 
           <TabsContent value="tools">
             <ToolPurchasesTab />
+          </TabsContent>
+
+          <TabsContent value="beta">
+            <BetaRegistrationsTab />
           </TabsContent>
 
           <TabsContent value="enrollments" className="space-y-6">
