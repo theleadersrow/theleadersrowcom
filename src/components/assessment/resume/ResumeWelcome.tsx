@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Upload, Loader2, FileText, Target, 
-  Zap, CheckCircle, Lock, Download, Eye
+  Zap, CheckCircle, Lock, Download, Eye, X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +88,18 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
     }
   };
 
+  const handleClearResume = () => {
+    setResumeText("");
+    setResumeFileName(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleClearJobDescription = () => {
+    setJobDescription("");
+  };
+
   const handleStartScan = () => {
     if (!resumeText.trim()) {
       toast({
@@ -144,6 +156,16 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
             <h3 className="font-semibold text-foreground flex items-center gap-2">
               <FileText className="w-4 h-4" /> Upload Your Resume *
             </h3>
+            {(resumeText || resumeFileName) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearResume}
+                className="text-muted-foreground hover:text-destructive h-8 px-2"
+              >
+                <X className="w-4 h-4 mr-1" /> Clear
+              </Button>
+            )}
           </div>
           
           <div className="mb-4">
@@ -181,10 +203,22 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
 
         {/* Job Description (Optional) */}
         <Card className="p-6 mb-4">
-          <h3 className="font-semibold text-foreground flex items-center gap-2 mb-2">
-            <Target className="w-4 h-4" /> Target Job Description
-            <span className="text-xs text-muted-foreground font-normal">(Optional but recommended)</span>
-          </h3>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Target className="w-4 h-4" /> Target Job Description
+              <span className="text-xs text-muted-foreground font-normal">(Optional but recommended)</span>
+            </h3>
+            {jobDescription && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearJobDescription}
+                className="text-muted-foreground hover:text-destructive h-8 px-2"
+              >
+                <X className="w-4 h-4 mr-1" /> Clear
+              </Button>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mb-4">
             Paste a job you're applying to for more targeted analysis.
           </p>
