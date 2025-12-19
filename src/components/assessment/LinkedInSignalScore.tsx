@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { 
   Linkedin, ArrowLeft, ArrowRight, Sparkles, CheckCircle, 
   Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link, Briefcase,
-  Wand2, Search, CheckSquare, Square, Zap, Users, Star
+  Wand2, Search, CheckSquare, Square, Zap, Users, Star, Mail, Send
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -105,7 +105,22 @@ interface ChecklistItem {
   action?: () => void;
 }
 
-type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "checklist" | "headlines" | "about" | "recruiter-sim" | "rescore-input" | "rescoring";
+interface OutreachMessage {
+  message: string;
+  context: string;
+  tips?: string[];
+  subject?: string;
+}
+
+interface OutreachMessages {
+  recruiterConnection: OutreachMessage;
+  hiringManagerConnection: OutreachMessage;
+  coldEmail: OutreachMessage & { subject: string };
+  followUpMessage: { message: string; context: string };
+  personalizationTips: string[];
+}
+
+type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "checklist" | "headlines" | "about" | "recruiter-sim" | "outreach" | "rescore-input" | "rescoring";
 
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
@@ -129,6 +144,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [generatedAbout, setGeneratedAbout] = useState<string>("");
   const [aboutKeyElements, setAboutKeyElements] = useState<string[]>([]);
   const [recruiterSim, setRecruiterSim] = useState<RecruiterSimulation | null>(null);
+  const [outreachMessages, setOutreachMessages] = useState<OutreachMessages | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [liveScorePreview, setLiveScorePreview] = useState<number | null>(null);
@@ -237,6 +253,13 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           label: "Add Recommended Skills",
           description: `Add: ${suggestions.skillsToAdd.slice(0, 3).join(", ")}...`,
           completed: false
+        },
+        {
+          id: "outreach",
+          label: "Draft Outreach Messages",
+          description: "Generate personalized connection requests & cold emails",
+          completed: false,
+          action: () => handleGenerateOutreach()
         },
         {
           id: "recruiter",
@@ -546,6 +569,34 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     } catch (error) {
       console.error("Error running recruiter simulation:", error);
       toast.error("Failed to run recruiter simulation. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateOutreach = async () => {
+    setIsGenerating(true);
+    setStep("outreach");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
+        body: {
+          linkedinUrl,
+          targetIndustry,
+          targetRole,
+          targetJobDescription,
+          profileText,
+          resumeText,
+          requestType: "generate_outreach",
+        },
+      });
+
+      if (error) throw error;
+      setOutreachMessages(data);
+      updateChecklistItem("outreach", true);
+    } catch (error) {
+      console.error("Error generating outreach messages:", error);
+      toast.error("Failed to generate outreach messages. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -1255,7 +1306,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           <Card className="cursor-pointer hover:border-blue-500/50 transition-all" onClick={handleGenerateHeadlines}>
             <CardContent className="p-4 text-center">
               <Wand2 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -1268,6 +1319,13 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
               <MessageSquare className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <h3 className="font-medium text-sm">AI About Section</h3>
               <p className="text-xs text-muted-foreground">Write my summary</p>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:border-orange-500/50 transition-all" onClick={handleGenerateOutreach}>
+            <CardContent className="p-4 text-center">
+              <Send className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+              <h3 className="font-medium text-sm">Outreach Drafter</h3>
+              <p className="text-xs text-muted-foreground">Connection requests</p>
             </CardContent>
           </Card>
           <Card className="cursor-pointer hover:border-green-500/50 transition-all" onClick={handleRecruiterSimulation}>
@@ -1742,6 +1800,238 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
               <Button onClick={handleRecruiterSimulation} size="lg">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Run Simulation
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // Outreach Drafter
+  if (step === "outreach") {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        <button
+          onClick={() => setStep("checklist")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Checklist
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+            <Send className="w-8 h-8 text-orange-600" />
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground mb-2">LinkedIn Outreach Drafter</h1>
+          <p className="text-muted-foreground">
+            Personalized connection requests and cold emails for recruiters
+          </p>
+        </div>
+
+        {isGenerating ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-10 h-10 text-orange-600 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Crafting personalized outreach messages...</p>
+          </div>
+        ) : outreachMessages ? (
+          <div className="space-y-6">
+            {/* Recruiter Connection Request */}
+            <Card className="border-orange-500/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4 text-orange-600" />
+                  Connection Request for Recruiters
+                </CardTitle>
+                <CardDescription>{outreachMessages.recruiterConnection.context}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 bg-orange-500/5 rounded-lg border border-orange-500/20 mb-3">
+                  <p className="text-sm">{outreachMessages.recruiterConnection.message}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    {outreachMessages.recruiterConnection.message.length}/300 characters
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(outreachMessages.recruiterConnection.message, "Recruiter connection request")}
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copy
+                  </Button>
+                </div>
+                {outreachMessages.recruiterConnection.tips && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs font-medium mb-2">Tips:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      {outreachMessages.recruiterConnection.tips.map((tip, i) => (
+                        <li key={i}>• {tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Hiring Manager Connection Request */}
+            <Card className="border-blue-500/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-blue-600" />
+                  Connection Request for Hiring Managers
+                </CardTitle>
+                <CardDescription>{outreachMessages.hiringManagerConnection.context}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20 mb-3">
+                  <p className="text-sm">{outreachMessages.hiringManagerConnection.message}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    {outreachMessages.hiringManagerConnection.message.length}/300 characters
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(outreachMessages.hiringManagerConnection.message, "Hiring manager connection request")}
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copy
+                  </Button>
+                </div>
+                {outreachMessages.hiringManagerConnection.tips && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs font-medium mb-2">Tips:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      {outreachMessages.hiringManagerConnection.tips.map((tip, i) => (
+                        <li key={i}>• {tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Cold Email/InMail */}
+            <Card className="border-purple-500/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-purple-600" />
+                  Cold Email / InMail to Recruiters
+                </CardTitle>
+                <CardDescription>{outreachMessages.coldEmail.context}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-3">
+                  <p className="text-xs font-medium mb-1">Subject Line:</p>
+                  <div className="p-2 bg-purple-500/5 rounded border border-purple-500/20 flex items-center justify-between">
+                    <p className="text-sm font-medium">{outreachMessages.coldEmail.subject}</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => copyToClipboard(outreachMessages.coldEmail.subject, "Subject line")}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 bg-purple-500/5 rounded-lg border border-purple-500/20 mb-3">
+                  <p className="text-sm whitespace-pre-wrap">{outreachMessages.coldEmail.message}</p>
+                </div>
+                <div className="flex items-center justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(`Subject: ${outreachMessages.coldEmail.subject}\n\n${outreachMessages.coldEmail.message}`, "Cold email")}
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copy Full Email
+                  </Button>
+                </div>
+                {outreachMessages.coldEmail.tips && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs font-medium mb-2">Tips:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      {outreachMessages.coldEmail.tips.map((tip, i) => (
+                        <li key={i}>• {tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Follow-up Message */}
+            <Card className="border-green-500/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-green-600" />
+                  Follow-up Message (If No Response)
+                </CardTitle>
+                <CardDescription>{outreachMessages.followUpMessage.context}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 bg-green-500/5 rounded-lg border border-green-500/20 mb-3">
+                  <p className="text-sm">{outreachMessages.followUpMessage.message}</p>
+                </div>
+                <div className="flex items-center justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(outreachMessages.followUpMessage.message, "Follow-up message")}
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copy
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Personalization Tips */}
+            <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Personalization Tips
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {outreachMessages.personalizationTips.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={handleGenerateOutreach} className="flex-1">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Regenerate
+              </Button>
+              <Button onClick={() => setStep("checklist")} className="flex-1">
+                Back to Checklist
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Send className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Ready to Draft Outreach Messages?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our AI will create personalized connection requests and cold emails based on your profile.
+              </p>
+              <Button onClick={handleGenerateOutreach} size="lg">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate Outreach Messages
               </Button>
             </CardContent>
           </Card>
