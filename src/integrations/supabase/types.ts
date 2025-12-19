@@ -279,6 +279,60 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_event_registrations: {
+        Row: {
+          agrees_to_communication: boolean
+          company: string | null
+          created_at: string
+          current_position: string
+          email: string
+          full_name: string
+          id: string
+          invited_at: string | null
+          job_search_status: string
+          linkedin_url: string | null
+          phone: string
+          status: string
+          target_roles: string
+          understands_beta_terms: boolean
+          zoom_link_sent: boolean | null
+        }
+        Insert: {
+          agrees_to_communication?: boolean
+          company?: string | null
+          created_at?: string
+          current_position: string
+          email: string
+          full_name: string
+          id?: string
+          invited_at?: string | null
+          job_search_status: string
+          linkedin_url?: string | null
+          phone: string
+          status?: string
+          target_roles: string
+          understands_beta_terms?: boolean
+          zoom_link_sent?: boolean | null
+        }
+        Update: {
+          agrees_to_communication?: boolean
+          company?: string | null
+          created_at?: string
+          current_position?: string
+          email?: string
+          full_name?: string
+          id?: string
+          invited_at?: string | null
+          job_search_status?: string
+          linkedin_url?: string | null
+          phone?: string
+          status?: string
+          target_roles?: string
+          understands_beta_terms?: boolean
+          zoom_link_sent?: boolean | null
+        }
+        Relationships: []
+      }
       career_assessments: {
         Row: {
           ai_assessment: Json | null
