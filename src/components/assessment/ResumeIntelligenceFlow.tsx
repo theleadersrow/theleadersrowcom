@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Mail } from "lucide-react";
+import { CheckCircle, Mail, Crown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Import new UX components
 import { ResumeLanding } from "./resume/ResumeLanding";
@@ -564,7 +565,17 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   };
 
   return (
-    <>
+    <div className="relative">
+      {/* Paid Access Badge */}
+      {hasPaidAccess && (
+        <div className="fixed top-4 right-4 z-50">
+          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg px-3 py-1.5 flex items-center gap-1.5">
+            <Crown className="w-4 h-4" />
+            <span className="font-medium">Paid Access Active</span>
+          </Badge>
+        </div>
+      )}
+
       <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -625,6 +636,6 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       </Dialog>
 
       {renderStep()}
-    </>
+    </div>
   );
 }
