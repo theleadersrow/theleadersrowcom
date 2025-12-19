@@ -12,6 +12,8 @@ const corsHeaders = {
 interface BetaRegistrationRequest {
   name: string;
   email: string;
+  toolType?: string;
+  toolName?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -20,13 +22,15 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email }: BetaRegistrationRequest = await req.json();
+    const { name, email, toolType, toolName }: BetaRegistrationRequest = await req.json();
+    
+    const displayToolName = toolName || (toolType === "linkedin_signal" ? "LinkedIn Signal Score" : "Resume Intelligence Suite");
 
     // Send confirmation email to applicant
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <onboarding@resend.dev>",
       to: [email],
-      subject: "Application Received: Resume Intelligence Suite Beta Testing",
+      subject: `Application Received: ${displayToolName} Beta Testing`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -43,7 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name},</p>
             
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for applying to participate in the <strong>Resume Intelligence Suite Live Beta Testing</strong> session!
+              Thank you for applying to participate in the <strong>${displayToolName} Live Beta Testing</strong> session!
             </p>
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -88,11 +92,12 @@ const handler = async (req: Request): Promise<Response> => {
     await resend.emails.send({
       from: "The Leader's Row <onboarding@resend.dev>",
       to: ["theleadersrow@gmail.com"],
-      subject: `New Beta Registration: ${name}`,
+      subject: `New Beta Registration: ${name} (${displayToolName})`,
       html: `
         <h2>New Beta Event Registration</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Tool:</strong> ${displayToolName}</p>
         <p>View all registrations in the admin dashboard.</p>
       `,
     });
