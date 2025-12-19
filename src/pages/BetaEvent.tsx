@@ -94,7 +94,7 @@ const BetaEvent = () => {
       linkedinUrl: "",
       understandsBetaTerms: false,
       agreesToCommunication: false,
-      subscribeToNewsletter: false,
+      subscribeToNewsletter: true,
     },
   });
 
