@@ -50,11 +50,9 @@ interface PaidOutputProps {
   resumeContent: string;
   score: ATSResult | null;
   onBack: () => void;
-  onRegenerate: () => void;
-  onDownloadPDF: () => void;
+  onViewPDF: () => void;
   onDownloadDocx: () => void;
   onGenerateCoverLetter: (details: CoverLetterInput) => Promise<string>;
-  regenerationsRemaining: number;
   accessExpiresAt?: string;
   onGoToInterviewPrep?: () => void;
   targetRole?: string;
@@ -73,11 +71,9 @@ export function PaidOutput({
   resumeContent,
   score,
   onBack,
-  onRegenerate,
-  onDownloadPDF,
+  onViewPDF,
   onDownloadDocx,
   onGenerateCoverLetter,
-  regenerationsRemaining,
   accessExpiresAt,
   onGoToInterviewPrep,
   targetRole
@@ -184,13 +180,13 @@ export function PaidOutput({
             <button onClick={onBack} className="p-2 rounded-lg hover:bg-muted transition-colors">
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
-            <div>
+          <div>
               <h1 className="text-2xl font-serif font-bold text-foreground flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-green-500" />
                 AI-Optimized Resume — Ready to Submit
               </h1>
               <p className="text-muted-foreground text-sm">
-                {daysRemaining} days remaining • {regenerationsRemaining} regenerations left
+                {daysRemaining} days remaining
               </p>
             </div>
           </div>
@@ -220,11 +216,11 @@ export function PaidOutput({
           {/* Resume Tab */}
           <TabsContent value="resume" className="space-y-4">
             <div className="flex flex-wrap gap-3 mb-4">
-              <Button onClick={onDownloadPDF}>
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
+              <Button variant="outline" onClick={onViewPDF}>
+                <Eye className="w-4 h-4 mr-2" />
+                View PDF
               </Button>
-              <Button variant="outline" onClick={onDownloadDocx}>
+              <Button onClick={onDownloadDocx}>
                 <Download className="w-4 h-4 mr-2" />
                 Download Word
               </Button>
@@ -234,14 +230,6 @@ export function PaidOutput({
                 ) : (
                   <><Copy className="w-4 h-4 mr-2" /> Copy Text</>
                 )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={onRegenerate}
-                disabled={regenerationsRemaining <= 0}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Regenerate ({regenerationsRemaining})
               </Button>
             </div>
 
