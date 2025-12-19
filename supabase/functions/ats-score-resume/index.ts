@@ -357,6 +357,7 @@ Return ONLY valid JSON in this exact format:
           },
           body: JSON.stringify({
             model: "google/gemini-2.5-flash",
+            temperature: 0, // CRITICAL: Set to 0 for deterministic, consistent results
             messages: [
               { role: "system", content: extractionPrompt },
               { role: "user", content: `**JOB DESCRIPTION:**\n${safeJobDescription}\n\n**RESUME:**\n${safeResumeText}` },
@@ -734,6 +735,7 @@ Provide ONLY this JSON (no markdown):
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
+        temperature: 0, // CRITICAL: Set to 0 for deterministic, consistent results
         messages: [
           { role: "system", content: "You provide human-readable ATS analysis insights. Return ONLY valid JSON." },
           { role: "user", content: analysisPrompt },
