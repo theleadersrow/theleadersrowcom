@@ -44,13 +44,7 @@ interface ATSResult {
   [key: string]: any;
 }
 
-interface ClarificationAnswers {
-  targetRole: string;
-  managerOrIC: string;
-  proudAchievement: string;
-  professionalBrand: string;
-  targetCompanies: string;
-}
+import { ClarificationAnswers } from "./resume/ClarificationQuestions";
 
 interface ContentImprovement {
   section: string;
@@ -416,16 +410,38 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     const accessToken = getAccessToken();
     
     try {
-      // Generate enhanced resume
+      // Generate enhanced resume with comprehensive targeting data
       const { data, error } = await supabase.functions.invoke("enhance-resume", {
         body: { 
           resumeText, 
           jobDescription,
-          targetRole: answers.targetRole,
-          managerOrIC: answers.managerOrIC,
-          proudAchievement: answers.proudAchievement,
-          professionalBrand: answers.professionalBrand,
-          targetCompanies: answers.targetCompanies,
+          // Section 1: Targeting & Intent
+          targetRoles: answers.targetRoles,
+          targetIndustry: answers.targetIndustry,
+          companyTypes: answers.companyTypes,
+          primaryOutcome: answers.primaryOutcome,
+          // Section 2: Role Scope & Seniority
+          roleScope: answers.roleScope,
+          strategyOrExecution: answers.strategyOrExecution,
+          stakeholders: answers.stakeholders,
+          crossFunctionalLead: answers.crossFunctionalLead,
+          seniorityDescription: answers.seniorityDescription,
+          // Section 3: Impact & Metrics
+          strongestImpact: answers.strongestImpact,
+          measurableOutcomes: answers.measurableOutcomes,
+          metricsMissingReason: answers.metricsMissingReason,
+          bestImpactProject: answers.bestImpactProject,
+          underrepresentedAchievement: answers.underrepresentedAchievement,
+          // Section 4: Professional Brand (Optional)
+          recruiterPerception: answers.recruiterPerception,
+          professionalSkills: answers.professionalSkills,
+          stretchingLevel: answers.stretchingLevel,
+          overstatingCaution: answers.overstatingCaution,
+          // Section 5: Practical Constraints (Optional)
+          deemphasizeCompanies: answers.deemphasizeCompanies,
+          gapsOrTransitions: answers.gapsOrTransitions,
+          complianceConstraints: answers.complianceConstraints,
+          // ATS analysis data
           missingKeywords: freeScore?.missing_keywords || [],
           improvements: freeScore?.improvements || [],
           email: userEmail,
@@ -681,7 +697,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             <div className="max-w-4xl mx-auto">
               <InterviewQuestionsPreview
                 resumeContent={enhancedResumeContent}
-                targetRole={clarificationAnswers?.targetRole || ""}
+                targetRole={clarificationAnswers?.targetRoles?.join(", ") || ""}
                 jobDescription={jobDescription}
                 onContinue={handleInterviewPreviewContinue}
                 onUnlockInterviewPrep={handleUnlockInterviewPrep}
@@ -703,7 +719,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             regenerationsRemaining={regenerationsRemaining}
             accessExpiresAt={accessExpiresAt}
             onGoToInterviewPrep={handleGoToInterviewPreview}
-            targetRole={clarificationAnswers?.targetRole || ""}
+            targetRole={clarificationAnswers?.targetRoles?.join(", ") || ""}
           />
         );
         
