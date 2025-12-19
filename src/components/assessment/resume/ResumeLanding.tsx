@@ -14,9 +14,11 @@ export function ResumeLanding({ onBack, onProceed }: ResumeLandingProps) {
   const freeFeatures = [
     "ATS Readiness Score",
     "Role-level signal analysis",
+    "Keyword match assessment",
+    "Hard & soft skills analysis",
+    "How recruiters search for you",
     "What's working in your resume",
-    "What's holding you back",
-    "Preview of AI-optimized resume"
+    "Priority improvements to fix"
   ];
 
   const paidFeatures = [
