@@ -129,15 +129,32 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     if (!email && !accessToken) return false;
     
     try {
-      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
-        body: { email, accessToken, toolType: "resume_suite" },
-      });
+      // If we have an access token, verify it
+      if (accessToken) {
+        const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+          body: { action: "verify", accessToken, toolType: "resume_suite" },
+        });
+        
+        if (!error && data?.valid) {
+          setHasPaidAccess(true);
+          setAccessExpiresAt(data.expiresAt);
+          setRegenerationsRemaining(data.regenerationsRemaining || 5);
+          return true;
+        }
+      }
       
-      if (!error && data?.hasAccess) {
-        setHasPaidAccess(true);
-        setAccessExpiresAt(data.expiresAt);
-        setRegenerationsRemaining(data.regenerationsRemaining || 5);
-        return true;
+      // Otherwise check by email
+      if (email) {
+        const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+          body: { action: "check", email, toolType: "resume_suite" },
+        });
+        
+        if (!error && data?.hasAccess) {
+          setHasPaidAccess(true);
+          setAccessExpiresAt(data.expiresAt);
+          setRegenerationsRemaining(data.regenerationsRemaining || 5);
+          return true;
+        }
       }
     } catch (e) {
       console.error("Error checking access:", e);
@@ -161,7 +178,11 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     try {
       // Verify access with the provided email
       const { data, error } = await supabase.functions.invoke("verify-tool-access", {
-        body: { email: activationEmail.toLowerCase(), toolType: "resume_suite" },
+        body: { 
+          action: "check",
+          email: activationEmail.toLowerCase().trim(), 
+          toolType: "resume_suite" 
+        },
       });
       
       if (error) throw error;
@@ -575,6 +596,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             onBack={() => setStep("welcome")}
             onUpgrade={handleUpgrade}
             onSaveReport={handleSaveReport}
+            onActivate={() => setShowActivationDialog(true)}
           />
         ) : null;
         

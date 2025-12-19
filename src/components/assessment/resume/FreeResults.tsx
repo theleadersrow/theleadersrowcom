@@ -44,10 +44,11 @@ interface FreeResultsProps {
   onBack: () => void;
   onUpgrade: () => void;
   onSaveReport: (email: string) => void;
+  onActivate?: () => void;
   resumePreviewHtml?: string;
 }
 
-export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePreviewHtml }: FreeResultsProps) {
+export function FreeResults({ score, onBack, onUpgrade, onSaveReport, onActivate, resumePreviewHtml }: FreeResultsProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveEmail, setSaveEmail] = useState("");
@@ -508,6 +509,18 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
               >
                 Continue free
               </Button>
+              
+              {onActivate && (
+                <button
+                  onClick={() => {
+                    setShowUpgradeModal(false);
+                    onActivate();
+                  }}
+                  className="text-sm text-primary hover:underline mt-3 block mx-auto"
+                >
+                  Already purchased? Activate with your email
+                </button>
+              )}
             </div>
           </DialogContent>
         </Dialog>
