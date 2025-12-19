@@ -516,6 +516,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             onBack={() => setStep("landing")}
             onStartScan={handleStartScan}
             isAnalyzing={isAnalyzing}
+            hasPaidAccess={hasPaidAccess}
           />
         );
         
@@ -566,15 +567,6 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
 
   return (
     <div className="relative">
-      {/* Paid Access Badge */}
-      {hasPaidAccess && (
-        <div className="fixed top-4 right-4 z-50">
-          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg px-3 py-1.5 flex items-center gap-1.5">
-            <Crown className="w-4 h-4" />
-            <span className="font-medium">Paid Access Active</span>
-          </Badge>
-        </div>
-      )}
 
       <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
         <DialogContent className="max-w-md">
