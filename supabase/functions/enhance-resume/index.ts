@@ -89,11 +89,11 @@ serve(async (req) => {
       jobDescription, 
       // Section 1: Targeting & Intent
       targetRoles,
-      targetIndustry,
+      targetIndustries,
       companyTypes,
-      primaryOutcome,
+      primaryOutcomes,
       // Section 2: Role Scope & Seniority
-      roleScope,
+      roleScopes,
       strategyOrExecution,
       stakeholders,
       crossFunctionalLead,
@@ -292,18 +292,25 @@ ${jobDescription}
 
 CRITICAL: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it to show they're perfect for THIS role.` : ''}
 
-=== TARGETING & INTENT ===
-${targetRoles?.length > 0 ? `Target Roles: ${targetRoles.join(', ')}` : ''}
-${targetIndustry ? `Target Industry: ${targetIndustry}` : ''}
-${companyTypes?.length > 0 ? `Company Types: ${companyTypes.join(', ')}` : ''}
-${primaryOutcome ? `Primary Outcome to Communicate: ${primaryOutcome}` : ''}
+=== TARGETING & INTENT (USE THIS TO SHAPE EVERY BULLET) ===
+${targetRoles?.length > 0 ? `Target Roles: ${targetRoles.join(', ')}
+INSTRUCTION: Frame experience to demonstrate readiness for these role levels. Use language and achievements that match ${targetRoles.join('/')} expectations.` : ''}
+${targetIndustries?.length > 0 ? `Target Industries: ${targetIndustries.join(', ')}
+INSTRUCTION: Use terminology, metrics, and domain knowledge relevant to ${targetIndustries.join('/')} industries throughout the resume.` : ''}
+${companyTypes?.length > 0 ? `Company Types: ${companyTypes.join(', ')}
+INSTRUCTION: Tailor language and scale descriptions to appeal to ${companyTypes.join('/')} companies.` : ''}
+${primaryOutcomes?.length > 0 ? `Key Outcomes to Communicate: ${primaryOutcomes.join(', ')}
+INSTRUCTION: EVERY bullet point should emphasize at least one of: ${primaryOutcomes.join(', ')}. This is the candidate's core value proposition.` : ''}
 
-=== ROLE SCOPE & SENIORITY ===
-${roleScope ? `Recent Role Scope: ${roleScope === 'ic' ? 'Individual Contributor' : roleScope === 'lead_ic' ? 'Lead IC' : roleScope === 'manager' ? 'People Manager' : 'Hybrid (IC + Manager)'}` : ''}
+=== ROLE SCOPE & SENIORITY (CRITICAL FOR LEVELING) ===
+${roleScopes?.length > 0 ? `Role Scope Experience: ${roleScopes.map((r: string) => r === 'ic' ? 'Individual Contributor' : r === 'lead_ic' ? 'Lead IC' : r === 'manager' ? 'People Manager' : 'Hybrid (IC + Manager)').join(', ')}
+INSTRUCTION: Show progression and breadth across these scopes. Highlight transitions between IC and leadership where relevant.` : ''}
 ${strategyOrExecution ? `Owned: ${strategyOrExecution === 'strategy' ? 'Strategy only' : strategyOrExecution === 'execution' ? 'Execution only' : 'Both strategy and execution'}` : ''}
-${stakeholders?.length > 0 ? `Stakeholders Influenced: ${stakeholders.join(', ')}` : ''}
+${stakeholders?.length > 0 ? `Stakeholders Influenced: ${stakeholders.join(', ')}
+INSTRUCTION: Include collaboration with ${stakeholders.join(', ')} in bullet points to demonstrate cross-functional influence.` : ''}
 ${crossFunctionalLead ? `Cross-Functional Leadership: ${crossFunctionalLead === 'yes_major' ? 'Yes - major initiatives' : crossFunctionalLead === 'yes_limited' ? 'Yes - limited' : 'No'}` : ''}
-${seniorityDescription ? `Self-Described Seniority: "${seniorityDescription}"` : ''}
+${seniorityDescription ? `Self-Described Seniority: "${seniorityDescription}"
+INSTRUCTION: The resume tone and language should reflect this seniority level.` : ''}
 
 === IMPACT & METRICS ===
 ${strongestImpact?.length > 0 ? `Strongest Impact Areas: ${strongestImpact.join(', ')}` : ''}

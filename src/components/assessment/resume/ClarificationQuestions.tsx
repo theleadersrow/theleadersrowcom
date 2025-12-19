@@ -13,12 +13,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 export interface ClarificationAnswers {
   // Section 1: Targeting & Intent
   targetRoles: string[];
-  targetIndustry: string;
+  targetIndustries: string[]; // Changed to array for multi-select
   companyTypes: string[];
-  primaryOutcome: string;
+  primaryOutcomes: string[]; // Changed to array for multi-select
   
   // Section 2: Role Scope & Seniority
-  roleScope: string;
+  roleScopes: string[]; // Changed to array for multi-select
   strategyOrExecution: string;
   stakeholders: string[];
   crossFunctionalLead: string;
@@ -58,14 +58,14 @@ const TARGET_ROLES = [
 ];
 
 const INDUSTRIES = [
-  "Tech / SaaS",
-  "Fintech",
-  "AI / ML",
-  "Consumer",
-  "Marketplace",
-  "Enterprise / B2B",
-  "Healthcare",
-  "Other",
+  { value: "tech_saas", label: "Tech / SaaS" },
+  { value: "fintech", label: "Fintech" },
+  { value: "ai_ml", label: "AI / ML" },
+  { value: "consumer", label: "Consumer" },
+  { value: "marketplace", label: "Marketplace" },
+  { value: "enterprise_b2b", label: "Enterprise / B2B" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "other", label: "Other" },
 ];
 
 const COMPANY_TYPES = [
@@ -162,10 +162,10 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
   
   const [answers, setAnswers] = useState<ClarificationAnswers>({
     targetRoles: [],
-    targetIndustry: "",
+    targetIndustries: [],
     companyTypes: [],
-    primaryOutcome: "",
-    roleScope: "",
+    primaryOutcomes: [],
+    roleScopes: [],
     strategyOrExecution: "",
     stakeholders: [],
     crossFunctionalLead: "",
@@ -206,8 +206,8 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
   };
 
   // Validation for each section
-  const isSection1Complete = answers.targetRoles.length > 0 && answers.targetIndustry && answers.primaryOutcome;
-  const isSection2Complete = answers.roleScope && answers.strategyOrExecution;
+  const isSection1Complete = answers.targetRoles.length > 0 && answers.targetIndustries.length > 0 && answers.primaryOutcomes.length > 0;
+  const isSection2Complete = answers.roleScopes.length > 0 && answers.strategyOrExecution;
   const isSection3Complete = answers.strongestImpact.length > 0;
   
   const canSubmit = isSection1Complete && isSection2Complete && isSection3Complete;
@@ -276,20 +276,9 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
 
             <Card className="p-5">
               <Label className="text-base font-semibold text-foreground mb-3 block">
-                2. Which industry or domain are you primarily targeting?
+                2. Which industry or domain are you targeting? <span className="text-muted-foreground font-normal">(Select all that apply)</span>
               </Label>
-              <RadioGroup
-                value={answers.targetIndustry}
-                onValueChange={(val) => updateAnswer("targetIndustry", val)}
-                className="grid grid-cols-2 gap-2"
-              >
-                {INDUSTRIES.map(industry => (
-                  <div key={industry} className="flex items-center space-x-2">
-                    <RadioGroupItem value={industry} id={`industry-${industry}`} />
-                    <Label htmlFor={`industry-${industry}`} className="text-sm font-normal">{industry}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {renderCheckboxGroup(INDUSTRIES, "targetIndustries")}
             </Card>
 
             <Card className="p-5">
@@ -301,20 +290,9 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
 
             <Card className="p-5">
               <Label className="text-base font-semibold text-foreground mb-3 block">
-                4. What is the single most important outcome you want this resume to communicate?
+                4. What outcomes do you want this resume to communicate? <span className="text-muted-foreground font-normal">(Select up to 3)</span>
               </Label>
-              <RadioGroup
-                value={answers.primaryOutcome}
-                onValueChange={(val) => updateAnswer("primaryOutcome", val)}
-                className="space-y-2"
-              >
-                {PRIMARY_OUTCOMES.map(outcome => (
-                  <div key={outcome.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={outcome.value} id={`outcome-${outcome.value}`} />
-                    <Label htmlFor={`outcome-${outcome.value}`} className="text-sm font-normal">{outcome.label}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {renderCheckboxGroup(PRIMARY_OUTCOMES, "primaryOutcomes", 3)}
             </Card>
           </div>
         )}
@@ -329,20 +307,9 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
 
             <Card className="p-5">
               <Label className="text-base font-semibold text-foreground mb-3 block">
-                1. In your most recent role, which best describes your scope?
+                1. In your recent roles, which best describes your scope? <span className="text-muted-foreground font-normal">(Select all that apply)</span>
               </Label>
-              <RadioGroup
-                value={answers.roleScope}
-                onValueChange={(val) => updateAnswer("roleScope", val)}
-                className="space-y-2"
-              >
-                {ROLE_SCOPES.map(scope => (
-                  <div key={scope.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={scope.value} id={`scope-${scope.value}`} />
-                    <Label htmlFor={`scope-${scope.value}`} className="text-sm font-normal">{scope.label}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {renderCheckboxGroup(ROLE_SCOPES, "roleScopes")}
             </Card>
 
             <Card className="p-5">
