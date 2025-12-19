@@ -205,16 +205,20 @@ serve(async (req) => {
       });
     }
 
-    const { resumeText, jobDescription, sessionId, isPostTransformation, email, accessToken } = body || {};
+    const { resumeText, jobDescription, sessionId, isPostTransformation, email, accessToken, isFreeAnalysis } = body || {};
 
-    // Verify tool access
-    const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
-    if (!accessCheck.valid) {
-      console.log("Access denied:", accessCheck.error);
-      return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Verify tool access (skip for free analysis - basic scoring only)
+    if (!isFreeAnalysis) {
+      const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
+      if (!accessCheck.valid) {
+        console.log("Access denied:", accessCheck.error);
+        return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.log("Free analysis mode - skipping access verification");
     }
 
     // Rate limit
