@@ -1351,19 +1351,21 @@ export function ResumeReview({
                 </ul>
               </div>
             </div>
-            <Button
-              size="sm"
-              onClick={() => {
-                setSections(prev => 
-                  prev.map(section => ({ ...section, status: "accepted" as const }))
-                );
-              }}
-              disabled={editableSections.every(s => s.status === "accepted")}
-              className="flex-shrink-0"
-            >
-              <Check className="w-4 h-4 mr-1" />
-              Accept All
-            </Button>
+            {editableSections.length > 0 && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setSections(prev => 
+                    prev.map(section => ({ ...section, status: "accepted" as const }))
+                  );
+                }}
+                disabled={editableSections.every(s => s.status === "accepted")}
+                className="flex-shrink-0"
+              >
+                <Check className="w-4 h-4 mr-1" />
+                Accept All
+              </Button>
+            )}
           </div>
         </Card>
 
