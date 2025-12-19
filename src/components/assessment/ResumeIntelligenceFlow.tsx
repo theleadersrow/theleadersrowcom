@@ -89,15 +89,23 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   const { toast } = useToast();
 
   // Helper to store session data for paid users returning
-  const storeSessionData = () => {
-    if (resumeText && jobDescription) {
-      localStorage.setItem("resume_suite_session", JSON.stringify({
-        resumeText,
-        jobDescription,
-        targetRole,
-        targetIndustry,
-        freeScore,
-      }));
+  const storeSessionData = (data?: { 
+    resume?: string; 
+    jd?: string; 
+    role?: string; 
+    industry?: string; 
+    score?: ATSResult;
+  }) => {
+    const dataToStore = {
+      resumeText: data?.resume ?? resumeText,
+      jobDescription: data?.jd ?? jobDescription,
+      targetRole: data?.role ?? targetRole,
+      targetIndustry: data?.industry ?? targetIndustry,
+      freeScore: data?.score ?? freeScore,
+    };
+    if (dataToStore.resumeText && dataToStore.jobDescription) {
+      localStorage.setItem("resume_suite_session", JSON.stringify(dataToStore));
+      console.log("[Session] Stored session data");
     }
   };
 
@@ -328,8 +336,14 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       const data = await response.json();
       setFreeScore(data);
       
-      // Store session data so we can restore it after payment
-      storeSessionData();
+      // Store session data so we can restore it after payment (pass values directly since state is async)
+      storeSessionData({
+        resume,
+        jd,
+        role,
+        industry,
+        score: data,
+      });
       
       // Check if user already has paid access
       const isPaid = await checkPaidAccess();
