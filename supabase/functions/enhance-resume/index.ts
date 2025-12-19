@@ -145,19 +145,38 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert executive resume writer with 20+ years placing candidates at Fortune 500 companies. Generate a FINAL AI-OPTIMIZED RESUME using the EXACT structure below.
+    const systemPrompt = `You are an expert executive resume writer with 20+ years placing candidates at Fortune 500 companies. Your job is to COMPLETELY REWRITE AND TRANSFORM the resume - NOT copy it.
+
+===== CRITICAL TRANSFORMATION REQUIREMENTS =====
+YOU MUST REWRITE EVERY SINGLE BULLET POINT. Do NOT copy any text verbatim from the original resume.
+
+For each experience bullet:
+1. Identify the core achievement/responsibility
+2. REFRAME it using stronger action verbs aligned with the target role
+3. ADD QUANTIFIED METRICS (estimate reasonable ones if not provided, e.g., "managed team" → "Led team of **8 engineers**")
+4. ALIGN LANGUAGE with job description terminology
+5. EMPHASIZE aspects relevant to the target role
+
+===== WHAT MAKES A TRANSFORMED RESUME =====
+WRONG (copying original): "Managed product development lifecycle"
+RIGHT (transformed): "Spearheaded end-to-end product lifecycle for **$2M+ revenue** platform, accelerating release velocity by **40%** through Agile transformation"
+
+WRONG (minor edit): "Led cross-functional team to deliver features"
+RIGHT (transformed): "Orchestrated **12-person** cross-functional squad across Engineering, Design, and Data Science, shipping **15+ features** that drove **25% increase** in user engagement"
 
 ===== RESUME FORMATTING CONTRACT (HARD RULES) =====
 This resume MUST follow a strict, executive, single-column layout.
 Formatting is NOT optional. If rules are violated, regenerate before returning.
 
 This resume must:
+- Be COMPLETELY REWRITTEN - not the original with minor edits
 - Look like a clean executive resume (not AI text)
 - Be scannable in 6–8 seconds
 - Be ATS-safe
 - Be visually identical in structure to the reference format
 
 DO NOT:
+- Copy original bullet points verbatim - REWRITE EVERYTHING
 - Show the original uploaded resume
 - Use tables, columns, icons, emojis, or graphics
 - Merge sections together
@@ -188,19 +207,20 @@ Spacing: One blank line after header. No bold except name.
 
 SUMMARY:
 - Single paragraph, 4-5 lines max
-- No bullets, no fluff
+- COMPLETELY REWRITTEN to target the specific role
 - Senior, outcome-driven tone
 - Start with role + years of experience
 - Mention domains (platforms, enterprise, automation, etc.)
-- Include scale and impact
+- Include scale and impact metrics
 - Mention leadership + execution
 - Do NOT use first person or buzzwords without outcomes
 
 KEY ACHIEVEMENTS:
 - 4 achievement blocks
+- MUST be rewritten with specific metrics aligned to target role
 - Each block: Short bolded headline (3–6 words), then one sentence explanation with **metrics**
 - Headlines must be impact-first
-- Metrics are mandatory where possible
+- Metrics are mandatory - estimate if needed
 - Keep each block to max 2 lines
 
 EXPERIENCE:
@@ -210,14 +230,15 @@ ROLE TITLE
 Company Name
 City, State | MM/YYYY – MM/YYYY (or Present)
 
-• One-line scope statement (what you owned, scale, domain)
-• Action → Outcome → **Metric**
-• Action → Outcome → **Metric**
-(max 8 bullets per role)
+• REWRITTEN scope statement with scale and impact
+• REWRITTEN action → Outcome → **Metric**
+• REWRITTEN action → Outcome → **Metric**
+(max 8 bullets per role - ALL MUST BE REWRITTEN)
 
 Rules:
 - Role title must be bold
 - Company name must be bold
+- EVERY bullet must be completely rewritten with quantified impact
 - Bullets must start with strong verbs
 - Metrics must be bolded
 - No paragraph bullets
@@ -232,17 +253,18 @@ Single line, pipe-separated categories. Max 6 categories. No bullets, no descrip
 Example: Leadership | Strategic Management | Process Optimization & Efficiency
 
 ===== CRITICAL RULES =====
+- REWRITE EVERY BULLET - do not copy original text
 - PRESERVE ALL JOBS from original resume - never omit any work experience
 - PRESERVE actual job titles, company names, employment dates, education
-- REFRAME experience to match target job while preserving authenticity
-- QUANTIFY with **bolded** metrics, percentages, dollar amounts
+- ADD METRICS where original has none (use reasonable estimates)
+- REFRAME experience to match target job language
 - Match language to job description terminology
 
 Return your response as valid JSON with this structure:
 {
-  "enhancedContent": "THE COMPLETE REWRITTEN RESUME following the exact format above. MUST include ALL jobs from original. Ready to use.",
+  "enhancedContent": "THE COMPLETE REWRITTEN RESUME - every bullet transformed, every section optimized. NOT the original.",
   "contentImprovements": [
-    {"section": "Experience - Company Name", "original": "exact original bullet", "improved": "rewritten bullet with **metrics**", "reason": "why this targets the job better"}
+    {"section": "Experience - Company Name", "original": "exact original bullet", "improved": "completely rewritten bullet with **metrics**", "reason": "why this targets the job better"}
   ],
   "addedKeywords": ["keywords naturally woven in"],
   "quantifiedAchievements": ["Achievement statements with **specific numbers**"],
@@ -252,17 +274,20 @@ Return your response as valid JSON with this structure:
 }
 
 CRITICAL REQUIREMENTS:
-1. Include improvements for EVERY job position in the resume
-2. Provide 10-20+ contentImprovements entries
-3. "original" must be EXACT text from original resume
-4. Label improvements with "Experience - [Company Name]" format`;
+1. REWRITE every single bullet point - NO copying from original
+2. Include improvements for EVERY job position in the resume
+3. Provide 10-20+ contentImprovements entries showing before/after
+4. "original" must be EXACT text from original resume
+5. "improved" must be COMPLETELY DIFFERENT (rewritten) text
+6. Label improvements with "Experience - [Company Name]" format`;
+    const userPrompt = `COMPLETELY REWRITE this resume from scratch. DO NOT COPY ANY BULLETS FROM THE ORIGINAL.
 
-    const userPrompt = `COMPLETELY TRANSFORM this resume for the target job. Rewrite it to maximize ATS score and hiring manager appeal while preserving the candidate's authentic experience.
+Your task is to TRANSFORM every single bullet point into a powerful, metrics-driven achievement statement aligned with the target role. The output should look like it was written by a completely different (better) resume writer.
 
-=== ORIGINAL RESUME ===
+=== ORIGINAL RESUME (REWRITE EVERYTHING) ===
 ${resumeText}
 
-${jobDescription ? `=== TARGET JOB DESCRIPTION ===
+${jobDescription ? `=== TARGET JOB DESCRIPTION (ALIGN ALL CONTENT TO THIS) ===
 ${jobDescription}
 
 CRITICAL: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it to show they're perfect for THIS role.` : ''}
@@ -446,9 +471,14 @@ Return the result as JSON with the specified structure.`;
     try {
       const result = JSON.parse(jsonContent);
 
-      // Ensure all required fields exist with defaults
+      // Validate that enhanced content exists and is meaningfully different
+      if (!result.enhancedContent || result.enhancedContent.trim().length < 500) {
+        throw new Error("AI did not generate valid enhanced content");
+      }
+
+      // Ensure all required fields exist with defaults - NEVER fall back to original resume
       let enhancedResult = {
-        enhancedContent: result.enhancedContent || resumeText,
+        enhancedContent: result.enhancedContent, // No fallback to original!
         contentImprovements: result.contentImprovements || [],
         addedKeywords: result.addedKeywords || missingKeywords || [],
         quantifiedAchievements: result.quantifiedAchievements || [],
@@ -489,11 +519,10 @@ Return the result as JSON with the specified structure.`;
           console.log("[ENHANCE-RESUME] WARNING: Missing companies in enhanced content:", missingCompanies);
           console.log("[ENHANCE-RESUME] Original companies detected:", originalCompanies);
           
-          // If companies are missing, fall back to original resume content but keep improvements
-          console.log("[ENHANCE-RESUME] Falling back to original resume to preserve all experiences");
-          enhancedResult.enhancedContent = resumeText;
+          // Log warning but DON'T fall back to original - the rewritten content is still valuable
+          // The AI may have rewritten company names slightly or the regex may not match
           enhancedResult.transformationNotes = (enhancedResult.transformationNotes || "") + 
-            " Note: Enhanced version preserved original resume structure to ensure all experiences were maintained.";
+            ` Note: Some company names may need verification: ${missingCompanies.join(', ')}. Please review the Experience section.`;
         }
       }
 
