@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Check, X, Edit3, Save, RotateCcw,
-  ChevronDown, ChevronUp, Sparkles, FileText
+  ChevronDown, ChevronUp, Sparkles, FileText, Briefcase
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -16,6 +16,8 @@ interface ResumeSection {
   improvedContent: string;
   status: "pending" | "accepted" | "declined" | "edited";
   editedContent?: string;
+  isRole?: boolean; // Flag to identify individual roles within experience
+  parentSection?: string; // Parent section ID for nested roles
 }
 
 interface ContentImprovement {
@@ -34,17 +36,126 @@ interface ResumeReviewProps {
   isGenerating?: boolean;
 }
 
-function parseResumeIntoSections(resumeText: string): { title: string; content: string }[] {
-  const sections: { title: string; content: string }[] = [];
+// Parse individual roles from the experience section
+function parseRolesFromExperience(experienceContent: string): { title: string; content: string }[] {
+  const roles: { title: string; content: string }[] = [];
+  const lines = experienceContent.split('\n');
+  
+  // Pattern to detect role headers - typically: ROLE TITLE followed by Company Name
+  // Look for patterns like: "Senior Product Manager" or "SENIOR PRODUCT MANAGER"
+  // followed by company info
+  
+  let currentRole: { title: string; lines: string[] } | null = null;
+  let i = 0;
+  
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    const nextLine = lines[i + 1]?.trim() || '';
+    
+    // Skip empty lines at the start
+    if (!line && !currentRole) {
+      i++;
+      continue;
+    }
+    
+    // Detect role header patterns:
+    // 1. Line is a job title (no bullets, not too long, followed by company or date info)
+    // 2. Or line contains date patterns like "MM/YYYY" or "Present"
+    const isLikelyRoleHeader = (
+      line.length > 0 &&
+      line.length < 100 &&
+      !line.startsWith('•') &&
+      !line.startsWith('-') &&
+      !line.startsWith('*') &&
+      (
+        // Next line looks like company info or dates
+        /^\w+.*\s*(Inc\.|LLC|Corp|Company|Ltd|Co\.|Group|Technologies|Solutions)?$/i.test(line) &&
+        (
+          /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–-]\s*\d{4}|\d{4}\s*[–-]\s*Present/i.test(nextLine) ||
+          /^[A-Z][a-z]+.*?(Inc|LLC|Corp|Company|Ltd|Co|Group|Technologies|Solutions|\|)/i.test(nextLine)
+        )
+      ) ||
+      // Or this line itself contains company + date pattern
+      (/\|.*(\d{1,2}\/\d{4}|Present|Current)/.test(line))
+    );
+    
+    // Alternative detection: Check if line is all caps or title case and short
+    const isTitleStyleHeader = (
+      line.length > 3 &&
+      line.length < 80 &&
+      !line.startsWith('•') &&
+      !line.startsWith('-') &&
+      (
+        line === line.toUpperCase() || // ALL CAPS
+        /^[A-Z][a-z]+(\s+[A-Z][a-z]+)*\s*(Manager|Director|Lead|Engineer|Designer|Analyst|Specialist|Consultant|VP|President|Officer|Head|Chief)?$/i.test(line)
+      ) &&
+      !line.includes('•') &&
+      !line.includes(':') &&
+      currentRole !== null // Only detect new roles after first one
+    );
+    
+    // Start of a new role
+    if ((isLikelyRoleHeader || isTitleStyleHeader) && line) {
+      // Save previous role if exists
+      if (currentRole && currentRole.lines.length > 0) {
+        roles.push({
+          title: currentRole.title,
+          content: currentRole.lines.join('\n').trim()
+        });
+      }
+      
+      // Determine role title - usually the job title or first meaningful line
+      let roleTitle = line;
+      
+      // If next line is company name, include it
+      if (nextLine && !nextLine.startsWith('•') && nextLine.length < 80) {
+        roleTitle = `${line} at ${nextLine.split('|')[0].trim()}`;
+      }
+      
+      currentRole = {
+        title: roleTitle.substring(0, 60) + (roleTitle.length > 60 ? '...' : ''),
+        lines: [line]
+      };
+    } else if (currentRole) {
+      currentRole.lines.push(lines[i]); // Keep original line (not trimmed)
+    } else {
+      // First role not yet detected, start one
+      currentRole = {
+        title: line.substring(0, 50) || 'Role',
+        lines: [lines[i]]
+      };
+    }
+    
+    i++;
+  }
+  
+  // Don't forget the last role
+  if (currentRole && currentRole.lines.length > 0) {
+    roles.push({
+      title: currentRole.title,
+      content: currentRole.lines.join('\n').trim()
+    });
+  }
+  
+  // If parsing failed to find distinct roles, return the whole section as one
+  if (roles.length === 0) {
+    return [{ title: 'All Experience', content: experienceContent.trim() }];
+  }
+  
+  return roles;
+}
+
+function parseResumeIntoSections(resumeText: string, splitExperience: boolean = false): { title: string; content: string; isRole?: boolean; parentSection?: string }[] {
+  const sections: { title: string; content: string; isRole?: boolean; parentSection?: string }[] = [];
   
   // Section header patterns - must match EXACT section headers (typically all caps or title case at start of line)
   const sectionPatterns = [
     { pattern: /^(SUMMARY|PROFESSIONAL SUMMARY|EXECUTIVE SUMMARY|PROFILE)\s*$/im, name: "SUMMARY" },
-    { pattern: /^(KEY ACHIEVEMENTS|ACHIEVEMENTS|ACCOMPLISHMENTS)\s*$/im, name: "ACHIEVEMENTS" },
+    { pattern: /^(KEY ACHIEVEMENTS|ACHIEVEMENTS|ACCOMPLISHMENTS)\s*$/im, name: "KEY ACHIEVEMENTS" },
     { pattern: /^(EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT HISTORY)\s*$/im, name: "EXPERIENCE" },
     { pattern: /^(EDUCATION|ACADEMIC BACKGROUND|EDUCATIONAL BACKGROUND)\s*$/im, name: "EDUCATION" },
     { pattern: /^(SKILLS|TECHNICAL SKILLS|CORE COMPETENCIES|KEY SKILLS)\s*$/im, name: "SKILLS" },
-    { pattern: /^(INDUSTRY EXPERTISE|AREAS OF EXPERTISE|EXPERTISE)\s*$/im, name: "EXPERTISE" },
+    { pattern: /^(INDUSTRY EXPERTISE|AREAS OF EXPERTISE|EXPERTISE)\s*$/im, name: "INDUSTRY EXPERTISE" },
     { pattern: /^(CERTIFICATIONS|LICENSES|CREDENTIALS|CERTIFICATES)\s*$/im, name: "CERTIFICATIONS" },
     { pattern: /^(PROJECTS|KEY PROJECTS|NOTABLE PROJECTS)\s*$/im, name: "PROJECTS" },
     { pattern: /^(LANGUAGES)\s*$/im, name: "LANGUAGES" },
@@ -92,10 +203,33 @@ function parseResumeIntoSections(resumeText: string): { title: string; content: 
       : lines.length;
     
     const sectionContent = lines.slice(startLine, endLine).join('\n').trim();
-    sections.push({ 
-      title: sectionBoundaries[i].title, 
-      content: sectionContent 
-    });
+    const sectionTitle = sectionBoundaries[i].title;
+    
+    // If this is the EXPERIENCE section and we want to split it
+    if (splitExperience && sectionTitle === "EXPERIENCE") {
+      // Add the main EXPERIENCE section header (empty, acts as group header)
+      sections.push({ 
+        title: "EXPERIENCE", 
+        content: "",
+        isRole: false
+      });
+      
+      // Parse individual roles
+      const roles = parseRolesFromExperience(sectionContent);
+      roles.forEach((role, roleIndex) => {
+        sections.push({
+          title: role.title,
+          content: role.content,
+          isRole: true,
+          parentSection: "EXPERIENCE"
+        });
+      });
+    } else {
+      sections.push({ 
+        title: sectionTitle, 
+        content: sectionContent 
+      });
+    }
   }
   
   return sections;
@@ -114,17 +248,35 @@ export function ResumeReview({
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   useEffect(() => {
-    // Parse both resumes into sections
-    const originalSections = parseResumeIntoSections(originalResume);
-    const enhancedSections = parseResumeIntoSections(enhancedContent);
+    // Parse both resumes into sections - split experience into individual roles
+    const originalSections = parseResumeIntoSections(originalResume, true);
+    const enhancedSections = parseResumeIntoSections(enhancedContent, true);
     
     // Match sections between original and enhanced
     const reviewSections: ResumeSection[] = enhancedSections.map((enhanced, index) => {
-      // Find matching original section
-      const matchingOriginal = originalSections.find(orig => 
-        orig.title.includes(enhanced.title.split(' ')[0]) ||
-        enhanced.title.includes(orig.title.split(' ')[0])
-      ) || originalSections[index];
+      // Find matching original section (for roles, try to match by similar title)
+      let matchingOriginal = originalSections.find(orig => {
+        if (enhanced.isRole && orig.isRole) {
+          // For roles, do a fuzzy match on company/title
+          const enhancedWords = enhanced.title.toLowerCase().split(/\s+/);
+          const origWords = orig.title.toLowerCase().split(/\s+/);
+          return enhancedWords.some(w => w.length > 3 && origWords.includes(w));
+        }
+        return orig.title === enhanced.title || 
+          orig.title.includes(enhanced.title.split(' ')[0]) ||
+          enhanced.title.includes(orig.title.split(' ')[0]);
+      });
+      
+      // Fallback to index-based matching for roles
+      if (!matchingOriginal && enhanced.isRole) {
+        const enhancedRoleIndex = enhancedSections.filter((s, i) => s.isRole && i <= index).length - 1;
+        const originalRoles = originalSections.filter(s => s.isRole);
+        matchingOriginal = originalRoles[enhancedRoleIndex];
+      }
+      
+      if (!matchingOriginal) {
+        matchingOriginal = originalSections[index];
+      }
       
       return {
         id: `section-${index}`,
@@ -132,13 +284,16 @@ export function ResumeReview({
         originalContent: matchingOriginal?.content || "",
         improvedContent: enhanced.content,
         status: "pending" as const,
+        isRole: enhanced.isRole,
+        parentSection: enhanced.parentSection,
       };
     });
     
     setSections(reviewSections);
-    // Expand first section by default
-    if (reviewSections.length > 0) {
-      setExpandedSection(reviewSections[0].id);
+    // Expand first non-header section by default
+    const firstExpandable = reviewSections.find(s => s.title !== "HEADER" && !s.isRole);
+    if (firstExpandable) {
+      setExpandedSection(firstExpandable.id);
     }
   }, [originalResume, enhancedContent]);
 
@@ -196,7 +351,17 @@ export function ResumeReview({
     const finalParts: string[] = [];
     const acceptedSectionTitles: string[] = [];
     
+    // Track if we're inside an experience section to group roles properly
+    let inExperienceSection = false;
+    
     sections.forEach(section => {
+      // Skip the EXPERIENCE group header (it has no content, just groups roles)
+      if (section.title === "EXPERIENCE" && !section.isRole) {
+        finalParts.push("EXPERIENCE");
+        inExperienceSection = true;
+        return;
+      }
+      
       let content = "";
       if (section.status === "accepted") {
         content = section.improvedContent;
@@ -212,10 +377,16 @@ export function ResumeReview({
         acceptedSectionTitles.push(section.title);
       }
       
-      if (section.title !== "HEADER") {
-        finalParts.push(section.title);
+      // For roles, don't add the section title (it's already in content)
+      if (section.isRole) {
+        finalParts.push(content.trim());
+      } else {
+        if (section.title !== "HEADER" && section.title !== "EXPERIENCE") {
+          inExperienceSection = false;
+          finalParts.push(section.title);
+        }
+        finalParts.push(content.trim());
       }
-      finalParts.push(content.trim());
     });
     
     onFinalize(finalParts.join('\n\n'), acceptedSectionTitles);
@@ -234,8 +405,207 @@ export function ResumeReview({
     }
   };
 
-  const acceptedCount = sections.filter(s => s.status === "accepted" || s.status === "edited").length;
-  const totalCount = sections.length;
+  // Count only sections that have content (exclude EXPERIENCE group header)
+  const editableSections = sections.filter(s => s.title !== "EXPERIENCE" || s.isRole);
+  const acceptedCount = editableSections.filter(s => s.status === "accepted" || s.status === "edited").length;
+  const totalCount = editableSections.length;
+  
+  // Group sections for rendering
+  const renderSections = () => {
+    const result: JSX.Element[] = [];
+    let i = 0;
+    
+    while (i < sections.length) {
+      const section = sections[i];
+      
+      // Check if this is the EXPERIENCE group header
+      if (section.title === "EXPERIENCE" && !section.isRole) {
+        // Collect all roles that follow
+        const roles: ResumeSection[] = [];
+        let j = i + 1;
+        while (j < sections.length && sections[j].isRole) {
+          roles.push(sections[j]);
+          j++;
+        }
+        
+        // Render the experience group
+        result.push(
+          <div key={section.id} className="space-y-3">
+            {/* Experience Group Header */}
+            <div className="flex items-center gap-2 px-2 pt-4">
+              <Briefcase className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-lg text-foreground">EXPERIENCE</h3>
+              <Badge variant="outline" className="ml-2">{roles.length} roles</Badge>
+            </div>
+            
+            {/* Individual Roles */}
+            <div className="space-y-3 pl-2 border-l-2 border-primary/20 ml-2">
+              {roles.map((role) => renderSectionCard(role, true))}
+            </div>
+          </div>
+        );
+        
+        i = j; // Skip past all the roles we just rendered
+      } else if (!section.isRole) {
+        // Regular section (not a role)
+        result.push(renderSectionCard(section, false));
+        i++;
+      } else {
+        // Orphan role (shouldn't happen, but handle gracefully)
+        result.push(renderSectionCard(section, true));
+        i++;
+      }
+    }
+    
+    return result;
+  };
+  
+  const renderSectionCard = (section: ResumeSection, isRole: boolean) => (
+    <Collapsible 
+      key={section.id}
+      open={expandedSection === section.id}
+      onOpenChange={(open) => setExpandedSection(open ? section.id : null)}
+    >
+      <Card className={`overflow-hidden transition-all ${
+        isRole ? 'ml-0' : ''
+      } ${
+        section.status === "accepted" ? "border-green-500/50" :
+        section.status === "declined" ? "border-red-500/30" :
+        section.status === "edited" ? "border-blue-500/50" : ""
+      }`}>
+        <CollapsibleTrigger className="w-full">
+          <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-3">
+              {expandedSection === section.id ? (
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              )}
+              <div className="flex flex-col items-start">
+                <span className={`font-semibold text-foreground ${isRole ? 'text-sm' : ''}`}>
+                  {section.title}
+                </span>
+                {isRole && (
+                  <span className="text-xs text-muted-foreground">Role</span>
+                )}
+              </div>
+              {getStatusBadge(section.status)}
+            </div>
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              {section.status !== "pending" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleResetSection(section.id)}
+                  className="text-muted-foreground"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="border-t p-4 space-y-4">
+            {/* Compare View */}
+            {editingSection !== section.id && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Original */}
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Original
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
+                    {section.originalContent.trim() || "(No content)"}
+                  </div>
+                </div>
+                
+                {/* Improved */}
+                <div>
+                  <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    AI Improved
+                  </div>
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
+                    {section.improvedContent.trim() || "(No improvements)"}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Mode */}
+            {editingSection === section.id && (
+              <div>
+                <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2 uppercase tracking-wider flex items-center gap-1">
+                  <Edit3 className="w-3 h-3" />
+                  Edit Content
+                </div>
+                <Textarea
+                  value={section.editedContent || section.improvedContent}
+                  onChange={(e) => handleEditChange(section.id, e.target.value)}
+                  className="min-h-[200px] font-mono text-sm"
+                />
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t">
+              {editingSection === section.id ? (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveEdit(section.id)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Save Changes
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingSection(null)}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => handleAccept(section.id)}
+                    className={section.status === "accepted" ? "bg-green-600" : "bg-green-600 hover:bg-green-700"}
+                    disabled={section.status === "accepted"}
+                  >
+                    <Check className="w-4 h-4 mr-1" />
+                    Accept Improved
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDecline(section.id)}
+                    className={section.status === "declined" ? "border-red-500 text-red-600" : ""}
+                    disabled={section.status === "declined"}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Keep Original
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(section.id)}
+                  >
+                    <Edit3 className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
 
   return (
     <div className="min-h-[80vh] animate-fade-up px-4">
@@ -261,7 +631,7 @@ export function ResumeReview({
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div 
               className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${(sections.filter(s => s.status !== "pending").length / Math.max(totalCount, 1)) * 100}%` }}
+              style={{ width: `${(editableSections.filter(s => s.status !== "pending").length / Math.max(totalCount, 1)) * 100}%` }}
             />
           </div>
         </div>
@@ -283,150 +653,14 @@ export function ResumeReview({
 
         {/* Sections */}
         <div className="space-y-4 mb-8">
-          {sections.map((section) => (
-            <Collapsible 
-              key={section.id}
-              open={expandedSection === section.id}
-              onOpenChange={(open) => setExpandedSection(open ? section.id : null)}
-            >
-              <Card className={`overflow-hidden transition-all ${
-                section.status === "accepted" ? "border-green-500/50" :
-                section.status === "declined" ? "border-red-500/30" :
-                section.status === "edited" ? "border-blue-500/50" : ""
-              }`}>
-                <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      {expandedSection === section.id ? (
-                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                      )}
-                      <span className="font-semibold text-foreground">{section.title}</span>
-                      {getStatusBadge(section.status)}
-                    </div>
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {section.status !== "pending" && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleResetSection(section.id)}
-                          className="text-muted-foreground"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent>
-                  <div className="border-t p-4 space-y-4">
-                    {/* Compare View */}
-                    {editingSection !== section.id && (
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {/* Original */}
-                        <div>
-                          <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                            Original
-                          </div>
-                          <div className="bg-muted/30 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
-                            {section.originalContent.trim() || "(No content)"}
-                          </div>
-                        </div>
-                        
-                        {/* Improved */}
-                        <div>
-                          <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            AI Improved
-                          </div>
-                          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
-                            {section.improvedContent.trim() || "(No improvements)"}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Edit Mode */}
-                    {editingSection === section.id && (
-                      <div>
-                        <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2 uppercase tracking-wider flex items-center gap-1">
-                          <Edit3 className="w-3 h-3" />
-                          Edit Content
-                        </div>
-                        <Textarea
-                          value={section.editedContent || section.improvedContent}
-                          onChange={(e) => handleEditChange(section.id, e.target.value)}
-                          className="min-h-[200px] font-mono text-sm"
-                        />
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2 pt-2 border-t">
-                      {editingSection === section.id ? (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleSaveEdit(section.id)}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Save className="w-4 h-4 mr-1" />
-                            Save Changes
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditingSection(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAccept(section.id)}
-                            className={section.status === "accepted" ? "bg-green-600" : "bg-green-600 hover:bg-green-700"}
-                            disabled={section.status === "accepted"}
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            Accept Improved
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDecline(section.id)}
-                            className={section.status === "declined" ? "border-red-500 text-red-600" : ""}
-                            disabled={section.status === "declined"}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Keep Original
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(section.id)}
-                          >
-                            <Edit3 className="w-4 h-4 mr-1" />
-                            Edit
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-          ))}
+          {renderSections()}
         </div>
 
         {/* Finalize Button */}
         <div className="sticky bottom-4 bg-background/80 backdrop-blur-sm p-4 rounded-lg border shadow-lg">
           <div className="flex items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              {sections.filter(s => s.status === "pending").length > 0 ? (
+              {editableSections.filter(s => s.status === "pending").length > 0 ? (
                 <span>Pending sections will use AI improvements by default</span>
               ) : (
                 <span className="text-green-600">✓ All sections reviewed</span>
