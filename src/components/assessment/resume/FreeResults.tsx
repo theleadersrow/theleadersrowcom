@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Lock, 
   TrendingUp, Target, Zap, Eye, Download, Mail,
-  ChevronRight
+  ChevronRight, FileText, Briefcase, Search, Users
 } from "lucide-react";
 import { useState } from "react";
 
@@ -28,6 +28,14 @@ interface ATSResult {
     match_level: string;
     recommendation: string;
   };
+  hard_skills_matched?: string[];
+  hard_skills_missing?: string[];
+  soft_skills_matched?: string[];
+  soft_skills_missing?: string[];
+  recruiter_tips?: string[];
+  deal_breakers?: string[];
+  experience_gaps?: string[];
+  recommended_additions?: string[];
   [key: string]: any;
 }
 
@@ -91,27 +99,7 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
           <div className={`text-xl font-medium mt-2 ${scoreInfo.color}`}>
             {scoreInfo.label}
           </div>
-        </Card>
-
-        {/* Role-Level Signal */}
-        <Card className="p-4 mb-6 border-primary/30 bg-primary/5">
-          <div className="flex items-start gap-3">
-            <Target className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-foreground mb-1">Role-Level Signal</h3>
-              <p className="text-sm text-muted-foreground">
-                This resume currently reads like: <span className="font-semibold text-foreground">{roleLevelSignal}</span>
-                {targetRole !== roleLevelSignal && (
-                  <span> (not {targetRole} yet)</span>
-                )}
-              </p>
-              {score.job_title_match?.recommendation && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  → {score.job_title_match.recommendation}
-                </p>
-              )}
-            </div>
-          </div>
+          <p className="text-sm text-muted-foreground mt-3 max-w-md mx-auto">{score.summary}</p>
         </Card>
 
         {/* Score Breakdown */}
@@ -133,6 +121,151 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
           ))}
         </div>
 
+        {/* Role-Level Signal */}
+        {score.job_title_match && (
+          <Card className="p-4 mb-4 border-primary/30 bg-primary/5">
+            <div className="flex items-start gap-3">
+              <Target className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-foreground mb-1">Job Title Match</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm mb-2">
+                  <div>
+                    <span className="text-muted-foreground">Target: </span>
+                    <span className="font-medium">{targetRole}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Your title: </span>
+                    <span className="font-medium">{roleLevelSignal}</span>
+                  </div>
+                </div>
+                {score.job_title_match?.recommendation && (
+                  <p className="text-sm text-muted-foreground">
+                    → {score.job_title_match.recommendation}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Hard Skills vs Soft Skills */}
+        {((score.hard_skills_matched && score.hard_skills_matched.length > 0) || 
+          (score.hard_skills_missing && score.hard_skills_missing.length > 0) ||
+          (score.soft_skills_matched && score.soft_skills_matched.length > 0) ||
+          (score.soft_skills_missing && score.soft_skills_missing.length > 0)) && (
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            {/* Hard Skills */}
+            <Card className="p-4">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Target className="w-4 h-4 text-blue-500" /> 
+                Hard Skills (Technical)
+              </h3>
+              {score.hard_skills_matched && score.hard_skills_matched.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-2">
+                    ✓ Matched ({score.hard_skills_matched.length})
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {score.hard_skills_matched.slice(0, 8).map((skill, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
+                        {skill}
+                      </span>
+                    ))}
+                    {score.hard_skills_matched.length > 8 && (
+                      <span className="text-xs text-muted-foreground">+{score.hard_skills_matched.length - 8} more</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {score.hard_skills_missing && score.hard_skills_missing.length > 0 && (
+                <div>
+                  <div className="text-xs font-medium text-red-600 dark:text-red-400 mb-2">
+                    ✗ Missing ({score.hard_skills_missing.length})
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {score.hard_skills_missing.slice(0, 6).map((skill, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full dark:bg-red-900/30 dark:text-red-300">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            {/* Soft Skills */}
+            <Card className="p-4">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-purple-500" /> 
+                Soft Skills (Interpersonal)
+              </h3>
+              {score.soft_skills_matched && score.soft_skills_matched.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-2">
+                    ✓ Matched ({score.soft_skills_matched.length})
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {score.soft_skills_matched.slice(0, 6).map((skill, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {score.soft_skills_missing && score.soft_skills_missing.length > 0 && (
+                <div>
+                  <div className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
+                    ✗ Missing ({score.soft_skills_missing.length})
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {score.soft_skills_missing.slice(0, 5).map((skill, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900/30 dark:text-orange-300">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* Keywords - Matched & Missing */}
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <Card className="p-4">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              Matched Keywords ({score.matched_keywords?.length || 0})
+            </h3>
+            <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto">
+              {score.matched_keywords?.slice(0, 12).map((kw, i) => (
+                <span key={i} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
+                  {kw}
+                </span>
+              ))}
+              {(score.matched_keywords?.length || 0) > 12 && (
+                <span className="px-2 py-1 text-muted-foreground text-xs">
+                  +{score.matched_keywords!.length - 12} more
+                </span>
+              )}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-orange-500" />
+              Missing Keywords ({score.missing_keywords?.length || 0})
+            </h3>
+            <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto">
+              {score.missing_keywords?.slice(0, 12).map((kw, i) => (
+                <span key={i} className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900/30 dark:text-orange-300">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </Card>
+        </div>
+
         {/* What's Working */}
         {score.strengths && score.strengths.length > 0 && (
           <Card className="p-4 mb-4">
@@ -141,7 +274,7 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
               What's Working
             </h3>
             <ul className="space-y-2">
-              {score.strengths.slice(0, 3).map((strength, i) => (
+              {score.strengths.slice(0, 4).map((strength, i) => (
                 <li key={i} className="text-sm text-foreground flex items-start gap-2">
                   <span className="text-green-500 mt-0.5">✓</span>
                   {strength}
@@ -151,24 +284,96 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
           </Card>
         )}
 
+        {/* Critical Gaps / Deal Breakers */}
+        {score.deal_breakers && score.deal_breakers.length > 0 && (
+          <Card className="p-4 mb-4 border-red-500/50 bg-red-500/10">
+            <h3 className="font-semibold text-red-600 dark:text-red-400 mb-3 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" /> Critical Gaps
+            </h3>
+            <ul className="space-y-2">
+              {score.deal_breakers.map((db, i) => (
+                <li key={i} className="text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
+                  <span className="text-red-500 mt-0.5">✗</span> {db}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
         {/* What's Holding You Back */}
-        <Card className="p-4 mb-6">
+        <Card className="p-4 mb-4">
           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-orange-500" />
-            What's Holding You Back
+            <TrendingUp className="w-5 h-5 text-orange-500" />
+            Priority Improvements
           </h3>
-          <ul className="space-y-2">
-            {score.improvements.slice(0, 6).map((imp, i) => (
-              <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                <span className="text-orange-500 mt-0.5">•</span>
-                <div>
-                  <span className="font-medium">{imp.issue}</span>
-                  {imp.fix && <span className="text-muted-foreground"> → {imp.fix}</span>}
+          <ul className="space-y-3">
+            {score.improvements.slice(0, 5).map((imp, i) => (
+              <li key={i} className="text-sm">
+                <div className="flex items-start gap-2">
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                    imp.priority === 'high' 
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' 
+                      : imp.priority === 'medium'
+                      ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                  }`}>
+                    {imp.priority}
+                  </span>
+                  <div>
+                    <span className="font-medium text-foreground">{imp.issue}</span>
+                    {imp.fix && <p className="text-muted-foreground mt-0.5">→ {imp.fix}</p>}
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
         </Card>
+
+        {/* Recruiter Insights */}
+        {score.recruiter_tips && score.recruiter_tips.length > 0 && (
+          <Card className="p-4 mb-4 border-primary/30 bg-primary/5">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" /> 
+              How Recruiters See Your Resume
+            </h3>
+            <ul className="space-y-2">
+              {score.recruiter_tips.map((tip, i) => (
+                <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                  <span className="text-primary mt-0.5">💡</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
+        {/* Role Fit Assessment */}
+        {score.role_fit_assessment && (
+          <Card className="p-4 mb-4 bg-muted/50">
+            <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+              <Briefcase className="w-4 h-4" /> Role Fit Assessment
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{score.role_fit_assessment}</p>
+          </Card>
+        )}
+
+        {/* Recommended Additions */}
+        {score.recommended_additions && score.recommended_additions.length > 0 && (
+          <Card className="p-4 mb-4">
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Search className="w-4 h-4 text-secondary" />
+              Recommended Additions
+            </h3>
+            <ul className="space-y-2">
+              {score.recommended_additions.slice(0, 5).map((rec, i) => (
+                <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                  <span className="text-secondary mt-0.5">+</span>
+                  {rec}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
         {/* Teaser: Optimized Resume Preview (Blurred) */}
         <Card className="p-6 mb-4 relative overflow-hidden">
