@@ -32,19 +32,19 @@ export function ResumeLanding({ onBack, onProceed }: ResumeLandingProps) {
       number: 1,
       icon: FileText,
       title: "Upload Your Resume",
-      description: "Upload your current resume (PDF/Word) or paste the text"
+      description: "Upload your current resume (PDF or Word) or paste the text."
     },
     {
       number: 2,
       icon: BarChart3,
-      title: "Get Your Free ATS Scan",
-      description: "See your score, strengths, gaps, and role-level signals"
+      title: "Get Your Free Resume Scan",
+      description: "See your ATS score, strengths, gaps, and role-level signals."
     },
     {
       number: 3,
       icon: Sparkles,
-      title: "Unlock Your Optimized Resume",
-      description: "Get a fully rewritten resume ready to submit"
+      title: "Unlock Your Career Toolkit",
+      description: "Get a fully optimized resume, unlimited cover letters, ATS insights, and AI guidance — ready to apply with confidence."
     }
   ];
 
