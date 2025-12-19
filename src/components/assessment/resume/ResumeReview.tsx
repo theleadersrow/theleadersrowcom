@@ -38,113 +38,122 @@ interface ResumeReviewProps {
   isGenerating?: boolean;
 }
 
-// Parse individual roles from the experience section
+// Parse individual roles from the experience section - each role is an atomic unit
 function parseRolesFromExperience(experienceContent: string): { title: string; content: string }[] {
   const roles: { title: string; content: string }[] = [];
   const lines = experienceContent.split('\n');
   
-  // Pattern to detect role headers - typically: ROLE TITLE followed by Company Name
-  // Look for patterns like: "Senior Product Manager" or "SENIOR PRODUCT MANAGER"
-  // followed by company info
+  // Known company names for better detection
+  const companyIndicators = ['Apple', 'RBC', 'Charles Schwab', 'Morgan Stanley', 'TD Bank', 'Apex', 'AKG', 'Inc.', 'LLC', 'Corp', 'Ltd', 'Company', 'Bank', 'Technologies', 'Solutions', 'Group'];
   
-  let currentRole: { title: string; lines: string[] } | null = null;
-  let i = 0;
+  // Role title patterns
+  const roleTitlePatterns = [
+    /^(Head of|Director of|VP of|Chief|President|Principal|Senior|Staff|Lead|Manager|Engineer|Designer|Analyst|Consultant)\s/i,
+    /\s(Manager|Director|Lead|Engineer|Designer|Analyst|Specialist|Consultant|VP|President|Officer|Head|Chief)$/i,
+  ];
   
-  while (i < lines.length) {
+  let currentRole: { title: string; company: string; lines: string[] } | null = null;
+  
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
+    const rawLine = lines[i]; // Keep original formatting
     const nextLine = lines[i + 1]?.trim() || '';
+    const nextNextLine = lines[i + 2]?.trim() || '';
     
     // Skip empty lines at the start
-    if (!line && !currentRole) {
-      i++;
-      continue;
-    }
+    if (!line && !currentRole) continue;
     
-    // Detect role header patterns:
-    // 1. Line is a job title (no bullets, not too long, followed by company or date info)
-    // 2. Or line contains date patterns like "MM/YYYY" or "Present"
-    const isLikelyRoleHeader = (
-      line.length > 0 &&
-      line.length < 100 &&
-      !line.startsWith('•') &&
-      !line.startsWith('-') &&
-      !line.startsWith('*') &&
-      (
-        // Next line looks like company info or dates
-        /^\w+.*\s*(Inc\.|LLC|Corp|Company|Ltd|Co\.|Group|Technologies|Solutions)?$/i.test(line) &&
-        (
-          /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–-]\s*\d{4}|\d{4}\s*[–-]\s*Present/i.test(nextLine) ||
-          /^[A-Z][a-z]+.*?(Inc|LLC|Corp|Company|Ltd|Co|Group|Technologies|Solutions|\|)/i.test(nextLine)
-        )
-      ) ||
-      // Or this line itself contains company + date pattern
-      (/\|.*(\d{1,2}\/\d{4}|Present|Current)/.test(line))
+    const isBullet = /^[•\-\*]\s/.test(line);
+    
+    // Detect if this line is a role title
+    const isLikelyRoleTitle = !isBullet && line.length > 3 && line.length < 100 && (
+      // Matches common role title patterns
+      roleTitlePatterns.some(p => p.test(line)) ||
+      // Bold text pattern **Title**
+      /^\*\*[^*]+\*\*$/.test(line) ||
+      // Title Case short line that's followed by company or date info
+      (/^[A-Z][a-zA-Z\s,&]+$/.test(line) && (
+        companyIndicators.some(c => nextLine.includes(c)) ||
+        /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–\-]/.test(nextLine) ||
+        /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–\-]/.test(nextNextLine)
+      ))
     );
     
-    // Alternative detection: Check if line is all caps or title case and short
-    const isTitleStyleHeader = (
-      line.length > 3 &&
-      line.length < 80 &&
-      !line.startsWith('•') &&
-      !line.startsWith('-') &&
-      (
-        line === line.toUpperCase() || // ALL CAPS
-        /^[A-Z][a-z]+(\s+[A-Z][a-z]+)*\s*(Manager|Director|Lead|Engineer|Designer|Analyst|Specialist|Consultant|VP|President|Officer|Head|Chief)?$/i.test(line)
-      ) &&
-      !line.includes('•') &&
-      !line.includes(':') &&
-      currentRole !== null // Only detect new roles after first one
+    // Check if next lines look like company/date metadata (not bullets)
+    const hasFollowingMetadata = (
+      !nextLine.startsWith('•') && !nextLine.startsWith('-') && !nextLine.startsWith('*') &&
+      (companyIndicators.some(c => nextLine.includes(c)) ||
+       /\d{1,2}\/\d{4}|Present|Current|[A-Z][a-z]{2}\s+\d{4}/.test(nextLine) ||
+       /\|/.test(nextLine))
     );
     
-    // Start of a new role
-    if ((isLikelyRoleHeader || isTitleStyleHeader) && line) {
-      // Save previous role if exists
+    // Start new role if we detect a role title
+    if (isLikelyRoleTitle && (hasFollowingMetadata || !currentRole || currentRole.lines.some(l => /^[•\-\*]\s/.test(l.trim())))) {
+      // Save previous role if exists and has content
       if (currentRole && currentRole.lines.length > 0) {
+        const roleTitle = buildRoleTitle(currentRole.title, currentRole.company);
         roles.push({
-          title: currentRole.title,
+          title: roleTitle,
           content: currentRole.lines.join('\n').trim()
         });
       }
       
-      // Determine role title - usually the job title or first meaningful line
-      let roleTitle = line;
-      
-      // If next line is company name, include it
-      if (nextLine && !nextLine.startsWith('•') && nextLine.length < 80) {
-        roleTitle = `${line} at ${nextLine.split('|')[0].trim()}`;
+      // Extract company from next line if available
+      let company = '';
+      if (hasFollowingMetadata && !nextLine.startsWith('•')) {
+        company = nextLine.split('|')[0].trim().replace(/^\*\*|\*\*$/g, '');
       }
       
       currentRole = {
-        title: roleTitle.substring(0, 60) + (roleTitle.length > 60 ? '...' : ''),
-        lines: [line]
+        title: line.replace(/^\*\*|\*\*$/g, '').trim(),
+        company: company,
+        lines: [rawLine]
       };
     } else if (currentRole) {
-      currentRole.lines.push(lines[i]); // Keep original line (not trimmed)
+      // Add line to current role
+      currentRole.lines.push(rawLine);
+      
+      // Update company if we haven't found it yet
+      if (!currentRole.company && !isBullet && line.length < 80) {
+        if (companyIndicators.some(c => line.includes(c))) {
+          currentRole.company = line.split('|')[0].trim().replace(/^\*\*|\*\*$/g, '');
+        }
+      }
     } else {
       // First role not yet detected, start one
       currentRole = {
-        title: line.substring(0, 50) || 'Role',
-        lines: [lines[i]]
+        title: line.replace(/^\*\*|\*\*$/g, '').trim() || 'Role',
+        company: '',
+        lines: [rawLine]
       };
     }
-    
-    i++;
   }
   
   // Don't forget the last role
   if (currentRole && currentRole.lines.length > 0) {
+    const roleTitle = buildRoleTitle(currentRole.title, currentRole.company);
     roles.push({
-      title: currentRole.title,
+      title: roleTitle,
       content: currentRole.lines.join('\n').trim()
     });
   }
   
-  // If parsing failed to find distinct roles, return the whole section as one
+  // If parsing failed, return entire content as one block
   if (roles.length === 0) {
     return [{ title: 'All Experience', content: experienceContent.trim() }];
   }
   
   return roles;
+}
+
+// Build a clean role title for display: "Title at Company"
+function buildRoleTitle(title: string, company: string): string {
+  const cleanTitle = title.substring(0, 50);
+  if (company) {
+    const cleanCompany = company.split('|')[0].trim().substring(0, 30);
+    return `${cleanTitle} — ${cleanCompany}`;
+  }
+  return cleanTitle || 'Role';
 }
 
 function parseResumeIntoSections(resumeText: string, splitExperience: boolean = false): { title: string; content: string; isRole?: boolean; parentSection?: string }[] {
@@ -277,60 +286,104 @@ function FormattedSectionContent({
   );
 }
 
-// Format role block content
+// Format role block content - complete atomic unit
 function RoleBlockDisplay({ content }: { content: string }) {
   const lines = content.split('\n').filter(l => l.trim());
   const bullets: string[] = [];
   const headerLines: string[] = [];
   
+  // Separate header metadata from bullets
+  let foundBullets = false;
   lines.forEach(line => {
-    if (/^[•\-\*]\s/.test(line)) {
-      bullets.push(line.replace(/^[•\-\*]\s*/, ''));
-    } else {
-      headerLines.push(line);
+    const trimmed = line.trim();
+    if (/^[•\-\*]\s/.test(trimmed)) {
+      foundBullets = true;
+      bullets.push(trimmed.replace(/^[•\-\*]\s*/, ''));
+    } else if (!foundBullets) {
+      headerLines.push(trimmed);
     }
   });
   
+  // Parse header info: title, company, location, dates
+  const roleInfo = parseRoleHeader(headerLines);
+  
   return (
-    <div className="text-sm">
-      {/* Role header */}
-      <div className="mb-2">
-        {headerLines.map((line, i) => {
-          const isTitle = i === 0;
-          const isCompany = i === 1 && !line.includes('|');
-          const isDateLine = /\d{4}/.test(line);
-          
-          return (
-            <div 
-              key={i} 
-              className={
-                isTitle ? "font-semibold text-foreground" :
-                isCompany ? "font-medium text-foreground/80" :
-                isDateLine ? "text-xs text-muted-foreground" :
-                "text-foreground/80"
-              }
-            >
-              {line.replace(/^\*\*|\*\*$/g, '')}
-            </div>
-          );
-        })}
+    <div className="text-sm space-y-3">
+      {/* Role Header - Combined format */}
+      <div className="border-b border-border/50 pb-2">
+        <div className="font-bold text-foreground text-base">
+          {roleInfo.title}
+          {roleInfo.company && (
+            <span className="font-normal text-foreground/80">
+              {' — '}{roleInfo.company}
+              {roleInfo.location && <span> in {roleInfo.location}</span>}
+            </span>
+          )}
+        </div>
+        {roleInfo.dates && (
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {roleInfo.dates}
+          </div>
+        )}
       </div>
       
-      {/* Bullets */}
+      {/* Bullets - Key responsibilities/achievements */}
       {bullets.length > 0 && (
-        <ul className="space-y-1.5 ml-3">
+        <ul className="space-y-2">
           {bullets.map((bullet, i) => (
             <li 
               key={i} 
-              className="text-foreground/90 relative pl-3 before:content-['•'] before:absolute before:left-0 before:text-primary"
+              className="text-foreground/90 relative pl-4 before:content-['•'] before:absolute before:left-0 before:text-primary"
             >
               {formatContentWithMetrics(bullet)}
             </li>
           ))}
         </ul>
       )}
+      
+      {bullets.length === 0 && headerLines.length <= 3 && (
+        <p className="text-muted-foreground text-xs italic">No bullet points in this role</p>
+      )}
     </div>
   );
+}
+
+// Parse role header lines into structured info
+function parseRoleHeader(lines: string[]): { title: string; company: string; location: string; dates: string } {
+  const result = { title: '', company: '', location: '', dates: '' };
+  
+  if (lines.length === 0) return result;
+  
+  // First line is usually the title
+  result.title = lines[0].replace(/^\*\*|\*\*$/g, '').trim();
+  
+  // Look through remaining lines for company, location, dates
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].replace(/^\*\*|\*\*$/g, '').trim();
+    
+    // Extract dates
+    const dateMatch = line.match(/([A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})\s*[–\-]\s*(Present|Current|[A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})/i);
+    if (dateMatch && !result.dates) {
+      result.dates = dateMatch[0];
+    }
+    
+    // Extract location (City, ST format)
+    const locMatch = line.match(/([A-Z][a-z]+,?\s*[A-Z]{2})\s*$/);
+    if (locMatch && !result.location) {
+      result.location = locMatch[1];
+    }
+    
+    // Company is typically line 2 (before any pipe separator)
+    if (i === 1 && !result.company) {
+      const companyPart = line.split('|')[0].trim();
+      // Don't use date-only lines as company
+      if (!dateMatch || companyPart !== dateMatch[0]) {
+        result.company = companyPart.replace(result.location, '').replace(/,\s*$/, '').trim();
+      }
+    }
+  }
+  
+  return result;
 }
 
 // Format achievements section
@@ -671,11 +724,11 @@ export function ResumeReview({
                 <ChevronDown className="w-5 h-5 text-muted-foreground" />
               )}
               <div className="flex flex-col items-start">
-                <span className={`font-semibold text-foreground ${isRole ? 'text-sm' : ''}`}>
+                <span className={`font-semibold text-foreground text-left ${isRole ? 'text-sm' : ''}`}>
                   {section.title}
                 </span>
                 {isRole && (
-                  <span className="text-xs text-muted-foreground">Role</span>
+                  <span className="text-xs text-muted-foreground">Experience Role</span>
                 )}
               </div>
               {getStatusBadge(section.status)}
