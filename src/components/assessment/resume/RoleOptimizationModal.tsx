@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,8 +18,12 @@ import {
   Save,
   ChevronDown,
   ChevronRight,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Role-level status model
 export type RoleStatus = "draft" | "ai_reviewed" | "optimized" | "locked";
@@ -61,6 +65,11 @@ interface RoleOptimizationModalProps {
   onSaveEdit: (content: string) => void;
   onMarkOptimized: () => void;
   onUpdateSuggestions: (suggestions: AISuggestion[]) => void;
+  onUpdateOptimizedContent?: (content: string) => void;
+  targetRoles?: string[];
+  targetIndustries?: string[];
+  careerGoals?: string;
+  jobDescription?: string;
 }
 
 // Helper to format text with **bold** metrics
@@ -108,16 +117,77 @@ export function RoleOptimizationModal({
   onSaveEdit,
   onMarkOptimized,
   onUpdateSuggestions,
+  onUpdateOptimizedContent,
+  targetRoles,
+  targetIndustries,
+  careerGoals,
+  jobDescription,
 }: RoleOptimizationModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(improvedContent);
-  const [localSuggestions, setLocalSuggestions] = useState<AISuggestion[]>(roleData.aiSuggestions);
+  const [localSuggestions, setLocalSuggestions] = useState<AISuggestion[]>(roleData.aiSuggestions || []);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [aiOptimizedBullets, setAiOptimizedBullets] = useState<string[]>(roleData.optimizedResponsibilities || []);
+  const [hasGeneratedSuggestions, setHasGeneratedSuggestions] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     impact_gap: true,
     language_seniority: true,
     keyword_optimization: true,
     clarity_redundancy: true,
   });
+
+  // Fetch AI suggestions when modal opens
+  useEffect(() => {
+    if (isOpen && !hasGeneratedSuggestions && roleData.responsibilities?.length > 0) {
+      generateAISuggestions();
+    }
+  }, [isOpen, roleData.roleId]);
+
+  const generateAISuggestions = async () => {
+    setIsLoadingAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-role-suggestions', {
+        body: {
+          roleTitle: roleData.title,
+          company: roleData.company,
+          location: roleData.location,
+          dates: `${roleData.startDate || ''} - ${roleData.endDate || ''}`,
+          responsibilities: roleData.responsibilities,
+          targetRoles,
+          targetIndustries,
+          careerGoals,
+          jobDescription,
+        }
+      });
+
+      if (error) {
+        console.error("Error generating suggestions:", error);
+        toast.error("Failed to generate AI suggestions. Using fallback analysis.");
+        return;
+      }
+
+      if (data?.suggestions) {
+        setLocalSuggestions(data.suggestions);
+        onUpdateSuggestions(data.suggestions);
+      }
+
+      if (data?.optimizedResponsibilities) {
+        setAiOptimizedBullets(data.optimizedResponsibilities);
+        if (onUpdateOptimizedContent) {
+          const optimizedContent = data.optimizedResponsibilities.map((r: string) => `• ${r}`).join('\n');
+          onUpdateOptimizedContent(optimizedContent);
+        }
+      }
+
+      setHasGeneratedSuggestions(true);
+      toast.success("AI analysis complete!");
+    } catch (err) {
+      console.error("Failed to generate AI suggestions:", err);
+      toast.error("AI analysis failed. Please try again.");
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
 
   const dateRange =
     roleData.startDate && roleData.endDate
@@ -218,9 +288,12 @@ export function RoleOptimizationModal({
   const originalBullets = roleData.responsibilities && roleData.responsibilities.length > 0 
     ? roleData.responsibilities 
     : extractBullets(originalContent);
-  const optimizedBullets = roleData.optimizedResponsibilities && roleData.optimizedResponsibilities.length > 0
-    ? roleData.optimizedResponsibilities
-    : extractBullets(improvedContent);
+  // Use AI-optimized bullets if generated, otherwise fall back to improved content
+  const optimizedBullets = aiOptimizedBullets.length > 0
+    ? aiOptimizedBullets
+    : roleData.optimizedResponsibilities && roleData.optimizedResponsibilities.length > 0
+      ? roleData.optimizedResponsibilities
+      : extractBullets(improvedContent);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -339,7 +412,7 @@ export function RoleOptimizationModal({
           </div>
 
           {/* Recommendation Panel */}
-          {localSuggestions.length > 0 && (
+          {(localSuggestions.length > 0 || isLoadingAI) && (
             <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-sm uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-2">
@@ -347,17 +420,43 @@ export function RoleOptimizationModal({
                   AI Recommendations (for this role)
                 </h3>
                 <div className="flex items-center gap-2">
+                  {!isLoadingAI && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setHasGeneratedSuggestions(false);
+                        generateAISuggestions();
+                      }}
+                      className="h-7 text-xs text-amber-700 hover:text-amber-900"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Regenerate
+                    </Button>
+                  )}
                   <span className="text-xs text-amber-700 dark:text-amber-400">
                     {acceptedCount}/{localSuggestions.length} applied
                   </span>
                 </div>
               </div>
 
-              {roleData.roleSummary && (
-                <p className="text-sm text-amber-900 dark:text-amber-200 italic border-l-2 border-amber-400 pl-3">
-                  {roleData.roleSummary}
-                </p>
-              )}
+              {isLoadingAI ? (
+                <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+                  <p className="text-sm text-amber-800 dark:text-amber-300">
+                    Analyzing your experience with AI...
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Generating personalized suggestions for keywords, impact, and positioning
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {roleData.roleSummary && (
+                    <p className="text-sm text-amber-900 dark:text-amber-200 italic border-l-2 border-amber-400 pl-3">
+                      {roleData.roleSummary}
+                    </p>
+                  )}
 
               {/* Grouped Suggestions */}
               <div className="space-y-4">
@@ -446,6 +545,8 @@ export function RoleOptimizationModal({
                   }
                 )}
               </div>
+                </>
+              )}
             </div>
           )}
         </div>
