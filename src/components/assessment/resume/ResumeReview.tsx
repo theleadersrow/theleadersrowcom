@@ -810,9 +810,10 @@ export function ResumeReview({
         status: "pending" as const,
         isRole: enhanced.isRole,
         parentSection: enhanced.parentSection,
+        roleData: enhanced.roleData,
+        roleStatus: enhanced.roleData ? 'draft' as RoleStatus : undefined,
       };
     });
-    
     setSections(reviewSections);
     // Expand first non-header section by default
     const firstExpandable = reviewSections.find(s => s.title !== "HEADER" && !s.isRole);
