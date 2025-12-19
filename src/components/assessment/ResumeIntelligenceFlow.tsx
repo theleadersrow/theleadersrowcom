@@ -433,11 +433,16 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       console.error("Score calculation error:", error);
     }
     
-    // Go to interview questions preview
+    // Go directly to paid output (interview questions will be shown after)
+    setStep("paid_output");
+  };
+
+  // Handle moving to interview preview from paid output
+  const handleGoToInterviewPreview = () => {
     setStep("interview_preview");
   };
 
-  // Handle interview preview continue
+  // Handle interview preview continue (back to paid output)
   const handleInterviewPreviewContinue = () => {
     setStep("paid_output");
   };
@@ -633,13 +638,15 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           <PaidOutput
             resumeContent={enhancedResumeContent}
             score={paidScore}
-            onBack={() => setStep("interview_preview")}
+            onBack={() => setStep("resume_review")}
             onRegenerate={handleRegenerate}
             onDownloadPDF={handleDownloadPDF}
             onDownloadDocx={handleDownloadDocx}
             onGenerateCoverLetter={handleGenerateCoverLetter}
             regenerationsRemaining={regenerationsRemaining}
             accessExpiresAt={accessExpiresAt}
+            onGoToInterviewPrep={handleGoToInterviewPreview}
+            targetRole={clarificationAnswers?.targetRole || ""}
           />
         );
         

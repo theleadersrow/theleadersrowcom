@@ -388,12 +388,18 @@ export function InterviewQuestionsPreview({
         </div>
       </Card>
 
-      {/* Continue Button */}
-      <div className="flex justify-end">
+      {/* Back Button */}
+      <div className="flex justify-between items-center">
         <Button onClick={onContinue} variant="outline" size="lg">
-          Continue to Final Resume
-          <ArrowRight className="w-4 h-4 ml-2" />
+          <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+          Back to Resume
         </Button>
+        {onUnlockInterviewPrep && (
+          <Button onClick={onUnlockInterviewPrep} size="lg">
+            Unlock Full Interview Prep
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        )}
       </div>
     </div>
   );
