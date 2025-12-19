@@ -197,16 +197,30 @@ export function RoleOptimizationModal({
   const acceptedCount = localSuggestions.filter((s) => s.accepted).length;
   const hasChanges = acceptedCount > 0 || isEditing;
 
-  // Extract bullets from content
+  // Extract bullets from content - more flexible matching
   const extractBullets = (content: string): string[] => {
-    return content
-      .split("\n")
-      .filter((line) => /^[•\-*]\s/.test(line.trim()))
-      .map((line) => line.trim().replace(/^[•\-*]\s*/, ""));
+    const lines = content.split("\n").map(line => line.trim()).filter(Boolean);
+    // Try to find bullet lines first
+    const bulletLines = lines.filter((line) => /^[•\-*▪▸►◦○]\s/.test(line));
+    if (bulletLines.length > 0) {
+      return bulletLines.map((line) => line.replace(/^[•\-*▪▸►◦○]\s*/, ""));
+    }
+    // If no bullets found, return non-header lines (skip title, company, dates)
+    return lines.filter((line) => 
+      line.length > 20 && // Skip short metadata lines
+      !/^\d{1,2}\/\d{4}/.test(line) && // Skip date lines
+      !line.includes(" – ") && // Skip date range lines
+      !line.includes(" | ") // Skip metadata separator lines
+    );
   };
 
-  const originalBullets = extractBullets(originalContent);
-  const optimizedBullets = extractBullets(improvedContent);
+  // Use roleData.responsibilities if available (full parsed data), otherwise extract from content
+  const originalBullets = roleData.responsibilities && roleData.responsibilities.length > 0 
+    ? roleData.responsibilities 
+    : extractBullets(originalContent);
+  const optimizedBullets = roleData.optimizedResponsibilities && roleData.optimizedResponsibilities.length > 0
+    ? roleData.optimizedResponsibilities
+    : extractBullets(improvedContent);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
