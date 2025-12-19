@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
@@ -15,6 +18,7 @@ const Header = () => {
   const [isProgramsOpen, setIsProgramsOpen] = useState(false);
   const [isContentOpen, setIsContentOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+  const [isBetaOpen, setIsBetaOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
 
@@ -209,17 +213,28 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-card border border-border shadow-elevated z-50 min-w-[220px]">
                 <DropdownMenuItem asChild>
-                  <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary flex items-center gap-2">
-                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
-                    Resume Intelligence Suite
+                  <Link to="/career-coach" className="w-full cursor-pointer text-foreground hover:text-secondary">
+                    All Tools
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary flex items-center gap-2">
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="text-foreground hover:text-secondary flex items-center gap-2">
                     <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
-                    LinkedIn Signal Score
-                  </Link>
-                </DropdownMenuItem>
+                    Live Beta Testing
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="bg-card border border-border shadow-elevated z-50 min-w-[220px]">
+                    <DropdownMenuItem asChild>
+                      <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary">
+                        Resume Intelligence Suite
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary">
+                        LinkedIn Signal Score
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               </DropdownMenuContent>
             </DropdownMenu>
             <Link to="/register">
@@ -376,21 +391,42 @@ const Header = () => {
                 </p>
                 <div className="pl-4 flex flex-col gap-2 mt-2">
                   <Link
-                    to="/beta-event"
-                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors flex items-center gap-2"
+                    to="/career-coach"
+                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
-                    Resume Intelligence Suite
+                    All Tools
                   </Link>
-                  <Link
-                    to="/beta-event"
-                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors flex items-center gap-2"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
-                    LinkedIn Signal Score
-                  </Link>
+                  <div>
+                    <button
+                      onClick={() => setIsBetaOpen(!isBetaOpen)}
+                      className="flex items-center justify-between w-full text-base py-2 text-muted-foreground hover:text-secondary transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
+                        Live Beta Testing
+                      </span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${isBetaOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {isBetaOpen && (
+                      <div className="pl-4 flex flex-col gap-2 mt-1">
+                        <Link
+                          to="/beta-event"
+                          className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Resume Intelligence Suite
+                        </Link>
+                        <Link
+                          to="/beta-event"
+                          className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          LinkedIn Signal Score
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
