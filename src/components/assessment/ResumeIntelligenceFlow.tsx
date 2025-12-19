@@ -494,62 +494,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     return data.coverLetter || "";
   };
 
-  // Activation dialog component
-  const ActivationDialog = () => (
-    <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            {activationSuccess ? (
-              <>
-                <CheckCircle className="w-6 h-6 text-green-500" />
-                Access Activated!
-              </>
-            ) : (
-              <>
-                <Mail className="w-6 h-6 text-primary" />
-                Activate Your Access
-              </>
-            )}
-          </DialogTitle>
-          <DialogDescription>
-            {activationSuccess 
-              ? "You now have full access to Resume Intelligence. Redirecting..."
-              : "Enter the email address you used for your purchase to activate your access."
-            }
-          </DialogDescription>
-        </DialogHeader>
-        
-        {!activationSuccess && (
-          <div className="space-y-4 py-4">
-            <Input
-              type="email"
-              placeholder="your@email.com"
-              value={activationEmail}
-              onChange={(e) => setActivationEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleActivateAccess()}
-            />
-            <Button 
-              onClick={handleActivateAccess} 
-              disabled={isActivating || !activationEmail.trim()}
-              className="w-full"
-            >
-              {isActivating ? "Verifying..." : "Activate Access"}
-            </Button>
-          </div>
-        )}
-        
-        {activationSuccess && (
-          <div className="py-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-            <p className="text-muted-foreground">Preparing your Resume Intelligence suite...</p>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
+  // Activation dialog (inline in return to avoid remounting on each keystroke)
+
 
   // Render current step with activation dialog
   const renderStep = () => {
@@ -618,7 +564,65 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
 
   return (
     <>
-      <ActivationDialog />
+      <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              {activationSuccess ? (
+                <>
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  Access Activated!
+                </>
+              ) : (
+                <>
+                  <Mail className="w-6 h-6 text-primary" />
+                  Activate Your Access
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {activationSuccess
+                ? "You now have full access to Resume Intelligence. Redirecting..."
+                : "Enter the email address you used for your purchase to activate your access."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!activationSuccess && (
+            <div className="space-y-4 py-4">
+              <Input
+                type="email"
+                placeholder="your@email.com"
+                value={activationEmail}
+                onChange={(e) => setActivationEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleActivateAccess();
+                  }
+                }}
+                autoFocus
+              />
+              <Button
+                onClick={handleActivateAccess}
+                disabled={isActivating || !activationEmail.trim()}
+                className="w-full"
+              >
+                {isActivating ? "Verifying..." : "Activate Access"}
+              </Button>
+            </div>
+          )}
+
+          {activationSuccess && (
+            <div className="py-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-500" />
+              </div>
+              <p className="text-muted-foreground">Preparing your Resume Intelligence suite...</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {renderStep()}
     </>
   );
