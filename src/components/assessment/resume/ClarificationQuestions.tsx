@@ -31,16 +31,11 @@ export interface ClarificationAnswers {
   bestImpactProject: string;
   underrepresentedAchievement: string;
   
-  // Section 4: Professional Brand (Optional)
+  // Section 4: Professional Brand (integrated into section 3)
   recruiterPerception: string[];
   professionalSkills: string[];
   stretchingLevel: string;
   overstatingCaution: string;
-  
-  // Section 5: Practical Constraints (Optional)
-  deemphasizeCompanies: string;
-  gapsOrTransitions: string;
-  complianceConstraints: string;
 }
 
 interface ClarificationQuestionsProps {
@@ -158,7 +153,6 @@ const PROFESSIONAL_SKILLS = [
 
 export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: ClarificationQuestionsProps) {
   const [currentSection, setCurrentSection] = useState(1);
-  const [showOptionalSections, setShowOptionalSections] = useState(false);
   
   const [answers, setAnswers] = useState<ClarificationAnswers>({
     targetRoles: [],
@@ -179,9 +173,6 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
     professionalSkills: [],
     stretchingLevel: "",
     overstatingCaution: "",
-    deemphasizeCompanies: "",
-    gapsOrTransitions: "",
-    complianceConstraints: "",
   });
 
   const handleSubmit = () => {
@@ -212,7 +203,7 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
   
   const canSubmit = isSection1Complete && isSection2Complete && isSection3Complete;
   
-  const totalSections = showOptionalSections ? 5 : 3;
+  const totalSections = 3;
   const progress = (currentSection / totalSections) * 100;
 
   const renderCheckboxGroup = (
@@ -371,12 +362,12 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
           </div>
         )}
 
-        {/* Section 3: Impact & Metrics */}
+        {/* Section 3: Impact, Metrics & Brand */}
         {currentSection === 3 && (
           <div className="space-y-6 animate-fade-up">
             <Card className="p-4 bg-primary/5 border-primary/20">
-              <h2 className="font-semibold text-lg mb-1">Section 3: Impact & Metrics</h2>
-              <p className="text-sm text-muted-foreground">Turn your responsibilities into measurable outcomes</p>
+              <h2 className="font-semibold text-lg mb-1">Section 3: Impact, Metrics & Brand</h2>
+              <p className="text-sm text-muted-foreground">Turn your responsibilities into measurable outcomes and shape your professional positioning</p>
             </Card>
 
             <Card className="p-5">
@@ -436,150 +427,44 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
                 className="min-h-[60px]"
               />
             </Card>
+
+            {/* Professional Brand (formerly Section 4 - now inline) */}
+            <div className="pt-4 border-t border-border/50">
+              <p className="text-sm text-muted-foreground mb-4 italic">
+                Optional: Help us shape your professional brand
+              </p>
+              
+              <Card className="p-5 mb-4">
+                <Label className="text-base font-semibold text-foreground mb-3 block">
+                  6. How do you want to be perceived by recruiters? <span className="text-muted-foreground font-normal">(Pick up to 3, optional)</span>
+                </Label>
+                {renderCheckboxGroup(PERCEPTION_TRAITS, "recruiterPerception", 3)}
+              </Card>
+
+              <Card className="p-5 mb-4">
+                <Label className="text-base font-semibold text-foreground mb-3 block">
+                  7. Which skills best define your professional brand? <span className="text-muted-foreground font-normal">(Select up to 6, optional)</span>
+                </Label>
+                {renderCheckboxGroup(PROFESSIONAL_SKILLS, "professionalSkills", 6)}
+              </Card>
+
+              <Card className="p-5">
+                <Label className="text-base font-semibold text-foreground mb-2 block">
+                  8. Anything you want the AI to be careful about not overstating? <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <Input
+                  placeholder="e.g., Don't overstate my technical depth, I'm more strategy-focused"
+                  value={answers.overstatingCaution}
+                  onChange={(e) => updateAnswer("overstatingCaution", e.target.value)}
+                />
+              </Card>
+            </div>
           </div>
         )}
 
-        {/* Section 4: Professional Brand (Optional) */}
-        {currentSection === 4 && showOptionalSections && (
-          <div className="space-y-6 animate-fade-up">
-            <Card className="p-4 bg-secondary/50 border-secondary">
-              <h2 className="font-semibold text-lg mb-1">Section 4: Professional Brand</h2>
-              <p className="text-sm text-muted-foreground">Shape your summary and positioning (Optional)</p>
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-3 block">
-                1. How do you want to be perceived by recruiters? <span className="text-muted-foreground font-normal">(Pick up to 3)</span>
-              </Label>
-              {renderCheckboxGroup(PERCEPTION_TRAITS, "recruiterPerception", 3)}
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-3 block">
-                2. Which skills best define your professional brand? <span className="text-muted-foreground font-normal">(Select up to 6)</span>
-              </Label>
-              {renderCheckboxGroup(PROFESSIONAL_SKILLS, "professionalSkills", 6)}
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-3 block">
-                3. Are you aiming to stretch into a higher level than your current title?
-              </Label>
-              <RadioGroup
-                value={answers.stretchingLevel}
-                onValueChange={(val) => updateAnswer("stretchingLevel", val)}
-                className="space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="stretch-yes" />
-                  <Label htmlFor="stretch-yes" className="text-sm font-normal">Yes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="stretch-no" />
-                  <Label htmlFor="stretch-no" className="text-sm font-normal">No</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="unsure" id="stretch-unsure" />
-                  <Label htmlFor="stretch-unsure" className="text-sm font-normal">Not sure</Label>
-                </div>
-              </RadioGroup>
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-2 block">
-                4. Anything you want the AI to be careful about not overstating? <span className="text-muted-foreground font-normal">(Optional)</span>
-              </Label>
-              <Input
-                placeholder="e.g., Don't overstate my technical depth, I'm more strategy-focused"
-                value={answers.overstatingCaution}
-                onChange={(e) => updateAnswer("overstatingCaution", e.target.value)}
-              />
-            </Card>
-          </div>
-        )}
-
-        {/* Section 5: Practical Constraints (Optional) */}
-        {currentSection === 5 && showOptionalSections && (
-          <div className="space-y-6 animate-fade-up">
-            <Card className="p-4 bg-secondary/50 border-secondary">
-              <h2 className="font-semibold text-lg mb-1">Section 5: Practical Constraints</h2>
-              <p className="text-sm text-muted-foreground">Avoid resume risks (Optional)</p>
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-2 block">
-                1. Are there companies or experiences you want de-emphasized? <span className="text-muted-foreground font-normal">(Optional)</span>
-              </Label>
-              <Input
-                placeholder="e.g., Short stint at Company X, early career roles"
-                value={answers.deemphasizeCompanies}
-                onChange={(e) => updateAnswer("deemphasizeCompanies", e.target.value)}
-              />
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-3 block">
-                2. Are there gaps or transitions you want handled carefully?
-              </Label>
-              <RadioGroup
-                value={answers.gapsOrTransitions}
-                onValueChange={(val) => updateAnswer("gapsOrTransitions", val)}
-                className="space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="career_gap" id="gap-career" />
-                  <Label htmlFor="gap-career" className="text-sm font-normal">Yes (career gap)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="role_change" id="gap-role" />
-                  <Label htmlFor="gap-role" className="text-sm font-normal">Yes (role change)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="gap-no" />
-                  <Label htmlFor="gap-no" className="text-sm font-normal">No</Label>
-                </div>
-              </RadioGroup>
-            </Card>
-
-            <Card className="p-5">
-              <Label className="text-base font-semibold text-foreground mb-3 block">
-                3. Any compliance or confidentiality constraints?
-              </Label>
-              <RadioGroup
-                value={answers.complianceConstraints}
-                onValueChange={(val) => updateAnswer("complianceConstraints", val)}
-                className="space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="compliance-yes" />
-                  <Label htmlFor="compliance-yes" className="text-sm font-normal">Yes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="compliance-no" />
-                  <Label htmlFor="compliance-no" className="text-sm font-normal">No</Label>
-                </div>
-              </RadioGroup>
-            </Card>
-          </div>
-        )}
 
         {/* Navigation */}
         <div className="flex flex-col gap-4 py-8">
-          {/* Optional sections toggle (show after section 3) */}
-          {currentSection === 3 && !showOptionalSections && (
-            <Collapsible>
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-between"
-                  onClick={() => setShowOptionalSections(true)}
-                >
-                  <span>Add optional branding & constraints sections</span>
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-              </CollapsibleTrigger>
-            </Collapsible>
-          )}
 
           <div className="flex justify-between gap-4">
             <Button

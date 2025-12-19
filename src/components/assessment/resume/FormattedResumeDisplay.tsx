@@ -162,27 +162,43 @@ function parseExperienceRoles(lines: string[]): RoleBlock[] {
   const roles: RoleBlock[] = [];
   let currentRole: RoleBlock | null = null;
   
+  // Company indicators for better detection
+  const companyIndicators = ['Apple', 'RBC', 'Charles Schwab', 'Morgan Stanley', 'TD Bank', 'Inc.', 'LLC', 'Corp', 'Ltd', 'Company', 'Bank', 'Technologies', 'Solutions', 'Group'];
+  
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const nextLine = lines[i + 1] || '';
+    const lineAfterNext = lines[i + 2] || '';
     
-    // Detect role title - usually bold text or all caps, not a bullet
     const isBullet = /^[•\-\*]\s/.test(line);
-    const hasDatePattern = /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–-]\s*(Present|\d{4})/i.test(line) ||
-                           /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–-]\s*(Present|\d{4})/i.test(nextLine);
-    const isShortLine = line.length < 80 && !isBullet;
     
-    // Check for role header patterns
-    const isRoleHeader = isShortLine && !isBullet && (
-      // Line followed by company info
-      (nextLine && !nextLine.startsWith('•') && hasDatePattern) ||
-      // Line contains date pattern
-      /\|\s*\w+\s*\d{4}/.test(line) ||
-      // Line is in bold format (starts with **)
-      /^\*\*[^*]+\*\*/.test(line)
+    // Check for role title patterns - more comprehensive detection
+    // Pattern 1: "Head of Product, Finance, Billing & Payments" followed by company
+    // Pattern 2: "Senior Product Manager" followed by company  
+    // Pattern 3: Line with bold markers **Title**
+    const isRoleTitlePattern = !isBullet && line.length > 3 && line.length < 100 && (
+      // Bold title pattern
+      /^\*\*[^*]+\*\*$/.test(line) ||
+      // Common role title keywords
+      /^(Head|Director|Manager|Lead|Principal|Senior|Staff|VP|Chief|President|Engineer|Designer|Analyst|Consultant)\s/i.test(line) ||
+      // Title followed by comma (like "Head of Product, Finance")
+      /^[A-Z][a-zA-Z\s,&]+$/.test(line) && !line.includes('•')
     );
     
-    if (isRoleHeader && line.length > 3) {
+    // Check if next line looks like company info
+    const isNextLineCompany = companyIndicators.some(c => nextLine.includes(c)) || 
+                              /^[A-Z][a-zA-Z\s]+\s*[\|•]/.test(nextLine);
+    
+    // Check if we have date pattern nearby
+    const hasDatePattern = (
+      /(\d{1,2}\/\d{4}|[A-Z][a-z]{2}\s+\d{4}|\d{4})\s*[–\-]\s*(Present|Current|\d{4}|[A-Z][a-z]{2}\s+\d{4})/i.test(nextLine) ||
+      /(\d{1,2}\/\d{4}|[A-Z][a-z]{2}\s+\d{4}|\d{4})\s*[–\-]\s*(Present|Current|\d{4}|[A-Z][a-z]{2}\s+\d{4})/i.test(lineAfterNext)
+    );
+    
+    // Detect role start: title pattern + (company or date follows)
+    const isRoleStart = isRoleTitlePattern && (isNextLineCompany || hasDatePattern);
+    
+    if (isRoleStart) {
       // Save previous role
       if (currentRole) {
         roles.push(currentRole);
@@ -198,20 +214,24 @@ function parseExperienceRoles(lines: string[]): RoleBlock[] {
       let j = i + 1;
       while (j < lines.length && j <= i + 3) {
         const l = lines[j];
-        if (l.startsWith('•') || l.startsWith('-')) break;
+        if (l.startsWith('•') || l.startsWith('-') || l.startsWith('*')) break;
         
-        // Check for date pattern
-        const dateMatch = l.match(/(\w+\s+\d{4}|\d{1,2}\/\d{4})\s*[–-]\s*(Present|\w+\s+\d{4}|\d{1,2}\/\d{4})/i);
+        // Extract date pattern
+        const dateMatch = l.match(/([A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})\s*[–\-]\s*(Present|Current|[A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})/i);
         if (dateMatch) {
           dates = dateMatch[0];
-          // Extract location from same line if present
-          const locMatch = l.match(/([A-Z][a-z]+,?\s*[A-Z]{2})\s*[\|•]/);
-          if (locMatch) location = locMatch[1];
         }
         
-        // Check for company (line after title, before dates)
+        // Extract location (City, ST format)
+        const locMatch = l.match(/([A-Z][a-z]+,?\s*[A-Z]{2})\s*$/);
+        if (locMatch && !location) {
+          location = locMatch[1];
+        }
+        
+        // Extract company (line after title, before or including dates)
         if (!company && j === i + 1 && l.length < 100) {
-          const companyMatch = l.match(/^([^|\n]+)/);
+          // Get company before the pipe or bullet
+          const companyMatch = l.match(/^([^|\n•]+)/);
           if (companyMatch) {
             company = companyMatch[1].replace(/^\*\*|\*\*$/g, '').trim();
           }
@@ -229,14 +249,27 @@ function parseExperienceRoles(lines: string[]): RoleBlock[] {
       };
     } else if (isBullet && currentRole) {
       currentRole.bullets.push(line.replace(/^[•\-\*]\s*/, ''));
-    } else if (currentRole && line && !isRoleHeader) {
-      // Continuation or company/dates line
-      if (!currentRole.company && line.length < 80) {
-        currentRole.company = line.replace(/^\*\*|\*\*$/g, '');
-      } else if (!currentRole.dates) {
-        const dateMatch = line.match(/(\w+\s+\d{4}|\d{1,2}\/\d{4})\s*[–-]\s*(Present|\w+\s+\d{4}|\d{1,2}\/\d{4})/i);
+    } else if (currentRole && line && !isRoleStart) {
+      // This might be company/dates continuation
+      if (!currentRole.company && line.length < 80 && !line.startsWith('•')) {
+        const companyMatch = line.match(/^([^|\n•]+)/);
+        if (companyMatch) {
+          currentRole.company = companyMatch[1].replace(/^\*\*|\*\*$/g, '').trim();
+        }
+      }
+      if (!currentRole.dates) {
+        const dateMatch = line.match(/([A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})\s*[–\-]\s*(Present|Current|[A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})/i);
         if (dateMatch) currentRole.dates = dateMatch[0];
       }
+    } else if (!currentRole && line && !isBullet && line.length > 3) {
+      // First line might be a role title - start parsing
+      currentRole = {
+        title: line.replace(/^\*\*|\*\*$/g, '').trim(),
+        company: '',
+        location: '',
+        dates: '',
+        bullets: []
+      };
     }
   }
   
@@ -268,6 +301,65 @@ function parseAchievements(lines: string[]): Achievement[] {
   }
   
   return achievements;
+}
+
+interface EducationEntry {
+  degree: string;
+  institution: string;
+  details: string;
+}
+
+function parseEducationEntries(content: string): EducationEntry[] {
+  const entries: EducationEntry[] = [];
+  const lines = content.split('\n').filter(l => l.trim());
+  
+  let currentEntry: EducationEntry | null = null;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Detect degree/certification lines
+    const isDegree = /^(MBA|BSc|BA|BS|MS|PhD|Master|Bachelor|Leading|Product|Professional|Certificate|Certified)/i.test(line) ||
+                     /^[A-Z][a-z]+\s+(in|of)\s+/i.test(line);
+    
+    // Detect institution lines (University, School, etc.)
+    const isInstitution = /University|School|College|Institute|Academy|Education/i.test(line);
+    
+    // Detect year/date lines
+    const isDateLine = /^\(?\d{4}\)?$/.test(line) || /\(\d{4}\)/.test(line);
+    
+    if (isDegree && !isInstitution) {
+      // Save previous entry
+      if (currentEntry) {
+        entries.push(currentEntry);
+      }
+      currentEntry = { degree: line, institution: '', details: '' };
+    } else if (isInstitution && currentEntry) {
+      currentEntry.institution = line;
+    } else if (isInstitution && !currentEntry) {
+      // Institution without prior degree (just institution name)
+      currentEntry = { degree: '', institution: line, details: '' };
+    } else if (isDateLine && currentEntry) {
+      currentEntry.details = line;
+    } else if (currentEntry) {
+      // Additional detail
+      if (currentEntry.institution && !currentEntry.details) {
+        currentEntry.details = line;
+      } else if (!currentEntry.institution) {
+        currentEntry.institution = line;
+      }
+    } else {
+      // Start a new entry with this line
+      currentEntry = { degree: line, institution: '', details: '' };
+    }
+  }
+  
+  // Don't forget last entry
+  if (currentEntry) {
+    entries.push(currentEntry);
+  }
+  
+  return entries;
 }
 
 export function FormattedResumeDisplay({ content, className = "" }: FormattedResumeDisplayProps) {
@@ -358,15 +450,20 @@ export function FormattedResumeDisplay({ content, className = "" }: FormattedRes
           )}
           
           {section.type === "education" && typeof section.content === "string" && (
-            <div className="text-sm space-y-2">
-              {section.content.split('\n').filter(l => l.trim()).map((line, i) => {
-                const isBold = /^[A-Z][A-Za-z\s]+$/.test(line.trim()) || /^(MBA|BSc|BA|MS|PhD|Master|Bachelor)/.test(line);
-                return (
-                  <div key={i} className={isBold ? "font-semibold" : "text-muted-foreground"}>
-                    {line}
-                  </div>
-                );
-              })}
+            <div className="text-sm space-y-3">
+              {parseEducationEntries(section.content).map((entry, i) => (
+                <div key={i} className="mb-2">
+                  {entry.degree && (
+                    <div className="font-semibold text-foreground">{entry.degree}</div>
+                  )}
+                  {entry.institution && (
+                    <div className="text-foreground/80">{entry.institution}</div>
+                  )}
+                  {entry.details && (
+                    <div className="text-muted-foreground text-xs">{entry.details}</div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
           
