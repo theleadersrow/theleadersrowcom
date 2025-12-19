@@ -6,13 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Check, X, Edit3, Save, RotateCcw,
   ChevronDown, ChevronUp, Sparkles, FileText, Briefcase,
-  Copy, Eye, EyeOff
+  Copy, Eye, EyeOff, ArrowRight
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FormattedResumeDisplay } from "./FormattedResumeDisplay";
+import { RoleOptimizationModal, RoleData, AISuggestion, RoleStatus } from "./RoleOptimizationModal";
 import { toast } from "sonner";
-// Role-level status model
-type RoleStatus = "draft" | "ai_reviewed" | "optimized" | "locked";
 
 interface ResumeSection {
   id: string;
@@ -25,28 +24,6 @@ interface ResumeSection {
   parentSection?: string;
   roleData?: RoleData;
   roleStatus?: RoleStatus;
-}
-
-// AI Recommendation types
-interface AISuggestion {
-  id: string;
-  type: "impact_gap" | "language_seniority" | "keyword_optimization" | "clarity_redundancy";
-  bulletIndex?: number;
-  suggestion: string;
-  accepted: boolean;
-}
-
-// Structured role data model - each role is an atomic unit
-interface RoleData {
-  roleId: string;
-  title: string;
-  company: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  responsibilities: string[];
-  aiSuggestions: AISuggestion[];
-  roleSummary?: string;
 }
 
 interface ContentImprovement {
@@ -621,6 +598,7 @@ export function ResumeReview({
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [openRoleModal, setOpenRoleModal] = useState<string | null>(null);
 
   const handleCopySection = (content: string, sectionTitle: string) => {
     navigator.clipboard.writeText(content).then(() => {
@@ -1003,9 +981,8 @@ export function ResumeReview({
     );
   };
   
-  // Render role card with structured data
+  // Render role card - Collapsed view with Review & Optimize CTA
   const renderRoleCard = (section: ResumeSection, roleData: RoleData) => {
-    const isExpanded = expandedSection === section.id;
     const dateRange = roleData.startDate && roleData.endDate 
       ? `${roleData.startDate} – ${roleData.endDate}` 
       : roleData.startDate || '';
@@ -1014,239 +991,110 @@ export function ResumeReview({
       .filter(Boolean)
       .join(' • ');
     
-    return (
-      <Collapsible 
-        key={section.id}
-        open={isExpanded}
-        onOpenChange={(open) => setExpandedSection(open ? section.id : null)}
-      >
-        <Card className={`overflow-hidden transition-all ${
-          section.status === "accepted" ? "border-green-500/50" :
-          section.status === "declined" ? "border-red-500/30" :
-          section.status === "edited" ? "border-blue-500/50" : ""
-        }`}>
-          {/* Collapsed View - Role Header */}
-          <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-3">
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-primary" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                )}
-                <div className="flex flex-col items-start text-left">
-                  <span className="font-bold text-foreground">
-                    {roleData.title}
-                  </span>
-                  {metaLine && (
-                    <span className="text-xs text-muted-foreground mt-0.5">
-                      {metaLine}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {getRoleStatusBadge(section)}
-                {section.status !== "pending" && section.status !== "declined" && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleResetSection(section.id);
-                    }}
-                    className="text-muted-foreground"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          
-          {/* Expanded View - Full Role Details */}
-          <CollapsibleContent>
-            <div className="border-t p-4 space-y-4">
-              {editingSection !== section.id ? (
-                <>
-                  {/* Responsibilities & Impact */}
-                  <div>
-                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-primary" />
-                      Responsibilities & Impact
-                    </h4>
-                    {roleData.responsibilities.length > 0 ? (
-                      <ul className="space-y-2 text-sm">
-                        {roleData.responsibilities.map((resp, i) => (
-                          <li key={i} className="text-foreground/90 relative pl-4 before:content-['•'] before:absolute before:left-0 before:text-primary">
-                            {formatContentWithMetrics(resp)}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">No bullet points found</p>
-                    )}
-                  </div>
-                  
-                  {/* AI Suggestions for This Role - Grouped by Type */}
-                  {roleData.aiSuggestions.length > 0 && (
-                    <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                          <Sparkles className="w-4 h-4" />
-                          AI Suggestions for This Role
-                        </h4>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 px-2 text-xs text-amber-700 hover:text-amber-900"
-                          onClick={() => handleAcceptAllSuggestions(section.id)}
-                        >
-                          <Check className="w-3 h-3 mr-1" />
-                          Accept All
-                        </Button>
-                      </div>
-                      
-                      {roleData.roleSummary && (
-                        <p className="text-sm text-amber-900 dark:text-amber-200 italic border-l-2 border-amber-400 pl-3">
-                          {roleData.roleSummary}
-                        </p>
-                      )}
-                      
-                      {/* Impact Gaps */}
-                      {renderSuggestionGroup(roleData.aiSuggestions, "impact_gap", "Impact Gaps", section.id)}
-                      
-                      {/* Language & Seniority */}
-                      {renderSuggestionGroup(roleData.aiSuggestions, "language_seniority", "Language & Seniority", section.id)}
-                      
-                      {/* Keyword Optimization */}
-                      {renderSuggestionGroup(roleData.aiSuggestions, "keyword_optimization", "Keyword Optimization", section.id)}
-                      
-                      {/* Clarity / Redundancy */}
-                      {renderSuggestionGroup(roleData.aiSuggestions, "clarity_redundancy", "Clarity / Redundancy", section.id)}
-                    </div>
-                  )}
-                  
-                  {/* Compare Original vs Improved */}
-                  <div className="grid md:grid-cols-2 gap-4 pt-2 border-t">
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                        Original
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-3 text-sm max-h-[200px] overflow-y-auto">
-                        <div className="whitespace-pre-wrap font-mono text-xs text-muted-foreground">
-                          {section.originalContent.trim() || "(No content)"}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center justify-between">
-                        <span className="flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" />
-                          AI Optimized
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 px-2 text-xs"
-                          onClick={() => handleCopySection(section.improvedContent, section.title)}
-                        >
-                          <Copy className="w-3 h-3 mr-1" />
-                          Copy
-                        </Button>
-                      </div>
-                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm max-h-[200px] overflow-y-auto">
-                        <FormattedSectionContent 
-                          title={section.title} 
-                          content={section.improvedContent} 
-                          isRole={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                renderEditMode(section)
-              )}
-              
-              {renderActionButtons(section)}
-            </div>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-    );
-  };
-  
-  // Render suggestion group by type
-  const renderSuggestionGroup = (
-    suggestions: AISuggestion[], 
-    type: AISuggestion['type'], 
-    label: string,
-    sectionId: string
-  ) => {
-    const filtered = suggestions.filter(s => s.type === type);
-    if (filtered.length === 0) return null;
+    const suggestionCount = roleData.aiSuggestions?.length || 0;
+    const acceptedCount = roleData.aiSuggestions?.filter(s => s.accepted).length || 0;
     
     return (
-      <div className="space-y-2">
-        <h5 className="text-xs font-medium text-amber-700 dark:text-amber-400">{label}</h5>
-        <ul className="space-y-1.5">
-          {filtered.map((sug) => (
-            <li key={sug.id} className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
-              <button
-                onClick={() => handleToggleSuggestion(sectionId, sug.id)}
-                className={`w-4 h-4 rounded border flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                  sug.accepted 
-                    ? 'bg-green-500 border-green-500 text-white' 
-                    : 'border-amber-400 hover:border-amber-600'
-                }`}
-              >
-                {sug.accepted && <Check className="w-3 h-3" />}
-              </button>
-              <span className={sug.accepted ? 'line-through opacity-60' : ''}>
-                {sug.suggestion}
+      <Card 
+        key={section.id}
+        className={`overflow-hidden transition-all ${
+          section.status === "accepted" || section.status === "edited" ? "border-green-500/50 bg-green-50/30 dark:bg-green-950/20" :
+          section.status === "declined" ? "border-slate-500/30 bg-slate-50/30 dark:bg-slate-950/20" : ""
+        }`}
+      >
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex flex-col items-start text-left min-w-0 flex-1">
+              <span className="font-bold text-foreground truncate w-full">
+                {roleData.title}
               </span>
-            </li>
-          ))}
-        </ul>
-      </div>
+              {metaLine && (
+                <span className="text-xs text-muted-foreground mt-0.5 truncate w-full">
+                  {metaLine}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Status Badge */}
+            {getRoleStatusBadge(section)}
+            
+            {/* AI Suggestions indicator */}
+            {suggestionCount > 0 && section.status === "pending" && (
+              <Badge variant="outline" className="text-xs bg-amber-50 dark:bg-amber-950/30 border-amber-300 text-amber-700 dark:text-amber-400">
+                <Sparkles className="w-3 h-3 mr-1" />
+                {acceptedCount > 0 ? `${acceptedCount}/${suggestionCount}` : suggestionCount} suggestions
+              </Badge>
+            )}
+            
+            {/* Review & Optimize CTA */}
+            <Button
+              size="sm"
+              variant={section.status === "pending" ? "default" : "outline"}
+              onClick={() => setOpenRoleModal(section.id)}
+              className={section.status === "pending" ? "bg-primary hover:bg-primary/90" : ""}
+            >
+              {section.status === "pending" ? (
+                <>
+                  Review & Optimize
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+        
+        {/* Role Optimization Modal */}
+        {openRoleModal === section.id && (
+          <RoleOptimizationModal
+            isOpen={true}
+            onClose={() => setOpenRoleModal(null)}
+            roleData={roleData}
+            originalContent={section.originalContent}
+            improvedContent={section.improvedContent}
+            status={section.status}
+            onAccept={() => {
+              handleAccept(section.id);
+              setOpenRoleModal(null);
+            }}
+            onDecline={() => {
+              handleDecline(section.id);
+              setOpenRoleModal(null);
+            }}
+            onSaveEdit={(content) => {
+              handleEditChange(section.id, content);
+              handleSaveEdit(section.id);
+            }}
+            onMarkOptimized={() => {
+              handleAccept(section.id);
+              toast.success(`${roleData.title} marked as AI Optimized`);
+            }}
+            onUpdateSuggestions={(suggestions) => {
+              setSections(prev => prev.map(s => {
+                if (s.id === section.id && s.roleData) {
+                  return {
+                    ...s,
+                    roleData: {
+                      ...s.roleData,
+                      aiSuggestions: suggestions
+                    }
+                  };
+                }
+                return s;
+              }));
+            }}
+          />
+        )}
+      </Card>
     );
   };
   
-  // Handle accepting all suggestions for a role
-  const handleAcceptAllSuggestions = (sectionId: string) => {
-    setSections(prev => prev.map(s => {
-      if (s.id === sectionId && s.roleData) {
-        return {
-          ...s,
-          roleData: {
-            ...s.roleData,
-            aiSuggestions: s.roleData.aiSuggestions.map(sug => ({ ...sug, accepted: true }))
-          }
-        };
-      }
-      return s;
-    }));
-  };
-  
-  // Handle toggling individual suggestion
-  const handleToggleSuggestion = (sectionId: string, suggestionId: string) => {
-    setSections(prev => prev.map(s => {
-      if (s.id === sectionId && s.roleData) {
-        return {
-          ...s,
-          roleData: {
-            ...s.roleData,
-            aiSuggestions: s.roleData.aiSuggestions.map(sug => 
-              sug.id === suggestionId ? { ...sug, accepted: !sug.accepted } : sug
-            )
-          }
-        };
-      }
-      return s;
-    }));
-  };
   
   // Edit mode component
   const renderEditMode = (section: ResumeSection) => (
