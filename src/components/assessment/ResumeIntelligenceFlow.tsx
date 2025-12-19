@@ -300,7 +300,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   // Handle upgrade/payment - redirect to Stripe payment link
   const handleUpgrade = () => {
     // Direct Stripe payment link for Resume Intelligence Suite ($99, 3-month access)
-    window.location.href = "https://buy.stripe.com/00waEW6i58aCfVdbR19sk0f";
+    // Open in new tab for better reliability
+    window.open("https://buy.stripe.com/00waEW6i58aCfVdbR19sk0f", "_blank");
   };
 
   // Handle save report (email capture)
