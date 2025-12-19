@@ -297,29 +297,10 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     // This is just for the animation sync
   }, []);
 
-  // Handle upgrade/payment
-  const handleUpgrade = async () => {
-    try {
-      const email = getStoredEmail();
-      const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
-        body: { 
-          customerEmail: email,
-          successParam: "resume_success"
-        },
-      });
-      
-      if (error) throw error;
-      if (data?.url) {
-        // Redirect to Stripe checkout in same tab
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      toast({
-        title: "Checkout failed",
-        description: error.message || "Please try again.",
-        variant: "destructive",
-      });
-    }
+  // Handle upgrade/payment - redirect to Stripe payment link
+  const handleUpgrade = () => {
+    // Direct Stripe payment link for Resume Intelligence Suite ($99, 3-month access)
+    window.location.href = "https://buy.stripe.com/00waEW6i58aCfVdbR19sk0f";
   };
 
   // Handle save report (email capture)
