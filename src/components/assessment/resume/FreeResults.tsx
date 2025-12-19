@@ -447,12 +447,13 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
             
             <div className="space-y-3 py-4">
               {[
-                "AI-optimized, fully rewritten resume",
-                "Executive formatting & structure",
-                "PDF & Word download",
-                "Unlimited Q&A refinement loop",
-                "Regeneration credits",
-                "Unlimited cover letters",
+                "AI-optimized resume tailored to your target roles",
+                "ATS-aligned keywords and score improvements",
+                "Professional brand and seniority calibration",
+                "Smart clarification questions before writing",
+                "Resume regeneration (up to 3 times)",
+                "Resume downloads (PDF + text)",
+                "Unlimited cover letter generation",
                 "ATS report copy"
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
