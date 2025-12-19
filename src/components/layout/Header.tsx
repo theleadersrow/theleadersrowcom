@@ -207,16 +207,17 @@ const Header = () => {
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card border border-border shadow-elevated z-50 min-w-[200px]">
+              <DropdownMenuContent align="end" className="bg-card border border-border shadow-elevated z-50 min-w-[220px]">
                 <DropdownMenuItem asChild>
-                  <Link to="/career-coach" className="w-full cursor-pointer text-foreground hover:text-secondary">
-                    All AI Tools
+                  <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary flex items-center gap-2">
+                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
+                    Resume Intelligence Suite
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary flex items-center gap-2">
                     <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
-                    Resume Intelligence Suite
+                    LinkedIn Signal Score
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -375,11 +376,12 @@ const Header = () => {
                 </p>
                 <div className="pl-4 flex flex-col gap-2 mt-2">
                   <Link
-                    to="/career-coach"
-                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors"
+                    to="/beta-event"
+                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors flex items-center gap-2"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    All AI Tools
+                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
+                    Resume Intelligence Suite
                   </Link>
                   <Link
                     to="/beta-event"
@@ -387,7 +389,7 @@ const Header = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
-                    Resume Intelligence Suite
+                    LinkedIn Signal Score
                   </Link>
                 </div>
               </div>
