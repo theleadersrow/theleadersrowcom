@@ -1337,18 +1337,33 @@ export function ResumeReview({
           </div>
         </div>
 
-        {/* Instructions */}
+        {/* Instructions and Accept All */}
         <Card className="p-4 mb-6 bg-primary/5 border-primary/20">
-          <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-foreground mb-1">How this works:</p>
-              <ul className="text-muted-foreground space-y-1">
-                <li>• <strong>Accept</strong> to use the AI-improved version</li>
-                <li>• <strong>Decline</strong> to keep your original content</li>
-                <li>• <strong>Edit</strong> to customize the improved version</li>
-              </ul>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground mb-1">How this works:</p>
+                <ul className="text-muted-foreground space-y-1">
+                  <li>• <strong>Accept</strong> to use the AI-improved version</li>
+                  <li>• <strong>Decline</strong> to keep your original content</li>
+                  <li>• <strong>Edit</strong> to customize the improved version</li>
+                </ul>
+              </div>
             </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                setSections(prev => 
+                  prev.map(section => ({ ...section, status: "accepted" as const }))
+                );
+              }}
+              disabled={editableSections.every(s => s.status === "accepted")}
+              className="flex-shrink-0"
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Accept All
+            </Button>
           </div>
         </Card>
 
