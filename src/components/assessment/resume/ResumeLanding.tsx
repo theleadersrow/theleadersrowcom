@@ -20,11 +20,14 @@ export function ResumeLanding({ onBack, onProceed }: ResumeLandingProps) {
   ];
 
   const paidFeatures = [
-    "Fully rewritten, ATS-optimized resume",
-    "PDF & Word downloads",
+    "AI-optimized resume tailored to your target roles",
+    "ATS-aligned keywords and score improvements",
+    "Professional brand and seniority calibration",
+    "Smart clarification questions before writing",
+    "Resume regeneration (up to 3 times)",
+    "Resume downloads (PDF + text)",
     "Unlimited cover letter generation",
-    "Detailed improvement breakdown",
-    "Interview prep questions based on your resume"
+    "ATS report copy"
   ];
 
   const steps = [
