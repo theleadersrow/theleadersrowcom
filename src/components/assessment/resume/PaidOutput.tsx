@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { 
   FileText, Copy, Download, RefreshCw, CheckCircle, 
   FileSignature, BarChart3, Loader2, ArrowLeft,
-  AlertCircle, Target, Zap, TrendingUp, Users, Briefcase, Search
+  AlertCircle, Target, Zap, TrendingUp, Users, Briefcase, Search, Eye, X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -79,6 +80,8 @@ export function PaidOutput({
   const [isCopied, setIsCopied] = useState(false);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
+  const [showATSReportModal, setShowATSReportModal] = useState(false);
+  const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
   const [coverLetterInput, setCoverLetterInput] = useState<CoverLetterInput>({
     jobTitle: "",
     company: "",
@@ -87,7 +90,6 @@ export function PaidOutput({
     candidateEmail: "",
     coverLetterLength: "medium"
   });
-  const atsReportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const handleCopyText = async () => {
@@ -119,6 +121,7 @@ export function PaidOutput({
     try {
       const letter = await onGenerateCoverLetter(coverLetterInput);
       setCoverLetter(letter);
+      setShowCoverLetterModal(true);
       toast({ title: "Cover letter generated!" });
     } catch (error) {
       toast({ 
@@ -133,26 +136,9 @@ export function PaidOutput({
 
   const handleRegenerateCoverLetter = async () => {
     if (coverLetter) {
+      setShowCoverLetterModal(false);
       await handleGenerateCoverLetter();
     }
-  };
-
-  const handleDownloadATSReport = async () => {
-    if (!atsReportRef.current) return;
-    
-    const html2pdf = (await import("html2pdf.js")).default;
-    
-    await html2pdf()
-      .set({
-        margin: [0.5, 0.5, 0.5, 0.5],
-        filename: "ats-report.pdf",
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-      })
-      .from(atsReportRef.current)
-      .save();
-    
-    toast({ title: "Downloaded!", description: "ATS Report saved as PDF" });
   };
 
   const handleCopyCoverLetter = async () => {
@@ -173,6 +159,15 @@ export function PaidOutput({
   };
 
   const scoreInfo = score ? getScoreLabel(score.ats_score) : null;
+
+  // Format date for cover letter
+  const formatDate = () => {
+    return new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
   return (
     <div className="min-h-[80vh] animate-fade-up px-4">
@@ -250,33 +245,32 @@ export function PaidOutput({
             </Card>
           </TabsContent>
 
-          {/* ATS Report Tab - Full Data like Free Version */}
+          {/* ATS Report Tab */}
           <TabsContent value="ats" className="space-y-4">
             {score && (
-              <div ref={atsReportRef} className="space-y-4">
-                {/* Download PDF Button */}
+              <>
+                {/* View PDF Button */}
                 <div className="flex justify-end mb-4">
-                  <Button variant="outline" onClick={handleDownloadATSReport}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Report as PDF
+                  <Button onClick={() => setShowATSReportModal(true)}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Full Report
                   </Button>
                 </div>
 
-                {/* ATS Score - Big Display */}
-                <Card className="p-8 text-center bg-gradient-to-br from-card to-muted/50">
-                  <div className="mb-4">
+                {/* Quick Summary Cards */}
+                <Card className="p-6 text-center bg-gradient-to-br from-card to-muted/50">
+                  <div className="mb-2">
                     <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       Final ATS Score
                     </span>
                   </div>
-                  <div className={`text-7xl font-bold ${scoreInfo?.color}`}>
+                  <div className={`text-6xl font-bold ${scoreInfo?.color}`}>
                     {score.ats_score}
-                    <span className="text-3xl text-muted-foreground">/100</span>
+                    <span className="text-2xl text-muted-foreground">/100</span>
                   </div>
-                  <div className={`text-xl font-medium mt-2 ${scoreInfo?.color}`}>
+                  <div className={`text-lg font-medium mt-2 ${scoreInfo?.color}`}>
                     {scoreInfo?.label}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-3 max-w-md mx-auto">{score.summary}</p>
                 </Card>
 
                 {/* Score Breakdown */}
@@ -298,266 +292,36 @@ export function PaidOutput({
                   ))}
                 </div>
 
-                {/* Role-Level Signal */}
-                {score.job_title_match && (
-                  <Card className="p-4 border-primary/30 bg-primary/5">
-                    <div className="flex items-start gap-3">
-                      <Target className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">Job Title Match</h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm mb-2">
-                          <div>
-                            <span className="text-muted-foreground">Target: </span>
-                            <span className="font-medium">{score.job_title_match.target_title}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Your title: </span>
-                            <span className="font-medium">{score.job_title_match.resume_title}</span>
-                          </div>
-                        </div>
-                        {score.job_title_match.recommendation && (
-                          <p className="text-sm text-muted-foreground">
-                            → {score.job_title_match.recommendation}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Hard Skills vs Soft Skills */}
-                {((score.hard_skills_matched && score.hard_skills_matched.length > 0) || 
-                  (score.hard_skills_missing && score.hard_skills_missing.length > 0) ||
-                  (score.soft_skills_matched && score.soft_skills_matched.length > 0) ||
-                  (score.soft_skills_missing && score.soft_skills_missing.length > 0)) && (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Hard Skills */}
-                    <Card className="p-4">
-                      <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Target className="w-4 h-4 text-blue-500" /> 
-                        Hard Skills (Technical)
-                      </h3>
-                      {score.hard_skills_matched && score.hard_skills_matched.length > 0 && (
-                        <div className="mb-3">
-                          <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-2">
-                            ✓ Matched ({score.hard_skills_matched.length})
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {score.hard_skills_matched.slice(0, 8).map((skill, i) => (
-                              <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
-                                {skill}
-                              </span>
-                            ))}
-                            {score.hard_skills_matched.length > 8 && (
-                              <span className="text-xs text-muted-foreground">+{score.hard_skills_matched.length - 8} more</span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {score.hard_skills_missing && score.hard_skills_missing.length > 0 && (
-                        <div>
-                          <div className="text-xs font-medium text-red-600 dark:text-red-400 mb-2">
-                            ✗ Missing ({score.hard_skills_missing.length})
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {score.hard_skills_missing.slice(0, 6).map((skill, i) => (
-                              <span key={i} className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full dark:bg-red-900/30 dark:text-red-300">
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </Card>
-
-                    {/* Soft Skills */}
-                    <Card className="p-4">
-                      <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-purple-500" /> 
-                        Soft Skills (Interpersonal)
-                      </h3>
-                      {score.soft_skills_matched && score.soft_skills_matched.length > 0 && (
-                        <div className="mb-3">
-                          <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-2">
-                            ✓ Matched ({score.soft_skills_matched.length})
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {score.soft_skills_matched.slice(0, 6).map((skill, i) => (
-                              <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {score.soft_skills_missing && score.soft_skills_missing.length > 0 && (
-                        <div>
-                          <div className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
-                            ✗ Missing ({score.soft_skills_missing.length})
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {score.soft_skills_missing.slice(0, 5).map((skill, i) => (
-                              <span key={i} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900/30 dark:text-orange-300">
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </Card>
-                  </div>
-                )}
-
-                {/* Keywords - Matched & Missing */}
+                {/* Quick highlights */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <Card className="p-4">
                     <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      Matched Keywords ({score.matched_keywords?.length || 0})
+                      Key Strengths
                     </h3>
-                    <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto">
-                      {score.matched_keywords?.slice(0, 15).map((kw, i) => (
-                        <span key={i} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full dark:bg-green-900/30 dark:text-green-300">
-                          {kw}
-                        </span>
+                    <ul className="space-y-1">
+                      {score.strengths?.slice(0, 3).map((s, i) => (
+                        <li key={i} className="text-sm text-muted-foreground">✓ {s}</li>
                       ))}
-                      {(score.matched_keywords?.length || 0) > 15 && (
-                        <span className="px-2 py-1 text-muted-foreground text-xs">
-                          +{score.matched_keywords!.length - 15} more
-                        </span>
-                      )}
-                    </div>
+                    </ul>
                   </Card>
                   <Card className="p-4">
                     <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-orange-500" />
-                      Missing Keywords ({score.missing_keywords?.length || 0})
+                      <TrendingUp className="w-4 h-4 text-orange-500" />
+                      Top Improvements
                     </h3>
-                    <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto">
-                      {score.missing_keywords?.slice(0, 12).map((kw, i) => (
-                        <span key={i} className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full dark:bg-orange-900/30 dark:text-orange-300">
-                          {kw}
-                        </span>
+                    <ul className="space-y-1">
+                      {score.improvements?.slice(0, 3).map((imp, i) => (
+                        <li key={i} className="text-sm text-muted-foreground">→ {imp.issue}</li>
                       ))}
-                    </div>
+                    </ul>
                   </Card>
                 </div>
-
-                {/* What's Working */}
-                {score.strengths && score.strengths.length > 0 && (
-                  <Card className="p-4">
-                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      What's Working
-                    </h3>
-                    <ul className="space-y-2">
-                      {score.strengths.slice(0, 5).map((strength, i) => (
-                        <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                          <span className="text-green-500 mt-0.5">✓</span>
-                          {strength}
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
-
-                {/* Critical Gaps / Deal Breakers */}
-                {score.deal_breakers && score.deal_breakers.length > 0 && (
-                  <Card className="p-4 border-red-500/50 bg-red-500/10">
-                    <h3 className="font-semibold text-red-600 dark:text-red-400 mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" /> Critical Gaps
-                    </h3>
-                    <ul className="space-y-2">
-                      {score.deal_breakers.map((db, i) => (
-                        <li key={i} className="text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
-                          <span className="text-red-500 mt-0.5">✗</span> {db}
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
-
-                {/* Priority Improvements */}
-                {score.improvements && score.improvements.length > 0 && (
-                  <Card className="p-4">
-                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-orange-500" />
-                      Priority Improvements
-                    </h3>
-                    <ul className="space-y-3">
-                      {score.improvements.slice(0, 5).map((imp, i) => (
-                        <li key={i} className="text-sm">
-                          <div className="flex items-start gap-2">
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                              imp.priority === 'high' 
-                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' 
-                                : imp.priority === 'medium'
-                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                            }`}>
-                              {imp.priority}
-                            </span>
-                            <div>
-                              <span className="font-medium text-foreground">{imp.issue}</span>
-                              {imp.fix && <p className="text-muted-foreground mt-0.5">→ {imp.fix}</p>}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
-
-                {/* Recruiter Insights */}
-                {score.recruiter_tips && score.recruiter_tips.length > 0 && (
-                  <Card className="p-4 border-primary/30 bg-primary/5">
-                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-primary" /> 
-                      How Recruiters See Your Resume
-                    </h3>
-                    <ul className="space-y-2">
-                      {score.recruiter_tips.map((tip, i) => (
-                        <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                          <span className="text-primary mt-0.5">💡</span>
-                          <span>{tip}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
-
-                {/* Role Fit Assessment */}
-                {score.role_fit_assessment && (
-                  <Card className="p-4 bg-muted/50">
-                    <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4" /> Role Fit Assessment
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{score.role_fit_assessment}</p>
-                  </Card>
-                )}
-
-                {/* Recommended Additions */}
-                {score.recommended_additions && score.recommended_additions.length > 0 && (
-                  <Card className="p-4">
-                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Search className="w-4 h-4 text-secondary" />
-                      Recommended Additions
-                    </h3>
-                    <ul className="space-y-2">
-                      {score.recommended_additions.slice(0, 5).map((rec, i) => (
-                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                          <span className="text-secondary mt-0.5">+</span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                )}
-              </div>
+              </>
             )}
           </TabsContent>
 
-          {/* Cover Letter Tab - Enhanced with name, email, length options */}
+          {/* Cover Letter Tab */}
           <TabsContent value="cover" className="space-y-4">
             <Card className="p-6">
               <h3 className="font-semibold mb-4">Generate a Cover Letter</h3>
@@ -648,49 +412,347 @@ export function PaidOutput({
                   </RadioGroup>
                 </div>
 
-                <Button 
-                  onClick={handleGenerateCoverLetter}
-                  disabled={isGeneratingCover}
-                >
-                  {isGeneratingCover ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-                  ) : (
-                    "Generate Cover Letter"
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleGenerateCoverLetter}
+                    disabled={isGeneratingCover}
+                  >
+                    {isGeneratingCover ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                    ) : (
+                      "Generate Cover Letter"
+                    )}
+                  </Button>
+                  {coverLetter && (
+                    <Button variant="outline" onClick={() => setShowCoverLetterModal(true)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Cover Letter
+                    </Button>
                   )}
-                </Button>
+                </div>
               </div>
             </Card>
-
-            {coverLetter && (
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold">Your Cover Letter</h3>
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={handleCopyCoverLetter}
-                    >
-                      <Copy className="w-4 h-4 mr-1" /> Copy
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={handleRegenerateCoverLetter}
-                      disabled={isGeneratingCover}
-                    >
-                      <RefreshCw className={`w-4 h-4 mr-1 ${isGeneratingCover ? 'animate-spin' : ''}`} /> Regenerate
-                    </Button>
-                  </div>
-                </div>
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                  {coverLetter}
-                </div>
-              </Card>
-            )}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* ATS Report PDF-Like Modal */}
+      <Dialog open={showATSReportModal} onOpenChange={setShowATSReportModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="sticky top-0 bg-background border-b px-6 py-4 flex items-center justify-between z-10">
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              ATS Compatibility Report
+            </DialogTitle>
+            <Button variant="ghost" size="sm" onClick={() => setShowATSReportModal(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {score && (
+            <div className="p-8 bg-white dark:bg-gray-950">
+              {/* PDF-style report content */}
+              <div className="max-w-3xl mx-auto space-y-8" style={{ fontFamily: 'Georgia, serif' }}>
+                {/* Header */}
+                <div className="text-center border-b-2 border-primary pb-6">
+                  <h1 className="text-2xl font-bold text-foreground mb-2">ATS COMPATIBILITY REPORT</h1>
+                  <p className="text-sm text-muted-foreground">Generated on {formatDate()}</p>
+                </div>
+
+                {/* Overall Score */}
+                <div className="text-center py-8 bg-muted/30 rounded-lg">
+                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Overall ATS Score</p>
+                  <div className={`text-7xl font-bold ${scoreInfo?.color}`}>
+                    {score.ats_score}
+                    <span className="text-3xl text-muted-foreground">/100</span>
+                  </div>
+                  <p className={`text-xl font-medium mt-2 ${scoreInfo?.color}`}>{scoreInfo?.label}</p>
+                  <p className="text-sm text-muted-foreground mt-4 max-w-lg mx-auto">{score.summary}</p>
+                </div>
+
+                {/* Score Breakdown */}
+                <div>
+                  <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4">SCORE BREAKDOWN</h2>
+                  <div className="grid grid-cols-4 gap-4">
+                    {[
+                      { label: "Keywords", value: score.keyword_match_score },
+                      { label: "Experience", value: score.experience_match_score },
+                      { label: "Skills", value: score.skills_match_score },
+                      { label: "Format", value: score.format_score },
+                    ].map((item) => (
+                      <div key={item.label} className="text-center p-4 border rounded">
+                        <div className={`text-2xl font-bold ${
+                          item.value >= 75 ? "text-green-600" : item.value >= 50 ? "text-yellow-600" : "text-red-600"
+                        }`}>
+                          {item.value}%
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">{item.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Job Title Match */}
+                {score.job_title_match && (
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4">JOB TITLE ALIGNMENT</h2>
+                    <div className="grid grid-cols-2 gap-6 p-4 bg-muted/20 rounded">
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase">Target Role</p>
+                        <p className="font-semibold">{score.job_title_match.target_title}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground uppercase">Your Current Title</p>
+                        <p className="font-semibold">{score.job_title_match.resume_title}</p>
+                      </div>
+                    </div>
+                    {score.job_title_match.recommendation && (
+                      <p className="text-sm text-muted-foreground mt-3 italic">
+                        💡 {score.job_title_match.recommendation}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Strengths */}
+                {score.strengths && score.strengths.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      STRENGTHS
+                    </h2>
+                    <ul className="space-y-2">
+                      {score.strengths.map((s, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-green-500 mt-0.5">✓</span>
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Keywords Analysis */}
+                <div>
+                  <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4">KEYWORD ANALYSIS</h2>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-sm font-semibold text-green-600 mb-3">Matched Keywords ({score.matched_keywords?.length || 0})</h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        {score.matched_keywords?.map((kw, i) => (
+                          <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded dark:bg-green-900/30 dark:text-green-300">
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-orange-600 mb-3">Missing Keywords ({score.missing_keywords?.length || 0})</h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        {score.missing_keywords?.map((kw, i) => (
+                          <span key={i} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded dark:bg-orange-900/30 dark:text-orange-300">
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Skills Analysis */}
+                {((score.hard_skills_matched?.length || 0) > 0 || (score.soft_skills_matched?.length || 0) > 0) && (
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4">SKILLS ANALYSIS</h2>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {score.hard_skills_matched && score.hard_skills_matched.length > 0 && (
+                        <div>
+                          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                            <Target className="w-4 h-4 text-blue-500" />
+                            Technical Skills
+                          </h3>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-xs text-green-600 mb-1">Matched:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {score.hard_skills_matched.map((s, i) => (
+                                  <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded dark:bg-green-900/30 dark:text-green-300">{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                            {score.hard_skills_missing && score.hard_skills_missing.length > 0 && (
+                              <div>
+                                <p className="text-xs text-red-600 mb-1">Missing:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {score.hard_skills_missing.map((s, i) => (
+                                    <span key={i} className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded dark:bg-red-900/30 dark:text-red-300">{s}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {score.soft_skills_matched && score.soft_skills_matched.length > 0 && (
+                        <div>
+                          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-purple-500" />
+                            Soft Skills
+                          </h3>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-xs text-green-600 mb-1">Matched:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {score.soft_skills_matched.map((s, i) => (
+                                  <span key={i} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded dark:bg-green-900/30 dark:text-green-300">{s}</span>
+                                ))}
+                              </div>
+                            </div>
+                            {score.soft_skills_missing && score.soft_skills_missing.length > 0 && (
+                              <div>
+                                <p className="text-xs text-orange-600 mb-1">Missing:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {score.soft_skills_missing.map((s, i) => (
+                                    <span key={i} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded dark:bg-orange-900/30 dark:text-orange-300">{s}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Priority Improvements */}
+                {score.improvements && score.improvements.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-orange-500" />
+                      PRIORITY IMPROVEMENTS
+                    </h2>
+                    <div className="space-y-3">
+                      {score.improvements.map((imp, i) => (
+                        <div key={i} className="p-3 bg-muted/20 rounded">
+                          <div className="flex items-start gap-2">
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              imp.priority === 'high' ? 'bg-red-100 text-red-700' : 
+                              imp.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {imp.priority}
+                            </span>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{imp.issue}</p>
+                              {imp.fix && <p className="text-sm text-muted-foreground mt-1">→ {imp.fix}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recruiter Tips */}
+                {score.recruiter_tips && score.recruiter_tips.length > 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary" />
+                      RECRUITER INSIGHTS
+                    </h2>
+                    <ul className="space-y-2">
+                      {score.recruiter_tips.map((tip, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-primary">💡</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Role Fit Assessment */}
+                {score.role_fit_assessment && (
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground border-b pb-2 mb-4 flex items-center gap-2">
+                      <Briefcase className="w-5 h-5" />
+                      ROLE FIT ASSESSMENT
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{score.role_fit_assessment}</p>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="text-center pt-8 border-t text-xs text-muted-foreground">
+                  <p>This report was generated by AI-powered ATS analysis.</p>
+                  <p>© {new Date().getFullYear()} Resume Intelligence Suite</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cover Letter PDF-Like Modal */}
+      <Dialog open={showCoverLetterModal} onOpenChange={setShowCoverLetterModal}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="sticky top-0 bg-background border-b px-6 py-4 flex items-center justify-between z-10">
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <FileSignature className="w-5 h-5 text-primary" />
+              Cover Letter
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCopyCoverLetter}>
+                <Copy className="w-4 h-4 mr-1" />
+                Copy
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleRegenerateCoverLetter} disabled={isGeneratingCover}>
+                <RefreshCw className={`w-4 h-4 mr-1 ${isGeneratingCover ? 'animate-spin' : ''}`} />
+                Regenerate
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowCoverLetterModal(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          {coverLetter && (
+            <div className="p-8 bg-white dark:bg-gray-950">
+              {/* PDF-style cover letter */}
+              <div 
+                className="max-w-2xl mx-auto bg-white dark:bg-gray-900 shadow-lg border rounded-lg p-10"
+                style={{ fontFamily: 'Georgia, serif', minHeight: '800px' }}
+              >
+                {/* Letterhead */}
+                <div className="mb-8 pb-6 border-b">
+                  <h1 className="text-xl font-bold text-foreground">{coverLetterInput.candidateName}</h1>
+                  <p className="text-sm text-muted-foreground mt-1">{coverLetterInput.candidateEmail}</p>
+                </div>
+
+                {/* Date */}
+                <p className="text-sm text-muted-foreground mb-6">{formatDate()}</p>
+
+                {/* Recipient */}
+                <div className="mb-6">
+                  <p className="font-medium">{coverLetterInput.company}</p>
+                  <p className="text-sm text-muted-foreground">Re: {coverLetterInput.jobTitle} Position</p>
+                </div>
+
+                {/* Body */}
+                <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                  {coverLetter}
+                </div>
+
+                {/* Signature */}
+                <div className="mt-8 pt-4">
+                  <p className="text-sm">Sincerely,</p>
+                  <p className="font-semibold mt-4">{coverLetterInput.candidateName}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
