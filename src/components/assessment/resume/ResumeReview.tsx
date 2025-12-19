@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { FormattedResumeDisplay } from "./FormattedResumeDisplay";
 import { RoleOptimizationModal, RoleData, AISuggestion, RoleStatus } from "./RoleOptimizationModal";
 import { SectionOptimizationModal } from "./SectionOptimizationModal";
+import { RealTimeATSScore } from "./RealTimeATSScore";
 import { toast } from "sonner";
 
 interface ResumeSection {
@@ -1311,6 +1312,16 @@ export function ResumeReview({
               Accept, decline, or edit each section • {acceptedCount}/{totalCount} reviewed
             </p>
           </div>
+        </div>
+
+        {/* Real-Time ATS Score */}
+        <div className="mb-6">
+          <RealTimeATSScore
+            originalResume={originalResume}
+            currentContent={getPreviewContent()}
+            sectionsOptimized={editableSections.filter(s => s.status === "accepted" || s.status === "edited").length}
+            totalSections={totalCount}
+          />
         </div>
 
         {/* Progress indicator */}
