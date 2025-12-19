@@ -408,14 +408,14 @@ export function FormattedResumeDisplay({ content, className = "" }: FormattedRes
             <div className="space-y-4">
               {(section.content as Achievement[]).map((achievement, i) => (
                 <div key={i} className="achievement-block">
-                  {/* Achievement Title - Bold, slightly larger */}
+                  {/* Achievement Title - Bold */}
                   <h4 className="text-sm font-bold text-foreground leading-tight">
                     {achievement.headline}
                   </h4>
-                  {/* Supporting Impact Statement - Regular weight, max 2 lines */}
+                  {/* Supporting Impact Statement - Regular weight, slightly indented */}
                   {achievement.description && (
-                    <p className="text-sm text-foreground/85 leading-relaxed mt-1">
-                      {formatTextWithMetrics(achievement.description)}
+                    <p className="text-sm font-normal text-foreground/80 leading-relaxed mt-1 pl-3">
+                      {achievement.description}
                     </p>
                   )}
                 </div>
