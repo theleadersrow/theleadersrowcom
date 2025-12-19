@@ -55,6 +55,7 @@ interface BetaRegistration {
   invited_at: string | null;
   zoom_link_sent: boolean;
   tool_type: string;
+  subscribe_to_newsletter: boolean;
 }
 
 export function BetaRegistrationsTab() {

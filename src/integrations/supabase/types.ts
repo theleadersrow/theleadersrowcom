@@ -293,6 +293,7 @@ export type Database = {
           linkedin_url: string | null
           phone: string
           status: string
+          subscribe_to_newsletter: boolean | null
           target_roles: string
           tool_type: string
           understands_beta_terms: boolean
@@ -311,6 +312,7 @@ export type Database = {
           linkedin_url?: string | null
           phone: string
           status?: string
+          subscribe_to_newsletter?: boolean | null
           target_roles: string
           tool_type?: string
           understands_beta_terms?: boolean
@@ -329,6 +331,7 @@ export type Database = {
           linkedin_url?: string | null
           phone?: string
           status?: string
+          subscribe_to_newsletter?: boolean | null
           target_roles?: string
           tool_type?: string
           understands_beta_terms?: boolean
