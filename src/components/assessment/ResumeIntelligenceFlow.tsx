@@ -88,6 +88,40 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   
   const { toast } = useToast();
 
+  // Helper to store session data for paid users returning
+  const storeSessionData = () => {
+    if (resumeText && jobDescription) {
+      localStorage.setItem("resume_suite_session", JSON.stringify({
+        resumeText,
+        jobDescription,
+        targetRole,
+        targetIndustry,
+        freeScore,
+      }));
+    }
+  };
+
+  // Helper to restore session data
+  const restoreSessionData = (): boolean => {
+    try {
+      const stored = localStorage.getItem("resume_suite_session");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.resumeText && parsed.jobDescription) {
+          setResumeText(parsed.resumeText);
+          setJobDescription(parsed.jobDescription);
+          if (parsed.targetRole) setTargetRole(parsed.targetRole);
+          if (parsed.targetIndustry) setTargetIndustry(parsed.targetIndustry);
+          if (parsed.freeScore) setFreeScore(parsed.freeScore);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error("Error restoring session:", e);
+    }
+    return false;
+  };
+
   // Check for purchase success on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -223,11 +257,17 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           description: "You now have full access to Resume Intelligence.",
         });
         
-        // Close dialog after a moment and proceed to welcome
+        // Close dialog after a moment and proceed
         setTimeout(() => {
           setShowActivationDialog(false);
           setActivationSuccess(false);
-          setStep("welcome");
+          // If we have session data (resume/JD already uploaded), skip to clarification
+          const hasSessionData = restoreSessionData();
+          if (hasSessionData) {
+            setStep("clarification");
+          } else {
+            setStep("welcome");
+          }
         }, 2000);
       } else {
         toast({
@@ -287,6 +327,9 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
 
       const data = await response.json();
       setFreeScore(data);
+      
+      // Store session data so we can restore it after payment
+      storeSessionData();
       
       // Check if user already has paid access
       const isPaid = await checkPaidAccess();
