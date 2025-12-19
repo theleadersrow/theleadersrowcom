@@ -109,6 +109,14 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
       });
       return;
     }
+    if (!jobDescription.trim()) {
+      toast({
+        title: "Job description required",
+        description: "Please paste a target job description for accurate analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
     onStartScan(resumeText, jobDescription, targetRole, targetIndustry);
   };
 
@@ -201,12 +209,11 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
           />
         </Card>
 
-        {/* Job Description (Optional) */}
+        {/* Job Description (Required) */}
         <Card className="p-6 mb-4">
           <div className="flex items-start justify-between gap-3 mb-2">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <Target className="w-4 h-4" /> Target Job Description
-              <span className="text-xs text-muted-foreground font-normal">(Optional but recommended)</span>
+              <Target className="w-4 h-4" /> Target Job Description *
             </h3>
             {jobDescription && (
               <Button
@@ -220,7 +227,7 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
             )}
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Paste a job you're applying to for more targeted analysis.
+            Paste the job you're applying to for targeted ATS analysis.
           </p>
           <Textarea
             placeholder="Paste the job description here..."
@@ -274,7 +281,7 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
           <Button
             size="lg"
             onClick={handleStartScan}
-            disabled={isAnalyzing || !resumeText.trim()}
+            disabled={isAnalyzing || !resumeText.trim() || !jobDescription.trim()}
             className="min-w-[200px]"
           >
             {isAnalyzing ? (
