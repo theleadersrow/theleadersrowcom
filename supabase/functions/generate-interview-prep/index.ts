@@ -10,42 +10,185 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[INTERVIEW-PREP] ${step}`, details ? JSON.stringify(details) : "");
 };
 
-// Helper function for default preview questions by role
-function getDefaultPreviewQuestions(role: string) {
+// Helper function for default preview questions by role - returns categories with questions
+function getDefaultPreviewCategories(role: string) {
   const roleKeywords = role.toLowerCase();
   
   if (roleKeywords.includes("product") || roleKeywords.includes("pm")) {
     return [
-      { question: "Tell me about a product you've launched from concept to market.", category: "Experience", difficulty: "Medium" as const },
-      { question: "How do you prioritize features when you have limited resources?", category: "Product Sense", difficulty: "Hard" as const },
-      { question: "Describe a data-driven decision that went against stakeholder opinions.", category: "Decision Making", difficulty: "Hard" as const },
-      { question: "How do you measure the success of a product feature?", category: "Metrics", difficulty: "Medium" as const },
-      { question: "Walk me through how you would improve a product you use daily.", category: "Product Sense", difficulty: "Hard" as const },
+      {
+        name: "Behavioral",
+        description: "Questions about your past experiences and how you handle situations",
+        questions: [
+          { question: "Tell me about a time you had to make a difficult decision with incomplete data.", category: "Behavioral", difficulty: "Hard" as const },
+          { question: "Describe a situation where you had to influence stakeholders to change direction.", category: "Behavioral", difficulty: "Medium" as const },
+          { question: "How do you handle disagreements with engineering or design teams?", category: "Behavioral", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Product Sense",
+        description: "Questions about product intuition and user empathy",
+        questions: [
+          { question: "How would you improve a product you use daily?", category: "Product Sense", difficulty: "Hard" as const },
+          { question: "Design a product for a specific user segment to solve a problem.", category: "Product Sense", difficulty: "Hard" as const },
+          { question: "What makes a great product? Give an example.", category: "Product Sense", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Product Execution",
+        description: "Questions about getting things done and shipping products",
+        questions: [
+          { question: "How do you prioritize features when you have limited resources?", category: "Product Execution", difficulty: "Hard" as const },
+          { question: "Walk me through your product development process from idea to launch.", category: "Product Execution", difficulty: "Medium" as const },
+          { question: "How do you handle scope creep during a project?", category: "Product Execution", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Product Strategy",
+        description: "Questions about long-term vision and market positioning",
+        questions: [
+          { question: "How would you define the product roadmap for the next 2 years?", category: "Product Strategy", difficulty: "Hard" as const },
+          { question: "How do you balance short-term wins with long-term vision?", category: "Product Strategy", difficulty: "Hard" as const },
+          { question: "What's your approach to competitive analysis?", category: "Product Strategy", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Product Analytics",
+        description: "Questions about data-driven decision making and metrics",
+        questions: [
+          { question: "What metrics would you use to measure the success of a new feature?", category: "Product Analytics", difficulty: "Medium" as const },
+          { question: "Describe a time when data changed your product decision.", category: "Product Analytics", difficulty: "Hard" as const },
+          { question: "How do you set up A/B tests for product experiments?", category: "Product Analytics", difficulty: "Medium" as const },
+          { question: "What's the difference between leading and lagging indicators?", category: "Product Analytics", difficulty: "Easy" as const },
+        ]
+      },
+      {
+        name: "Product Thinking",
+        description: "Questions about problem-solving and critical thinking",
+        questions: [
+          { question: "A key metric dropped 20% this week. How would you investigate?", category: "Product Thinking", difficulty: "Hard" as const },
+          { question: "How do you identify the root cause of user problems?", category: "Product Thinking", difficulty: "Medium" as const },
+          { question: "What's your framework for making product trade-offs?", category: "Product Thinking", difficulty: "Hard" as const },
+        ]
+      }
     ];
   } else if (roleKeywords.includes("engineer") || roleKeywords.includes("developer")) {
     return [
-      { question: "Describe a complex technical challenge you solved.", category: "Technical", difficulty: "Hard" as const },
-      { question: "How do you balance technical debt with feature development?", category: "Decision Making", difficulty: "Medium" as const },
-      { question: "Tell me about a time you had to learn a new technology quickly.", category: "Growth", difficulty: "Medium" as const },
-      { question: "How do you ensure code quality in your team?", category: "Leadership", difficulty: "Medium" as const },
-      { question: "Describe your approach to system design.", category: "Technical", difficulty: "Hard" as const },
+      {
+        name: "Behavioral",
+        description: "Questions about your past experiences and teamwork",
+        questions: [
+          { question: "Tell me about a time you had to learn a new technology quickly.", category: "Behavioral", difficulty: "Medium" as const },
+          { question: "Describe a situation where you disagreed with a technical decision.", category: "Behavioral", difficulty: "Medium" as const },
+          { question: "How do you handle tight deadlines with competing priorities?", category: "Behavioral", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Technical Problem Solving",
+        description: "Questions about your approach to solving complex problems",
+        questions: [
+          { question: "Describe a complex bug you debugged. What was your approach?", category: "Technical", difficulty: "Hard" as const },
+          { question: "How do you approach breaking down a large technical problem?", category: "Technical", difficulty: "Medium" as const },
+          { question: "Walk me through optimizing a slow database query.", category: "Technical", difficulty: "Hard" as const },
+        ]
+      },
+      {
+        name: "System Design",
+        description: "Questions about designing scalable systems",
+        questions: [
+          { question: "Design a URL shortener service.", category: "System Design", difficulty: "Hard" as const },
+          { question: "How would you design a real-time notification system?", category: "System Design", difficulty: "Hard" as const },
+          { question: "What factors do you consider when choosing between SQL and NoSQL?", category: "System Design", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Code Quality & Best Practices",
+        description: "Questions about maintainability and engineering practices",
+        questions: [
+          { question: "How do you ensure code quality in your team?", category: "Best Practices", difficulty: "Medium" as const },
+          { question: "What's your approach to technical debt?", category: "Best Practices", difficulty: "Medium" as const },
+          { question: "How do you decide when to refactor vs. rewrite?", category: "Best Practices", difficulty: "Hard" as const },
+        ]
+      }
     ];
   } else if (roleKeywords.includes("manager") || roleKeywords.includes("director") || roleKeywords.includes("lead")) {
     return [
-      { question: "How do you handle underperforming team members?", category: "Leadership", difficulty: "Hard" as const },
-      { question: "Describe a difficult decision that impacted your team.", category: "Decision Making", difficulty: "Hard" as const },
-      { question: "How do you build and maintain team culture?", category: "Leadership", difficulty: "Medium" as const },
-      { question: "Tell me about a time you had to influence without authority.", category: "Influence", difficulty: "Hard" as const },
-      { question: "How do you balance strategic planning with execution?", category: "Strategy", difficulty: "Medium" as const },
+      {
+        name: "Behavioral",
+        description: "Questions about your leadership experiences",
+        questions: [
+          { question: "Tell me about a time you had to deliver difficult feedback.", category: "Behavioral", difficulty: "Hard" as const },
+          { question: "Describe a situation where you had to make an unpopular decision.", category: "Behavioral", difficulty: "Hard" as const },
+          { question: "How do you build trust with a new team?", category: "Behavioral", difficulty: "Medium" as const },
+        ]
+      },
+      {
+        name: "Team Leadership",
+        description: "Questions about managing and developing teams",
+        questions: [
+          { question: "How do you handle underperforming team members?", category: "Leadership", difficulty: "Hard" as const },
+          { question: "What's your approach to hiring and building a team?", category: "Leadership", difficulty: "Medium" as const },
+          { question: "How do you create an environment of psychological safety?", category: "Leadership", difficulty: "Hard" as const },
+        ]
+      },
+      {
+        name: "Strategy & Vision",
+        description: "Questions about strategic thinking and planning",
+        questions: [
+          { question: "How do you balance strategic planning with day-to-day execution?", category: "Strategy", difficulty: "Medium" as const },
+          { question: "How do you align your team's work with company objectives?", category: "Strategy", difficulty: "Medium" as const },
+          { question: "Describe how you've driven organizational change.", category: "Strategy", difficulty: "Hard" as const },
+        ]
+      },
+      {
+        name: "Stakeholder Management",
+        description: "Questions about working with cross-functional partners",
+        questions: [
+          { question: "Tell me about a time you had to influence without authority.", category: "Influence", difficulty: "Hard" as const },
+          { question: "How do you manage conflicting priorities from different stakeholders?", category: "Influence", difficulty: "Hard" as const },
+          { question: "How do you communicate bad news to executives?", category: "Influence", difficulty: "Medium" as const },
+        ]
+      }
     ];
   }
   
   return [
-    { question: "Tell me about yourself and your career journey.", category: "Background", difficulty: "Easy" as const },
-    { question: "What is your biggest professional achievement?", category: "Experience", difficulty: "Medium" as const },
-    { question: "Describe a challenge you faced and how you overcame it.", category: "Problem Solving", difficulty: "Medium" as const },
-    { question: "Where do you see yourself in 5 years?", category: "Goals", difficulty: "Easy" as const },
-    { question: "Why are you interested in this role?", category: "Motivation", difficulty: "Medium" as const },
+    {
+      name: "Behavioral",
+      description: "Questions about your past experiences and work style",
+      questions: [
+        { question: "Tell me about yourself and your career journey.", category: "Behavioral", difficulty: "Easy" as const },
+        { question: "Describe a challenge you faced and how you overcame it.", category: "Behavioral", difficulty: "Medium" as const },
+        { question: "What's your biggest professional achievement?", category: "Behavioral", difficulty: "Medium" as const },
+      ]
+    },
+    {
+      name: "Motivation & Goals",
+      description: "Questions about your career aspirations",
+      questions: [
+        { question: "Why are you interested in this role?", category: "Motivation", difficulty: "Medium" as const },
+        { question: "Where do you see yourself in 5 years?", category: "Goals", difficulty: "Easy" as const },
+        { question: "What motivates you in your work?", category: "Motivation", difficulty: "Easy" as const },
+      ]
+    },
+    {
+      name: "Problem Solving",
+      description: "Questions about how you approach challenges",
+      questions: [
+        { question: "How do you handle multiple competing priorities?", category: "Problem Solving", difficulty: "Medium" as const },
+        { question: "Describe a time you had to learn something new quickly.", category: "Problem Solving", difficulty: "Medium" as const },
+        { question: "How do you approach unfamiliar problems?", category: "Problem Solving", difficulty: "Medium" as const },
+      ]
+    },
+    {
+      name: "Teamwork",
+      description: "Questions about collaboration and communication",
+      questions: [
+        { question: "How do you handle disagreements with colleagues?", category: "Teamwork", difficulty: "Medium" as const },
+        { question: "Describe your ideal work environment.", category: "Teamwork", difficulty: "Easy" as const },
+        { question: "How do you prefer to communicate with your team?", category: "Teamwork", difficulty: "Easy" as const },
+      ]
+    }
   ];
 }
 
@@ -115,7 +258,7 @@ serve(async (req) => {
       targetRole,
       email,
       accessToken,
-      previewOnly = false // New: preview mode for common questions without full access
+      previewOnly = false
     } = await req.json();
 
     logStep("Request received", { 
@@ -127,71 +270,13 @@ serve(async (req) => {
       previewOnly
     });
 
-    // If preview mode, skip access verification and return common questions
+    // If preview mode, skip access verification and return categorized questions
     if (previewOnly) {
-      logStep("Preview mode - generating common questions");
+      logStep("Preview mode - generating categorized questions");
       
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (!LOVABLE_API_KEY) {
-        // Fallback to role-based default questions
-        const previewQuestions = getDefaultPreviewQuestions(targetRole || roleTitle || "");
-        return new Response(JSON.stringify({ previewQuestions }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      // Generate preview questions with AI
-      const previewSystemPrompt = `You are an interview coach. Generate 5 common interview questions for the given role.
-Return a JSON array with this structure:
-[
-  {
-    "question": "string - the interview question",
-    "category": "string - one of: Experience, Behavioral, Technical, Problem Solving, Leadership",
-    "difficulty": "string - one of: Easy, Medium, Hard"
-  }
-]
-Only return the JSON array, no other text.`;
-
-      const previewUserPrompt = `Generate 5 common interview questions for a ${targetRole || roleTitle || "professional"} role.
-${resumeText ? `Consider this candidate's background:\n${resumeText.substring(0, 1000)}...` : ''}
-${jobDescription ? `For this type of position:\n${jobDescription.substring(0, 500)}...` : ''}
-
-Return questions that are commonly asked in interviews for this role level.`;
-
-      try {
-        const previewResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [
-              { role: "system", content: previewSystemPrompt },
-              { role: "user", content: previewUserPrompt }
-            ],
-          }),
-        });
-
-        if (previewResponse.ok) {
-          const data = await previewResponse.json();
-          const content = data.choices?.[0]?.message?.content;
-          const jsonMatch = content?.match(/\[[\s\S]*\]/);
-          if (jsonMatch) {
-            const previewQuestions = JSON.parse(jsonMatch[0]);
-            return new Response(JSON.stringify({ previewQuestions }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-        }
-      } catch (e) {
-        logStep("Preview AI call failed, using defaults", { error: String(e) });
-      }
-
-      // Fallback to defaults
-      const previewQuestions = getDefaultPreviewQuestions(targetRole || roleTitle || "");
-      return new Response(JSON.stringify({ previewQuestions }), {
+      // Return categorized questions for the role
+      const questionCategories = getDefaultPreviewCategories(targetRole || roleTitle || "");
+      return new Response(JSON.stringify({ questionCategories }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
