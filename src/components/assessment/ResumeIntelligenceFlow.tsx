@@ -476,7 +476,14 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   };
 
   // Handle cover letter generation
-  const handleGenerateCoverLetter = async (details: { jobTitle: string; company: string; jobDescription: string }): Promise<string> => {
+  const handleGenerateCoverLetter = async (details: { 
+    jobTitle: string; 
+    company: string; 
+    jobDescription: string;
+    candidateName?: string;
+    candidateEmail?: string;
+    coverLetterLength?: "short" | "medium" | "detailed";
+  }): Promise<string> => {
     const userEmail = getStoredEmail();
     const accessToken = getAccessToken();
     
@@ -486,6 +493,9 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
         jobDescription: details.jobDescription || jobDescription,
         companyName: details.company,
         jobTitle: details.jobTitle,
+        candidateName: details.candidateName,
+        candidateEmail: details.candidateEmail,
+        coverLetterLength: details.coverLetterLength || "medium",
         email: userEmail,
         accessToken,
       },
