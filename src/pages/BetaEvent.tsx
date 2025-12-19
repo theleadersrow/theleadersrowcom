@@ -5,15 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   Calendar, Clock, Users, CheckCircle, Sparkles, ArrowRight,
-  Target, FileText, BarChart3, TrendingUp, Briefcase, Brain,
-  Linkedin, Eye, MessageSquare
+  FileText, Linkedin, Eye, MessageSquare, BarChart3
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -46,11 +44,41 @@ const registrationSchema = z.object({
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
+type ToolType = "resume_suite" | "linkedin_signal";
+
+const toolInfo = {
+  resume_suite: {
+    name: "Resume Intelligence Suite",
+    description: "Walk through the Resume Intelligence experience live, identify gaps in your resume, and get a prioritized improvement checklist.",
+    color: "amber",
+    icon: FileText,
+    features: [
+      "Live guided session",
+      "Resume gap analysis", 
+      "ATS scoring walkthrough",
+      "Improvement checklist"
+    ]
+  },
+  linkedin_signal: {
+    name: "LinkedIn Signal Score",
+    description: "Get your LinkedIn profile scored the way recruiters see it, then receive AI-powered suggestions to boost your visibility.",
+    color: "blue",
+    icon: Linkedin,
+    features: [
+      "Live guided session",
+      "Recruiter-view scoring",
+      "Profile optimization tips",
+      "AI suggestions walkthrough"
+    ]
+  }
+};
+
 const BetaEvent = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
+  const [selectedToolType, setSelectedToolType] = useState<ToolType>("resume_suite");
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
@@ -68,6 +96,11 @@ const BetaEvent = () => {
     },
   });
 
+  const openRegistration = (toolType: ToolType) => {
+    setSelectedToolType(toolType);
+    setShowRegistrationDialog(true);
+  };
+
   const onSubmit = async (data: RegistrationFormData) => {
     setIsSubmitting(true);
     try {
@@ -84,12 +117,18 @@ const BetaEvent = () => {
           linkedin_url: data.linkedinUrl || null,
           understands_beta_terms: data.understandsBetaTerms,
           agrees_to_communication: data.agreesToCommunication,
+          tool_type: selectedToolType,
         });
 
       if (error) throw error;
 
       await supabase.functions.invoke("send-beta-registration-email", {
-        body: { name: data.fullName, email: data.email },
+        body: { 
+          name: data.fullName, 
+          email: data.email,
+          toolType: selectedToolType,
+          toolName: toolInfo[selectedToolType].name
+        },
       });
 
       setIsSubmitted(true);
@@ -114,8 +153,11 @@ const BetaEvent = () => {
               <h1 className="text-3xl font-bold text-foreground mb-4">
                 Application Received!
               </h1>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                Thanks! Your application has been received. If selected, you'll get an email confirmation with your calendar invite + Zoom link. Because spots are limited to 20, invitations may take priority based on fit and response order.
+              <p className="text-muted-foreground text-lg leading-relaxed mb-2">
+                Thanks! Your application for <strong>{toolInfo[selectedToolType].name}</strong> beta testing has been received.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                If selected, you'll get an email confirmation with your calendar invite + Zoom link. Because spots are limited to 20, invitations may take priority based on fit and response order.
               </p>
               <Button asChild className="mt-8">
                 <a href="/">Return to Home</a>
@@ -126,6 +168,8 @@ const BetaEvent = () => {
       </Layout>
     );
   }
+
+  const currentTool = toolInfo[selectedToolType];
 
   return (
     <Layout>
@@ -139,172 +183,145 @@ const BetaEvent = () => {
             <span className="text-2xl font-serif font-bold text-foreground">Rimo</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4">
-            Your AI Career Coach
+            Live Beta Testing Events
           </h1>
           <p className="text-xl text-muted-foreground mb-2">
-            AI-powered tools to help you understand where you stand, optimize your resume, and prepare for what's next.
+            Join our exclusive live sessions to test AI-powered career tools and get personalized feedback.
           </p>
           <p className="text-sm text-muted-foreground">
-            Powered by advanced AI • Built for Product Managers
+            Limited spots • Interactive sessions • Direct feedback opportunity
           </p>
         </div>
 
-        {/* AI Tools Suite */}
-        <div className="w-full max-w-3xl mx-auto mb-10">
-          <h2 className="text-center text-sm font-medium text-muted-foreground mb-4">AI-POWERED TOOLS</h2>
+        {/* Beta Testing Events */}
+        <div className="w-full max-w-4xl mx-auto mb-10">
+          <h2 className="text-center text-sm font-medium text-muted-foreground mb-6 uppercase tracking-wide">
+            Select a Beta Event to Register
+          </h2>
           
-          <div className="grid gap-4">
-            {/* Beta Testing Event - FEATURED */}
-            <div className="border-2 border-purple-500/50 rounded-xl bg-gradient-to-r from-purple-500/10 to-amber-500/5 overflow-hidden ring-2 ring-purple-500/20">
-              <button
-                onClick={() => setShowRegistrationDialog(true)}
-                className="w-full p-6 hover:bg-purple-500/5 transition-all group text-left"
-              >
-                <div className="flex items-start gap-5">
-                  <div className="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
-                    <Calendar className="w-7 h-7 text-purple-600" />
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Resume Intelligence Suite Beta */}
+            <div className="border-2 border-amber-500/50 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 overflow-hidden hover:border-amber-500 transition-all group">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                    <FileText className="w-7 h-7 text-amber-600" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite — Live Beta Testing</h3>
-                      <span className="text-xs bg-purple-500/20 text-purple-600 px-2 py-0.5 rounded-full font-medium animate-pulse">Live Event</span>
-                      <ArrowRight className="w-4 h-4 text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                      Join our exclusive live beta session. Walk through the Resume Intelligence experience, identify gaps in your resume, and get a prioritized improvement checklist.
-                    </p>
-                    <div className="flex flex-wrap gap-3 mb-3">
-                      <div className="flex items-center gap-2 text-sm bg-purple-500/10 rounded-lg px-3 py-1.5 text-purple-700">
-                        <Calendar className="w-4 h-4" />
-                        <span className="font-medium">Jan 6, 2026</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm bg-purple-500/10 rounded-lg px-3 py-1.5 text-purple-700">
-                        <Clock className="w-4 h-4" />
-                        <span className="font-medium">6:00–8:00 PM CT</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm bg-purple-500/10 rounded-lg px-3 py-1.5 text-purple-700">
-                        <Users className="w-4 h-4" />
-                        <span className="font-medium">20 Spots</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-purple-600" /> Live guided session</span>
-                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-purple-600" /> Resume gap analysis</span>
-                      <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-purple-600" /> Improvement checklist</span>
-                    </div>
+                  <div>
+                    <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
+                      Live Beta Event
+                    </span>
+                    <h3 className="font-semibold text-lg text-foreground mt-1">
+                      Resume Intelligence Suite
+                    </h3>
                   </div>
                 </div>
-              </button>
-              <div className="px-6 pb-4 text-sm text-purple-700 border-t border-purple-500/20 pt-3 bg-purple-500/5">
-                <strong>Limited spots available.</strong> Apply now — invitations based on fit and response order.
+                
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Walk through the Resume Intelligence experience live, identify gaps in your resume, and get a prioritized improvement checklist.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="font-medium">Jan 6, 2026</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="font-medium">6–8 PM CT</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="font-medium">20 Spots</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-5">
+                  {toolInfo.resume_suite.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  onClick={() => openRegistration("resume_suite")}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  Apply Now
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             </div>
 
-            {/* Strategic Assessment Tool - FREE */}
-            <div className="border-2 border-emerald-500/30 rounded-xl bg-gradient-to-r from-emerald-500/5 to-transparent overflow-hidden">
-              <button
-                onClick={() => navigate("/career-coach")}
-                className="w-full p-6 hover:bg-emerald-500/5 transition-all group text-left"
-              >
-                <div className="flex items-start gap-5">
-                  <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
-                    <Target className="w-7 h-7 text-emerald-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg text-foreground">Strategic Level Assessment</h3>
-                      <span className="text-xs bg-emerald-500/20 text-emerald-600 px-2 py-0.5 rounded-full font-medium">Free</span>
-                      <ArrowRight className="w-4 h-4 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      Get a clear, honest assessment of where you operate today and what's blocking your next leap.
-                    </p>
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 8-10 min</span>
-                      <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Skill analysis</span>
-                      <span className="flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Blocker diagnosis</span>
-                    </div>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            {/* Resume Intelligence Suite - PAID */}
-            <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent overflow-hidden">
-              <button
-                onClick={() => navigate("/career-coach")}
-                className="w-full p-6 hover:bg-amber-500/5 transition-all group text-left"
-              >
-                <div className="flex items-start gap-5">
-                  <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
-                    <FileText className="w-7 h-7 text-amber-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
-                      <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$49.99</span>
-                      <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                      Your resume transformed for your target job + your unique professional identity.
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                        <BarChart3 className="w-4 h-4 text-amber-600" />
-                        <span><strong>ATS Score</strong> — Job-specific</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                        <Sparkles className="w-4 h-4 text-amber-600" />
-                        <span><strong>AI Rewrite</strong> — Personalized</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            {/* LinkedIn Profile Signal Score - PAID */}
-            <div className="border-2 border-blue-500/30 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent overflow-hidden">
-              <button
-                onClick={() => navigate("/career-coach")}
-                className="w-full p-6 hover:bg-blue-500/5 transition-all group text-left"
-              >
-                <div className="flex items-start gap-5">
-                  <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+            {/* LinkedIn Signal Score Beta */}
+            <div className="border-2 border-blue-500/50 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 overflow-hidden hover:border-blue-500 transition-all group">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center">
                     <Linkedin className="w-7 h-7 text-blue-600" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <h3 className="font-semibold text-lg text-foreground">LinkedIn Signal Score</h3>
-                      <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
-                      <ArrowRight className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                      Get your profile scored the way recruiters see it, then get AI suggestions to boost visibility.
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                        <Eye className="w-4 h-4 text-blue-600" />
-                        <span><strong>Signal Score</strong> — Recruiter view</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                        <MessageSquare className="w-4 h-4 text-blue-600" />
-                        <span><strong>AI Optimize</strong> — Suggestions</span>
-                      </div>
-                    </div>
+                  <div>
+                    <span className="text-xs bg-blue-500/20 text-blue-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
+                      Live Beta Event
+                    </span>
+                    <h3 className="font-semibold text-lg text-foreground mt-1">
+                      LinkedIn Signal Score
+                    </h3>
                   </div>
                 </div>
-              </button>
+                
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Get your LinkedIn profile scored the way recruiters see it, then receive AI-powered suggestions to boost your visibility.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="font-medium">Jan 6, 2026</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="font-medium">6–8 PM CT</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="font-medium">20 Spots</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-5">
+                  {toolInfo.linkedin_signal.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle className="w-3.5 h-3.5 text-blue-600" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  onClick={() => openRegistration("linkedin_signal")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Apply Now
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
             </div>
           </div>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            <strong>Limited spots available.</strong> Apply now — invitations based on fit and response order.
+          </p>
         </div>
 
         {/* Footer CTA */}
         <div className="text-center mt-4">
           <p className="text-sm text-muted-foreground">
-            Explore all tools at{" "}
+            Want to explore the full tools?{" "}
             <button onClick={() => navigate("/career-coach")} className="text-primary hover:underline">
-              Rimo AI Career Coach
+              Visit Rimo AI Career Coach
             </button>
           </p>
         </div>
@@ -314,8 +331,23 @@ const BetaEvent = () => {
       <Dialog open={showRegistrationDialog} onOpenChange={setShowRegistrationDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">Apply for Beta Testing</DialogTitle>
-            <p className="text-muted-foreground text-sm mt-2">
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                selectedToolType === "resume_suite" ? "bg-amber-500/20" : "bg-blue-500/20"
+              }`}>
+                {selectedToolType === "resume_suite" ? (
+                  <FileText className="w-5 h-5 text-amber-600" />
+                ) : (
+                  <Linkedin className="w-5 h-5 text-blue-600" />
+                )}
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-semibold">
+                  {currentTool.name} — Beta Testing
+                </DialogTitle>
+              </div>
+            </div>
+            <p className="text-muted-foreground text-sm">
               Live session on <strong>January 6, 2026 at 6:00–8:00 PM CT</strong>. Limited to 20 participants.
             </p>
           </DialogHeader>
@@ -392,7 +424,7 @@ const BetaEvent = () => {
                     name="company"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company (optional)</FormLabel>
+                        <FormLabel>Company (Optional)</FormLabel>
                         <FormControl>
                           <Input placeholder="Acme Inc." {...field} />
                         </FormControl>
@@ -404,7 +436,7 @@ const BetaEvent = () => {
               </div>
 
               {/* Section 2: Quick Fit */}
-              <div className="space-y-4 pt-4 border-t border-border">
+              <div className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                   Quick Fit
                 </h3>
@@ -419,32 +451,24 @@ const BetaEvent = () => {
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="space-y-2 mt-2"
+                          className="grid grid-cols-1 md:grid-cols-2 gap-3"
                         >
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="actively_interviewing" id="actively" />
-                            <Label htmlFor="actively" className="font-normal cursor-pointer">
-                              Actively interviewing
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="preparing_soon" id="preparing" />
-                            <Label htmlFor="preparing" className="font-normal cursor-pointer">
-                              Preparing to interview soon (next 1–2 months)
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="exploring" id="exploring" />
-                            <Label htmlFor="exploring" className="font-normal cursor-pointer">
-                              Exploring options (3+ months)
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <RadioGroupItem value="other" id="other" />
-                            <Label htmlFor="other" className="font-normal cursor-pointer">
-                              Other
-                            </Label>
-                          </div>
+                          {[
+                            { value: "actively_interviewing", label: "Actively interviewing" },
+                            { value: "preparing_soon", label: "Preparing to interview soon (1-2 months)" },
+                            { value: "exploring", label: "Exploring options (3+ months)" },
+                            { value: "other", label: "Other" },
+                          ].map((option) => (
+                            <div key={option.value} className="flex items-center space-x-2">
+                              <RadioGroupItem value={option.value} id={option.value} />
+                              <label
+                                htmlFor={option.value}
+                                className="text-sm font-medium leading-none cursor-pointer"
+                              >
+                                {option.label}
+                              </label>
+                            </div>
+                          ))}
                         </RadioGroup>
                       </FormControl>
                       <FormMessage />
@@ -459,7 +483,7 @@ const BetaEvent = () => {
                     <FormItem>
                       <FormLabel>Role(s) you're targeting *</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Senior PM, Director of Product" {...field} />
+                        <Input placeholder="e.g., Senior PM at FAANG, Director of Product" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -471,7 +495,7 @@ const BetaEvent = () => {
                   name="linkedinUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>LinkedIn URL (optional)</FormLabel>
+                      <FormLabel>LinkedIn URL (Optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="https://linkedin.com/in/yourprofile" {...field} />
                       </FormControl>
@@ -482,7 +506,7 @@ const BetaEvent = () => {
               </div>
 
               {/* Section 3: Consent */}
-              <div className="space-y-4 pt-4 border-t border-border">
+              <div className="space-y-4">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                   Consent & Expectations
                 </h3>
@@ -499,7 +523,7 @@ const BetaEvent = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="font-normal cursor-pointer">
+                        <FormLabel className="text-sm font-normal">
                           I understand this is a live beta testing session and spots are limited to 20 invited participants. *
                         </FormLabel>
                         <FormMessage />
@@ -520,8 +544,8 @@ const BetaEvent = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="font-normal cursor-pointer">
-                          I agree to receive event communication by email if selected. *
+                        <FormLabel className="text-sm font-normal">
+                          I agree to receive event communication by email if selected (confirmation + Zoom link + reminders). *
                         </FormLabel>
                         <FormMessage />
                       </div>
@@ -530,12 +554,7 @@ const BetaEvent = () => {
                 />
               </div>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </Button>
             </form>

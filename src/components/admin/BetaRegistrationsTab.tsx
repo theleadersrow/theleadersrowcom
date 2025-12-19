@@ -54,6 +54,7 @@ interface BetaRegistration {
   created_at: string;
   invited_at: string | null;
   zoom_link_sent: boolean;
+  tool_type: string;
 }
 
 export function BetaRegistrationsTab() {
@@ -442,6 +443,7 @@ export function BetaRegistrationsTab() {
                     />
                   </TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Tool</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Job Search</TableHead>
@@ -467,6 +469,17 @@ export function BetaRegistrationsTab() {
                           <div className="text-xs text-muted-foreground">{reg.company}</div>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={reg.tool_type === "resume_suite" 
+                          ? "border-amber-500/50 text-amber-700 bg-amber-500/10" 
+                          : "border-blue-500/50 text-blue-700 bg-blue-500/10"
+                        }
+                      >
+                        {reg.tool_type === "resume_suite" ? "Resume" : "LinkedIn"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div>

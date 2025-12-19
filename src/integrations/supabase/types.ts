@@ -294,6 +294,7 @@ export type Database = {
           phone: string
           status: string
           target_roles: string
+          tool_type: string
           understands_beta_terms: boolean
           zoom_link_sent: boolean | null
         }
@@ -311,6 +312,7 @@ export type Database = {
           phone: string
           status?: string
           target_roles: string
+          tool_type?: string
           understands_beta_terms?: boolean
           zoom_link_sent?: boolean | null
         }
@@ -328,6 +330,7 @@ export type Database = {
           phone?: string
           status?: string
           target_roles?: string
+          tool_type?: string
           understands_beta_terms?: boolean
           zoom_link_sent?: boolean | null
         }
