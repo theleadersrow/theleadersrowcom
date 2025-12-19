@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 // Import new UX components
+import { ResumeLanding } from "./resume/ResumeLanding";
 import { ResumeWelcome } from "./resume/ResumeWelcome";
 import { ResumeProcessing } from "./resume/ResumeProcessing";
 import { FreeResults } from "./resume/FreeResults";
@@ -44,10 +45,10 @@ interface ClarificationAnswers {
   targetCompanies: string;
 }
 
-type Step = "welcome" | "processing" | "free_results" | "clarification" | "paid_output";
+type Step = "landing" | "welcome" | "processing" | "free_results" | "clarification" | "paid_output";
 
 export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenceFlowProps) {
-  const [step, setStep] = useState<Step>("welcome");
+  const [step, setStep] = useState<Step>("landing");
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [targetRole, setTargetRole] = useState("");
@@ -399,10 +400,18 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
 
   // Render current step
   switch (step) {
+    case "landing":
+      return (
+        <ResumeLanding
+          onBack={onBack}
+          onProceed={() => setStep("welcome")}
+        />
+      );
+      
     case "welcome":
       return (
         <ResumeWelcome
-          onBack={onBack}
+          onBack={() => setStep("landing")}
           onStartScan={handleStartScan}
           isAnalyzing={isAnalyzing}
         />
