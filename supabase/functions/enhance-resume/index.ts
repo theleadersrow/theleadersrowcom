@@ -84,7 +84,44 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText, jobDescription, targetRole, managerOrIC, proudAchievement, professionalBrand, targetCompanies, missingKeywords, improvements, experienceGaps, skillsGaps, techStackGaps, email, accessToken } = await req.json();
+    const { 
+      resumeText, 
+      jobDescription, 
+      // Section 1: Targeting & Intent
+      targetRoles,
+      targetIndustry,
+      companyTypes,
+      primaryOutcome,
+      // Section 2: Role Scope & Seniority
+      roleScope,
+      strategyOrExecution,
+      stakeholders,
+      crossFunctionalLead,
+      seniorityDescription,
+      // Section 3: Impact & Metrics
+      strongestImpact,
+      measurableOutcomes,
+      metricsMissingReason,
+      bestImpactProject,
+      underrepresentedAchievement,
+      // Section 4: Professional Brand (Optional)
+      recruiterPerception,
+      professionalSkills,
+      stretchingLevel,
+      overstatingCaution,
+      // Section 5: Practical Constraints (Optional)
+      deemphasizeCompanies,
+      gapsOrTransitions,
+      complianceConstraints,
+      // ATS data
+      missingKeywords, 
+      improvements, 
+      experienceGaps, 
+      skillsGaps, 
+      techStackGaps, 
+      email, 
+      accessToken 
+    } = await req.json();
 
     // Verify tool access
     const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
@@ -230,26 +267,44 @@ ${jobDescription}
 
 CRITICAL: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it to show they're perfect for THIS role.` : ''}
 
-${targetRole ? `=== TARGET ROLE ===
-Target Role: ${targetRole}
-${managerOrIC ? `Role Type: ${managerOrIC === 'ic' ? 'Individual Contributor' : managerOrIC === 'manager' ? 'People Manager' : 'Both/Hybrid'}` : ''}
-${targetCompanies ? `Target Companies/Industries: ${targetCompanies}` : ''}` : ''}
+=== TARGETING & INTENT ===
+${targetRoles?.length > 0 ? `Target Roles: ${targetRoles.join(', ')}` : ''}
+${targetIndustry ? `Target Industry: ${targetIndustry}` : ''}
+${companyTypes?.length > 0 ? `Company Types: ${companyTypes.join(', ')}` : ''}
+${primaryOutcome ? `Primary Outcome to Communicate: ${primaryOutcome}` : ''}
 
-${proudAchievement ? `=== PROUDEST ACHIEVEMENT ===
-The candidate specifically highlighted this as something they are very proud of:
-"${proudAchievement}"
+=== ROLE SCOPE & SENIORITY ===
+${roleScope ? `Recent Role Scope: ${roleScope === 'ic' ? 'Individual Contributor' : roleScope === 'lead_ic' ? 'Lead IC' : roleScope === 'manager' ? 'People Manager' : 'Hybrid (IC + Manager)'}` : ''}
+${strategyOrExecution ? `Owned: ${strategyOrExecution === 'strategy' ? 'Strategy only' : strategyOrExecution === 'execution' ? 'Execution only' : 'Both strategy and execution'}` : ''}
+${stakeholders?.length > 0 ? `Stakeholders Influenced: ${stakeholders.join(', ')}` : ''}
+${crossFunctionalLead ? `Cross-Functional Leadership: ${crossFunctionalLead === 'yes_major' ? 'Yes - major initiatives' : crossFunctionalLead === 'yes_limited' ? 'Yes - limited' : 'No'}` : ''}
+${seniorityDescription ? `Self-Described Seniority: "${seniorityDescription}"` : ''}
 
-CRITICAL: This achievement should be prominently featured in the KEY ACHIEVEMENTS section and emphasized throughout the resume. Frame it powerfully with impact metrics.` : ''}
+=== IMPACT & METRICS ===
+${strongestImpact?.length > 0 ? `Strongest Impact Areas: ${strongestImpact.join(', ')}` : ''}
+${measurableOutcomes?.length > 0 ? `Available Metrics Types: ${measurableOutcomes.join(', ')}` : ''}
+${metricsMissingReason ? `Why Metrics May Be Missing: ${metricsMissingReason}` : ''}
+${bestImpactProject ? `Best Impact Project: "${bestImpactProject}"
 
-${professionalBrand ? `=== PROFESSIONAL BRAND ===
-How the candidate wants to be perceived professionally:
-"${professionalBrand}"
+CRITICAL: This project should be prominently featured in the KEY ACHIEVEMENTS section and emphasized throughout the resume. Frame it powerfully with impact metrics.` : ''}
+${underrepresentedAchievement ? `Underrepresented Achievement to Highlight: "${underrepresentedAchievement}"` : ''}
+
+${recruiterPerception?.length > 0 || professionalSkills?.length > 0 ? `=== PROFESSIONAL BRAND ===
+${recruiterPerception?.length > 0 ? `Desired Perception: ${recruiterPerception.join(', ')}` : ''}
+${professionalSkills?.length > 0 ? `Core Professional Skills: ${professionalSkills.join(', ')}` : ''}
+${stretchingLevel ? `Aiming for Higher Level: ${stretchingLevel}` : ''}
+${overstatingCaution ? `CAUTION - Do NOT overstate: "${overstatingCaution}"` : ''}
 
 Use this to:
 - Craft a professional summary reflecting their authentic voice and unique value proposition
 - Choose language that matches how they see themselves professionally
 - Emphasize achievements that align with their stated brand and strengths
 - Ensure the overall tone and positioning reflects this identity` : ''}
+
+${deemphasizeCompanies || gapsOrTransitions !== 'no' ? `=== PRACTICAL CONSTRAINTS ===
+${deemphasizeCompanies ? `De-emphasize: "${deemphasizeCompanies}"` : ''}
+${gapsOrTransitions && gapsOrTransitions !== 'no' ? `Handle Carefully: ${gapsOrTransitions === 'career_gap' ? 'Career gap' : 'Role change transition'}` : ''}
+${complianceConstraints === 'yes' ? `Note: Compliance/confidentiality constraints apply - be careful with specific numbers` : ''}` : ''}
 
 ${missingKeywords?.length > 0 ? `=== CRITICAL KEYWORDS TO INTEGRATE ===
 These keywords are MISSING and must be naturally woven into the resume:
