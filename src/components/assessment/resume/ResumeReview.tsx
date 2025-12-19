@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronUp, Sparkles, FileText, Briefcase
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
+import { FormattedResumeDisplay } from "./FormattedResumeDisplay";
 interface ResumeSection {
   id: string;
   title: string;
@@ -233,6 +233,145 @@ function parseResumeIntoSections(resumeText: string, splitExperience: boolean = 
   }
   
   return sections;
+}
+
+// Helper component to format individual section content
+function FormattedSectionContent({ 
+  title, 
+  content, 
+  isRole 
+}: { 
+  title: string; 
+  content: string; 
+  isRole?: boolean;
+}) {
+  if (!content.trim()) return <span className="text-muted-foreground">(No content)</span>;
+  
+  // For experience roles, format as role block
+  if (isRole) {
+    return <RoleBlockDisplay content={content} />;
+  }
+  
+  // For achievements section
+  if (title.includes("ACHIEVEMENT")) {
+    return <AchievementsDisplay content={content} />;
+  }
+  
+  // For skills section
+  if (title.includes("SKILL") || title.includes("EXPERTISE") || title.includes("COMPETENC")) {
+    const skills = content.split(/\s*[\|•]\s*/).filter(s => s.trim());
+    return (
+      <p className="text-sm text-foreground/90">
+        {skills.join(' • ')}
+      </p>
+    );
+  }
+  
+  // Default: format with metrics bolded
+  return (
+    <div className="text-sm leading-relaxed">
+      {formatContentWithMetrics(content)}
+    </div>
+  );
+}
+
+// Format role block content
+function RoleBlockDisplay({ content }: { content: string }) {
+  const lines = content.split('\n').filter(l => l.trim());
+  const bullets: string[] = [];
+  const headerLines: string[] = [];
+  
+  lines.forEach(line => {
+    if (/^[•\-\*]\s/.test(line)) {
+      bullets.push(line.replace(/^[•\-\*]\s*/, ''));
+    } else {
+      headerLines.push(line);
+    }
+  });
+  
+  return (
+    <div className="text-sm">
+      {/* Role header */}
+      <div className="mb-2">
+        {headerLines.map((line, i) => {
+          const isTitle = i === 0;
+          const isCompany = i === 1 && !line.includes('|');
+          const isDateLine = /\d{4}/.test(line);
+          
+          return (
+            <div 
+              key={i} 
+              className={
+                isTitle ? "font-semibold text-foreground" :
+                isCompany ? "font-medium text-foreground/80" :
+                isDateLine ? "text-xs text-muted-foreground" :
+                "text-foreground/80"
+              }
+            >
+              {line.replace(/^\*\*|\*\*$/g, '')}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Bullets */}
+      {bullets.length > 0 && (
+        <ul className="space-y-1.5 ml-3">
+          {bullets.map((bullet, i) => (
+            <li 
+              key={i} 
+              className="text-foreground/90 relative pl-3 before:content-['•'] before:absolute before:left-0 before:text-primary"
+            >
+              {formatContentWithMetrics(bullet)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Format achievements section
+function AchievementsDisplay({ content }: { content: string }) {
+  const lines = content.split('\n').filter(l => l.trim());
+  
+  return (
+    <div className="space-y-2">
+      {lines.map((line, i) => {
+        const cleaned = line.replace(/^[•\-\*]\s*/, '');
+        // Look for headline: description pattern
+        const match = cleaned.match(/^([^:–—]+)[:\–—]\s*(.+)/);
+        
+        if (match) {
+          return (
+            <div key={i} className="text-sm">
+              <span className="font-semibold">{match[1].replace(/\*\*/g, '')}</span>
+              <span className="text-foreground/80"> — {formatContentWithMetrics(match[2])}</span>
+            </div>
+          );
+        }
+        
+        return (
+          <div key={i} className="text-sm text-foreground/90">
+            {formatContentWithMetrics(cleaned)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Helper to format text with **bold** metrics
+function formatContentWithMetrics(text: string): React.ReactNode {
+  if (!text.includes('**')) return text;
+  
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-primary">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
 }
 
 export function ResumeReview({
@@ -516,19 +655,29 @@ export function ResumeReview({
                   <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
                     Original
                   </div>
-                  <div className="bg-muted/30 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
-                    {section.originalContent.trim() || "(No content)"}
+                  <div className="bg-muted/30 rounded-lg p-3 text-sm max-h-[300px] overflow-y-auto">
+                    <div className="whitespace-pre-wrap font-mono text-xs text-muted-foreground">
+                      {section.originalContent.trim() || "(No content)"}
+                    </div>
                   </div>
                 </div>
                 
-                {/* Improved */}
+                {/* Improved - Formatted Display */}
                 <div>
                   <div className="text-xs font-medium text-primary mb-2 uppercase tracking-wider flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
-                    AI Improved
+                    AI Optimized
                   </div>
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
-                    {section.improvedContent.trim() || "(No improvements)"}
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 max-h-[300px] overflow-y-auto">
+                    {section.title === "HEADER" ? (
+                      <FormattedResumeDisplay content={section.improvedContent} />
+                    ) : (
+                      <FormattedSectionContent 
+                        title={section.title} 
+                        content={section.improvedContent} 
+                        isRole={section.isRole}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
