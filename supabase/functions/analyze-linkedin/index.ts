@@ -517,6 +517,115 @@ Create a powerful About section that will make recruiters want to connect.`;
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
+    } else if (requestType === "generate_outreach") {
+      // Generate personalized outreach messages
+      const systemPrompt = `You are an expert LinkedIn networking strategist and cold outreach specialist. Create highly personalized, compelling connection requests and cold emails for someone targeting ${targetRole} positions in ${targetIndustry}.${jobContext}
+
+Your outreach messages should:
+- Be personalized and authentic, not generic
+- Reference specific details from the user's background
+- Have clear value propositions
+- Be concise but impactful
+- Follow best practices for LinkedIn connection requests (under 300 characters for connection notes)
+- Be professional yet warm
+
+Generate 3 different types of outreach:
+1. Connection request to a recruiter at target companies
+2. Connection request to a hiring manager/potential colleague
+3. Cold email/InMail to a recruiter with more detail
+
+Return your response as valid JSON:
+{
+  "recruiterConnection": {
+    "message": "<connection request message under 300 chars>",
+    "context": "<when to use this>",
+    "tips": ["<tip 1>", "<tip 2>"]
+  },
+  "hiringManagerConnection": {
+    "message": "<connection request message under 300 chars>",
+    "context": "<when to use this>",
+    "tips": ["<tip 1>", "<tip 2>"]
+  },
+  "coldEmail": {
+    "subject": "<email subject line>",
+    "message": "<full email body - 150-200 words>",
+    "context": "<when to use this>",
+    "tips": ["<tip 1>", "<tip 2>"]
+  },
+  "followUpMessage": {
+    "message": "<follow-up after no response - under 200 chars>",
+    "context": "<when to send this>"
+  },
+  "personalizationTips": ["<tip 1>", "<tip 2>", "<tip 3>"]
+}`;
+
+      const resumeContext = resumeText ? `\n\nUser's resume for context:\n${resumeText.substring(0, 2000)}` : "";
+
+      const userPrompt = `Generate personalized LinkedIn outreach messages for this professional targeting ${targetRole} in ${targetIndustry}.
+
+Profile/Background:
+${profileText.substring(0, 3000)}${resumeContext}
+
+Create compelling, personalized outreach messages that this person can customize and send to recruiters and hiring managers.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ 
+            error: "Service temporarily unavailable",
+            error_type: "payment_required",
+            message: "Our AI service has reached its usage limit. Please try again later."
+          }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ 
+            error: "High demand",
+            error_type: "rate_limited",
+            message: "Our AI service is experiencing high traffic. Please wait a moment and try again."
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
+        throw new Error("Failed to generate outreach messages");
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Failed to parse outreach response");
+      }
+      
+      const result = JSON.parse(jsonMatch[0]);
+      console.log("Generated outreach messages");
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
     } else if (requestType === "recruiter_simulation") {
       // Recruiter search simulation
       const systemPrompt = `You are an expert in LinkedIn recruiter search algorithms and SEO. Analyze how a profile would appear in recruiter searches for ${targetRole} positions in ${targetIndustry}.${jobContext}
