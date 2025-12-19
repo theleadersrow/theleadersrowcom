@@ -4,6 +4,7 @@ import { FileText, Search, BarChart3, Sparkles, CheckCircle } from "lucide-react
 
 interface ResumeProcessingProps {
   onComplete?: () => void;
+  minDuration?: number;
 }
 
 const processingSteps = [
@@ -29,12 +30,16 @@ const processingSteps = [
   }
 ];
 
-export function ResumeProcessing({ onComplete }: ResumeProcessingProps) {
+export function ResumeProcessing({ onComplete, minDuration = 9000 }: ResumeProcessingProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
-    const totalDuration = processingSteps.reduce((acc, s) => acc + s.duration, 0);
+    const totalDuration = Math.max(
+      processingSteps.reduce((acc, s) => acc + s.duration, 0),
+      minDuration
+    );
     let elapsed = 0;
 
     const timer = setInterval(() => {
@@ -42,7 +47,6 @@ export function ResumeProcessing({ onComplete }: ResumeProcessingProps) {
       const newProgress = Math.min((elapsed / totalDuration) * 100, 100);
       setProgress(newProgress);
 
-      // Calculate which step we're on
       let stepElapsed = 0;
       for (let i = 0; i < processingSteps.length; i++) {
         stepElapsed += processingSteps[i].duration;
@@ -57,12 +61,13 @@ export function ResumeProcessing({ onComplete }: ResumeProcessingProps) {
 
       if (elapsed >= totalDuration) {
         clearInterval(timer);
+        setIsComplete(true);
         onComplete?.();
       }
     }, 100);
 
     return () => clearInterval(timer);
-  }, [onComplete]);
+  }, [onComplete, minDuration]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -79,33 +84,31 @@ export function ResumeProcessing({ onComplete }: ResumeProcessingProps) {
           </p>
         </div>
 
-        {/* Progress Bar */}
         <div className="mb-8">
           <Progress value={progress} className="h-2 mb-4" />
           <p className="text-sm text-muted-foreground">
-            {Math.round(progress)}% complete
+            {isComplete ? "Analysis complete!" : `${Math.round(progress)}% complete`}
           </p>
         </div>
 
-        {/* Processing Steps */}
         <div className="space-y-4 text-left">
           {processingSteps.map((step, index) => {
             const StepIcon = step.icon;
-            const isComplete = index < currentStep;
-            const isCurrent = index === currentStep;
+            const isStepComplete = index < currentStep || isComplete;
+            const isCurrent = index === currentStep && !isComplete;
 
             return (
               <div 
                 key={index}
                 className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-                  isComplete 
+                  isStepComplete 
                     ? "bg-green-500/10 text-green-700 dark:text-green-300" 
                     : isCurrent 
                     ? "bg-primary/10 text-primary" 
                     : "text-muted-foreground"
                 }`}
               >
-                {isComplete ? (
+                {isStepComplete ? (
                   <CheckCircle className="w-5 h-5 flex-shrink-0" />
                 ) : (
                   <StepIcon className={`w-5 h-5 flex-shrink-0 ${isCurrent ? "animate-pulse" : ""}`} />

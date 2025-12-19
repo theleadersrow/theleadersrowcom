@@ -9,7 +9,7 @@ import { ModuleComplete } from "@/components/assessment/ModuleComplete";
 import { EmailGate } from "@/components/assessment/EmailGate";
 import { GeneratingReport } from "@/components/assessment/GeneratingReport";
 import { AssessmentComplete } from "@/components/assessment/AssessmentComplete";
-import { ResumeIntelligenceSuite } from "@/components/assessment/ResumeIntelligenceSuite";
+import { ResumeIntelligenceFlow } from "@/components/assessment/ResumeIntelligenceFlow";
 import { LinkedInSignalScore } from "@/components/assessment/LinkedInSignalScore";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { RimoLanding } from "@/components/assessment/RimoLanding";
@@ -232,7 +232,7 @@ const StrategicBenchmark = () => {
           )}
 
           {currentView === "resume_suite" && (
-            <ResumeIntelligenceSuite
+            <ResumeIntelligenceFlow
               onBack={handleBackToHub}
               onComplete={handleResumeSuiteComplete}
             />
