@@ -542,8 +542,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     }
   };
 
-  // Handle PDF download
-  const handleDownloadPDF = async () => {
+  // Handle PDF view (opens in new tab)
+  const handleViewPDF = async () => {
     if (!enhancedResumeContent) return;
     
     // Dynamic import of html2pdf
@@ -558,7 +558,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       </div>
     `;
     
-    await html2pdf()
+    const pdfBlob = await html2pdf()
       .set({
         margin: [0.5, 0.5, 0.5, 0.5],
         filename: "optimized-resume.pdf",
@@ -566,27 +566,128 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
         jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
       })
       .from(element)
-      .save();
+      .outputPdf('blob');
     
-    toast({ title: "Downloaded!", description: "Resume saved as PDF" });
+    // Open PDF in new tab for viewing
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
   };
 
-  // Handle Word download
+  // Handle Word download with professional classic format
   const handleDownloadDocx = async () => {
     if (!enhancedResumeContent) return;
     
-    const { Document, Packer, Paragraph, TextRun } = await import("docx");
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = await import("docx");
     const { saveAs } = await import("file-saver");
     
     const lines = enhancedResumeContent.split("\n");
-    const paragraphs = lines.map(line => 
-      new Paragraph({
-        children: [new TextRun({ text: line, font: "Calibri", size: 22 })],
-      })
-    );
+    const paragraphs: any[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      // Detect headers (all caps or first line as name)
+      const isHeader = index === 0 || /^[A-Z][A-Z\s]+$/.test(trimmedLine);
+      const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE)$/i.test(trimmedLine);
+      
+      if (isSectionHeader) {
+        // Section headers with underline effect
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine.toUpperCase(), 
+                font: "Times New Roman", 
+                size: 24, 
+                bold: true 
+              })
+            ],
+            spacing: { before: 240, after: 80 },
+            border: {
+              bottom: { color: "000000", space: 1, style: BorderStyle.SINGLE, size: 6 }
+            }
+          })
+        );
+      } else if (index === 0) {
+        // Name - larger, centered
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 32, 
+                bold: true 
+              })
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 80 }
+          })
+        );
+      } else if (index === 1 || index === 2) {
+        // Contact info - centered, smaller
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 20 
+              })
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 40 }
+          })
+        );
+      } else if (trimmedLine.startsWith("•") || trimmedLine.startsWith("-")) {
+        // Bullet points
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 22 
+              })
+            ],
+            spacing: { after: 40 },
+            indent: { left: 360 }
+          })
+        );
+      } else if (trimmedLine) {
+        // Regular text
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 22 
+              })
+            ],
+            spacing: { after: 60 }
+          })
+        );
+      } else {
+        // Empty line
+        paragraphs.push(new Paragraph({ children: [] }));
+      }
+    });
     
     const doc = new Document({
-      sections: [{ children: paragraphs }],
+      sections: [{
+        properties: {
+          page: {
+            margin: {
+              top: 720,
+              right: 720,
+              bottom: 720,
+              left: 720
+            }
+          }
+        },
+        children: paragraphs
+      }],
     });
     
     const blob = await Packer.toBlob(doc);
@@ -708,11 +809,9 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             resumeContent={enhancedResumeContent}
             score={paidScore}
             onBack={() => setStep("resume_review")}
-            onRegenerate={handleRegenerate}
-            onDownloadPDF={handleDownloadPDF}
+            onViewPDF={handleViewPDF}
             onDownloadDocx={handleDownloadDocx}
             onGenerateCoverLetter={handleGenerateCoverLetter}
-            regenerationsRemaining={regenerationsRemaining}
             accessExpiresAt={accessExpiresAt}
             onGoToInterviewPrep={handleGoToInterviewPreview}
             targetRole={clarificationAnswers?.targetRoles?.join(", ") || ""}
