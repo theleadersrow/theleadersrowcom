@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label";
 import { 
   FileText, Copy, Download, RefreshCw, CheckCircle, 
   FileSignature, BarChart3, Loader2, ArrowLeft,
-  AlertCircle, Target, Zap, TrendingUp, Users, Briefcase, Search, Eye, X
+  AlertCircle, Target, Zap, TrendingUp, Users, Briefcase, Search, Eye, X,
+  MessageSquare, Lock, Sparkles, ArrowRight
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 interface ATSResult {
@@ -54,6 +56,8 @@ interface PaidOutputProps {
   onGenerateCoverLetter: (details: CoverLetterInput) => Promise<string>;
   regenerationsRemaining: number;
   accessExpiresAt?: string;
+  onGoToInterviewPrep?: () => void;
+  targetRole?: string;
 }
 
 interface CoverLetterInput {
@@ -74,7 +78,9 @@ export function PaidOutput({
   onDownloadDocx,
   onGenerateCoverLetter,
   regenerationsRemaining,
-  accessExpiresAt
+  accessExpiresAt,
+  onGoToInterviewPrep,
+  targetRole
 }: PaidOutputProps) {
   const [activeTab, setActiveTab] = useState("resume");
   const [isCopied, setIsCopied] = useState(false);
@@ -192,10 +198,10 @@ export function PaidOutput({
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="resume" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Optimized Resume
+              <span className="hidden sm:inline">Optimized</span> Resume
             </TabsTrigger>
             <TabsTrigger value="ats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -203,7 +209,11 @@ export function PaidOutput({
             </TabsTrigger>
             <TabsTrigger value="cover" className="flex items-center gap-2">
               <FileSignature className="w-4 h-4" />
-              Cover Letters
+              Cover Letter
+            </TabsTrigger>
+            <TabsTrigger value="interview" className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Interview Prep
             </TabsTrigger>
           </TabsList>
 
@@ -429,6 +439,96 @@ export function PaidOutput({
                       View Cover Letter
                     </Button>
                   )}
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Interview Prep Tab */}
+          <TabsContent value="interview" className="space-y-4">
+            <Card className="p-6 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    Ace Your Interviews
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Based on your optimized resume and target role{targetRole ? ` as ${targetRole}` : ''}, 
+                    get personalized interview questions and preparation strategies.
+                  </p>
+                  {onGoToInterviewPrep ? (
+                    <Button onClick={onGoToInterviewPrep}>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      View Interview Questions
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Interview prep is included in the full suite
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Preview of what they'll get */}
+            <Card className="p-6">
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                What's Included in Interview Prep
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Behavioral Questions</p>
+                      <p className="text-xs text-muted-foreground">STAR format examples from your experience</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Role-Specific Questions</p>
+                      <p className="text-xs text-muted-foreground">Product sense, execution, strategy, analytics</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Sample Answers</p>
+                      <p className="text-xs text-muted-foreground">Tailored responses using your background</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Questions by Category</p>
+                      <p className="text-xs text-muted-foreground">Organized by topic: behavioral, technical, strategic</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Difficulty Levels</p>
+                      <p className="text-xs text-muted-foreground">Easy, medium, hard questions to practice</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Full Interview Prep Suite</p>
+                      <p className="text-xs text-muted-foreground">Practice mode and answer frameworks</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -718,35 +818,81 @@ export function PaidOutput({
           
           {coverLetter && (
             <div className="p-8 bg-white dark:bg-gray-950">
-              {/* PDF-style cover letter */}
+              {/* PDF-style cover letter - clean professional format */}
               <div 
-                className="max-w-2xl mx-auto bg-white dark:bg-gray-900 shadow-lg border rounded-lg p-10"
+                className="max-w-2xl mx-auto bg-white dark:bg-gray-900 shadow-lg border rounded-lg"
                 style={{ fontFamily: 'Georgia, serif', minHeight: '800px' }}
               >
-                {/* Letterhead */}
-                <div className="mb-8 pb-6 border-b">
-                  <h1 className="text-xl font-bold text-foreground">{coverLetterInput.candidateName}</h1>
-                  <p className="text-sm text-muted-foreground mt-1">{coverLetterInput.candidateEmail}</p>
-                </div>
+                {/* Letter content with proper padding */}
+                <div className="p-12">
+                  {/* Letterhead - only show if we have name */}
+                  {coverLetterInput.candidateName && (
+                    <div className="mb-10 pb-6 border-b-2 border-gray-200">
+                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        {coverLetterInput.candidateName}
+                      </h1>
+                      {coverLetterInput.candidateEmail && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {coverLetterInput.candidateEmail}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
-                {/* Date */}
-                <p className="text-sm text-muted-foreground mb-6">{formatDate()}</p>
+                  {/* Date */}
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-8">{formatDate()}</p>
 
-                {/* Recipient */}
-                <div className="mb-6">
-                  <p className="font-medium">{coverLetterInput.company}</p>
-                  <p className="text-sm text-muted-foreground">Re: {coverLetterInput.jobTitle} Position</p>
-                </div>
+                  {/* Recipient */}
+                  <div className="mb-8">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                      {coverLetterInput.company}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Re: {coverLetterInput.jobTitle} Position
+                    </p>
+                  </div>
 
-                {/* Body */}
-                <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                  {coverLetter}
-                </div>
+                  {/* Body - formatted paragraphs */}
+                  <div 
+                    className="text-gray-800 dark:text-gray-200"
+                    style={{ lineHeight: '1.8', fontSize: '14px' }}
+                  >
+                    {coverLetter.split('\n\n').map((paragraph, index) => {
+                      const trimmed = paragraph.trim();
+                      if (!trimmed) return null;
+                      
+                      // Skip if it's just a greeting we're duplicating
+                      if (trimmed.toLowerCase().startsWith('dear ') && index === 0) {
+                        return (
+                          <p key={index} className="mb-6">
+                            {trimmed}
+                          </p>
+                        );
+                      }
+                      
+                      // Skip signature lines if present (we'll add our own)
+                      if (trimmed.toLowerCase() === 'sincerely,' || 
+                          trimmed.toLowerCase() === 'best regards,' ||
+                          trimmed.toLowerCase() === 'regards,' ||
+                          trimmed === coverLetterInput.candidateName) {
+                        return null;
+                      }
+                      
+                      return (
+                        <p key={index} className="mb-6">
+                          {trimmed}
+                        </p>
+                      );
+                    })}
+                  </div>
 
-                {/* Signature */}
-                <div className="mt-8 pt-4">
-                  <p className="text-sm">Sincerely,</p>
-                  <p className="font-semibold mt-4">{coverLetterInput.candidateName}</p>
+                  {/* Signature */}
+                  <div className="mt-10 pt-4">
+                    <p className="text-gray-800 dark:text-gray-200 mb-6">Sincerely,</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      {coverLetterInput.candidateName}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
