@@ -413,27 +413,50 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, resumePrev
           </div>
         </Card>
 
-        {/* Primary CTA */}
-        <div className="flex flex-col items-center gap-4 py-6">
-          <Button 
-            size="lg" 
-            onClick={() => setShowUpgradeModal(true)}
-            className="min-w-[250px] h-12 text-base"
-          >
-            <Zap className="w-5 h-5 mr-2" />
-            Unlock Resume Intelligence
-            <ChevronRight className="w-5 h-5 ml-2" />
-          </Button>
+        {/* Primary CTA with Benefits */}
+        <Card className="p-6 mb-6 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+          <h3 className="font-semibold text-lg text-foreground text-center mb-4">
+            Unlock Resume Intelligence to get:
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-2 mb-6">
+            {[
+              "AI-optimized resume tailored to your target roles",
+              "ATS-aligned keywords and score improvements",
+              "Professional brand and seniority calibration",
+              "Smart clarification questions before writing",
+              "Resume regeneration (up to 3 times)",
+              "Resume downloads (PDF + text)",
+              "Unlimited cover letter generation",
+              "ATS report copy"
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
           
-          <Button
-            variant="ghost"
-            onClick={() => setShowSaveDialog(true)}
-            className="text-muted-foreground"
-          >
-            <Mail className="w-4 h-4 mr-2" />
-            Save my report
-          </Button>
-        </div>
+          <div className="flex flex-col items-center gap-3">
+            <Button 
+              size="lg" 
+              onClick={() => setShowUpgradeModal(true)}
+              className="min-w-[280px] h-12 text-base"
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Unlock Resume Intelligence
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              onClick={() => setShowSaveDialog(true)}
+              className="text-muted-foreground"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Save my report
+            </Button>
+          </div>
+        </Card>
 
         {/* Upgrade Modal */}
         <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
