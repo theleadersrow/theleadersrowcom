@@ -421,15 +421,20 @@ export function FormattedResumeDisplay({ content, className = "" }: FormattedRes
             <div className="space-y-5">
               {(section.content as RoleBlock[]).map((role, i) => (
                 <div key={i} className="text-sm">
-                  {/* Role Header */}
+                  {/* Role Header - Combined format: Title - Company in Location */}
                   <div className="mb-2">
-                    <div className="font-semibold text-foreground">{role.title}</div>
-                    {role.company && (
-                      <div className="font-medium text-foreground/80">{role.company}</div>
-                    )}
-                    {(role.location || role.dates) && (
-                      <div className="text-muted-foreground text-xs">
-                        {[role.location, role.dates].filter(Boolean).join(' | ')}
+                    <div className="font-semibold text-foreground">
+                      {role.title}
+                      {role.company && (
+                        <span className="font-normal text-foreground/80">
+                          {' — '}{role.company}
+                          {role.location && <span> in {role.location}</span>}
+                        </span>
+                      )}
+                    </div>
+                    {role.dates && (
+                      <div className="text-muted-foreground text-xs mt-0.5">
+                        {role.dates}
                       </div>
                     )}
                   </div>
