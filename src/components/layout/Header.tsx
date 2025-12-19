@@ -194,14 +194,33 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3 ml-4">
-            <Link to="/career-coach">
-              <Button 
-                variant="outline" 
-                className={`h-10 px-5 ${isScrolled || !isHomePage ? '' : 'border-cream/30 text-cream hover:bg-cream/10 hover:border-cream'}`}
-              >
-                Rimo AI Coach
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className={`h-10 px-5 relative ${isScrolled || !isHomePage ? '' : 'border-cream/30 text-cream hover:bg-cream/10 hover:border-cream'}`}
+                >
+                  <span className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    Beta
+                  </span>
+                  Rimo AI Coach
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-card border border-border shadow-elevated z-50 min-w-[200px]">
+                <DropdownMenuItem asChild>
+                  <Link to="/career-coach" className="w-full cursor-pointer text-foreground hover:text-secondary">
+                    All AI Tools
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/beta-event" className="w-full cursor-pointer text-foreground hover:text-secondary flex items-center gap-2">
+                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
+                    Resume Intelligence Suite
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Link to="/register">
               <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} className="h-10 px-5">
                 Register Now
@@ -349,13 +368,29 @@ const Header = () => {
                 Contact
               </Link>
               
-              <Link
-                to="/career-coach"
-                className="text-base font-medium py-2 text-secondary hover:text-secondary/80"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Rimo AI Coach
-              </Link>
+              <div className="border-t border-border pt-4">
+                <p className="text-base font-medium py-2 text-foreground flex items-center gap-2">
+                  Rimo AI Coach
+                  <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">Beta</span>
+                </p>
+                <div className="pl-4 flex flex-col gap-2 mt-2">
+                  <Link
+                    to="/career-coach"
+                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    All AI Tools
+                  </Link>
+                  <Link
+                    to="/beta-event"
+                    className="text-base py-2 text-muted-foreground hover:text-secondary transition-colors flex items-center gap-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">Beta</span>
+                    Resume Intelligence Suite
+                  </Link>
+                </div>
+              </div>
               <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="gold" className="w-full mt-2">
                   Register Now
