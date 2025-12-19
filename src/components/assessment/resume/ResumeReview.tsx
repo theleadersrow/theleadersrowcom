@@ -933,6 +933,26 @@ export function ResumeReview({
             </Button>
           </div>
         </div>
+
+        {/* Coaching CTA */}
+        <Card className="p-6 mt-8 mb-4 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <div className="text-center space-y-3">
+            <h3 className="text-lg font-semibold text-foreground">
+              Ready to Take Your Career to the Next Level?
+            </h3>
+            <p className="text-muted-foreground text-sm max-w-xl mx-auto">
+              If you're looking for further coaching on getting to the next level and bringing the best out of you — let's talk.
+            </p>
+            <Button 
+              variant="outline" 
+              className="mt-2"
+              onClick={() => window.open('/book-call', '_blank')}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Setup a Discovery Call
+            </Button>
+          </div>
+        </Card>
       </div>
     </div>
   );
