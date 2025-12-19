@@ -229,7 +229,35 @@ serve(async (req) => {
     }
 
     // Verify tool access (skip for free scan - just parsing)
-    if (!freeScan) {
+    // Also allow authenticated users (JWT in Authorization header) to use parsing without a purchase.
+    const authHeader = req.headers.get("Authorization") || "";
+
+    let isAuthenticatedUser = false;
+    if (!freeScan && !email && !accessToken && authHeader.startsWith("Bearer ")) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const token = authHeader.replace("Bearer ", "");
+
+        const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: false },
+        });
+
+        const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+        isAuthenticatedUser = !userError && !!userData?.user;
+      } catch (e) {
+        console.error("Auth check failed:", e);
+        isAuthenticatedUser = false;
+      }
+    }
+
+    if (freeScan || isAuthenticatedUser) {
+      console.log(
+        freeScan
+          ? "Free scan mode - skipping access verification"
+          : "Authenticated user - skipping purchase access verification"
+      );
+    } else {
       const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
       if (!accessCheck.valid) {
         console.log("Access denied:", accessCheck.error);
@@ -238,8 +266,6 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else {
-      console.log("Free scan mode - skipping access verification");
     }
 
     // Validate we have file data
