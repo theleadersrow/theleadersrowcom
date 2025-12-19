@@ -463,7 +463,12 @@ export function ResumeReview({
 
   const handleSaveEdit = (sectionId: string) => {
     setSections(prev => prev.map(s => 
-      s.id === sectionId ? { ...s, status: "edited" as const } : s
+      s.id === sectionId ? { 
+        ...s, 
+        status: "edited" as const,
+        // Update improvedContent to the edited content so it shows as the new AI version
+        improvedContent: s.editedContent || s.improvedContent
+      } : s
     ));
     setEditingSection(null);
   };
@@ -688,13 +693,17 @@ export function ResumeReview({
               <div>
                 <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2 uppercase tracking-wider flex items-center gap-1">
                   <Edit3 className="w-3 h-3" />
-                  Edit Content
+                  Edit Content (changes will become the new AI optimized version)
                 </div>
                 <Textarea
                   value={section.editedContent || section.improvedContent}
                   onChange={(e) => handleEditChange(section.id, e.target.value)}
                   className="min-h-[200px] font-mono text-sm"
+                  placeholder="Edit the content here. Once saved, this will be your new AI optimized version."
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Tip: You can copy and paste content here. Changes will be saved as your custom AI optimized version.
+                </p>
               </div>
             )}
 

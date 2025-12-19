@@ -432,15 +432,11 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           metricsMissingReason: answers.metricsMissingReason,
           bestImpactProject: answers.bestImpactProject,
           underrepresentedAchievement: answers.underrepresentedAchievement,
-          // Section 4: Professional Brand (Optional)
+          // Section 4: Professional Brand (now integrated)
           recruiterPerception: answers.recruiterPerception,
           professionalSkills: answers.professionalSkills,
           stretchingLevel: answers.stretchingLevel,
           overstatingCaution: answers.overstatingCaution,
-          // Section 5: Practical Constraints (Optional)
-          deemphasizeCompanies: answers.deemphasizeCompanies,
-          gapsOrTransitions: answers.gapsOrTransitions,
-          complianceConstraints: answers.complianceConstraints,
           // ATS analysis data
           missingKeywords: freeScore?.missing_keywords || [],
           improvements: freeScore?.improvements || [],
