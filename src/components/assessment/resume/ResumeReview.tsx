@@ -42,102 +42,296 @@ interface ResumeReviewProps {
   isGenerating?: boolean;
 }
 
-// Parse individual roles from experience content into structured RoleData
+// Role title patterns that indicate a new role is starting
+const ROLE_TITLE_PATTERNS = [
+  /^(Head of|Director of|VP of|Vice President|Chief|President|Principal|Senior|Staff|Lead|Manager|Engineer|Designer|Analyst|Consultant|Architect|Specialist|Coordinator|Administrator|Executive|Officer)\s/i,
+  /\s(Manager|Director|Lead|Engineer|Designer|Analyst|Specialist|Consultant|VP|President|Officer|Head|Chief|Architect|Coordinator|Administrator)$/i,
+  /^(CEO|CTO|CFO|COO|CMO|CIO|CISO|CDO|CPO)\b/i,
+  /Product\s+(Manager|Lead|Director|Owner)/i,
+  /Engineering\s+(Manager|Lead|Director)/i,
+  /\bManager\s*,/i,
+];
+
+// Patterns that indicate a line is a company name
+const COMPANY_PATTERNS = [
+  /\b(Inc\.|LLC|Corp\.|Ltd\.|Company|Corporation|Technologies|Solutions|Group|Partners|Consulting|Services|Labs|Studio|Media|Software|Systems|Enterprises|Holdings|Ventures|Capital|Bank|Insurance|Healthcare|Pharma|Biotech|University|College|Institute)\b/i,
+];
+
+// Known major companies (expand as needed)
+const KNOWN_COMPANIES = [
+  'Apple', 'Google', 'Amazon', 'Microsoft', 'Meta', 'Netflix', 'Tesla', 'Nvidia',
+  'RBC', 'TD Bank', 'Charles Schwab', 'Morgan Stanley', 'Goldman Sachs', 'JPMorgan',
+  'Salesforce', 'Oracle', 'IBM', 'Cisco', 'Intel', 'Adobe', 'Uber', 'Lyft', 'Airbnb',
+  'Stripe', 'Square', 'PayPal', 'Visa', 'Mastercard', 'American Express',
+  'Deloitte', 'McKinsey', 'BCG', 'Bain', 'Accenture', 'PwC', 'EY', 'KPMG',
+  'Apex', 'AKG', 'Finnovation Labs',
+];
+
+// Date patterns
+const DATE_PATTERN = /(\d{1,2}\/\d{4}|[A-Z][a-z]{2,8}\s+\d{4}|\d{4})\s*[–\-—to]+\s*(Present|Current|\d{1,2}\/\d{4}|[A-Z][a-z]{2,8}\s+\d{4}|\d{4})/i;
+
+// Location patterns (City, ST or City, State or Remote)
+const LOCATION_PATTERN = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*,?\s*[A-Z]{2}|Remote|Hybrid)/;
+
+/**
+ * Determines if a line is likely a role/job title
+ */
+function isRoleTitle(line: string): boolean {
+  const cleaned = line.replace(/^\*\*|\*\*$/g, '').trim();
+  if (!cleaned || cleaned.length < 5 || cleaned.length > 120) return false;
+  
+  // Definitely not a title if it's a bullet
+  if (/^[•\-\*]\s/.test(cleaned)) return false;
+  
+  // Definitely not a title if it contains dates (that's a metadata line)
+  if (DATE_PATTERN.test(cleaned)) return false;
+  
+  // Check against role patterns
+  return ROLE_TITLE_PATTERNS.some(p => p.test(cleaned));
+}
+
+/**
+ * Determines if a line is likely a company name
+ */
+function isCompanyLine(line: string): boolean {
+  const cleaned = line.replace(/^\*\*|\*\*$/g, '').trim();
+  if (!cleaned || cleaned.length < 2 || cleaned.length > 80) return false;
+  
+  // Not a company if it's a bullet
+  if (/^[•\-\*]\s/.test(cleaned)) return false;
+  
+  // Check if it's a known company
+  if (KNOWN_COMPANIES.some(c => cleaned.toLowerCase().includes(c.toLowerCase()))) return true;
+  
+  // Check against company patterns
+  if (COMPANY_PATTERNS.some(p => p.test(cleaned))) return true;
+  
+  // Short single-word or two-word names that don't look like roles
+  if (/^[A-Z][a-zA-Z]+(\s+[A-Z][a-zA-Z]+)?$/.test(cleaned) && !isRoleTitle(cleaned)) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Determines if a line contains location and/or date information
+ */
+function isMetadataLine(line: string): { isMetadata: boolean; location: string; dates: string } {
+  const cleaned = line.replace(/^\*\*|\*\*$/g, '').trim();
+  const result = { isMetadata: false, location: '', dates: '' };
+  
+  // Extract dates
+  const dateMatch = cleaned.match(DATE_PATTERN);
+  if (dateMatch) {
+    result.dates = dateMatch[0];
+    result.isMetadata = true;
+  }
+  
+  // Extract location
+  const locMatch = cleaned.match(LOCATION_PATTERN);
+  if (locMatch) {
+    result.location = locMatch[0].trim();
+    result.isMetadata = true;
+  }
+  
+  // Also check for pipe-separated format (Company | Location | Dates)
+  if (/\|/.test(cleaned)) {
+    result.isMetadata = true;
+  }
+  
+  return result;
+}
+
+/**
+ * Parse individual roles from experience content into structured RoleData
+ * Uses a sequential "Role Builder" approach:
+ * 1. Title line (role/job title)
+ * 2. Company line (company name)
+ * 3. Metadata line (location | dates)
+ * 4. Bullet points (responsibilities)
+ */
 function parseRolesFromExperience(experienceContent: string): { title: string; content: string; roleData: RoleData }[] {
   const roles: { title: string; content: string; roleData: RoleData }[] = [];
   const lines = experienceContent.split('\n');
   
-  const companyIndicators = ['Apple', 'RBC', 'Charles Schwab', 'Morgan Stanley', 'TD Bank', 'Apex', 'AKG', 'Inc.', 'LLC', 'Corp', 'Ltd', 'Company', 'Bank', 'Technologies', 'Solutions', 'Group'];
-  const roleTitlePatterns = [
-    /^(Head of|Director of|VP of|Chief|President|Principal|Senior|Staff|Lead|Manager|Engineer|Designer|Analyst|Consultant)\s/i,
-    /\s(Manager|Director|Lead|Engineer|Designer|Analyst|Specialist|Consultant|VP|President|Officer|Head|Chief)$/i,
-  ];
-  
-  let currentRole: { 
-    title: string; 
-    company: string; 
+  interface RoleBuilder {
+    title: string;
+    company: string;
     location: string;
     dates: string;
-    lines: string[];
+    rawLines: string[];
     bullets: string[];
-  } | null = null;
+    phase: 'title' | 'company' | 'metadata' | 'bullets';
+  }
+  
+  let currentRole: RoleBuilder | null = null;
+  
+  function finalizeRole() {
+    if (!currentRole || (!currentRole.title && currentRole.bullets.length === 0)) return;
+    
+    // Parse start/end dates from the dates string
+    let startDate = '', endDate = '';
+    const dateMatch = currentRole.dates.match(DATE_PATTERN);
+    if (dateMatch) {
+      startDate = dateMatch[1] || '';
+      endDate = dateMatch[2] || '';
+    }
+    
+    // Generate AI suggestions based on role-level analysis
+    const aiSuggestions = generateRoleSuggestions(currentRole.title, currentRole.company, currentRole.bullets);
+    const roleSummary = generateRoleSummary(currentRole.title, currentRole.bullets);
+    
+    roles.push({
+      title: currentRole.title,
+      content: currentRole.rawLines.join('\n').trim(),
+      roleData: {
+        roleId: `role-${roles.length}`,
+        title: currentRole.title,
+        company: currentRole.company,
+        location: currentRole.location,
+        startDate,
+        endDate,
+        responsibilities: currentRole.bullets,
+        aiSuggestions,
+        roleSummary
+      }
+    });
+    
+    currentRole = null;
+  }
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
     const rawLine = lines[i];
-    const nextLine = lines[i + 1]?.trim() || '';
-    const nextNextLine = lines[i + 2]?.trim() || '';
+    const line = rawLine.trim();
     
+    // Skip empty lines when not in a role
     if (!line && !currentRole) continue;
     
+    // Check if this is a bullet point
     const isBullet = /^[•\-\*]\s/.test(line);
     
-    const isLikelyRoleTitle = !isBullet && line.length > 3 && line.length < 100 && (
-      roleTitlePatterns.some(p => p.test(line)) ||
-      /^\*\*[^*]+\*\*$/.test(line) ||
-      (/^[A-Z][a-zA-Z\s,&]+$/.test(line) && (
-        companyIndicators.some(c => nextLine.includes(c)) ||
-        /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–\-]/.test(nextLine) ||
-        /\d{1,2}\/\d{4}|Present|Current|\d{4}\s*[–\-]/.test(nextNextLine)
-      ))
-    );
-    
-    const hasFollowingMetadata = (
-      !nextLine.startsWith('•') && !nextLine.startsWith('-') && !nextLine.startsWith('*') &&
-      (companyIndicators.some(c => nextLine.includes(c)) ||
-       /\d{1,2}\/\d{4}|Present|Current|[A-Z][a-z]{2}\s+\d{4}/.test(nextLine) ||
-       /\|/.test(nextLine))
-    );
-    
-    if (isLikelyRoleTitle && (hasFollowingMetadata || !currentRole || currentRole.bullets.length > 0)) {
-      // Save previous role
-      if (currentRole && (currentRole.lines.length > 0 || currentRole.bullets.length > 0)) {
-        roles.push(buildRoleObject(currentRole, roles.length));
-      }
-      
-      // Extract company, location, dates from next lines
-      let company = '', location = '', dates = '';
-      if (hasFollowingMetadata) {
-        const parsed = parseMetadataLine(nextLine);
-        company = parsed.company;
-        location = parsed.location;
-        dates = parsed.dates;
-      }
+    // Check if this looks like a new role title
+    if (isRoleTitle(line)) {
+      // Finalize any previous role before starting a new one
+      finalizeRole();
       
       currentRole = {
         title: line.replace(/^\*\*|\*\*$/g, '').trim(),
-        company, location, dates,
-        lines: [rawLine],
-        bullets: []
+        company: '',
+        location: '',
+        dates: '',
+        rawLines: [rawLine],
+        bullets: [],
+        phase: 'company' // Next we expect company
       };
-    } else if (currentRole) {
-      currentRole.lines.push(rawLine);
+      continue;
+    }
+    
+    // If we're building a role, process subsequent lines
+    if (currentRole) {
+      currentRole.rawLines.push(rawLine);
       
       if (isBullet) {
+        // Once we hit bullets, we're in bullet phase
+        currentRole.phase = 'bullets';
         currentRole.bullets.push(line.replace(/^[•\-\*]\s*/, ''));
-      } else if (!currentRole.company && line.length < 80) {
-        const parsed = parseMetadataLine(line);
-        if (parsed.company) currentRole.company = parsed.company;
-        if (parsed.location && !currentRole.location) currentRole.location = parsed.location;
-        if (parsed.dates && !currentRole.dates) currentRole.dates = parsed.dates;
+        continue;
       }
+      
+      // Skip empty lines but keep them in rawLines
+      if (!line) continue;
+      
+      // In company phase, look for company name
+      if (currentRole.phase === 'company') {
+        // Check if this line has dates - might be a combined metadata line
+        const metaCheck = isMetadataLine(line);
+        
+        if (isCompanyLine(line) && !metaCheck.isMetadata) {
+          // Pure company line
+          currentRole.company = line.replace(/^\*\*|\*\*$/g, '').trim();
+          currentRole.phase = 'metadata';
+        } else if (metaCheck.isMetadata) {
+          // This line has metadata (dates/location)
+          // It might also have company in a pipe-separated format
+          const parts = line.split(/\s*\|\s*/);
+          if (parts.length >= 1) {
+            // First part before pipe could be company
+            const firstPart = parts[0].replace(/^\*\*|\*\*$/g, '').trim();
+            if (firstPart && !DATE_PATTERN.test(firstPart) && !LOCATION_PATTERN.test(firstPart)) {
+              currentRole.company = firstPart;
+            }
+          }
+          currentRole.location = metaCheck.location;
+          currentRole.dates = metaCheck.dates;
+          currentRole.phase = 'bullets';
+        } else {
+          // Might be company on same line with metadata
+          currentRole.company = line.replace(/^\*\*|\*\*$/g, '').trim();
+          currentRole.phase = 'metadata';
+        }
+        continue;
+      }
+      
+      // In metadata phase, look for location/dates
+      if (currentRole.phase === 'metadata') {
+        const metaCheck = isMetadataLine(line);
+        if (metaCheck.isMetadata) {
+          if (metaCheck.location) currentRole.location = metaCheck.location;
+          if (metaCheck.dates) currentRole.dates = metaCheck.dates;
+          
+          // Also check for pipe-separated format with company
+          const parts = line.split(/\s*\|\s*/);
+          if (parts.length >= 1 && !currentRole.company) {
+            const firstPart = parts[0].replace(/^\*\*|\*\*$/g, '').trim();
+            if (firstPart && !DATE_PATTERN.test(firstPart) && !LOCATION_PATTERN.test(firstPart)) {
+              currentRole.company = firstPart;
+            }
+          }
+        }
+        currentRole.phase = 'bullets';
+        continue;
+      }
+      
+      // If we're in bullets phase but get a non-bullet line, it might be a sub-header or continuation
+      // Just add to rawLines but don't treat as bullet
     } else {
-      currentRole = {
-        title: line.replace(/^\*\*|\*\*$/g, '').trim() || 'Role',
-        company: '', location: '', dates: '',
-        lines: [rawLine],
-        bullets: []
-      };
+      // No current role and this isn't a role title
+      // This might be content before any role, or the format is unexpected
+      // Try to start a role if the next line has metadata
+      const nextLine = lines[i + 1]?.trim() || '';
+      const nextNextLine = lines[i + 2]?.trim() || '';
+      
+      // Check if following lines suggest this is a role start
+      const nextIsMeta = isMetadataLine(nextLine).isMetadata || isCompanyLine(nextLine);
+      const hasUpcomingBullets = nextLine.startsWith('•') || nextNextLine.startsWith('•');
+      
+      if ((nextIsMeta || hasUpcomingBullets) && line.length > 5 && line.length < 100 && !isBullet) {
+        currentRole = {
+          title: line.replace(/^\*\*|\*\*$/g, '').trim(),
+          company: '',
+          location: '',
+          dates: '',
+          rawLines: [rawLine],
+          bullets: [],
+          phase: 'company'
+        };
+      }
     }
   }
   
-  if (currentRole && (currentRole.lines.length > 0 || currentRole.bullets.length > 0)) {
-    roles.push(buildRoleObject(currentRole, roles.length));
-  }
+  // Finalize any remaining role
+  finalizeRole();
   
+  // Fallback if no roles were parsed
   if (roles.length === 0) {
+    const allBullets = experienceContent
+      .split('\n')
+      .filter(l => /^[•\-\*]\s/.test(l.trim()))
+      .map(l => l.replace(/^[•\-\*]\s*/, '').trim());
+    
     return [{
-      title: 'All Experience',
+      title: 'Experience',
       content: experienceContent.trim(),
       roleData: {
         roleId: 'role-0',
@@ -146,7 +340,7 @@ function parseRolesFromExperience(experienceContent: string): { title: string; c
         location: '',
         startDate: '',
         endDate: '',
-        responsibilities: experienceContent.split('\n').filter(l => /^[•\-\*]\s/.test(l.trim())).map(l => l.replace(/^[•\-\*]\s*/, '')),
+        responsibilities: allBullets,
         aiSuggestions: []
       }
     }];
@@ -155,71 +349,6 @@ function parseRolesFromExperience(experienceContent: string): { title: string; c
   return roles;
 }
 
-// Parse company | location | dates from a metadata line
-function parseMetadataLine(line: string): { company: string; location: string; dates: string } {
-  const result = { company: '', location: '', dates: '' };
-  const cleaned = line.replace(/^\*\*|\*\*$/g, '').trim();
-  
-  // Extract dates first
-  const dateMatch = cleaned.match(/([A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})\s*[–\-]\s*(Present|Current|[A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})/i);
-  if (dateMatch) {
-    result.dates = dateMatch[0];
-  }
-  
-  // Extract location (City, ST format)
-  const locMatch = cleaned.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?,?\s*[A-Z]{2})\s*(?:\||$)/);
-  if (locMatch) {
-    result.location = locMatch[1].trim();
-  }
-  
-  // Company is everything before the pipe/location/dates
-  const parts = cleaned.split(/\s*\|\s*/);
-  if (parts[0]) {
-    result.company = parts[0].replace(result.dates, '').replace(result.location, '').replace(/[,\s]+$/, '').trim();
-  }
-  
-  return result;
-}
-
-// Build structured role object
-function buildRoleObject(role: { 
-  title: string; 
-  company: string; 
-  location: string; 
-  dates: string; 
-  lines: string[]; 
-  bullets: string[] 
-}, index: number): { title: string; content: string; roleData: RoleData } {
-  // Parse start/end dates
-  let startDate = '', endDate = '';
-  const dateMatch = role.dates.match(/([A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})\s*[–\-]\s*(Present|Current|[A-Z][a-z]{2}\s+\d{4}|\d{1,2}\/\d{4})/i);
-  if (dateMatch) {
-    startDate = dateMatch[1];
-    endDate = dateMatch[2];
-  }
-  
-  // Generate AI suggestions based on role-level analysis
-  const aiSuggestions = generateRoleSuggestions(role.title, role.company, role.bullets);
-  const roleSummary = generateRoleSummary(role.title, role.bullets);
-  
-  const displayTitle = role.title;
-  
-  return {
-    title: displayTitle,
-    content: role.lines.join('\n').trim(),
-    roleData: {
-      roleId: `role-${index}`,
-      title: role.title,
-      company: role.company,
-      location: role.location,
-      startDate,
-      endDate,
-      responsibilities: role.bullets,
-      aiSuggestions,
-      roleSummary
-    }
-  };
-}
 
 // Generate role-level summary based on analysis
 function generateRoleSummary(title: string, bullets: string[]): string {
