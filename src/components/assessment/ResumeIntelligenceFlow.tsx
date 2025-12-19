@@ -417,11 +417,11 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           jobDescription,
           // Section 1: Targeting & Intent
           targetRoles: answers.targetRoles,
-          targetIndustry: answers.targetIndustry,
+          targetIndustries: answers.targetIndustries,
           companyTypes: answers.companyTypes,
-          primaryOutcome: answers.primaryOutcome,
+          primaryOutcomes: answers.primaryOutcomes,
           // Section 2: Role Scope & Seniority
-          roleScope: answers.roleScope,
+          roleScopes: answers.roleScopes,
           strategyOrExecution: answers.strategyOrExecution,
           stakeholders: answers.stakeholders,
           crossFunctionalLead: answers.crossFunctionalLead,
