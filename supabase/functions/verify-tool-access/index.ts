@@ -83,10 +83,13 @@ serve(async (req) => {
 
     // Action: Check access by email
     if (action === "check" && email && toolType) {
+      const normalizedEmail = email.toLowerCase().trim();
+      logStep("Checking access", { normalizedEmail, toolType });
+      
       const { data: purchase, error } = await supabaseAdmin
         .from("tool_purchases")
         .select("*")
-        .eq("email", email)
+        .ilike("email", normalizedEmail)
         .eq("tool_type", toolType)
         .eq("status", "active")
         .order("expires_at", { ascending: false })

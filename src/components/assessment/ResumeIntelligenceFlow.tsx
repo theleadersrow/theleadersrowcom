@@ -164,7 +164,9 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
 
   // Handle activation with email
   const handleActivateAccess = async () => {
-    if (!activationEmail.trim()) {
+    const emailToCheck = activationEmail.toLowerCase().trim();
+    
+    if (!emailToCheck) {
       toast({
         title: "Email required",
         description: "Please enter the email you used for purchase.",
@@ -174,16 +176,19 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     }
 
     setIsActivating(true);
+    console.log("[Activation] Checking access for:", emailToCheck);
     
     try {
       // Verify access with the provided email
       const { data, error } = await supabase.functions.invoke("verify-tool-access", {
         body: { 
           action: "check",
-          email: activationEmail.toLowerCase().trim(), 
+          email: emailToCheck, 
           toolType: "resume_suite" 
         },
       });
+      
+      console.log("[Activation] Response:", { data, error });
       
       if (error) throw error;
       
