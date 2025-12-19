@@ -32,7 +32,7 @@ serve(async (req) => {
     // Use different prices for each tool
     const priceId = successParam === "linkedin_success" 
       ? "price_1SfTfFCD119gx37Umb303uCK"  // LinkedIn Signal Score price ($29.99)
-      : "price_1SfTd2CD119gx37Ua1RjLoYg"; // Resume Intelligence Suite price ($49.99)
+      : "price_1Sg96GCD119gx37UYJxTjw5m"; // Resume Intelligence Suite price ($99 - 3 month access)
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -62,7 +62,7 @@ serve(async (req) => {
       cancel_url: `${origin}/career-coach`,
       metadata: {
         product_name: toolType === "linkedin_signal" ? "LinkedIn Signal Score" : "Resume Intelligence Suite",
-        access_duration: "1 month",
+        access_duration: toolType === "resume_suite" ? "3 months" : "1 month",
         tool_type: toolType,
         customer_email: customerEmail,
       },
@@ -78,9 +78,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Calculate expiry date (1 month from now)
+    // Calculate expiry date (3 months from now for resume_suite, 1 month for linkedin)
     const expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    expiresAt.setMonth(expiresAt.getMonth() + (toolType === "resume_suite" ? 3 : 1));
 
     // Insert purchase record
     const { error: insertError } = await supabaseClient
