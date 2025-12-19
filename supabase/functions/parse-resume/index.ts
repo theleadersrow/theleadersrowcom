@@ -175,6 +175,7 @@ serve(async (req) => {
     let fileType: string | null = null;
     let email: string | undefined = undefined;
     let accessToken: string | undefined = undefined;
+    let freeScan: boolean = false;
 
     // Handle both FormData and JSON requests
     if (contentType.includes('multipart/form-data')) {
@@ -183,6 +184,7 @@ serve(async (req) => {
       sessionId = formData.get('sessionId') as string;
       email = formData.get('email') as string || undefined;
       accessToken = formData.get('accessToken') as string || undefined;
+      freeScan = formData.get('freeScan') === 'true';
       
       // Validate file
       if (file) {
@@ -208,6 +210,7 @@ serve(async (req) => {
       sessionId = json.sessionId;
       email = json.email;
       accessToken = json.accessToken;
+      freeScan = json.freeScan === true;
       
       // Validate base64 size (rough estimate)
       if (fileBase64 && fileBase64.length > MAX_FILE_SIZE * 1.4) { // base64 is ~1.37x larger
@@ -225,14 +228,18 @@ serve(async (req) => {
       }
     }
 
-    // Verify tool access
-    const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
-    if (!accessCheck.valid) {
-      console.log("Access denied:", accessCheck.error);
-      return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Verify tool access (skip for free scan - just parsing)
+    if (!freeScan) {
+      const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
+      if (!accessCheck.valid) {
+        console.log("Access denied:", accessCheck.error);
+        return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.log("Free scan mode - skipping access verification");
     }
 
     // Validate we have file data

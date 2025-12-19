@@ -66,7 +66,7 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing }: ResumeWelcom
         });
 
         const { data, error } = await supabase.functions.invoke('parse-resume', {
-          body: { fileBase64: base64, fileName: file.name, fileType: file.type },
+          body: { fileBase64: base64, fileName: file.name, fileType: file.type, freeScan: true },
         });
         
         if (error) throw error;
