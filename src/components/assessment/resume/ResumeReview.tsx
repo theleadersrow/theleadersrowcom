@@ -37,42 +37,65 @@ interface ResumeReviewProps {
 function parseResumeIntoSections(resumeText: string): { title: string; content: string }[] {
   const sections: { title: string; content: string }[] = [];
   
-  // Common resume section headers
+  // Section header patterns - must match EXACT section headers (typically all caps or title case at start of line)
   const sectionPatterns = [
-    /^(SUMMARY|PROFESSIONAL SUMMARY|EXECUTIVE SUMMARY|PROFILE)/im,
-    /^(KEY ACHIEVEMENTS|ACHIEVEMENTS|ACCOMPLISHMENTS)/im,
-    /^(EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT HISTORY)/im,
-    /^(EDUCATION|ACADEMIC BACKGROUND)/im,
-    /^(SKILLS|TECHNICAL SKILLS|CORE COMPETENCIES)/im,
-    /^(INDUSTRY EXPERTISE|AREAS OF EXPERTISE|EXPERTISE)/im,
-    /^(CERTIFICATIONS|LICENSES|CREDENTIALS)/im,
-    /^(PROJECTS|KEY PROJECTS)/im,
+    { pattern: /^(SUMMARY|PROFESSIONAL SUMMARY|EXECUTIVE SUMMARY|PROFILE)\s*$/im, name: "SUMMARY" },
+    { pattern: /^(KEY ACHIEVEMENTS|ACHIEVEMENTS|ACCOMPLISHMENTS)\s*$/im, name: "ACHIEVEMENTS" },
+    { pattern: /^(EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT HISTORY)\s*$/im, name: "EXPERIENCE" },
+    { pattern: /^(EDUCATION|ACADEMIC BACKGROUND|EDUCATIONAL BACKGROUND)\s*$/im, name: "EDUCATION" },
+    { pattern: /^(SKILLS|TECHNICAL SKILLS|CORE COMPETENCIES|KEY SKILLS)\s*$/im, name: "SKILLS" },
+    { pattern: /^(INDUSTRY EXPERTISE|AREAS OF EXPERTISE|EXPERTISE)\s*$/im, name: "EXPERTISE" },
+    { pattern: /^(CERTIFICATIONS|LICENSES|CREDENTIALS|CERTIFICATES)\s*$/im, name: "CERTIFICATIONS" },
+    { pattern: /^(PROJECTS|KEY PROJECTS|NOTABLE PROJECTS)\s*$/im, name: "PROJECTS" },
+    { pattern: /^(LANGUAGES)\s*$/im, name: "LANGUAGES" },
+    { pattern: /^(AWARDS|HONORS)\s*$/im, name: "AWARDS" },
+    { pattern: /^(PUBLICATIONS)\s*$/im, name: "PUBLICATIONS" },
+    { pattern: /^(VOLUNTEER|VOLUNTEERING|VOLUNTEER EXPERIENCE)\s*$/im, name: "VOLUNTEER" },
   ];
 
   const lines = resumeText.split('\n');
-  let currentSection = { title: "HEADER", content: "" };
   
-  for (const line of lines) {
-    let isHeader = false;
-    for (const pattern of sectionPatterns) {
-      if (pattern.test(line.trim())) {
-        // Save previous section if it has content
-        if (currentSection.content.trim()) {
-          sections.push({ ...currentSection });
-        }
-        currentSection = { title: line.trim().toUpperCase(), content: "" };
-        isHeader = true;
+  // First, find all section boundaries
+  const sectionBoundaries: { lineIndex: number; title: string }[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // Skip empty lines
+    if (!line) continue;
+    
+    for (const { pattern, name } of sectionPatterns) {
+      if (pattern.test(line)) {
+        sectionBoundaries.push({ lineIndex: i, title: name });
         break;
       }
     }
-    if (!isHeader) {
-      currentSection.content += line + '\n';
+  }
+  
+  // If no sections found, treat everything as header
+  if (sectionBoundaries.length === 0) {
+    return [{ title: "HEADER", content: resumeText }];
+  }
+  
+  // Extract header (everything before first section)
+  if (sectionBoundaries[0].lineIndex > 0) {
+    const headerContent = lines.slice(0, sectionBoundaries[0].lineIndex).join('\n').trim();
+    if (headerContent) {
+      sections.push({ title: "HEADER", content: headerContent });
     }
   }
   
-  // Don't forget the last section
-  if (currentSection.content.trim()) {
-    sections.push(currentSection);
+  // Extract each section's content
+  for (let i = 0; i < sectionBoundaries.length; i++) {
+    const startLine = sectionBoundaries[i].lineIndex + 1; // Skip the header line itself
+    const endLine = i < sectionBoundaries.length - 1 
+      ? sectionBoundaries[i + 1].lineIndex 
+      : lines.length;
+    
+    const sectionContent = lines.slice(startLine, endLine).join('\n').trim();
+    sections.push({ 
+      title: sectionBoundaries[i].title, 
+      content: sectionContent 
+    });
   }
   
   return sections;
