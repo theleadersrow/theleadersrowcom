@@ -8,9 +8,10 @@ import {
 interface ResumeLandingProps {
   onBack: () => void;
   onProceed: () => void;
+  onActivate?: () => void;
 }
 
-export function ResumeLanding({ onBack, onProceed }: ResumeLandingProps) {
+export function ResumeLanding({ onBack, onProceed, onActivate }: ResumeLandingProps) {
   const freeFeatures = [
     "ATS Readiness Score",
     "Role-level signal analysis",
@@ -182,6 +183,15 @@ export function ResumeLanding({ onBack, onProceed }: ResumeLandingProps) {
           <p className="text-xs text-muted-foreground mt-3">
             Takes about 2 minutes • No login required
           </p>
+          
+          {onActivate && (
+            <button
+              onClick={onActivate}
+              className="mt-4 text-sm text-primary hover:underline"
+            >
+              Already purchased? Activate your access
+            </button>
+          )}
         </div>
       </div>
     </div>

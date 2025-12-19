@@ -505,6 +505,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           <ResumeLanding
             onBack={onBack}
             onProceed={() => setStep("welcome")}
+            onActivate={() => setShowActivationDialog(true)}
           />
         );
         
