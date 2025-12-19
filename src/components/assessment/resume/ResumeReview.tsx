@@ -42,6 +42,7 @@ interface ResumeReviewProps {
   onBack: () => void;
   onFinalize: (finalResume: string, acceptedSections: string[]) => void;
   isGenerating?: boolean;
+  originalATSScore?: number; // Backend-calculated ATS score to use as baseline
 }
 
 // Role title patterns that indicate a new role is starting
@@ -723,7 +724,8 @@ export function ResumeReview({
   contentImprovements,
   onBack,
   onFinalize,
-  isGenerating = false
+  isGenerating = false,
+  originalATSScore
 }: ResumeReviewProps) {
   const [sections, setSections] = useState<ResumeSection[]>([]);
   const [editingSection, setEditingSection] = useState<string | null>(null);
@@ -1321,6 +1323,7 @@ export function ResumeReview({
             currentContent={getPreviewContent()}
             sectionsOptimized={editableSections.filter(s => s.status === "accepted" || s.status === "edited").length}
             totalSections={totalCount}
+            originalATSScore={originalATSScore}
           />
         </div>
 
