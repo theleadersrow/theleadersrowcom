@@ -84,7 +84,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText, jobDescription, selfProjection, missingKeywords, improvements, experienceGaps, skillsGaps, techStackGaps, email, accessToken } = await req.json();
+    const { resumeText, jobDescription, targetRole, managerOrIC, proudAchievement, professionalBrand, targetCompanies, missingKeywords, improvements, experienceGaps, skillsGaps, techStackGaps, email, accessToken } = await req.json();
 
     // Verify tool access
     const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
@@ -230,13 +230,26 @@ ${jobDescription}
 
 CRITICAL: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it to show they're perfect for THIS role.` : ''}
 
-${selfProjection ? `=== CANDIDATE'S PROFESSIONAL IDENTITY ===
-They want to be perceived as: "${selfProjection}"
+${targetRole ? `=== TARGET ROLE ===
+Target Role: ${targetRole}
+${managerOrIC ? `Role Type: ${managerOrIC === 'ic' ? 'Individual Contributor' : managerOrIC === 'manager' ? 'People Manager' : 'Both/Hybrid'}` : ''}
+${targetCompanies ? `Target Companies/Industries: ${targetCompanies}` : ''}` : ''}
+
+${proudAchievement ? `=== PROUDEST ACHIEVEMENT ===
+The candidate specifically highlighted this as something they are very proud of:
+"${proudAchievement}"
+
+CRITICAL: This achievement should be prominently featured in the KEY ACHIEVEMENTS section and emphasized throughout the resume. Frame it powerfully with impact metrics.` : ''}
+
+${professionalBrand ? `=== PROFESSIONAL BRAND ===
+How the candidate wants to be perceived professionally:
+"${professionalBrand}"
 
 Use this to:
-- Craft a professional summary reflecting their authentic voice
+- Craft a professional summary reflecting their authentic voice and unique value proposition
 - Choose language that matches how they see themselves professionally
-- Emphasize achievements that align with their stated strengths` : ''}
+- Emphasize achievements that align with their stated brand and strengths
+- Ensure the overall tone and positioning reflects this identity` : ''}
 
 ${missingKeywords?.length > 0 ? `=== CRITICAL KEYWORDS TO INTEGRATE ===
 These keywords are MISSING and must be naturally woven into the resume:

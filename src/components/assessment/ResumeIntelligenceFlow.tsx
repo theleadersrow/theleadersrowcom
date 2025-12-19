@@ -45,8 +45,8 @@ interface ATSResult {
 interface ClarificationAnswers {
   targetRole: string;
   managerOrIC: string;
-  topAchievements: string;
-  metrics: string;
+  proudAchievement: string;
+  professionalBrand: string;
   targetCompanies: string;
 }
 
@@ -354,8 +354,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           jobDescription,
           targetRole: answers.targetRole,
           managerOrIC: answers.managerOrIC,
-          topAchievements: answers.topAchievements,
-          metrics: answers.metrics,
+          proudAchievement: answers.proudAchievement,
+          professionalBrand: answers.professionalBrand,
           targetCompanies: answers.targetCompanies,
           missingKeywords: freeScore?.missing_keywords || [],
           improvements: freeScore?.improvements || [],

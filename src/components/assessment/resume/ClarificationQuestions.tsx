@@ -10,8 +10,8 @@ import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 interface ClarificationAnswers {
   targetRole: string;
   managerOrIC: string;
-  topAchievements: string;
-  metrics: string;
+  proudAchievement: string;
+  professionalBrand: string;
   targetCompanies: string;
 }
 
@@ -25,8 +25,8 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
   const [answers, setAnswers] = useState<ClarificationAnswers>({
     targetRole: "",
     managerOrIC: "",
-    topAchievements: "",
-    metrics: "",
+    proudAchievement: "",
+    professionalBrand: "",
     targetCompanies: ""
   });
 
@@ -106,31 +106,37 @@ export function ClarificationQuestions({ onBack, onSubmit, isGenerating }: Clari
             </RadioGroup>
           </Card>
 
-          {/* Q3: Top Achievements */}
+          {/* Q3: Proudest Achievement */}
           <Card className="p-5">
-            <Label className="text-base font-semibold text-foreground mb-3 block">
-              3. What are your top 2 achievements you want highlighted?
-              <span className="text-sm font-normal text-muted-foreground ml-2">(Optional)</span>
+            <Label className="text-base font-semibold text-foreground mb-2 block">
+              3. What is something you are very proud of in your career?
             </Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Think about a project, launch, turnaround, or outcome that made you feel accomplished. 
+              Be specific — include the challenge, what you did, and the result.
+            </p>
             <Textarea
-              placeholder="e.g., Launched a product that generated $5M ARR in year one. Led a team of 8 engineers to deliver ahead of schedule."
-              value={answers.topAchievements}
-              onChange={(e) => updateAnswer("topAchievements", e.target.value)}
-              className="min-h-[100px]"
+              placeholder="e.g., I'm most proud of leading the payment platform migration at Apple Ads. We moved 10+ markets to a new PSP in 6 months, reduced failed transactions by 40%, and unlocked $120M in incremental ad spend. I personally drove alignment across 5 teams and navigated complex regulatory requirements."
+              value={answers.proudAchievement}
+              onChange={(e) => updateAnswer("proudAchievement", e.target.value)}
+              className="min-h-[120px]"
             />
           </Card>
 
-          {/* Q4: Metrics */}
+          {/* Q4: Professional Brand */}
           <Card className="p-5">
-            <Label className="text-base font-semibold text-foreground mb-3 block">
-              4. Any specific metrics you can share for your key initiatives?
-              <span className="text-sm font-normal text-muted-foreground ml-2">(Optional)</span>
+            <Label className="text-base font-semibold text-foreground mb-2 block">
+              4. How would you like to be perceived professionally?
             </Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Describe your professional brand in 1-2 sentences. What do you want hiring managers 
+              and recruiters to remember about you? What makes you uniquely valuable?
+            </p>
             <Textarea
-              placeholder="e.g., Increased conversion rate by 35%, reduced churn by 20%, managed $2M budget"
-              value={answers.metrics}
-              onChange={(e) => updateAnswer("metrics", e.target.value)}
-              className="min-h-[80px]"
+              placeholder="e.g., I want to be seen as a strategic product leader who combines deep payments expertise with the ability to drive cross-functional execution at scale. I'm known for turning ambiguous, complex problems into clear roadmaps that deliver measurable business impact."
+              value={answers.professionalBrand}
+              onChange={(e) => updateAnswer("professionalBrand", e.target.value)}
+              className="min-h-[100px]"
             />
           </Card>
 
