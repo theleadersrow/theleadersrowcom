@@ -11,6 +11,9 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FormattedResumeDisplay } from "./FormattedResumeDisplay";
 import { toast } from "sonner";
+// Role-level status model
+type RoleStatus = "draft" | "ai_reviewed" | "optimized" | "locked";
+
 interface ResumeSection {
   id: string;
   title: string;
@@ -20,7 +23,17 @@ interface ResumeSection {
   editedContent?: string;
   isRole?: boolean;
   parentSection?: string;
-  roleData?: RoleData; // Structured role data for experience roles
+  roleData?: RoleData;
+  roleStatus?: RoleStatus;
+}
+
+// AI Recommendation types
+interface AISuggestion {
+  id: string;
+  type: "impact_gap" | "language_seniority" | "keyword_optimization" | "clarity_redundancy";
+  bulletIndex?: number;
+  suggestion: string;
+  accepted: boolean;
 }
 
 // Structured role data model - each role is an atomic unit
@@ -32,12 +45,8 @@ interface RoleData {
   startDate: string;
   endDate: string;
   responsibilities: string[];
-  aiRecommendations: {
-    summary?: string;
-    bulletEdits?: { index: number; suggestion: string }[];
-    missingMetrics?: string[];
-    keywordGaps?: string[];
-  };
+  aiSuggestions: AISuggestion[];
+  roleSummary?: string;
 }
 
 interface ContentImprovement {
@@ -161,7 +170,7 @@ function parseRolesFromExperience(experienceContent: string): { title: string; c
         startDate: '',
         endDate: '',
         responsibilities: experienceContent.split('\n').filter(l => /^[•\-\*]\s/.test(l.trim())).map(l => l.replace(/^[•\-\*]\s*/, '')),
-        aiRecommendations: {}
+        aiSuggestions: []
       }
     }];
   }
@@ -212,8 +221,9 @@ function buildRoleObject(role: {
     endDate = dateMatch[2];
   }
   
-  // Generate AI recommendations based on bullet analysis
-  const aiRecommendations = generateAIRecommendations(role.bullets);
+  // Generate AI suggestions based on role-level analysis
+  const aiSuggestions = generateRoleSuggestions(role.title, role.company, role.bullets);
+  const roleSummary = generateRoleSummary(role.title, role.bullets);
   
   const displayTitle = role.title;
   
@@ -228,44 +238,109 @@ function buildRoleObject(role: {
       startDate,
       endDate,
       responsibilities: role.bullets,
-      aiRecommendations
+      aiSuggestions,
+      roleSummary
     }
   };
 }
 
-// Generate AI recommendations for a role based on bullet analysis
-function generateAIRecommendations(bullets: string[]): RoleData['aiRecommendations'] {
-  const recommendations: RoleData['aiRecommendations'] = {
-    bulletEdits: [],
-    missingMetrics: [],
-    keywordGaps: []
-  };
+// Generate role-level summary based on analysis
+function generateRoleSummary(title: string, bullets: string[]): string {
+  const isLeadership = /head|director|vp|chief|lead|manager/i.test(title);
+  const bulletCount = bullets.length;
+  const metricsCount = bullets.filter(b => /\d+%|\$\d+|\d+x|\d+\s*(million|billion|k|M|B)/i.test(b)).length;
   
+  if (isLeadership && metricsCount < bulletCount * 0.5) {
+    return `This ${title} role is missing scope metrics expected for a leadership position`;
+  }
+  if (bulletCount > 5 && metricsCount < 2) {
+    return "Consider adding quantifiable impact to strengthen this role's presentation";
+  }
+  return "";
+}
+
+// Generate AI suggestions for a role based on role-level analysis
+function generateRoleSuggestions(title: string, company: string, bullets: string[]): AISuggestion[] {
+  const suggestions: AISuggestion[] = [];
+  let suggestionId = 0;
+  
+  const isLeadership = /head|director|vp|chief|president/i.test(title);
+  const isManager = /manager|lead/i.test(title);
+  
+  // Analyze each bullet for specific issues
   bullets.forEach((bullet, index) => {
-    // Check for missing metrics
+    // Impact Gaps - Check for missing metrics
     const hasMetric = /\d+%|\$\d+|\d+x|\d+\s*(million|billion|k|M|B)/i.test(bullet);
-    if (!hasMetric && bullet.length > 50) {
-      recommendations.missingMetrics?.push(`Bullet #${index + 1}: Consider adding quantifiable impact`);
+    if (!hasMetric && bullet.length > 40) {
+      suggestions.push({
+        id: `sug-${suggestionId++}`,
+        type: "impact_gap",
+        bulletIndex: index,
+        suggestion: `Bullet #${index + 1}: Add quantifiable impact (e.g., %, $, team size)`,
+        accepted: false
+      });
     }
     
-    // Check for weak action verbs
-    const weakVerbs = ['helped', 'worked on', 'was responsible for', 'assisted'];
+    // Language & Seniority - Check for weak verbs
+    const weakVerbs = ['helped', 'worked on', 'was responsible for', 'assisted', 'supported'];
     if (weakVerbs.some(v => bullet.toLowerCase().startsWith(v))) {
-      recommendations.bulletEdits?.push({ 
-        index, 
-        suggestion: `Strengthen action verb in bullet #${index + 1}` 
+      suggestions.push({
+        id: `sug-${suggestionId++}`,
+        type: "language_seniority",
+        bulletIndex: index,
+        suggestion: `Bullet #${index + 1}: Replace weak verb with action verb (Led, Drove, Spearheaded)`,
+        accepted: false
+      });
+    }
+    
+    // Clarity / Redundancy - Check for overly long bullets
+    if (bullet.length > 200) {
+      suggestions.push({
+        id: `sug-${suggestionId++}`,
+        type: "clarity_redundancy",
+        bulletIndex: index,
+        suggestion: `Bullet #${index + 1}: Consider splitting into focused statements`,
+        accepted: false
       });
     }
   });
   
-  // Check for keyword gaps
-  const paymentKeywords = ['payment', 'billing', 'revenue', 'monetization', 'transaction'];
-  const hasPaymentContext = bullets.some(b => paymentKeywords.some(k => b.toLowerCase().includes(k)));
-  if (!hasPaymentContext && bullets.length > 0) {
-    recommendations.keywordGaps?.push('Consider adding industry-specific keywords');
+  // Role-level suggestions
+  if (isLeadership) {
+    const hasPeopleMetrics = bullets.some(b => /team|direct report|managed \d+|led \d+/i.test(b));
+    if (!hasPeopleMetrics) {
+      suggestions.push({
+        id: `sug-${suggestionId++}`,
+        type: "impact_gap",
+        suggestion: "Add people leadership scale (team size, direct reports)",
+        accepted: false
+      });
+    }
+    
+    const hasStrategyLanguage = bullets.some(b => /strategy|roadmap|vision|architecture/i.test(b));
+    if (!hasStrategyLanguage) {
+      suggestions.push({
+        id: `sug-${suggestionId++}`,
+        type: "language_seniority",
+        suggestion: "Elevate tactical bullets with strategy framing",
+        accepted: false
+      });
+    }
   }
   
-  return recommendations;
+  // Keyword Optimization
+  const industryKeywords = ['payment', 'billing', 'revenue', 'monetization', 'fintech', 'saas', 'b2b', 'enterprise'];
+  const hasIndustryKeywords = bullets.some(b => industryKeywords.some(k => b.toLowerCase().includes(k)));
+  if (!hasIndustryKeywords && bullets.length > 0) {
+    suggestions.push({
+      id: `sug-${suggestionId++}`,
+      type: "keyword_optimization",
+      suggestion: "Add industry-specific keywords for ATS optimization",
+      accepted: false
+    });
+  }
+  
+  return suggestions;
 }
 
 function parseResumeIntoSections(resumeText: string, splitExperience: boolean = false): { 
@@ -739,16 +814,34 @@ export function ResumeReview({
     onFinalize(finalParts.join('\n\n'), acceptedSectionTitles);
   };
 
+  // Role status badge (new status model)
+  const getRoleStatusBadge = (section: ResumeSection) => {
+    if (section.status === "accepted") {
+      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Optimized</Badge>;
+    }
+    if (section.status === "edited") {
+      return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Optimized</Badge>;
+    }
+    if (section.status === "declined") {
+      return <Badge className="bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300">Locked</Badge>;
+    }
+    // For roles with AI suggestions, show "AI Reviewed"
+    if (section.roleData?.aiSuggestions && section.roleData.aiSuggestions.length > 0) {
+      return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">AI Reviewed</Badge>;
+    }
+    return <Badge variant="outline">Draft</Badge>;
+  };
+
   const getStatusBadge = (status: ResumeSection["status"]) => {
     switch (status) {
       case "accepted":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Accepted</Badge>;
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Optimized</Badge>;
       case "declined":
-        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Using Original</Badge>;
+        return <Badge className="bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300">Locked</Badge>;
       case "edited":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Custom Edit</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Optimized</Badge>;
       default:
-        return <Badge variant="outline">Pending Review</Badge>;
+        return <Badge variant="outline">Draft</Badge>;
     }
   };
 
@@ -953,8 +1046,8 @@ export function ResumeReview({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {getStatusBadge(section.status)}
-                {section.status !== "pending" && (
+                {getRoleStatusBadge(section)}
+                {section.status !== "pending" && section.status !== "declined" && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -995,33 +1088,42 @@ export function ResumeReview({
                     )}
                   </div>
                   
-                  {/* AI Recommendations */}
-                  {hasAIRecommendations(roleData.aiRecommendations) && (
-                    <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                      <h4 className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
-                        AI Recommendations
-                      </h4>
-                      <ul className="space-y-2 text-sm">
-                        {roleData.aiRecommendations.missingMetrics?.map((rec, i) => (
-                          <li key={`metric-${i}`} className="flex items-start gap-2 text-amber-900 dark:text-amber-200">
-                            <span className="w-4 h-4 rounded border border-amber-400 flex-shrink-0 mt-0.5" />
-                            {rec}
-                          </li>
-                        ))}
-                        {roleData.aiRecommendations.bulletEdits?.map((edit, i) => (
-                          <li key={`edit-${i}`} className="flex items-start gap-2 text-amber-900 dark:text-amber-200">
-                            <span className="w-4 h-4 rounded border border-amber-400 flex-shrink-0 mt-0.5" />
-                            {edit.suggestion}
-                          </li>
-                        ))}
-                        {roleData.aiRecommendations.keywordGaps?.map((gap, i) => (
-                          <li key={`gap-${i}`} className="flex items-start gap-2 text-amber-900 dark:text-amber-200">
-                            <span className="w-4 h-4 rounded border border-amber-400 flex-shrink-0 mt-0.5" />
-                            {gap}
-                          </li>
-                        ))}
-                      </ul>
+                  {/* AI Suggestions for This Role - Grouped by Type */}
+                  {roleData.aiSuggestions.length > 0 && (
+                    <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          AI Suggestions for This Role
+                        </h4>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-xs text-amber-700 hover:text-amber-900"
+                          onClick={() => handleAcceptAllSuggestions(section.id)}
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Accept All
+                        </Button>
+                      </div>
+                      
+                      {roleData.roleSummary && (
+                        <p className="text-sm text-amber-900 dark:text-amber-200 italic border-l-2 border-amber-400 pl-3">
+                          {roleData.roleSummary}
+                        </p>
+                      )}
+                      
+                      {/* Impact Gaps */}
+                      {renderSuggestionGroup(roleData.aiSuggestions, "impact_gap", "Impact Gaps", section.id)}
+                      
+                      {/* Language & Seniority */}
+                      {renderSuggestionGroup(roleData.aiSuggestions, "language_seniority", "Language & Seniority", section.id)}
+                      
+                      {/* Keyword Optimization */}
+                      {renderSuggestionGroup(roleData.aiSuggestions, "keyword_optimization", "Keyword Optimization", section.id)}
+                      
+                      {/* Clarity / Redundancy */}
+                      {renderSuggestionGroup(roleData.aiSuggestions, "clarity_redundancy", "Clarity / Redundancy", section.id)}
                     </div>
                   )}
                   
@@ -1076,13 +1178,74 @@ export function ResumeReview({
     );
   };
   
-  // Check if role has AI recommendations
-  const hasAIRecommendations = (recs: RoleData['aiRecommendations']) => {
+  // Render suggestion group by type
+  const renderSuggestionGroup = (
+    suggestions: AISuggestion[], 
+    type: AISuggestion['type'], 
+    label: string,
+    sectionId: string
+  ) => {
+    const filtered = suggestions.filter(s => s.type === type);
+    if (filtered.length === 0) return null;
+    
     return (
-      (recs.missingMetrics && recs.missingMetrics.length > 0) ||
-      (recs.bulletEdits && recs.bulletEdits.length > 0) ||
-      (recs.keywordGaps && recs.keywordGaps.length > 0)
+      <div className="space-y-2">
+        <h5 className="text-xs font-medium text-amber-700 dark:text-amber-400">{label}</h5>
+        <ul className="space-y-1.5">
+          {filtered.map((sug) => (
+            <li key={sug.id} className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
+              <button
+                onClick={() => handleToggleSuggestion(sectionId, sug.id)}
+                className={`w-4 h-4 rounded border flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                  sug.accepted 
+                    ? 'bg-green-500 border-green-500 text-white' 
+                    : 'border-amber-400 hover:border-amber-600'
+                }`}
+              >
+                {sug.accepted && <Check className="w-3 h-3" />}
+              </button>
+              <span className={sug.accepted ? 'line-through opacity-60' : ''}>
+                {sug.suggestion}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
     );
+  };
+  
+  // Handle accepting all suggestions for a role
+  const handleAcceptAllSuggestions = (sectionId: string) => {
+    setSections(prev => prev.map(s => {
+      if (s.id === sectionId && s.roleData) {
+        return {
+          ...s,
+          roleData: {
+            ...s.roleData,
+            aiSuggestions: s.roleData.aiSuggestions.map(sug => ({ ...sug, accepted: true }))
+          }
+        };
+      }
+      return s;
+    }));
+  };
+  
+  // Handle toggling individual suggestion
+  const handleToggleSuggestion = (sectionId: string, suggestionId: string) => {
+    setSections(prev => prev.map(s => {
+      if (s.id === sectionId && s.roleData) {
+        return {
+          ...s,
+          roleData: {
+            ...s.roleData,
+            aiSuggestions: s.roleData.aiSuggestions.map(sug => 
+              sug.id === suggestionId ? { ...sug, accepted: !sug.accepted } : sug
+            )
+          }
+        };
+      }
+      return s;
+    }));
   };
   
   // Edit mode component
