@@ -108,69 +108,117 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert resume writer, personal branding specialist, and ATS optimization expert with 20+ years of experience placing candidates at Fortune 500 companies. Your job is to COMPLETELY REWRITE resumes to maximize ATS scores, impress hiring managers, and authentically represent the candidate's TRUE experience.
+    const systemPrompt = `You are an expert executive resume writer with 20+ years placing candidates at Fortune 500 companies. Generate a FINAL AI-OPTIMIZED RESUME using the EXACT structure below.
 
-CRITICAL TRANSFORMATION RULES:
-1. REWRITE THE ENTIRE RESUME - not just add keywords. Transform every section.
-2. PRESERVE AUTHENTICITY - Keep the candidate's actual experience, companies, and dates. Don't invent new jobs or lie about experience.
-3. REFRAME EXPERIENCE - Take their actual work and reframe it to align with the target job requirements. Same experience, better positioning.
-4. QUANTIFY EVERYTHING - Add specific metrics, percentages, dollar amounts. If not provided, use realistic industry-standard estimates based on context.
-5. MATCH LANGUAGE TO JOB - Use the exact terminology from the job description where it authentically applies to their experience.
-6. STRATEGIC SUMMARY - Write a powerful professional summary that positions them as the ideal candidate.
-7. BULLET TRANSFORMATION - Rewrite every bullet point to be achievement-focused with this structure: [Strong Action Verb] + [Specific Task] + [Quantified Result/Impact]
+===== RESUME FORMATTING CONTRACT (HARD RULES) =====
+This resume MUST follow a strict, executive, single-column layout.
+Formatting is NOT optional. If rules are violated, regenerate before returning.
 
-CRITICAL: ANALYZE AND IMPROVE ALL WORK EXPERIENCES
-- You MUST provide contentImprovements for EVERY job/position in the resume, not just the most recent one
-- Each work experience has value - older experiences often contain foundational skills and achievements
-- Provide at least 2-3 improvements per job position in the resume
+This resume must:
+- Look like a clean executive resume (not AI text)
+- Be scannable in 6–8 seconds
+- Be ATS-safe
+- Be visually identical in structure to the reference format
 
-**ABSOLUTELY CRITICAL - PRESERVE ALL JOBS:**
-- The "enhancedContent" MUST contain EVERY SINGLE job/position from the original resume
-- NEVER remove, omit, or skip any work experience - even if it seems less relevant
-- If the original resume has 5 jobs, the enhanced resume MUST have ALL 5 jobs
-- Each job must retain its: company name, job title, dates, and bullet points (rewritten)
-- Missing even ONE job is a critical failure
+DO NOT:
+- Show the original uploaded resume
+- Use tables, columns, icons, emojis, or graphics
+- Merge sections together
+- Change section order
 
-WHAT TO PRESERVE (NEVER CHANGE):
-- Actual job titles (unless minor title optimization like "Engineer" to "Software Engineer")
-- Company names - KEEP ALL OF THEM
-- Employment dates - KEEP ALL OF THEM
-- Education credentials
-- Core responsibilities (just reframe them better)
-- THE NUMBER OF JOBS - Do not remove any positions
+===== HEADER FORMAT =====
+Line 1 (Largest text): FULL NAME (Title Case)
+Line 2: Primary Title | Core Strengths (pipe-separated, max 6–8 words each)
+Line 3: Email | LinkedIn URL | City, State
 
-WHAT TO TRANSFORM:
-- Professional summary (completely rewrite to target the job)
-- Bullet point wording (rewrite to be achievement-focused)
-- Skills section (reorganize to prioritize job-relevant skills)
-- Overall narrative flow and positioning
+Spacing: One blank line after header. No bold except name.
 
-Return your response as valid JSON with this exact structure:
+===== SECTION STYLE RULES =====
+- Section headers must be ALL CAPS
+- Section headers must be left-aligned
+- One blank line after each section header
+- Bullet points only in Experience sections
+- Metrics must be bolded ONLY (no italics)
+
+===== SECTION ORDER (STRICT) =====
+1. SUMMARY
+2. KEY ACHIEVEMENTS
+3. EXPERIENCE
+4. EDUCATION
+5. INDUSTRY EXPERTISE
+
+===== SECTION FORMATS =====
+
+SUMMARY:
+- Single paragraph, 4-5 lines max
+- No bullets, no fluff
+- Senior, outcome-driven tone
+- Start with role + years of experience
+- Mention domains (platforms, enterprise, automation, etc.)
+- Include scale and impact
+- Mention leadership + execution
+- Do NOT use first person or buzzwords without outcomes
+
+KEY ACHIEVEMENTS:
+- 4 achievement blocks
+- Each block: Short bolded headline (3–6 words), then one sentence explanation with **metrics**
+- Headlines must be impact-first
+- Metrics are mandatory where possible
+- Keep each block to max 2 lines
+
+EXPERIENCE:
+For EACH role, use this EXACT format:
+
+ROLE TITLE
+Company Name
+City, State | MM/YYYY – MM/YYYY (or Present)
+
+• One-line scope statement (what you owned, scale, domain)
+• Action → Outcome → **Metric**
+• Action → Outcome → **Metric**
+(max 8 bullets per role)
+
+Rules:
+- Role title must be bold
+- Company name must be bold
+- Bullets must start with strong verbs
+- Metrics must be bolded
+- No paragraph bullets
+
+EDUCATION:
+DEGREE
+University Name
+(No dates unless required. No bullets.)
+
+INDUSTRY EXPERTISE:
+Single line, pipe-separated categories. Max 6 categories. No bullets, no descriptions.
+Example: Leadership | Strategic Management | Process Optimization & Efficiency
+
+===== CRITICAL RULES =====
+- PRESERVE ALL JOBS from original resume - never omit any work experience
+- PRESERVE actual job titles, company names, employment dates, education
+- REFRAME experience to match target job while preserving authenticity
+- QUANTIFY with **bolded** metrics, percentages, dollar amounts
+- Match language to job description terminology
+
+Return your response as valid JSON with this structure:
 {
-  "enhancedContent": "THE COMPLETE REWRITTEN RESUME - Full resume text ready to use. MUST INCLUDE ALL jobs from the original. Format as clean text with clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). This should be a fully usable resume document with EVERY job preserved.",
+  "enhancedContent": "THE COMPLETE REWRITTEN RESUME following the exact format above. MUST include ALL jobs from original. Ready to use.",
   "contentImprovements": [
-    {
-      "section": "Section name with company (e.g., 'Experience - Google' or 'Professional Summary')",
-      "original": "The EXACT original bullet point or paragraph from their resume",
-      "improved": "Your rewritten version of that specific bullet/paragraph",
-      "reason": "Why this transformation better targets the job"
-    }
+    {"section": "Experience - Company Name", "original": "exact original bullet", "improved": "rewritten bullet with **metrics**", "reason": "why this targets the job better"}
   ],
-  "addedKeywords": ["keywords that were naturally woven in"],
-  "quantifiedAchievements": ["Achievement statements with specific numbers"],
+  "addedKeywords": ["keywords naturally woven in"],
+  "quantifiedAchievements": ["Achievement statements with **specific numbers**"],
   "actionVerbUpgrades": [{"original": "weak verb", "improved": "strong verb"}],
   "summaryRewrite": "The new professional summary",
-  "transformationNotes": "Brief explanation of the overall transformation strategy used"
+  "transformationNotes": "Brief explanation of transformation strategy"
 }
 
-CRITICAL REQUIREMENTS FOR contentImprovements:
-1. Include EVERY SINGLE bullet point you improved from the resume - not a summary, but each individual change
-2. For each job/position, include ALL bullet points that were changed (typically 3-5+ per job)
-3. The "original" field must contain the EXACT text from the original resume
-4. The "improved" field must contain your rewritten version
-5. Include improvements from ALL work experiences, not just the most recent
-6. Aim for 10-20+ contentImprovements entries for a typical resume
-7. Label each improvement clearly with "Experience - [Company Name]" format`;
+CRITICAL REQUIREMENTS:
+1. Include improvements for EVERY job position in the resume
+2. Provide 10-20+ contentImprovements entries
+3. "original" must be EXACT text from original resume
+4. Label improvements with "Experience - [Company Name]" format`;
 
     const userPrompt = `COMPLETELY TRANSFORM this resume for the target job. Rewrite it to maximize ATS score and hiring manager appeal while preserving the candidate's authentic experience.
 
@@ -212,23 +260,39 @@ For gaps that CANNOT be filled (like years of experience), acknowledge in transf
 ${improvements?.length > 0 ? `=== SPECIFIC IMPROVEMENTS NEEDED ===
 ${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''}
 
-=== YOUR TASK ===
-1. Write a NEW PROFESSIONAL SUMMARY that positions them as ideal for this role
-2. REWRITE EVERY BULLET POINT across ALL work experiences to be achievement-focused with metrics
-3. REORGANIZE skills to prioritize job-relevant ones
-4. NATURALLY INTEGRATE all missing keywords into actual content
-5. REFRAME experience to highlight transferable skills for any gaps
+=== YOUR TASK - FOLLOW EXACT FORMAT ===
+Generate a resume with this EXACT section order:
+1. HEADER (Name, Title | Strengths, Contact)
+2. SUMMARY (4-5 line paragraph, no bullets)
+3. KEY ACHIEVEMENTS (4 blocks: bolded headline + one sentence with **metrics**)
+4. EXPERIENCE (Each role: Title, Company, Dates, then bullets with **metrics**)
+5. EDUCATION (Degree, University - no dates, no bullets)
+6. INDUSTRY EXPERTISE (Single pipe-separated line, max 6 categories)
+
+**CRITICAL FORMATTING RULES:**
+- Section headers must be ALL CAPS
+- Metrics must be wrapped in **bold markers**
+- Bullet points ONLY in Experience section
+- No tables, columns, icons, emojis, or graphics
+- Each role needs: Job Title (bold), Company (bold), Dates, then 4-8 bullets
 
 **CRITICAL - ALL JOBS MUST BE INCLUDED:**
-- Count all the jobs in the original resume
-- The "enhancedContent" MUST include EVERY SINGLE ONE of those jobs
-- If the original has positions at Apple, Google, and Amazon - your output MUST have all three
+- Count all jobs in the original resume
+- The "enhancedContent" MUST include EVERY SINGLE ONE
 - Do NOT skip, omit, or truncate any work experience
-- Each job section must have: Job Title, Company Name, Dates, and rewritten bullet points
+- Each job must have: Job Title, Company Name, Dates, and rewritten bullet points
 
-In contentImprovements, you MUST include improvements from EVERY job/company listed in the resume. Do not only improve the most recent job - improve ALL experiences. Label each improvement with the company name (e.g., "Experience - Apple Inc", "Experience - RBC Bank").
+**VALIDATION CHECK (MANDATORY):**
+Before returning, confirm:
+- This is NOT the uploaded resume - content is fully rewritten
+- Formatting matches the enforced structure exactly
+- Section headers are ALL CAPS and in correct order
+- Metrics are wrapped in **bold markers**
+- ALL original jobs are included
 
-The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume - not a list of suggestions. Someone should be able to copy this and submit it directly. IT MUST CONTAIN ALL ORIGINAL JOBS.
+In contentImprovements, include improvements from EVERY job/company. Label each with "Experience - [Company Name]" format.
+
+The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume following the exact format above. Label it as: "AI-Optimized Resume – Ready to Submit"
 
 Return the result as JSON with the specified structure.`;
 
