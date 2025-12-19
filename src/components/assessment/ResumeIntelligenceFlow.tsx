@@ -1,6 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Mail } from "lucide-react";
 
 // Import new UX components
 import { ResumeLanding } from "./resume/ResumeLanding";
@@ -63,7 +67,27 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   const [regenerationsRemaining, setRegenerationsRemaining] = useState(5);
   const [accessExpiresAt, setAccessExpiresAt] = useState<string | undefined>();
   
+  // Activation dialog state
+  const [showActivationDialog, setShowActivationDialog] = useState(false);
+  const [activationEmail, setActivationEmail] = useState("");
+  const [isActivating, setIsActivating] = useState(false);
+  const [activationSuccess, setActivationSuccess] = useState(false);
+  
   const { toast } = useToast();
+
+  // Check for purchase success on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const purchaseParam = urlParams.get("purchase");
+    
+    if (purchaseParam === "resume_success") {
+      // Show activation dialog
+      setShowActivationDialog(true);
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, []);
 
   // Helper to get email from localStorage
   const getStoredEmail = (): string | undefined => {
@@ -121,7 +145,69 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     return false;
   };
 
-  // Handle starting the free scan
+  // Handle activation with email
+  const handleActivateAccess = async () => {
+    if (!activationEmail.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter the email you used for purchase.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsActivating(true);
+    
+    try {
+      // Verify access with the provided email
+      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email: activationEmail.toLowerCase(), toolType: "resume_suite" },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.hasAccess) {
+        // Store access in localStorage
+        localStorage.setItem("resume_suite_access", JSON.stringify({
+          email: activationEmail.toLowerCase(),
+          accessToken: data.accessToken,
+          expiresAt: data.expiresAt,
+        }));
+        
+        setHasPaidAccess(true);
+        setAccessExpiresAt(data.expiresAt);
+        setRegenerationsRemaining(data.regenerationsRemaining || 5);
+        setActivationSuccess(true);
+        
+        toast({
+          title: "Access activated!",
+          description: "You now have full access to Resume Intelligence.",
+        });
+        
+        // Close dialog after a moment and proceed to welcome
+        setTimeout(() => {
+          setShowActivationDialog(false);
+          setActivationSuccess(false);
+          setStep("welcome");
+        }, 2000);
+      } else {
+        toast({
+          title: "Access not found",
+          description: "No active purchase found for this email. Please check your email or contact support.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Activation error:", error);
+      toast({
+        title: "Activation failed",
+        description: error.message || "Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsActivating(false);
+    }
+  };
   const handleStartScan = async (
     resume: string, 
     jd: string, 
@@ -193,16 +279,18 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   // Handle upgrade/payment
   const handleUpgrade = async () => {
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("create-resume-suite-checkout", {
         body: { 
-          returnUrl: window.location.href,
-          email: getStoredEmail() 
+          customerEmail: email,
+          successParam: "resume_success"
         },
       });
       
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // Redirect to Stripe checkout in same tab
+        window.location.href = data.url;
       }
     } catch (error: any) {
       toast({
@@ -398,65 +486,131 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     return data.coverLetter || "";
   };
 
-  // Render current step
-  switch (step) {
-    case "landing":
-      return (
-        <ResumeLanding
-          onBack={onBack}
-          onProceed={() => setStep("welcome")}
-        />
-      );
-      
-    case "welcome":
-      return (
-        <ResumeWelcome
-          onBack={() => setStep("landing")}
-          onStartScan={handleStartScan}
-          isAnalyzing={isAnalyzing}
-        />
-      );
-      
-    case "processing":
-      return (
-        <ResumeProcessing onComplete={handleProcessingComplete} />
-      );
-      
-    case "free_results":
-      return freeScore ? (
-        <FreeResults
-          score={freeScore}
-          onBack={() => setStep("welcome")}
-          onUpgrade={handleUpgrade}
-          onSaveReport={handleSaveReport}
-        />
-      ) : null;
-      
-    case "clarification":
-      return (
-        <ClarificationQuestions
-          onBack={() => setStep("free_results")}
-          onSubmit={handleClarificationSubmit}
-          isGenerating={isGenerating}
-        />
-      );
-      
-    case "paid_output":
-      return (
-        <PaidOutput
-          resumeContent={enhancedResumeContent}
-          score={paidScore}
-          onBack={() => setStep("clarification")}
-          onRegenerate={handleRegenerate}
-          onDownloadPDF={handleDownloadPDF}
-          onDownloadDocx={handleDownloadDocx}
-          onGenerateCoverLetter={handleGenerateCoverLetter}
-          regenerationsRemaining={regenerationsRemaining}
-          accessExpiresAt={accessExpiresAt}
-        />
-      );
-      
-    default:
-      return null;
-  }
+  // Activation dialog component
+  const ActivationDialog = () => (
+    <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            {activationSuccess ? (
+              <>
+                <CheckCircle className="w-6 h-6 text-green-500" />
+                Access Activated!
+              </>
+            ) : (
+              <>
+                <Mail className="w-6 h-6 text-primary" />
+                Activate Your Access
+              </>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            {activationSuccess 
+              ? "You now have full access to Resume Intelligence. Redirecting..."
+              : "Enter the email address you used for your purchase to activate your access."
+            }
+          </DialogDescription>
+        </DialogHeader>
+        
+        {!activationSuccess && (
+          <div className="space-y-4 py-4">
+            <Input
+              type="email"
+              placeholder="your@email.com"
+              value={activationEmail}
+              onChange={(e) => setActivationEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleActivateAccess()}
+            />
+            <Button 
+              onClick={handleActivateAccess} 
+              disabled={isActivating || !activationEmail.trim()}
+              className="w-full"
+            >
+              {isActivating ? "Verifying..." : "Activate Access"}
+            </Button>
+          </div>
+        )}
+        
+        {activationSuccess && (
+          <div className="py-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <p className="text-muted-foreground">Preparing your Resume Intelligence suite...</p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Render current step with activation dialog
+  const renderStep = () => {
+    switch (step) {
+      case "landing":
+        return (
+          <ResumeLanding
+            onBack={onBack}
+            onProceed={() => setStep("welcome")}
+          />
+        );
+        
+      case "welcome":
+        return (
+          <ResumeWelcome
+            onBack={() => setStep("landing")}
+            onStartScan={handleStartScan}
+            isAnalyzing={isAnalyzing}
+          />
+        );
+        
+      case "processing":
+        return (
+          <ResumeProcessing onComplete={handleProcessingComplete} />
+        );
+        
+      case "free_results":
+        return freeScore ? (
+          <FreeResults
+            score={freeScore}
+            onBack={() => setStep("welcome")}
+            onUpgrade={handleUpgrade}
+            onSaveReport={handleSaveReport}
+          />
+        ) : null;
+        
+      case "clarification":
+        return (
+          <ClarificationQuestions
+            onBack={() => setStep("free_results")}
+            onSubmit={handleClarificationSubmit}
+            isGenerating={isGenerating}
+          />
+        );
+        
+      case "paid_output":
+        return (
+          <PaidOutput
+            resumeContent={enhancedResumeContent}
+            score={paidScore}
+            onBack={() => setStep("clarification")}
+            onRegenerate={handleRegenerate}
+            onDownloadPDF={handleDownloadPDF}
+            onDownloadDocx={handleDownloadDocx}
+            onGenerateCoverLetter={handleGenerateCoverLetter}
+            regenerationsRemaining={regenerationsRemaining}
+            accessExpiresAt={accessExpiresAt}
+          />
+        );
+        
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <>
+      <ActivationDialog />
+      {renderStep()}
+    </>
+  );
 }
