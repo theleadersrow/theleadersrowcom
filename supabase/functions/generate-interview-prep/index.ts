@@ -10,6 +10,45 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[INTERVIEW-PREP] ${step}`, details ? JSON.stringify(details) : "");
 };
 
+// Helper function for default preview questions by role
+function getDefaultPreviewQuestions(role: string) {
+  const roleKeywords = role.toLowerCase();
+  
+  if (roleKeywords.includes("product") || roleKeywords.includes("pm")) {
+    return [
+      { question: "Tell me about a product you've launched from concept to market.", category: "Experience", difficulty: "Medium" as const },
+      { question: "How do you prioritize features when you have limited resources?", category: "Product Sense", difficulty: "Hard" as const },
+      { question: "Describe a data-driven decision that went against stakeholder opinions.", category: "Decision Making", difficulty: "Hard" as const },
+      { question: "How do you measure the success of a product feature?", category: "Metrics", difficulty: "Medium" as const },
+      { question: "Walk me through how you would improve a product you use daily.", category: "Product Sense", difficulty: "Hard" as const },
+    ];
+  } else if (roleKeywords.includes("engineer") || roleKeywords.includes("developer")) {
+    return [
+      { question: "Describe a complex technical challenge you solved.", category: "Technical", difficulty: "Hard" as const },
+      { question: "How do you balance technical debt with feature development?", category: "Decision Making", difficulty: "Medium" as const },
+      { question: "Tell me about a time you had to learn a new technology quickly.", category: "Growth", difficulty: "Medium" as const },
+      { question: "How do you ensure code quality in your team?", category: "Leadership", difficulty: "Medium" as const },
+      { question: "Describe your approach to system design.", category: "Technical", difficulty: "Hard" as const },
+    ];
+  } else if (roleKeywords.includes("manager") || roleKeywords.includes("director") || roleKeywords.includes("lead")) {
+    return [
+      { question: "How do you handle underperforming team members?", category: "Leadership", difficulty: "Hard" as const },
+      { question: "Describe a difficult decision that impacted your team.", category: "Decision Making", difficulty: "Hard" as const },
+      { question: "How do you build and maintain team culture?", category: "Leadership", difficulty: "Medium" as const },
+      { question: "Tell me about a time you had to influence without authority.", category: "Influence", difficulty: "Hard" as const },
+      { question: "How do you balance strategic planning with execution?", category: "Strategy", difficulty: "Medium" as const },
+    ];
+  }
+  
+  return [
+    { question: "Tell me about yourself and your career journey.", category: "Background", difficulty: "Easy" as const },
+    { question: "What is your biggest professional achievement?", category: "Experience", difficulty: "Medium" as const },
+    { question: "Describe a challenge you faced and how you overcame it.", category: "Problem Solving", difficulty: "Medium" as const },
+    { question: "Where do you see yourself in 5 years?", category: "Goals", difficulty: "Easy" as const },
+    { question: "Why are you interested in this role?", category: "Motivation", difficulty: "Medium" as const },
+  ];
+}
+
 // Verify tool access by email or access token
 async function verifyToolAccess(
   email: string | undefined,
@@ -73,18 +112,91 @@ serve(async (req) => {
       jobDescription, 
       companyName,
       roleTitle,
+      targetRole,
       email,
-      accessToken
+      accessToken,
+      previewOnly = false // New: preview mode for common questions without full access
     } = await req.json();
 
     logStep("Request received", { 
       hasResume: !!resumeText, 
       hasJob: !!jobDescription,
       companyName,
-      roleTitle
+      roleTitle,
+      targetRole,
+      previewOnly
     });
 
-    // Verify tool access
+    // If preview mode, skip access verification and return common questions
+    if (previewOnly) {
+      logStep("Preview mode - generating common questions");
+      
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) {
+        // Fallback to role-based default questions
+        const previewQuestions = getDefaultPreviewQuestions(targetRole || roleTitle || "");
+        return new Response(JSON.stringify({ previewQuestions }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Generate preview questions with AI
+      const previewSystemPrompt = `You are an interview coach. Generate 5 common interview questions for the given role.
+Return a JSON array with this structure:
+[
+  {
+    "question": "string - the interview question",
+    "category": "string - one of: Experience, Behavioral, Technical, Problem Solving, Leadership",
+    "difficulty": "string - one of: Easy, Medium, Hard"
+  }
+]
+Only return the JSON array, no other text.`;
+
+      const previewUserPrompt = `Generate 5 common interview questions for a ${targetRole || roleTitle || "professional"} role.
+${resumeText ? `Consider this candidate's background:\n${resumeText.substring(0, 1000)}...` : ''}
+${jobDescription ? `For this type of position:\n${jobDescription.substring(0, 500)}...` : ''}
+
+Return questions that are commonly asked in interviews for this role level.`;
+
+      try {
+        const previewResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              { role: "system", content: previewSystemPrompt },
+              { role: "user", content: previewUserPrompt }
+            ],
+          }),
+        });
+
+        if (previewResponse.ok) {
+          const data = await previewResponse.json();
+          const content = data.choices?.[0]?.message?.content;
+          const jsonMatch = content?.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            const previewQuestions = JSON.parse(jsonMatch[0]);
+            return new Response(JSON.stringify({ previewQuestions }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      } catch (e) {
+        logStep("Preview AI call failed, using defaults", { error: String(e) });
+      }
+
+      // Fallback to defaults
+      const previewQuestions = getDefaultPreviewQuestions(targetRole || roleTitle || "");
+      return new Response(JSON.stringify({ previewQuestions }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Full mode - verify access
     const accessCheck = await verifyToolAccess(email, accessToken, "resume_suite");
     if (!accessCheck.valid) {
       logStep("Access denied", { error: accessCheck.error });

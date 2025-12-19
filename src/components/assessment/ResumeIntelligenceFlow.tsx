@@ -13,6 +13,8 @@ import { ResumeWelcome } from "./resume/ResumeWelcome";
 import { ResumeProcessing } from "./resume/ResumeProcessing";
 import { FreeResults } from "./resume/FreeResults";
 import { ClarificationQuestions } from "./resume/ClarificationQuestions";
+import { ResumeReview } from "./resume/ResumeReview";
+import { InterviewQuestionsPreview } from "./resume/InterviewQuestionsPreview";
 import { PaidOutput } from "./resume/PaidOutput";
 
 interface ResumeIntelligenceFlowProps {
@@ -50,7 +52,14 @@ interface ClarificationAnswers {
   targetCompanies: string;
 }
 
-type Step = "landing" | "welcome" | "processing" | "free_results" | "clarification" | "paid_output";
+interface ContentImprovement {
+  section: string;
+  original: string;
+  improved: string;
+  reason: string;
+}
+
+type Step = "landing" | "welcome" | "processing" | "free_results" | "clarification" | "resume_review" | "interview_preview" | "paid_output";
 
 export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenceFlowProps) {
   const [step, setStep] = useState<Step>("landing");
@@ -63,10 +72,13 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   const [freeScore, setFreeScore] = useState<ATSResult | null>(null);
   const [paidScore, setPaidScore] = useState<ATSResult | null>(null);
   const [enhancedResumeContent, setEnhancedResumeContent] = useState("");
+  const [rawEnhancedContent, setRawEnhancedContent] = useState(""); // Original AI output before user edits
+  const [contentImprovements, setContentImprovements] = useState<ContentImprovement[]>([]);
   const [clarificationAnswers, setClarificationAnswers] = useState<ClarificationAnswers | null>(null);
   const [hasPaidAccess, setHasPaidAccess] = useState(false);
   const [regenerationsRemaining, setRegenerationsRemaining] = useState(5);
   const [accessExpiresAt, setAccessExpiresAt] = useState<string | undefined>();
+  const [acceptedSections, setAcceptedSections] = useState<string[]>([]);
   
   // Activation dialog state
   const [showActivationDialog, setShowActivationDialog] = useState(false);
@@ -366,9 +378,35 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
 
       if (error) throw error;
       
+      // Store raw AI output for review
+      setRawEnhancedContent(data.enhancedContent || "");
       setEnhancedResumeContent(data.enhancedContent || "");
+      setContentImprovements(data.contentImprovements || []);
       
-      // Get updated score for the enhanced resume
+      // Go to review step instead of directly to output
+      setStep("resume_review");
+    } catch (error: any) {
+      console.error("Enhancement error:", error);
+      toast({
+        title: "Enhancement failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Handle resume review finalization
+  const handleReviewFinalize = async (finalResume: string, acceptedSectionsList: string[]) => {
+    setEnhancedResumeContent(finalResume);
+    setAcceptedSections(acceptedSectionsList);
+    
+    // Get updated score for the finalized resume
+    const userEmail = getStoredEmail();
+    const accessToken = getAccessToken();
+    
+    try {
       const scoreResponse = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ats-score-resume`,
         {
@@ -378,7 +416,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({ 
-            resumeText: data.enhancedContent, 
+            resumeText: finalResume, 
             jobDescription,
             isPostTransformation: true,
             email: userEmail,
@@ -391,18 +429,26 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
         const scoreData = await scoreResponse.json();
         setPaidScore(scoreData);
       }
-      
-      setStep("paid_output");
-    } catch (error: any) {
-      console.error("Enhancement error:", error);
-      toast({
-        title: "Enhancement failed",
-        description: error.message || "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
+    } catch (error) {
+      console.error("Score calculation error:", error);
     }
+    
+    // Go to interview questions preview
+    setStep("interview_preview");
+  };
+
+  // Handle interview preview continue
+  const handleInterviewPreviewContinue = () => {
+    setStep("paid_output");
+  };
+
+  // Handle unlock interview prep (redirect to purchase)
+  const handleUnlockInterviewPrep = () => {
+    // TODO: Add interview prep purchase link when available
+    toast({
+      title: "Coming Soon",
+      description: "Full interview prep with practice questions will be available soon!",
+    });
   };
 
   // Handle regenerate resume
@@ -555,12 +601,39 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           />
         );
         
+      case "resume_review":
+        return (
+          <ResumeReview
+            originalResume={resumeText}
+            enhancedContent={rawEnhancedContent}
+            contentImprovements={contentImprovements}
+            onBack={() => setStep("clarification")}
+            onFinalize={handleReviewFinalize}
+            isGenerating={isGenerating}
+          />
+        );
+        
+      case "interview_preview":
+        return (
+          <div className="min-h-[80vh] animate-fade-up px-4">
+            <div className="max-w-4xl mx-auto">
+              <InterviewQuestionsPreview
+                resumeContent={enhancedResumeContent}
+                targetRole={clarificationAnswers?.targetRole || ""}
+                jobDescription={jobDescription}
+                onContinue={handleInterviewPreviewContinue}
+                onUnlockInterviewPrep={handleUnlockInterviewPrep}
+              />
+            </div>
+          </div>
+        );
+        
       case "paid_output":
         return (
           <PaidOutput
             resumeContent={enhancedResumeContent}
             score={paidScore}
-            onBack={() => setStep("clarification")}
+            onBack={() => setStep("interview_preview")}
             onRegenerate={handleRegenerate}
             onDownloadPDF={handleDownloadPDF}
             onDownloadDocx={handleDownloadDocx}
