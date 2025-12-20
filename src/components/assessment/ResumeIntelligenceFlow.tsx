@@ -647,19 +647,24 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
         (/revenue|growth|improvement|reduction|increase|savings|acquisition|automation|expansion|profitability|retention|optimization|transformation|innovation|integration|platform|enterprise|saas|ai-powered|global|strategic/i.test(trimmedLine) && trimmedLine.length < 70 && !trimmedLine.includes('|'))
       );
       
-      // Detect role header lines (job title, company name, location/date)
-      // These should NOT be bulleted even if the raw line ends with *
-      // But exclude achievement titles which should be bulleted
-      const isRoleHeaderLine = !isAchievementTitle && (
-        // Location + date pattern: "City, State | MM/YYYY – MM/YYYY" or similar
+      // Detect location/date lines - "City, State | MM/YYYY – MM/YYYY" format
+      const isLocationDateLine = !isAchievementTitle && (
         /^[A-Za-z\s,]+\s*\|\s*\d{1,2}\/\d{4}/i.test(trimmedLine) ||
-        // Date range pattern at end: "... | 10/2020 – 05/2025"
-        /\|\s*\d{1,2}\/\d{4}\s*[–\-]\s*(\d{1,2}\/\d{4}|present|current)/i.test(trimmedLine) ||
-        // Company name line (short, no bullet chars at start, often ends with trailing *, but NOT achievement lines)
-        (rawTrimmed.endsWith('*') && !rawTrimmed.startsWith('*') && !rawTrimmed.startsWith('-') && !rawTrimmed.startsWith('•') && trimmedLine.length < 80 && !/\$|\d+%|revenue|growth/i.test(trimmedLine)) ||
-        // Job title patterns (contains common title words)
-        /^(head of|director|manager|lead|senior|principal|vp|vice president|chief|cto|ceo|cfo|coo)/i.test(trimmedLine)
+        /\|\s*\d{1,2}\/\d{4}\s*[–\-]\s*(\d{1,2}\/\d{4}|present|current)/i.test(trimmedLine)
       );
+      
+      // Detect job title lines (Head of Product, Senior Manager, etc.)
+      const isJobTitleLine = !isAchievementTitle && !isLocationDateLine && (
+        /^(head of|director|manager|lead|senior|principal|vp|vice president|chief|cto|ceo|cfo|coo|engineer|developer|designer|analyst|consultant|specialist|coordinator|associate|executive|president|founder|partner|architect|strategist)/i.test(trimmedLine)
+      );
+      
+      // Detect company name lines (short lines that end with * in markdown, not bullets, not achievement lines)
+      const isCompanyLine = !isAchievementTitle && !isLocationDateLine && !isJobTitleLine && (
+        (rawTrimmed.endsWith('*') && !rawTrimmed.startsWith('*') && !rawTrimmed.startsWith('-') && !rawTrimmed.startsWith('•') && trimmedLine.length < 80 && !/\$|\d+%|revenue|growth/i.test(trimmedLine))
+      );
+      
+      // Combined role header detection (any of the above)
+      const isRoleHeaderLine = isLocationDateLine || isJobTitleLine || isCompanyLine;
       
       // Detect bullet points - must START with bullet character (*, -, •)
       // OR be an achievement title (these should be bulleted)
@@ -725,8 +730,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           })
         );
         lastWasSectionHeader = false;
-      } else if (isRoleHeaderLine) {
-        // Role header lines (job title, company, location/date) - bold, no bullets
+      } else if (isJobTitleLine) {
+        // Job title - bold
         paragraphs.push(
           new Paragraph({
             children: [
@@ -737,7 +742,39 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
                 bold: true
               })
             ],
-            spacing: { after: 40, before: lastWasSectionHeader ? 0 : 100 }
+            spacing: { after: 20, before: lastWasSectionHeader ? 0 : 120 }
+          })
+        );
+        lastWasSectionHeader = false;
+      } else if (isCompanyLine) {
+        // Company name - bold
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 22,
+                bold: true
+              })
+            ],
+            spacing: { after: 20, before: 0 }
+          })
+        );
+        lastWasSectionHeader = false;
+      } else if (isLocationDateLine) {
+        // Location | Date - not bold, same format
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 22,
+                bold: false
+              })
+            ],
+            spacing: { after: 60, before: 0 }
           })
         );
         lastWasSectionHeader = false;
