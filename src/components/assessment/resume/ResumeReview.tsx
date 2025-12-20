@@ -1026,19 +1026,8 @@ export function ResumeReview({
         
         i = j; // Skip past all the roles we just rendered
       } else if (!section.isRole) {
-        // Regular section (not a role) - render with group header
-        result.push(
-          <div key={section.id} className="space-y-3">
-            {/* Section Group Header */}
-            <div className="flex items-center gap-2 px-2 pt-4">
-              {getSectionIcon(section.title)}
-              <h3 className="font-semibold text-lg text-foreground">{section.title}</h3>
-            </div>
-            
-            {/* Section Card */}
-            {renderSectionCard(section, false)}
-          </div>
-        );
+        // Regular section (not a role) - render without group header
+        result.push(renderSectionCard(section, false));
         i++;
       } else {
         // Orphan role (shouldn't happen, but handle gracefully)
