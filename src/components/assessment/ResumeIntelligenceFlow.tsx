@@ -891,6 +891,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           <PaidOutput
             resumeContent={enhancedResumeContent}
             score={paidScore}
+            originalATSScore={freeScore?.ats_score}
             onBack={() => setStep("resume_review")}
             onViewPDF={handleViewPDF}
             onDownloadDocx={handleDownloadDocx}

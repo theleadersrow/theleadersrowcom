@@ -49,6 +49,7 @@ interface ATSResult {
 interface PaidOutputProps {
   resumeContent: string;
   score: ATSResult | null;
+  originalATSScore?: number; // Original score before optimization
   onBack: () => void;
   onViewPDF: () => void;
   onDownloadDocx: () => void;
@@ -70,6 +71,7 @@ interface CoverLetterInput {
 export function PaidOutput({
   resumeContent,
   score,
+  originalATSScore,
   onBack,
   onViewPDF,
   onDownloadDocx,
@@ -255,6 +257,42 @@ export function PaidOutput({
                     View Full Report
                   </Button>
                 </div>
+
+                {/* Score Improvement Indicator */}
+                {originalATSScore !== undefined && score && (
+                  <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {/* Before Score */}
+                        <div className="text-center">
+                          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Before</div>
+                          <div className="text-2xl font-bold text-muted-foreground">{originalATSScore}</div>
+                        </div>
+                        
+                        {/* Arrow */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-12 h-0.5 bg-gradient-to-r from-muted-foreground to-green-500"></div>
+                          <ArrowRight className="w-5 h-5 text-green-500" />
+                        </div>
+                        
+                        {/* After Score */}
+                        <div className="text-center">
+                          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">After</div>
+                          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{score.ats_score}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Improvement Badge */}
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <TrendingUp className="w-5 h-5" />
+                          <span className="text-2xl font-bold">+{score.ats_score - originalATSScore}</span>
+                        </div>
+                        <span className="text-sm text-green-600/80 dark:text-green-400/80">points improved</span>
+                      </div>
+                    </div>
+                  </Card>
+                )}
 
                 {/* Quick Summary Cards */}
                 <Card className="p-6 text-center bg-gradient-to-br from-card to-muted/50">
