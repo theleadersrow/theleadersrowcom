@@ -143,59 +143,40 @@ STYLE RULES:
 - Use the candidate's authentic voice
 - Make every sentence count
 
-CRITICAL FORMAT RULES:
-- Start DIRECTLY with the greeting/salutation (e.g., "Dear Hiring Manager," or "Dear [Name],")
-- Do NOT include any header information (name, email, phone, address, date) - this is handled by the UI
-- Do NOT use placeholders like [Date], [Your Name], [Address], [City], etc.
-- End with a closing like "Sincerely," followed by NOTHING ELSE - the signature is handled by the UI
-- The letter should contain ONLY: greeting, body paragraphs, and closing word`;
+HARD CONSTRAINTS (MANDATORY - VIOLATION WILL CAUSE REJECTION):
+- Do NOT include the candidate's name, email, date, address, subject line, or placeholders.
+- Start the output DIRECTLY with the salutation ("Dear …").
+- Never output bracketed placeholders like [Date], [Your Name], [Address], [Company], or any metadata.
+- Do NOT include "Re:" or any subject line.
+- End with ONLY "Sincerely," - nothing after it.
+- The UI handles all header/letterhead information - your job is ONLY the letter body.`;
 
-    const userPrompt = `Write a ${coverLetterLength.toUpperCase()} cover letter for this candidate applying to this role.
+    // Only pass minimal context to AI - NO personal data that could leak into output
+    const userPrompt = `Write a ${coverLetterLength.toUpperCase()} cover letter for a candidate applying to ${companyName || "this company"} for a role.
 
-CANDIDATE INFORMATION (for context only - DO NOT include in output):
-Name: ${candidateName || "Candidate"}
-${companyName ? `Company applying to: ${companyName}` : ""}
-${hiringManagerName ? `Hiring manager: ${hiringManagerName}` : ""}
+ROLE CONTEXT:
+${companyName ? `Company: ${companyName}` : ""}
+${hiringManagerName ? `Address the letter to: ${hiringManagerName}` : "Address to: Hiring Manager"}
 
-CANDIDATE'S RESUME:
+CANDIDATE'S RESUME HIGHLIGHTS:
 ${resumeText}
 
 JOB DESCRIPTION:
 ${jobDescription}
 
-${selfProjection ? `HOW THE CANDIDATE WANTS TO BE PERCEIVED:
-${selfProjection}
+${selfProjection ? `CANDIDATE'S SELF-PROJECTION (use to make the letter authentic):
+${selfProjection}` : ""}
 
-Use this self-projection to make the cover letter authentic to who they are.` : ""}
+LENGTH: ${coverLetterLength.toUpperCase()}
+${coverLetterLength === "short" ? `- Maximum 250 words, 3 paragraphs, concise and punchy` : coverLetterLength === "detailed" ? `- 500-600 words, 5-6 paragraphs, comprehensive` : `- 300-400 words, 4 paragraphs, balanced`}
 
-INSTRUCTIONS FOR ${coverLetterLength.toUpperCase()} COVER LETTER:
-${coverLetterLength === "short" ? `
-- Keep it CONCISE - maximum 250 words
-- 3 short paragraphs only
-- Opening hook, 1 strong achievement paragraph, closing with call to action
-- Perfect for quick-read scenarios and busy hiring managers
-` : coverLetterLength === "detailed" ? `
-- Make it COMPREHENSIVE - 500-600 words
-- 5-6 well-developed paragraphs
-- Opening hook with company research
-- 2-3 achievement paragraphs with specific metrics
-- Paragraph on cultural fit and motivation
-- Strong closing with clear call to action
-- Show depth of experience and genuine interest
-` : `
-- BALANCED length - 300-400 words
-- 4 paragraphs
-- Opening hook
-- 2 achievement paragraphs matching job requirements
-- Closing with enthusiasm and call to action
-`}
-
-CRITICAL OUTPUT FORMAT:
-- Start with "${hiringManagerName ? `Dear ${hiringManagerName},` : "Dear Hiring Manager,"}"
-- Do NOT include any letterhead, date, address, name, email, or phone at the start
-- Do NOT include the candidate's name after "Sincerely," - just end with "Sincerely,"
-- Do NOT use any placeholders like [Date], [Your Name], [Company Address], etc.
-- Return ONLY the greeting, body paragraphs, and closing word`;
+OUTPUT FORMAT (CRITICAL):
+- Start EXACTLY with: "${hiringManagerName ? `Dear ${hiringManagerName},` : "Dear Hiring Manager,"}"
+- Body paragraphs only
+- End EXACTLY with: "Sincerely,"
+- NO name, email, date, address, phone, subject line, or ANY header content
+- NO placeholders like [Date], [Your Name], [Address]
+- NOTHING after "Sincerely,"`;
 
     logStep("Calling AI for cover letter generation", { length: coverLetterLength });
 
@@ -235,13 +216,63 @@ CRITICAL OUTPUT FORMAT:
     }
 
     const data = await response.json();
-    const coverLetter = data.choices?.[0]?.message?.content;
+    let coverLetter = data.choices?.[0]?.message?.content;
 
     if (!coverLetter) {
       throw new Error("No content in AI response");
     }
 
-    logStep("Cover letter generated successfully", { length: coverLetterLength });
+    // PLACEHOLDER SANITIZATION - Check for forbidden patterns and clean if found
+    const forbiddenPatterns = [
+      /\[Date\]/gi,
+      /\[Your Name\]/gi,
+      /\[Your Address\]/gi,
+      /\[City,?\s*State,?\s*Zip\]/gi,
+      /\[Company Address\]/gi,
+      /\[Hiring Manager\]/gi,
+      /\[Phone\]/gi,
+      /\[Email\]/gi,
+      /\[Address\]/gi,
+      /if known/gi,
+      /otherwise omit/gi,
+      /\[.*?\]/g, // Any remaining bracketed placeholders
+    ];
+
+    let containsForbidden = false;
+    for (const pattern of forbiddenPatterns) {
+      if (pattern.test(coverLetter)) {
+        containsForbidden = true;
+        // Remove the forbidden pattern
+        coverLetter = coverLetter.replace(pattern, '').trim();
+      }
+    }
+
+    if (containsForbidden) {
+      logStep("Sanitized forbidden placeholders from output");
+    }
+
+    // Clean up any leading lines before "Dear" - ensure it starts with salutation
+    const dearIndex = coverLetter.indexOf("Dear ");
+    if (dearIndex > 0) {
+      coverLetter = coverLetter.substring(dearIndex);
+      logStep("Trimmed content before salutation");
+    }
+
+    // Clean up anything after "Sincerely," on the same line or following lines that look like signatures
+    const sincerelyMatch = coverLetter.match(/Sincerely,?\s*\n?/i);
+    if (sincerelyMatch) {
+      const sincerelyIndex = coverLetter.indexOf(sincerelyMatch[0]);
+      coverLetter = coverLetter.substring(0, sincerelyIndex + sincerelyMatch[0].length).trim();
+      // Ensure it ends with just "Sincerely,"
+      if (!coverLetter.endsWith("Sincerely,")) {
+        coverLetter = coverLetter.replace(/Sincerely,?\s*$/i, "Sincerely,");
+      }
+    }
+
+    // Remove any blank lines at the start
+    coverLetter = coverLetter.replace(/^\s*\n+/, '');
+
+    logStep("Cover letter generated successfully", { length: coverLetterLength, sanitized: containsForbidden });
 
     return new Response(JSON.stringify({ coverLetter }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
