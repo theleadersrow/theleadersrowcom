@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,12 +29,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { 
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Video, Calendar,
-  Download, Bell
+  Download, Bell, Filter, X, Search
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -58,11 +65,33 @@ interface BetaRegistration {
   subscribe_to_newsletter: boolean;
 }
 
+interface ColumnFilters {
+  name: string;
+  email: string;
+  tool_type: string;
+  job_search_status: string;
+  position: string;
+  company: string;
+  target_roles: string;
+}
+
 export function BetaRegistrationsTab() {
   const [registrations, setRegistrations] = useState<BetaRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "invited" | "waitlisted">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  // Column filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
+    name: "",
+    email: "",
+    tool_type: "all",
+    job_search_status: "all",
+    position: "",
+    company: "",
+    target_roles: "",
+  });
   
   // Invite dialog
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -74,6 +103,12 @@ export function BetaRegistrationsTab() {
   const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
   const [reminderMessage, setReminderMessage] = useState("");
   const [sendingReminders, setSendingReminders] = useState(false);
+
+  // Bulk email dialog
+  const [bulkEmailDialogOpen, setBulkEmailDialogOpen] = useState(false);
+  const [bulkEmailSubject, setBulkEmailSubject] = useState("");
+  const [bulkEmailMessage, setBulkEmailMessage] = useState("");
+  const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -103,6 +138,63 @@ export function BetaRegistrationsTab() {
     fetchRegistrations();
   }, [statusFilter]);
 
+  // Apply column filters client-side
+  const filteredRegistrations = useMemo(() => {
+    return registrations.filter(reg => {
+      // Name filter
+      if (columnFilters.name && !reg.full_name.toLowerCase().includes(columnFilters.name.toLowerCase())) {
+        return false;
+      }
+      // Email filter
+      if (columnFilters.email && !reg.email.toLowerCase().includes(columnFilters.email.toLowerCase())) {
+        return false;
+      }
+      // Tool type filter
+      if (columnFilters.tool_type !== "all" && reg.tool_type !== columnFilters.tool_type) {
+        return false;
+      }
+      // Job search status filter
+      if (columnFilters.job_search_status !== "all" && reg.job_search_status !== columnFilters.job_search_status) {
+        return false;
+      }
+      // Position filter
+      if (columnFilters.position && !reg.current_position.toLowerCase().includes(columnFilters.position.toLowerCase())) {
+        return false;
+      }
+      // Company filter
+      if (columnFilters.company && !(reg.company || "").toLowerCase().includes(columnFilters.company.toLowerCase())) {
+        return false;
+      }
+      // Target roles filter
+      if (columnFilters.target_roles && !reg.target_roles.toLowerCase().includes(columnFilters.target_roles.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
+  }, [registrations, columnFilters]);
+
+  const clearFilters = () => {
+    setColumnFilters({
+      name: "",
+      email: "",
+      tool_type: "all",
+      job_search_status: "all",
+      position: "",
+      company: "",
+      target_roles: "",
+    });
+  };
+
+  const hasActiveFilters = useMemo(() => {
+    return columnFilters.name !== "" ||
+      columnFilters.email !== "" ||
+      columnFilters.tool_type !== "all" ||
+      columnFilters.job_search_status !== "all" ||
+      columnFilters.position !== "" ||
+      columnFilters.company !== "" ||
+      columnFilters.target_roles !== "";
+  }, [columnFilters]);
+
   const updateStatus = async (id: string, status: string) => {
     try {
       const updates: any = { status };
@@ -126,9 +218,7 @@ export function BetaRegistrationsTab() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const filteredIds = registrations
-        .filter(r => statusFilter === "all" || r.status === statusFilter)
-        .map(r => r.id);
+      const filteredIds = filteredRegistrations.map(r => r.id);
       setSelectedIds(filteredIds);
     } else {
       setSelectedIds([]);
@@ -144,7 +234,7 @@ export function BetaRegistrationsTab() {
   };
 
   const openInviteDialog = () => {
-    const pendingSelected = registrations.filter(
+    const pendingSelected = filteredRegistrations.filter(
       r => selectedIds.includes(r.id) && r.status === "pending"
     );
     if (pendingSelected.length === 0) {
@@ -161,7 +251,7 @@ export function BetaRegistrationsTab() {
     }
 
     setSendingInvites(true);
-    const pendingSelected = registrations.filter(
+    const pendingSelected = filteredRegistrations.filter(
       r => selectedIds.includes(r.id) && r.status === "pending"
     );
 
@@ -201,7 +291,7 @@ export function BetaRegistrationsTab() {
   };
 
   const openReminderDialog = () => {
-    const invitedSelected = registrations.filter(
+    const invitedSelected = filteredRegistrations.filter(
       r => selectedIds.includes(r.id) && r.status === "invited"
     );
     if (invitedSelected.length === 0) {
@@ -213,7 +303,7 @@ export function BetaRegistrationsTab() {
 
   const sendReminders = async () => {
     setSendingReminders(true);
-    const invitedSelected = registrations.filter(
+    const invitedSelected = filteredRegistrations.filter(
       r => selectedIds.includes(r.id) && r.status === "invited"
     );
 
@@ -240,8 +330,57 @@ export function BetaRegistrationsTab() {
     }
   };
 
+  // Bulk email function (for custom emails to any selected candidates)
+  const openBulkEmailDialog = () => {
+    if (selectedIds.length === 0) {
+      toast.error("Please select at least one registration to email");
+      return;
+    }
+    setBulkEmailDialogOpen(true);
+  };
+
+  const sendBulkEmail = async () => {
+    if (!bulkEmailSubject.trim()) {
+      toast.error("Please enter an email subject");
+      return;
+    }
+    if (!bulkEmailMessage.trim()) {
+      toast.error("Please enter an email message");
+      return;
+    }
+
+    setSendingBulkEmail(true);
+    const selectedRegistrations = filteredRegistrations.filter(
+      r => selectedIds.includes(r.id)
+    );
+
+    try {
+      for (const reg of selectedRegistrations) {
+        await supabase.functions.invoke("send-beta-bulk-email", {
+          body: {
+            name: reg.full_name,
+            email: reg.email,
+            subject: bulkEmailSubject.trim(),
+            message: bulkEmailMessage.trim(),
+          },
+        });
+      }
+
+      toast.success(`Sent ${selectedRegistrations.length} email(s)`);
+      setBulkEmailDialogOpen(false);
+      setBulkEmailSubject("");
+      setBulkEmailMessage("");
+      setSelectedIds([]);
+    } catch (error) {
+      console.error("Error sending bulk emails:", error);
+      toast.error("Failed to send some emails");
+    } finally {
+      setSendingBulkEmail(false);
+    }
+  };
+
   const waitlistSelected = async () => {
-    const pendingSelected = registrations.filter(
+    const pendingSelected = filteredRegistrations.filter(
       r => selectedIds.includes(r.id) && r.status === "pending"
     );
     
@@ -272,7 +411,7 @@ export function BetaRegistrationsTab() {
       "Name", "Email", "Phone", "Position", "Company", 
       "Status", "Target Roles", "Job Search Status", "LinkedIn", "Applied At"
     ];
-    const rows = registrations.map(r => [
+    const rows = filteredRegistrations.map(r => [
       r.full_name,
       r.email,
       r.phone,
@@ -327,6 +466,14 @@ export function BetaRegistrationsTab() {
   const invitedCount = registrations.filter(r => r.status === "invited").length;
   const waitlistedCount = registrations.filter(r => r.status === "waitlisted").length;
 
+  const selectedPendingCount = selectedIds.filter(id => 
+    filteredRegistrations.find(r => r.id === id)?.status === "pending"
+  ).length;
+
+  const selectedInvitedCount = selectedIds.filter(id => 
+    filteredRegistrations.find(r => r.id === id)?.status === "invited"
+  ).length;
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -376,44 +523,185 @@ export function BetaRegistrationsTab() {
       </div>
 
       {/* Filters & Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">All ({registrations.length})</TabsTrigger>
-            <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-            <TabsTrigger value="invited">Invited ({invitedCount})</TabsTrigger>
-            <TabsTrigger value="waitlisted">Waitlisted ({waitlistedCount})</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
-        <div className="flex flex-wrap gap-2">
-          {selectedIds.length > 0 && (
-            <>
-              <Button size="sm" onClick={openInviteDialog}>
-                <Send className="w-4 h-4 mr-2" />
-                Invite Selected ({selectedIds.filter(id => 
-                  registrations.find(r => r.id === id)?.status === "pending"
-                ).length})
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+            <TabsList>
+              <TabsTrigger value="all">All ({registrations.length})</TabsTrigger>
+              <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
+              <TabsTrigger value="invited">Invited ({invitedCount})</TabsTrigger>
+              <TabsTrigger value="waitlisted">Waitlisted ({waitlistedCount})</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={showFilters ? "default" : "outline"} 
+              size="sm" 
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+              {hasActiveFilters && (
+                <Badge className="ml-2 bg-primary-foreground text-primary h-5 px-1.5">
+                  Active
+                </Badge>
+              )}
+            </Button>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-2" />
+                Clear Filters
               </Button>
-              <Button size="sm" variant="outline" onClick={openReminderDialog}>
-                <Bell className="w-4 h-4 mr-2" />
-                Send Reminders
-              </Button>
-              <Button size="sm" variant="secondary" onClick={waitlistSelected}>
-                <UserX className="w-4 h-4 mr-2" />
-                Waitlist
-              </Button>
-            </>
-          )}
-          <Button variant="outline" size="sm" onClick={exportToCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={fetchRegistrations}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchRegistrations}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
+
+        {/* Column Filters */}
+        {showFilters && (
+          <Card className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              <div>
+                <Label className="text-xs mb-1.5 block">Name</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter name..."
+                    value={columnFilters.name}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, name: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Email</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter email..."
+                    value={columnFilters.email}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, email: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Tool Type</Label>
+                <Select
+                  value={columnFilters.tool_type}
+                  onValueChange={(value) => setColumnFilters(prev => ({ ...prev, tool_type: value }))}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All tools" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tools</SelectItem>
+                    <SelectItem value="resume_suite">Resume Suite</SelectItem>
+                    <SelectItem value="linkedin_signal">LinkedIn Signal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Job Search Status</Label>
+                <Select
+                  value={columnFilters.job_search_status}
+                  onValueChange={(value) => setColumnFilters(prev => ({ ...prev, job_search_status: value }))}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="actively_interviewing">Actively Interviewing</SelectItem>
+                    <SelectItem value="preparing_soon">Preparing (1-2 months)</SelectItem>
+                    <SelectItem value="exploring">Exploring (3+ months)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Position</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter position..."
+                    value={columnFilters.position}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, position: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Company</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter company..."
+                    value={columnFilters.company}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, company: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Target Roles</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter roles..."
+                    value={columnFilters.target_roles}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, target_roles: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <div className="mt-3 text-sm text-muted-foreground">
+                Showing {filteredRegistrations.length} of {registrations.length} registrations
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Bulk Actions Bar */}
+        {selectedIds.length > 0 && (
+          <Card className="p-3 bg-primary/5 border-primary/20">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium">
+                {selectedIds.length} selected
+              </span>
+              <div className="h-4 w-px bg-border" />
+              <Button size="sm" onClick={openInviteDialog} disabled={selectedPendingCount === 0}>
+                <Send className="w-4 h-4 mr-2" />
+                Invite ({selectedPendingCount})
+              </Button>
+              <Button size="sm" variant="outline" onClick={openReminderDialog} disabled={selectedInvitedCount === 0}>
+                <Bell className="w-4 h-4 mr-2" />
+                Send Reminders ({selectedInvitedCount})
+              </Button>
+              <Button size="sm" variant="outline" onClick={openBulkEmailDialog}>
+                <Mail className="w-4 h-4 mr-2" />
+                Bulk Email ({selectedIds.length})
+              </Button>
+              <Button size="sm" variant="secondary" onClick={waitlistSelected} disabled={selectedPendingCount === 0}>
+                <UserX className="w-4 h-4 mr-2" />
+                Waitlist ({selectedPendingCount})
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+                <X className="w-4 h-4 mr-2" />
+                Clear Selection
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Registrations Table */}
@@ -429,9 +717,9 @@ export function BetaRegistrationsTab() {
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : registrations.length === 0 ? (
+          ) : filteredRegistrations.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              No registrations yet
+              {hasActiveFilters ? "No registrations match your filters" : "No registrations yet"}
             </div>
           ) : (
             <Table>
@@ -439,7 +727,7 @@ export function BetaRegistrationsTab() {
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
-                      checked={selectedIds.length === registrations.length && registrations.length > 0}
+                      checked={selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0}
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
@@ -455,7 +743,7 @@ export function BetaRegistrationsTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {registrations.map((reg) => (
+                {filteredRegistrations.map((reg) => (
                   <TableRow key={reg.id}>
                     <TableCell>
                       <Checkbox
@@ -604,9 +892,7 @@ export function BetaRegistrationsTab() {
               />
             </div>
             <div className="text-sm text-muted-foreground">
-              This will send invitations to {selectedIds.filter(id => 
-                registrations.find(r => r.id === id)?.status === "pending"
-              ).length} pending applicant(s).
+              This will send invitations to {selectedPendingCount} pending applicant(s).
             </div>
           </div>
           <DialogFooter>
@@ -637,9 +923,7 @@ export function BetaRegistrationsTab() {
               />
             </div>
             <div className="text-sm text-muted-foreground">
-              This will send reminders to {selectedIds.filter(id => 
-                registrations.find(r => r.id === id)?.status === "invited"
-              ).length} invited participant(s).
+              This will send reminders to {selectedInvitedCount} invited participant(s).
             </div>
           </div>
           <DialogFooter>
@@ -648,6 +932,57 @@ export function BetaRegistrationsTab() {
             </Button>
             <Button onClick={sendReminders} disabled={sendingReminders}>
               {sendingReminders ? "Sending..." : "Send Reminders"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Email Dialog */}
+      <Dialog open={bulkEmailDialogOpen} onOpenChange={setBulkEmailDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Send Bulk Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Email Subject *</Label>
+              <Input
+                value={bulkEmailSubject}
+                onChange={(e) => setBulkEmailSubject(e.target.value)}
+                placeholder="Enter email subject..."
+              />
+            </div>
+            <div>
+              <Label>Email Message *</Label>
+              <Textarea
+                value={bulkEmailMessage}
+                onChange={(e) => setBulkEmailMessage(e.target.value)}
+                placeholder="Enter your message here. Use {name} to personalize with recipient's name..."
+                rows={6}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Tip: Use {"{name}"} in your message to include the recipient's name.
+              </p>
+            </div>
+            <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              <strong>Recipients ({selectedIds.length}):</strong>
+              <div className="mt-2 max-h-24 overflow-y-auto space-y-1">
+                {filteredRegistrations
+                  .filter(r => selectedIds.includes(r.id))
+                  .map(r => (
+                    <div key={r.id} className="text-xs">
+                      {r.full_name} ({r.email})
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkEmailDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={sendBulkEmail} disabled={sendingBulkEmail}>
+              {sendingBulkEmail ? "Sending..." : `Send to ${selectedIds.length} Recipients`}
             </Button>
           </DialogFooter>
         </DialogContent>
