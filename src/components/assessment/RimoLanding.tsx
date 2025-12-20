@@ -598,7 +598,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                     <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Get an ATS scan + unlock a fully optimized resume + downloads.
+                    Your resume transformed for your target job + your unique professional identity. AI uses your self-description to create authentic, personalized content that gets through ATS and impresses hiring managers.
                   </p>
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
