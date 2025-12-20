@@ -480,7 +480,7 @@ export function PaidOutput({
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-foreground mb-2">
-                    Ace Your Interviews
+                    PM Interview Prep
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     Based on your optimized resume and target role{targetRole ? ` as ${targetRole}` : ''}, 
@@ -504,58 +504,106 @@ export function PaidOutput({
               </div>
             </Card>
 
-            {/* Preview of what they'll get */}
+            {/* Core Interview Sections */}
             <Card className="p-6">
-              <h4 className="font-semibold mb-4 flex items-center gap-2">
+              <h4 className="font-semibold mb-6 flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
-                What's Included in Interview Prep
+                PM Interview Core Sections
               </h4>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Behavioral Questions</p>
-                      <p className="text-xs text-muted-foreground">STAR format examples from your experience</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Role-Specific Questions</p>
-                      <p className="text-xs text-muted-foreground">Product sense, execution, strategy, analytics</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Sample Answers</p>
-                      <p className="text-xs text-muted-foreground">Tailored responses using your background</p>
-                    </div>
+              <div className="space-y-6">
+                {/* Section 1: Product Sense */}
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h5 className="font-semibold text-foreground mb-1">1. Product Sense & Problem Framing</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">How you think, not what you know — customer empathy, structured thinking, tradeoffs, clarity under ambiguity</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">• How would you identify the biggest problem to solve for [product/company] right now?</p>
+                    <p className="text-sm text-muted-foreground">• Tell me about a time you worked on a problem that was poorly defined. How did you bring clarity?</p>
+                    <p className="text-sm text-muted-foreground">• How do you decide what not to build?</p>
+                    <p className="text-sm text-muted-foreground">• If usage is flat but revenue is growing, what questions would you ask first?</p>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Questions by Category</p>
-                      <p className="text-xs text-muted-foreground">Organized by topic: behavioral, technical, strategic</p>
-                    </div>
+
+                {/* Section 2: Strategy */}
+                <div className="border-l-4 border-purple-500 pl-4">
+                  <h5 className="font-semibold text-foreground mb-1">2. Product Strategy & Vision</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">Your ability to think long-term and at the right altitude — strategic judgment, prioritization, business alignment</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">• How do you define product strategy, and how is it different from a roadmap?</p>
+                    <p className="text-sm text-muted-foreground">• Walk me through how you would set a 12–18 month vision for this product.</p>
+                    <p className="text-sm text-muted-foreground">• Tell me about a strategic bet you made that didn't pay off. What did you learn?</p>
+                    <p className="text-sm text-muted-foreground">• How do you align product strategy with company goals when there's conflict?</p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Difficulty Levels</p>
-                      <p className="text-xs text-muted-foreground">Easy, medium, hard questions to practice</p>
-                    </div>
+                </div>
+
+                {/* Section 3: Execution */}
+                <div className="border-l-4 border-green-500 pl-4">
+                  <h5 className="font-semibold text-foreground mb-1">3. Execution & Decision-Making</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">Can you ship and deliver impact consistently? — ownership, prioritization under constraints, bias to action</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">• Describe a complex product you shipped end-to-end. What were the hardest decisions?</p>
+                    <p className="text-sm text-muted-foreground">• How do you prioritize when everything feels urgent?</p>
+                    <p className="text-sm text-muted-foreground">• Tell me about a time you had to make a decision with incomplete data.</p>
+                    <p className="text-sm text-muted-foreground">• How do you balance speed vs quality?</p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Full Interview Prep Suite</p>
-                      <p className="text-xs text-muted-foreground">Practice mode and answer frameworks</p>
-                    </div>
+                </div>
+
+                {/* Section 4: Data & Metrics */}
+                <div className="border-l-4 border-orange-500 pl-4">
+                  <h5 className="font-semibold text-foreground mb-1">4. Data, Metrics & Business Impact</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">Do you understand what actually moves the business? — metric thinking, outcome focus, analytical rigor</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">• What metrics do you use to measure success for your product?</p>
+                    <p className="text-sm text-muted-foreground">• How do you choose a North Star metric?</p>
+                    <p className="text-sm text-muted-foreground">• Tell me about a time data changed your original product direction.</p>
+                    <p className="text-sm text-muted-foreground">• If a key metric drops suddenly, how do you investigate?</p>
                   </div>
+                </div>
+
+                {/* Section 5: Stakeholder Management */}
+                <div className="border-l-4 border-pink-500 pl-4">
+                  <h5 className="font-semibold text-foreground mb-1">5. Stakeholder Management & Influence</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">How you lead without authority — communication, alignment, conflict resolution, leadership maturity</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">• Tell me about a time you disagreed with engineering or leadership. How did you handle it?</p>
+                    <p className="text-sm text-muted-foreground">• How do you influence decisions when you don't have direct authority?</p>
+                    <p className="text-sm text-muted-foreground">• Describe a difficult stakeholder and how you built alignment.</p>
+                    <p className="text-sm text-muted-foreground">• How do you communicate tradeoffs to executives?</p>
+                  </div>
+                </div>
+
+                {/* Section 6: Leadership */}
+                <div className="border-l-4 border-indigo-500 pl-4">
+                  <h5 className="font-semibold text-foreground mb-1">6. Leadership, Growth & Product Judgment</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">What makes you trusted at the next level (Senior+ roles) — people leadership, judgment, mentorship</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">• How do you develop and coach other PMs?</p>
+                    <p className="text-sm text-muted-foreground">• What distinguishes a Senior PM from a Principal or Director?</p>
+                    <p className="text-sm text-muted-foreground">• Tell me about a time you raised the quality bar for your team.</p>
+                    <p className="text-sm text-muted-foreground">• How do you scale yourself as product scope increases?</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Optional Advanced Sections */}
+            <Card className="p-6 bg-muted/30">
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-muted-foreground" />
+                Optional Advanced Sections
+              </h4>
+              <p className="text-xs text-muted-foreground mb-4">Layer these when relevant to your target role:</p>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-background rounded-lg p-3 border">
+                  <p className="font-medium text-sm">Technical Depth & Platform</p>
+                  <p className="text-xs text-muted-foreground">APIs, systems, data products</p>
+                </div>
+                <div className="bg-background rounded-lg p-3 border">
+                  <p className="font-medium text-sm">Growth & Experimentation</p>
+                  <p className="text-xs text-muted-foreground">Funnels, A/B testing, monetization</p>
+                </div>
+                <div className="bg-background rounded-lg p-3 border">
+                  <p className="font-medium text-sm">Domain Specialization</p>
+                  <p className="text-xs text-muted-foreground">Payments, Fintech, Ads, AI</p>
                 </div>
               </div>
             </Card>
