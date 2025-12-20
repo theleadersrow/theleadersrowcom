@@ -217,20 +217,19 @@ export function PaidOutput({
           <TabsList className="grid w-full grid-cols-4 mb-6 h-auto">
             <TabsTrigger value="resume" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
               <FileText className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden xs:inline sm:hidden">Resume</span>
-              <span className="hidden sm:inline">Resume</span>
+              <span className="hidden xs:inline">Resume</span>
             </TabsTrigger>
             <TabsTrigger value="ats" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
               <BarChart3 className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden xs:inline">ATS</span>
+              <span className="hidden xs:inline">ATS Score</span>
             </TabsTrigger>
             <TabsTrigger value="cover" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
               <FileSignature className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden xs:inline">Cover</span>
+              <span className="hidden xs:inline">Cover Letter</span>
             </TabsTrigger>
             <TabsTrigger value="interview" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
               <MessageSquare className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden xs:inline">Interview</span>
+              <span className="hidden xs:inline">Interview Prep</span>
             </TabsTrigger>
           </TabsList>
 
