@@ -637,22 +637,31 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       // Detect section headers
       const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|TECHNICAL SKILLS|CORE COMPETENCIES|PUBLICATIONS|AWARDS|LANGUAGES|VOLUNTEER|INTERESTS)$/i.test(trimmedLine);
       
+      // Detect achievement title lines (should be bulleted)
+      // These often start with $ or contain metrics like %, $, M, K, B
+      const isAchievementTitle = (
+        /^\$?\d+[MKB]?\s/i.test(trimmedLine) || // Starts with $120M, 15%, etc.
+        /^\d+%/.test(trimmedLine) || // Starts with percentage
+        /revenue|growth|improvement|reduction|increase|savings|acquisition/i.test(trimmedLine.toLowerCase()) && trimmedLine.length < 60
+      );
+      
       // Detect role header lines (job title, company name, location/date)
       // These should NOT be bulleted even if the raw line ends with *
-      const isRoleHeaderLine = (
+      // But exclude achievement titles which should be bulleted
+      const isRoleHeaderLine = !isAchievementTitle && (
         // Location + date pattern: "City, State | MM/YYYY – MM/YYYY" or similar
         /^[A-Za-z\s,]+\s*\|\s*\d{1,2}\/\d{4}/i.test(trimmedLine) ||
         // Date range pattern at end: "... | 10/2020 – 05/2025"
         /\|\s*\d{1,2}\/\d{4}\s*[–\-]\s*(\d{1,2}\/\d{4}|present|current)/i.test(trimmedLine) ||
-        // Company name line (short, no bullet chars at start, often ends with trailing *)
-        (rawTrimmed.endsWith('*') && !rawTrimmed.startsWith('*') && !rawTrimmed.startsWith('-') && !rawTrimmed.startsWith('•') && trimmedLine.length < 80) ||
+        // Company name line (short, no bullet chars at start, often ends with trailing *, but NOT achievement lines)
+        (rawTrimmed.endsWith('*') && !rawTrimmed.startsWith('*') && !rawTrimmed.startsWith('-') && !rawTrimmed.startsWith('•') && trimmedLine.length < 80 && !/\$|\d+%|revenue|growth/i.test(trimmedLine)) ||
         // Job title patterns (contains common title words)
         /^(head of|director|manager|lead|senior|principal|vp|vice president|chief|cto|ceo|cfo|coo)/i.test(trimmedLine)
       );
       
       // Detect bullet points - must START with bullet character (*, -, •)
-      // Exclude lines that are role headers (end with * but don't start with it)
-      const isBulletLine = /^[\*\-•]\s/.test(rawTrimmed) && !isRoleHeaderLine;
+      // OR be an achievement title (these should be bulleted)
+      const isBulletLine = (/^[\*\-•]\s/.test(rawTrimmed) || isAchievementTitle) && !isRoleHeaderLine;
       
       if (isSectionHeader) {
         // Add extra spacing before section (acts as visual separator)
