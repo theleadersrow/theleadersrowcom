@@ -73,34 +73,34 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, onActivate
   };
 
   return (
-    <div className="min-h-[80vh] animate-fade-up px-4">
+    <div className="min-h-[80vh] animate-fade-up px-3 sm:px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={onBack} className="p-2 rounded-lg hover:bg-muted transition-colors">
+        <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0">
             <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-serif font-bold text-foreground">Your Free Resume Scan</h1>
-            <p className="text-muted-foreground">Step 3 of 4</p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground truncate">Your Free Resume Scan</h1>
+            <p className="text-sm text-muted-foreground">Step 3 of 4</p>
           </div>
         </div>
 
         {/* ATS Score - Big Display */}
-        <Card className="p-8 mb-6 text-center bg-gradient-to-br from-card to-muted/50">
-          <div className="mb-4">
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+        <Card className="p-4 sm:p-8 mb-4 sm:mb-6 text-center bg-gradient-to-br from-card to-muted/50">
+          <div className="mb-2 sm:mb-4">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">
               ATS Readiness Score
             </span>
           </div>
-          <div className={`text-7xl font-bold ${scoreInfo.color}`}>
+          <div className={`text-5xl sm:text-7xl font-bold ${scoreInfo.color}`}>
             {score.ats_score}
-            <span className="text-3xl text-muted-foreground">/100</span>
+            <span className="text-2xl sm:text-3xl text-muted-foreground">/100</span>
           </div>
-          <div className={`text-xl font-medium mt-2 ${scoreInfo.color}`}>
+          <div className={`text-lg sm:text-xl font-medium mt-2 ${scoreInfo.color}`}>
             {scoreInfo.label}
           </div>
-          <p className="text-sm text-muted-foreground mt-3 max-w-md mx-auto">{score.summary}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3 max-w-md mx-auto">{score.summary}</p>
         </Card>
 
         {/* Score Breakdown */}
