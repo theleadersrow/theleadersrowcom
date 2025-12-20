@@ -631,13 +631,28 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     let lastWasSectionHeader = false;
     
     lines.forEach((line, index) => {
-      const trimmedLine = stripMarkdown(line.trim());
+      const rawTrimmed = line.trim();
+      const trimmedLine = stripMarkdown(rawTrimmed);
       
       // Detect section headers
       const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|TECHNICAL SKILLS|CORE COMPETENCIES|PUBLICATIONS|AWARDS|LANGUAGES|VOLUNTEER|INTERESTS)$/i.test(trimmedLine);
       
-      // Detect bullet points (*, -, •, or lines starting with action verbs after bullets)
-      const isBulletLine = /^[\*\-•]/.test(line.trim()) || line.trim().startsWith("*");
+      // Detect role header lines (job title, company name, location/date)
+      // These should NOT be bulleted even if the raw line ends with *
+      const isRoleHeaderLine = (
+        // Location + date pattern: "City, State | MM/YYYY – MM/YYYY" or similar
+        /^[A-Za-z\s,]+\s*\|\s*\d{1,2}\/\d{4}/i.test(trimmedLine) ||
+        // Date range pattern at end: "... | 10/2020 – 05/2025"
+        /\|\s*\d{1,2}\/\d{4}\s*[–\-]\s*(\d{1,2}\/\d{4}|present|current)/i.test(trimmedLine) ||
+        // Company name line (short, no bullet chars at start, often ends with trailing *)
+        (rawTrimmed.endsWith('*') && !rawTrimmed.startsWith('*') && !rawTrimmed.startsWith('-') && !rawTrimmed.startsWith('•') && trimmedLine.length < 80) ||
+        // Job title patterns (contains common title words)
+        /^(head of|director|manager|lead|senior|principal|vp|vice president|chief|cto|ceo|cfo|coo)/i.test(trimmedLine)
+      );
+      
+      // Detect bullet points - must START with bullet character (*, -, •)
+      // Exclude lines that are role headers (end with * but don't start with it)
+      const isBulletLine = /^[\*\-•]\s/.test(rawTrimmed) && !isRoleHeaderLine;
       
       if (isSectionHeader) {
         // Add extra spacing before section (acts as visual separator)
@@ -699,10 +714,26 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
           })
         );
         lastWasSectionHeader = false;
+      } else if (isRoleHeaderLine) {
+        // Role header lines (job title, company, location/date) - bold, no bullets
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ 
+                text: trimmedLine, 
+                font: "Times New Roman", 
+                size: 22,
+                bold: true
+              })
+            ],
+            spacing: { after: 40, before: lastWasSectionHeader ? 0 : 100 }
+          })
+        );
+        lastWasSectionHeader = false;
       } else if (isBulletLine) {
         // Convert *, -, or • to proper bullet formatting
         // Remove the leading bullet character, strip markdown, and trim
-        const bulletText = stripMarkdown(line.trim().replace(/^[\*\-•]\s*/, ""));
+        const bulletText = stripMarkdown(rawTrimmed.replace(/^[\*\-•]\s*/, ""));
         
         // Use Word's native bullet formatting
         paragraphs.push(
