@@ -888,20 +888,39 @@ export function PaidOutput({
                       const trimmed = paragraph.trim();
                       if (!trimmed) return null;
                       
-                      // Skip if it's just a greeting we're duplicating
-                      if (trimmed.toLowerCase().startsWith('dear ') && index === 0) {
-                        return (
-                          <p key={index} className="mb-6">
-                            {trimmed}
-                          </p>
-                        );
+                      // Skip letterhead info that we're already displaying
+                      const lowerTrimmed = trimmed.toLowerCase();
+                      const candidateName = coverLetterInput.candidateName?.toLowerCase() || '';
+                      const candidateEmail = coverLetterInput.candidateEmail?.toLowerCase() || '';
+                      const company = coverLetterInput.company?.toLowerCase() || '';
+                      const jobTitle = coverLetterInput.jobTitle?.toLowerCase() || '';
+                      
+                      // Skip if it's just the candidate name/email header
+                      if (candidateName && lowerTrimmed === candidateName) return null;
+                      if (candidateEmail && lowerTrimmed === candidateEmail) return null;
+                      if (candidateName && candidateEmail && lowerTrimmed.includes(candidateName) && lowerTrimmed.includes(candidateEmail) && trimmed.length < 100) return null;
+                      
+                      // Skip if it's the company name or "Re: Position" line
+                      if (company && lowerTrimmed === company) return null;
+                      if (jobTitle && lowerTrimmed.includes('re:') && lowerTrimmed.includes(jobTitle)) return null;
+                      
+                      // Skip date lines (we display our own)
+                      if (/^(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}$/i.test(trimmed)) return null;
+                      
+                      // Skip signature lines (we add our own)
+                      if (lowerTrimmed === 'sincerely,' || 
+                          lowerTrimmed === 'best regards,' ||
+                          lowerTrimmed === 'regards,' ||
+                          lowerTrimmed === 'warm regards,' ||
+                          lowerTrimmed === 'best,' ||
+                          (candidateName && lowerTrimmed === candidateName)) {
+                        return null;
                       }
                       
-                      // Skip signature lines if present (we'll add our own)
-                      if (trimmed.toLowerCase() === 'sincerely,' || 
-                          trimmed.toLowerCase() === 'best regards,' ||
-                          trimmed.toLowerCase() === 'regards,' ||
-                          trimmed === coverLetterInput.candidateName) {
+                      // Skip combined signature blocks like "Sincerely,\nJohn Smith"
+                      if (lowerTrimmed.startsWith('sincerely,') || 
+                          lowerTrimmed.startsWith('best regards,') ||
+                          lowerTrimmed.startsWith('warm regards,')) {
                         return null;
                       }
                       
