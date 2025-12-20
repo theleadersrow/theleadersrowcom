@@ -191,17 +191,17 @@ export function PaidOutput({
     <div className="min-h-[80vh] animate-fade-up px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="p-2 rounded-lg hover:bg-muted transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button onClick={onBack} className="p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0">
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
-          <div>
-              <h1 className="text-2xl font-serif font-bold text-foreground flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-500" />
-                AI-Optimized Resume — Ready to Submit
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-serif font-bold text-foreground flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0" />
+                <span className="truncate">AI-Optimized Resume</span>
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-xs sm:text-sm">
                 {daysRemaining} days remaining
               </p>
             </div>
@@ -210,22 +210,23 @@ export function PaidOutput({
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="resume" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Optimized</span> Resume
+          <TabsList className="grid w-full grid-cols-4 mb-6 h-auto">
+            <TabsTrigger value="resume" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <FileText className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline sm:hidden">Resume</span>
+              <span className="hidden sm:inline">Resume</span>
             </TabsTrigger>
-            <TabsTrigger value="ats" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              ATS Report
+            <TabsTrigger value="ats" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <BarChart3 className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">ATS</span>
             </TabsTrigger>
-            <TabsTrigger value="cover" className="flex items-center gap-2">
-              <FileSignature className="w-4 h-4" />
-              Cover Letter
+            <TabsTrigger value="cover" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <FileSignature className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Cover</span>
             </TabsTrigger>
-            <TabsTrigger value="interview" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Interview Prep
+            <TabsTrigger value="interview" className="flex items-center justify-center gap-1 sm:gap-2 py-2 px-1 sm:px-3 text-xs sm:text-sm">
+              <MessageSquare className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Interview</span>
             </TabsTrigger>
           </TabsList>
 
