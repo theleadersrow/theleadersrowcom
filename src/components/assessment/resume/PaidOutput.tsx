@@ -87,6 +87,7 @@ export function PaidOutput({
   const [showATSReportModal, setShowATSReportModal] = useState(false);
   const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
   const [showResumePDFModal, setShowResumePDFModal] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
   const [coverLetterInput, setCoverLetterInput] = useState<CoverLetterInput>({
     jobTitle: "",
     company: "",
@@ -96,6 +97,18 @@ export function PaidOutput({
     coverLetterLength: "medium"
   });
   const { toast } = useToast();
+
+  const toggleSection = (index: number) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
 
   const handleCopyText = async () => {
     await navigator.clipboard.writeText(resumeContent);
@@ -482,108 +495,127 @@ export function PaidOutput({
                   <h3 className="text-lg font-semibold text-foreground mb-2">
                     PM Interview Prep
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Based on your optimized resume and target role{targetRole ? ` as ${targetRole}` : ''}, 
-                    get personalized interview questions and preparation strategies.
+                  <p className="text-sm text-muted-foreground">
+                    Master the 6 core PM interview areas. Click on any section below to see the types of questions interviewers ask.
                   </p>
-                  {onGoToInterviewPrep ? (
-                    <Button onClick={onGoToInterviewPrep}>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      View Interview Questions
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Interview prep is included in the full suite
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             </Card>
 
             {/* Core Interview Sections */}
-            <Card className="p-6">
-              <h4 className="font-semibold mb-6 flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                PM Interview Core Sections
-              </h4>
-              <div className="space-y-6">
-                {/* Section 1: Product Sense */}
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h5 className="font-semibold text-foreground mb-1">1. Product Sense & Problem Framing</h5>
-                  <p className="text-xs text-muted-foreground mb-3 italic">How you think, not what you know — customer empathy, structured thinking, tradeoffs, clarity under ambiguity</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">• How would you identify the biggest problem to solve for [product/company] right now?</p>
-                    <p className="text-sm text-muted-foreground">• Tell me about a time you worked on a problem that was poorly defined. How did you bring clarity?</p>
-                    <p className="text-sm text-muted-foreground">• How do you decide what not to build?</p>
-                    <p className="text-sm text-muted-foreground">• If usage is flat but revenue is growing, what questions would you ask first?</p>
+            <div className="space-y-3">
+              {[
+                {
+                  title: "Product Sense & Problem Framing",
+                  subtitle: "How you think, not what you know",
+                  goal: "Customer empathy, structured thinking, tradeoffs, clarity under ambiguity",
+                  color: "border-blue-500",
+                  questions: [
+                    "How would you identify the biggest problem to solve for [product/company] right now?",
+                    "Tell me about a time you worked on a problem that was poorly defined. How did you bring clarity?",
+                    "How do you decide what not to build?",
+                    "If usage is flat but revenue is growing, what questions would you ask first?"
+                  ]
+                },
+                {
+                  title: "Product Strategy & Vision",
+                  subtitle: "Your ability to think long-term and at the right altitude",
+                  goal: "Strategic judgment, prioritization, business alignment, executive thinking",
+                  color: "border-purple-500",
+                  questions: [
+                    "How do you define product strategy, and how is it different from a roadmap?",
+                    "Walk me through how you would set a 12–18 month vision for this product.",
+                    "Tell me about a strategic bet you made that didn't pay off. What did you learn?",
+                    "How do you align product strategy with company goals when there's conflict?"
+                  ]
+                },
+                {
+                  title: "Execution & Decision-Making",
+                  subtitle: "Can you ship and deliver impact consistently?",
+                  goal: "Ownership, prioritization under constraints, bias to action, judgment calls",
+                  color: "border-green-500",
+                  questions: [
+                    "Describe a complex product you shipped end-to-end. What were the hardest decisions?",
+                    "How do you prioritize when everything feels urgent?",
+                    "Tell me about a time you had to make a decision with incomplete data.",
+                    "How do you balance speed vs quality?"
+                  ]
+                },
+                {
+                  title: "Data, Metrics & Business Impact",
+                  subtitle: "Do you understand what actually moves the business?",
+                  goal: "Metric thinking, outcome focus, analytical rigor, business acumen",
+                  color: "border-orange-500",
+                  questions: [
+                    "What metrics do you use to measure success for your product?",
+                    "How do you choose a North Star metric?",
+                    "Tell me about a time data changed your original product direction.",
+                    "If a key metric drops suddenly, how do you investigate?"
+                  ]
+                },
+                {
+                  title: "Stakeholder Management & Influence",
+                  subtitle: "How you lead without authority",
+                  goal: "Communication, alignment, conflict resolution, leadership maturity",
+                  color: "border-pink-500",
+                  questions: [
+                    "Tell me about a time you disagreed with engineering or leadership. How did you handle it?",
+                    "How do you influence decisions when you don't have direct authority?",
+                    "Describe a difficult stakeholder and how you built alignment.",
+                    "How do you communicate tradeoffs to executives?"
+                  ]
+                },
+                {
+                  title: "Leadership, Growth & Product Judgment",
+                  subtitle: "What makes you trusted at the next level (Senior+ roles)",
+                  goal: "People leadership, judgment, mentorship, scope ownership",
+                  color: "border-indigo-500",
+                  questions: [
+                    "How do you develop and coach other PMs?",
+                    "What distinguishes a Senior PM from a Principal or Director?",
+                    "Tell me about a time you raised the quality bar for your team.",
+                    "How do you scale yourself as product scope increases?"
+                  ]
+                }
+              ].map((section, index) => (
+                <Card key={index} className={`border-l-4 ${section.color} overflow-hidden`}>
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => toggleSection(index)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-foreground">{index + 1}. {section.title}</h5>
+                        <p className="text-sm text-muted-foreground italic">{section.subtitle}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <span className="font-medium">What interviewers test:</span> {section.goal}
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="sm" className="flex-shrink-0">
+                        {expandedSections.has(index) ? (
+                          <>Hide Questions</>
+                        ) : (
+                          <>View Questions</>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-
-                {/* Section 2: Strategy */}
-                <div className="border-l-4 border-purple-500 pl-4">
-                  <h5 className="font-semibold text-foreground mb-1">2. Product Strategy & Vision</h5>
-                  <p className="text-xs text-muted-foreground mb-3 italic">Your ability to think long-term and at the right altitude — strategic judgment, prioritization, business alignment</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">• How do you define product strategy, and how is it different from a roadmap?</p>
-                    <p className="text-sm text-muted-foreground">• Walk me through how you would set a 12–18 month vision for this product.</p>
-                    <p className="text-sm text-muted-foreground">• Tell me about a strategic bet you made that didn't pay off. What did you learn?</p>
-                    <p className="text-sm text-muted-foreground">• How do you align product strategy with company goals when there's conflict?</p>
-                  </div>
-                </div>
-
-                {/* Section 3: Execution */}
-                <div className="border-l-4 border-green-500 pl-4">
-                  <h5 className="font-semibold text-foreground mb-1">3. Execution & Decision-Making</h5>
-                  <p className="text-xs text-muted-foreground mb-3 italic">Can you ship and deliver impact consistently? — ownership, prioritization under constraints, bias to action</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">• Describe a complex product you shipped end-to-end. What were the hardest decisions?</p>
-                    <p className="text-sm text-muted-foreground">• How do you prioritize when everything feels urgent?</p>
-                    <p className="text-sm text-muted-foreground">• Tell me about a time you had to make a decision with incomplete data.</p>
-                    <p className="text-sm text-muted-foreground">• How do you balance speed vs quality?</p>
-                  </div>
-                </div>
-
-                {/* Section 4: Data & Metrics */}
-                <div className="border-l-4 border-orange-500 pl-4">
-                  <h5 className="font-semibold text-foreground mb-1">4. Data, Metrics & Business Impact</h5>
-                  <p className="text-xs text-muted-foreground mb-3 italic">Do you understand what actually moves the business? — metric thinking, outcome focus, analytical rigor</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">• What metrics do you use to measure success for your product?</p>
-                    <p className="text-sm text-muted-foreground">• How do you choose a North Star metric?</p>
-                    <p className="text-sm text-muted-foreground">• Tell me about a time data changed your original product direction.</p>
-                    <p className="text-sm text-muted-foreground">• If a key metric drops suddenly, how do you investigate?</p>
-                  </div>
-                </div>
-
-                {/* Section 5: Stakeholder Management */}
-                <div className="border-l-4 border-pink-500 pl-4">
-                  <h5 className="font-semibold text-foreground mb-1">5. Stakeholder Management & Influence</h5>
-                  <p className="text-xs text-muted-foreground mb-3 italic">How you lead without authority — communication, alignment, conflict resolution, leadership maturity</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">• Tell me about a time you disagreed with engineering or leadership. How did you handle it?</p>
-                    <p className="text-sm text-muted-foreground">• How do you influence decisions when you don't have direct authority?</p>
-                    <p className="text-sm text-muted-foreground">• Describe a difficult stakeholder and how you built alignment.</p>
-                    <p className="text-sm text-muted-foreground">• How do you communicate tradeoffs to executives?</p>
-                  </div>
-                </div>
-
-                {/* Section 6: Leadership */}
-                <div className="border-l-4 border-indigo-500 pl-4">
-                  <h5 className="font-semibold text-foreground mb-1">6. Leadership, Growth & Product Judgment</h5>
-                  <p className="text-xs text-muted-foreground mb-3 italic">What makes you trusted at the next level (Senior+ roles) — people leadership, judgment, mentorship</p>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">• How do you develop and coach other PMs?</p>
-                    <p className="text-sm text-muted-foreground">• What distinguishes a Senior PM from a Principal or Director?</p>
-                    <p className="text-sm text-muted-foreground">• Tell me about a time you raised the quality bar for your team.</p>
-                    <p className="text-sm text-muted-foreground">• How do you scale yourself as product scope increases?</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
+                  
+                  {expandedSections.has(index) && (
+                    <div className="px-4 pb-4 pt-2 border-t bg-muted/30">
+                      <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">Sample Questions</p>
+                      <div className="space-y-2">
+                        {section.questions.map((question, qIndex) => (
+                          <p key={qIndex} className="text-sm text-foreground pl-4 border-l-2 border-muted-foreground/30">
+                            {question}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
 
             {/* Optional Advanced Sections */}
             <Card className="p-6 bg-muted/30">
