@@ -747,13 +747,15 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
         const bulletText = stripMarkdown(rawTrimmed.replace(/^[\*\-•]\s*/, ""));
         
         // Use Word's native bullet formatting
+        // Achievement titles get bold formatting
         paragraphs.push(
           new Paragraph({
             children: [
               new TextRun({ 
                 text: bulletText, 
                 font: "Times New Roman", 
-                size: 22 
+                size: 22,
+                bold: isAchievementTitle
               })
             ],
             spacing: { after: 60, before: lastWasSectionHeader ? 0 : 20 },
