@@ -52,6 +52,7 @@ interface PaidOutputProps {
   score: ATSResult | null;
   originalATSScore?: number; // Original score before optimization
   onBack: () => void;
+  onResetToLanding: () => void;
   onViewPDF: () => void;
   onDownloadDocx: () => void;
   onGenerateCoverLetter: (details: CoverLetterInput) => Promise<string>;
@@ -74,6 +75,7 @@ export function PaidOutput({
   score,
   originalATSScore,
   onBack,
+  onResetToLanding,
   onViewPDF,
   onDownloadDocx,
   onGenerateCoverLetter,
@@ -666,7 +668,7 @@ export function PaidOutput({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onBack}>
+                <AlertDialogAction onClick={onResetToLanding}>
                   Yes, I'm Done
                 </AlertDialogAction>
               </AlertDialogFooter>
