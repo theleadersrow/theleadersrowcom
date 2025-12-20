@@ -84,6 +84,7 @@ export function PaidOutput({
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [showATSReportModal, setShowATSReportModal] = useState(false);
   const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
+  const [showResumePDFModal, setShowResumePDFModal] = useState(false);
   const [coverLetterInput, setCoverLetterInput] = useState<CoverLetterInput>({
     jobTitle: "",
     company: "",
@@ -216,7 +217,7 @@ export function PaidOutput({
           {/* Resume Tab */}
           <TabsContent value="resume" className="space-y-4">
             <div className="flex flex-wrap gap-3 mb-4">
-              <Button variant="outline" onClick={onViewPDF}>
+              <Button variant="outline" onClick={() => setShowResumePDFModal(true)}>
                 <Eye className="w-4 h-4 mr-2" />
                 View PDF
               </Button>
@@ -885,6 +886,51 @@ export function PaidOutput({
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Resume PDF-Like Modal */}
+      <Dialog open={showResumePDFModal} onOpenChange={setShowResumePDFModal}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="sticky top-0 bg-background border-b px-6 py-4 flex items-center justify-between z-10">
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              Optimized Resume
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCopyText}>
+                {isCopied ? (
+                  <><CheckCircle className="w-4 h-4 mr-1" /> Copied</>
+                ) : (
+                  <><Copy className="w-4 h-4 mr-1" /> Copy</>
+                )}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onDownloadDocx}>
+                <Download className="w-4 h-4 mr-1" />
+                Download
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowResumePDFModal(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div className="p-8 bg-white dark:bg-gray-950">
+            {/* PDF-style resume - clean professional format */}
+            <div 
+              className="max-w-2xl mx-auto bg-white dark:bg-gray-900 shadow-lg border rounded-lg"
+              style={{ fontFamily: 'Georgia, serif', minHeight: '800px' }}
+            >
+              <div className="p-12">
+                <div 
+                  className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-gray-800 dark:text-gray-200"
+                  style={{ lineHeight: '1.7', fontSize: '13px' }}
+                >
+                  {resumeContent}
+                </div>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
