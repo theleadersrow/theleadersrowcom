@@ -911,6 +911,11 @@ export function PaidOutput({
                     <p className="font-semibold text-gray-900 dark:text-gray-100">
                       {coverLetterInput.candidateName}
                     </p>
+                    {coverLetterInput.candidateEmail && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {coverLetterInput.candidateEmail}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
