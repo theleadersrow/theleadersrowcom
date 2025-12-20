@@ -122,6 +122,27 @@ interface OutreachMessages {
 
 type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "checklist" | "headlines" | "about" | "recruiter-sim" | "outreach" | "rescore-input" | "rescoring";
 
+// Helper function to get stored email from localStorage
+const getStoredEmail = (): string | undefined => {
+  try {
+    // First check linkedin_signal_access
+    const linkedinAccess = localStorage.getItem("linkedin_signal_access");
+    if (linkedinAccess) {
+      const parsed = JSON.parse(linkedinAccess);
+      if (parsed.email) return parsed.email;
+    }
+    // Fallback to resume_suite_access
+    const resumeAccess = localStorage.getItem("resume_suite_access");
+    if (resumeAccess) {
+      const parsed = JSON.parse(resumeAccess);
+      if (parsed.email) return parsed.email;
+    }
+  } catch (e) {
+    console.error("Error reading stored access:", e);
+  }
+  return undefined;
+};
+
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
   const [linkedinUrl, setLinkedinUrl] = useState("");
@@ -281,8 +302,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setIsFetchingProfile(true);
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
-        body: { linkedinUrl },
+        body: { linkedinUrl, email },
       });
 
       if (error) {
@@ -389,8 +411,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     if (!hasProfileContent && hasLinkedInUrl) {
       setIsFetchingProfile(true);
       try {
+        const email = getStoredEmail();
         const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
-          body: { linkedinUrl },
+          body: { linkedinUrl, email },
         });
 
         if (error) throw error;
