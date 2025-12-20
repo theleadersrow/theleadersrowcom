@@ -852,32 +852,8 @@ export function PaidOutput({
               >
                 {/* Letter content with proper padding */}
                 <div className="p-12">
-                  {/* Letterhead - only show if we have name */}
-                  {coverLetterInput.candidateName && (
-                    <div className="mb-10 pb-6 border-b-2 border-gray-200">
-                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        {coverLetterInput.candidateName}
-                      </h1>
-                      {coverLetterInput.candidateEmail && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {coverLetterInput.candidateEmail}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Date */}
+                  {/* Date only - no name, email, or company header */}
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-8">{formatDate()}</p>
-
-                  {/* Recipient */}
-                  <div className="mb-8">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      {coverLetterInput.company}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Re: {coverLetterInput.jobTitle} Position
-                    </p>
-                  </div>
 
                   {/* Body - formatted paragraphs */}
                   <div 
