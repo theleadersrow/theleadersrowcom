@@ -141,17 +141,21 @@ STYLE RULES:
 - Be confident but not arrogant
 - Be specific, not generic
 - Use the candidate's authentic voice
-- Make every sentence count`;
+- Make every sentence count
+
+CRITICAL FORMAT RULES:
+- Start DIRECTLY with the greeting/salutation (e.g., "Dear Hiring Manager," or "Dear [Name],")
+- Do NOT include any header information (name, email, phone, address, date) - this is handled by the UI
+- Do NOT use placeholders like [Date], [Your Name], [Address], [City], etc.
+- End with a closing like "Sincerely," followed by NOTHING ELSE - the signature is handled by the UI
+- The letter should contain ONLY: greeting, body paragraphs, and closing word`;
 
     const userPrompt = `Write a ${coverLetterLength.toUpperCase()} cover letter for this candidate applying to this role.
 
-CANDIDATE INFORMATION:
-Name: ${candidateName || "[Candidate Name]"}
-${candidateEmail ? `Email: ${candidateEmail}` : ""}
-${candidatePhone ? `Phone: ${candidatePhone}` : ""}
-
-${companyName ? `COMPANY: ${companyName}` : ""}
-${hiringManagerName ? `HIRING MANAGER: ${hiringManagerName}` : ""}
+CANDIDATE INFORMATION (for context only - DO NOT include in output):
+Name: ${candidateName || "Candidate"}
+${companyName ? `Company applying to: ${companyName}` : ""}
+${hiringManagerName ? `Hiring manager: ${hiringManagerName}` : ""}
 
 CANDIDATE'S RESUME:
 ${resumeText}
@@ -186,13 +190,12 @@ ${coverLetterLength === "short" ? `
 - Closing with enthusiasm and call to action
 `}
 
-Return ONLY the cover letter text, properly formatted with:
-- Header with candidate contact info (name, email, phone on separate lines)
-- Date
-- Company address if company name provided
-- Greeting (use hiring manager name if provided)
-- Body paragraphs
-- Professional closing with signature`;
+CRITICAL OUTPUT FORMAT:
+- Start with "${hiringManagerName ? `Dear ${hiringManagerName},` : "Dear Hiring Manager,"}"
+- Do NOT include any letterhead, date, address, name, email, or phone at the start
+- Do NOT include the candidate's name after "Sincerely," - just end with "Sincerely,"
+- Do NOT use any placeholders like [Date], [Your Name], [Company Address], etc.
+- Return ONLY the greeting, body paragraphs, and closing word`;
 
     logStep("Calling AI for cover letter generation", { length: coverLetterLength });
 
