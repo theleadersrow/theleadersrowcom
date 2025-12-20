@@ -888,39 +888,36 @@ export function PaidOutput({
                       const trimmed = paragraph.trim();
                       if (!trimmed) return null;
                       
-                      // Skip letterhead info that we're already displaying
                       const lowerTrimmed = trimmed.toLowerCase();
                       const candidateName = coverLetterInput.candidateName?.toLowerCase() || '';
                       const candidateEmail = coverLetterInput.candidateEmail?.toLowerCase() || '';
                       const company = coverLetterInput.company?.toLowerCase() || '';
-                      const jobTitle = coverLetterInput.jobTitle?.toLowerCase() || '';
                       
-                      // Skip if it's just the candidate name/email header
+                      // Skip any placeholders
+                      if (/\[(date|your name|name|address|city|state|zip|phone|email|company address)\]/i.test(trimmed)) return null;
+                      
+                      // Skip letterhead lines (name, email, phone, address patterns)
                       if (candidateName && lowerTrimmed === candidateName) return null;
                       if (candidateEmail && lowerTrimmed === candidateEmail) return null;
                       if (candidateName && candidateEmail && lowerTrimmed.includes(candidateName) && lowerTrimmed.includes(candidateEmail) && trimmed.length < 100) return null;
                       
-                      // Skip if it's the company name or "Re: Position" line
+                      // Skip company/address lines
                       if (company && lowerTrimmed === company) return null;
-                      if (jobTitle && lowerTrimmed.includes('re:') && lowerTrimmed.includes(jobTitle)) return null;
                       
-                      // Skip date lines (we display our own)
+                      // Skip date lines
                       if (/^(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}$/i.test(trimmed)) return null;
+                      if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmed)) return null;
+                      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
                       
-                      // Skip signature lines (we add our own)
-                      if (lowerTrimmed === 'sincerely,' || 
-                          lowerTrimmed === 'best regards,' ||
-                          lowerTrimmed === 'regards,' ||
-                          lowerTrimmed === 'warm regards,' ||
-                          lowerTrimmed === 'best,' ||
-                          (candidateName && lowerTrimmed === candidateName)) {
-                        return null;
-                      }
+                      // Skip signature/closing lines (we add our own)
+                      if (/^(sincerely|best regards|warm regards|regards|best|respectfully|yours truly),?$/i.test(lowerTrimmed)) return null;
                       
-                      // Skip combined signature blocks like "Sincerely,\nJohn Smith"
-                      if (lowerTrimmed.startsWith('sincerely,') || 
-                          lowerTrimmed.startsWith('best regards,') ||
-                          lowerTrimmed.startsWith('warm regards,')) {
+                      // Skip if it's just the candidate name after closing
+                      if (candidateName && lowerTrimmed === candidateName) return null;
+                      
+                      // Skip combined signature blocks
+                      if (/^(sincerely|best regards|warm regards),?\s*\n/i.test(trimmed)) {
+                        // Extract just the closing if there's content after
                         return null;
                       }
                       
