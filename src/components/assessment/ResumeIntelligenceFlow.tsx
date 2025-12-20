@@ -984,7 +984,25 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             score={paidScore}
             originalATSScore={freeScore?.ats_score}
             onBack={() => setStep("resume_review")}
-            onResetToLanding={() => setStep("landing")}
+            onResetToLanding={() => {
+              // Clear all state for a fresh start
+              setResumeText("");
+              setJobDescription("");
+              setTargetRole("");
+              setTargetIndustry("");
+              setFreeScore(null);
+              setPaidScore(null);
+              setEnhancedResumeContent("");
+              setRawEnhancedContent("");
+              setContentImprovements([]);
+              setClarificationAnswers(null);
+              setAcceptedSections([]);
+              // Clear localStorage session
+              localStorage.removeItem("resume_suite_session");
+              // Navigate to landing
+              setStep("landing");
+              console.log("[Session] Reset to landing - all state cleared");
+            }}
             onViewPDF={handleViewPDF}
             onDownloadDocx={handleDownloadDocx}
             onGenerateCoverLetter={handleGenerateCoverLetter}
