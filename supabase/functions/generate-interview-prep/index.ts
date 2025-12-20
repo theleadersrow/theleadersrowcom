@@ -17,58 +17,63 @@ function getDefaultPreviewCategories(role: string) {
   if (roleKeywords.includes("product") || roleKeywords.includes("pm")) {
     return [
       {
-        name: "Behavioral",
-        description: "Questions about your past experiences and how you handle situations",
+        name: "Product Sense & Problem Framing",
+        description: "How you think, not what you know — customer empathy, structured thinking, tradeoffs, clarity under ambiguity",
         questions: [
-          { question: "Tell me about a time you had to make a difficult decision with incomplete data.", category: "Behavioral", difficulty: "Hard" as const },
-          { question: "Describe a situation where you had to influence stakeholders to change direction.", category: "Behavioral", difficulty: "Medium" as const },
-          { question: "How do you handle disagreements with engineering or design teams?", category: "Behavioral", difficulty: "Medium" as const },
+          { question: "How would you identify the biggest problem to solve for [product/company] right now?", category: "Product Sense", difficulty: "Hard" as const },
+          { question: "Tell me about a time you worked on a problem that was poorly defined. How did you bring clarity?", category: "Product Sense", difficulty: "Hard" as const },
+          { question: "How do you decide what not to build?", category: "Product Sense", difficulty: "Medium" as const },
+          { question: "If usage is flat but revenue is growing, what questions would you ask first?", category: "Product Sense", difficulty: "Hard" as const },
         ]
       },
       {
-        name: "Product Sense",
-        description: "Questions about product intuition and user empathy",
+        name: "Product Strategy & Vision",
+        description: "Your ability to think long-term and at the right altitude — strategic judgment, prioritization, business alignment, executive thinking",
         questions: [
-          { question: "How would you improve a product you use daily?", category: "Product Sense", difficulty: "Hard" as const },
-          { question: "Design a product for a specific user segment to solve a problem.", category: "Product Sense", difficulty: "Hard" as const },
-          { question: "What makes a great product? Give an example.", category: "Product Sense", difficulty: "Medium" as const },
+          { question: "How do you define product strategy, and how is it different from a roadmap?", category: "Product Strategy", difficulty: "Medium" as const },
+          { question: "Walk me through how you would set a 12–18 month vision for this product.", category: "Product Strategy", difficulty: "Hard" as const },
+          { question: "Tell me about a strategic bet you made that didn't pay off. What did you learn?", category: "Product Strategy", difficulty: "Hard" as const },
+          { question: "How do you align product strategy with company goals when there's conflict?", category: "Product Strategy", difficulty: "Hard" as const },
         ]
       },
       {
-        name: "Product Execution",
-        description: "Questions about getting things done and shipping products",
+        name: "Execution & Decision-Making",
+        description: "Can you ship and deliver impact consistently? — ownership, prioritization under constraints, bias to action, judgment calls",
         questions: [
-          { question: "How do you prioritize features when you have limited resources?", category: "Product Execution", difficulty: "Hard" as const },
-          { question: "Walk me through your product development process from idea to launch.", category: "Product Execution", difficulty: "Medium" as const },
-          { question: "How do you handle scope creep during a project?", category: "Product Execution", difficulty: "Medium" as const },
+          { question: "Describe a complex product you shipped end-to-end. What were the hardest decisions?", category: "Execution", difficulty: "Hard" as const },
+          { question: "How do you prioritize when everything feels urgent?", category: "Execution", difficulty: "Medium" as const },
+          { question: "Tell me about a time you had to make a decision with incomplete data.", category: "Execution", difficulty: "Hard" as const },
+          { question: "How do you balance speed vs quality?", category: "Execution", difficulty: "Medium" as const },
         ]
       },
       {
-        name: "Product Strategy",
-        description: "Questions about long-term vision and market positioning",
+        name: "Data, Metrics & Business Impact",
+        description: "Do you understand what actually moves the business? — metric thinking, outcome focus, analytical rigor, business acumen",
         questions: [
-          { question: "How would you define the product roadmap for the next 2 years?", category: "Product Strategy", difficulty: "Hard" as const },
-          { question: "How do you balance short-term wins with long-term vision?", category: "Product Strategy", difficulty: "Hard" as const },
-          { question: "What's your approach to competitive analysis?", category: "Product Strategy", difficulty: "Medium" as const },
+          { question: "What metrics do you use to measure success for your product?", category: "Metrics", difficulty: "Medium" as const },
+          { question: "How do you choose a North Star metric?", category: "Metrics", difficulty: "Hard" as const },
+          { question: "Tell me about a time data changed your original product direction.", category: "Metrics", difficulty: "Hard" as const },
+          { question: "If a key metric drops suddenly, how do you investigate?", category: "Metrics", difficulty: "Hard" as const },
         ]
       },
       {
-        name: "Product Analytics",
-        description: "Questions about data-driven decision making and metrics",
+        name: "Stakeholder Management & Influence",
+        description: "How you lead without authority — communication, alignment, conflict resolution, leadership maturity",
         questions: [
-          { question: "What metrics would you use to measure the success of a new feature?", category: "Product Analytics", difficulty: "Medium" as const },
-          { question: "Describe a time when data changed your product decision.", category: "Product Analytics", difficulty: "Hard" as const },
-          { question: "How do you set up A/B tests for product experiments?", category: "Product Analytics", difficulty: "Medium" as const },
-          { question: "What's the difference between leading and lagging indicators?", category: "Product Analytics", difficulty: "Easy" as const },
+          { question: "Tell me about a time you disagreed with engineering or leadership. How did you handle it?", category: "Stakeholder", difficulty: "Hard" as const },
+          { question: "How do you influence decisions when you don't have direct authority?", category: "Stakeholder", difficulty: "Medium" as const },
+          { question: "Describe a difficult stakeholder and how you built alignment.", category: "Stakeholder", difficulty: "Hard" as const },
+          { question: "How do you communicate tradeoffs to executives?", category: "Stakeholder", difficulty: "Medium" as const },
         ]
       },
       {
-        name: "Product Thinking",
-        description: "Questions about problem-solving and critical thinking",
+        name: "Leadership, Growth & Product Judgment",
+        description: "What makes you trusted at the next level (Senior+ roles) — people leadership, judgment, mentorship, scope ownership",
         questions: [
-          { question: "A key metric dropped 20% this week. How would you investigate?", category: "Product Thinking", difficulty: "Hard" as const },
-          { question: "How do you identify the root cause of user problems?", category: "Product Thinking", difficulty: "Medium" as const },
-          { question: "What's your framework for making product trade-offs?", category: "Product Thinking", difficulty: "Hard" as const },
+          { question: "How do you develop and coach other PMs?", category: "Leadership", difficulty: "Hard" as const },
+          { question: "What distinguishes a Senior PM from a Principal or Director?", category: "Leadership", difficulty: "Medium" as const },
+          { question: "Tell me about a time you raised the quality bar for your team.", category: "Leadership", difficulty: "Hard" as const },
+          { question: "How do you scale yourself as product scope increases?", category: "Leadership", difficulty: "Hard" as const },
         ]
       }
     ];
