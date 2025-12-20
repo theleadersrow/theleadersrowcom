@@ -638,11 +638,13 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|TECHNICAL SKILLS|CORE COMPETENCIES|PUBLICATIONS|AWARDS|LANGUAGES|VOLUNTEER|INTERESTS)$/i.test(trimmedLine);
       
       // Detect achievement title lines (should be bulleted)
-      // These often start with $ or contain metrics like %, $, M, K, B
+      // These are short, impactful titles often with metrics or keywords
       const isAchievementTitle = (
-        /^\$?\d+[MKB]?\s/i.test(trimmedLine) || // Starts with $120M, 15%, etc.
-        /^\d+%/.test(trimmedLine) || // Starts with percentage
-        /revenue|growth|improvement|reduction|increase|savings|acquisition/i.test(trimmedLine.toLowerCase()) && trimmedLine.length < 60
+        // Starts with $ amount or percentage
+        /^\$?\d+[MKB]?\s/i.test(trimmedLine) ||
+        /^\d+%/.test(trimmedLine) ||
+        // Contains common achievement/business keywords and is short
+        (/revenue|growth|improvement|reduction|increase|savings|acquisition|automation|expansion|profitability|retention|optimization|transformation|innovation|integration|platform|enterprise|saas|ai-powered|global|strategic/i.test(trimmedLine) && trimmedLine.length < 70 && !trimmedLine.includes('|'))
       );
       
       // Detect role header lines (job title, company name, location/date)
