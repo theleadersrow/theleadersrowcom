@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -88,6 +89,7 @@ export function PaidOutput({
   const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
   const [showResumePDFModal, setShowResumePDFModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+  const [showDoneConfirmation, setShowDoneConfirmation] = useState(false);
   const [coverLetterInput, setCoverLetterInput] = useState<CoverLetterInput>({
     jobTitle: "",
     company: "",
@@ -642,6 +644,35 @@ export function PaidOutput({
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* I'm Done Button */}
+        <div className="mt-8 pt-6 border-t flex justify-center">
+          <AlertDialog open={showDoneConfirmation} onOpenChange={setShowDoneConfirmation}>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="lg" className="gap-2">
+                <CheckCircle className="w-5 h-5" />
+                I'm Done
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to close this session?</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p>Clicking done will close this session and your resume will <strong>not be saved</strong>.</p>
+                  <p className="text-orange-600 dark:text-orange-400 font-medium">
+                    Please save a copy of your resume (PDF or Word) if you need it before closing.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onBack}>
+                  Yes, I'm Done
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {/* ATS Report PDF-Like Modal */}
