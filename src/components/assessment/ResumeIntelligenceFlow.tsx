@@ -617,17 +617,27 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     const lines = enhancedResumeContent.split("\n");
     const paragraphs: any[] = [];
     
+    // Helper to strip markdown formatting (bold **, italic *, etc.)
+    const stripMarkdown = (text: string): string => {
+      return text
+        .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove **bold**
+        .replace(/\*([^*]+)\*/g, '$1')     // Remove *italic*
+        .replace(/__([^_]+)__/g, '$1')     // Remove __bold__
+        .replace(/_([^_]+)_/g, '$1')       // Remove _italic_
+        .trim();
+    };
+    
     // Track if we just added a section header for spacing
     let lastWasSectionHeader = false;
     
     lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
+      const trimmedLine = stripMarkdown(line.trim());
       
       // Detect section headers
       const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|TECHNICAL SKILLS|CORE COMPETENCIES|PUBLICATIONS|AWARDS|LANGUAGES|VOLUNTEER|INTERESTS)$/i.test(trimmedLine);
       
       // Detect bullet points (*, -, •, or lines starting with action verbs after bullets)
-      const isBulletLine = /^[\*\-•]/.test(trimmedLine) || trimmedLine.startsWith("*");
+      const isBulletLine = /^[\*\-•]/.test(line.trim()) || line.trim().startsWith("*");
       
       if (isSectionHeader) {
         // Add extra spacing before section (acts as visual separator)
@@ -691,8 +701,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
         lastWasSectionHeader = false;
       } else if (isBulletLine) {
         // Convert *, -, or • to proper bullet formatting
-        // Remove the leading bullet character and trim
-        const bulletText = trimmedLine.replace(/^[\*\-•]\s*/, "").trim();
+        // Remove the leading bullet character, strip markdown, and trim
+        const bulletText = stripMarkdown(line.trim().replace(/^[\*\-•]\s*/, ""));
         
         // Use Word's native bullet formatting
         paragraphs.push(
