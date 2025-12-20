@@ -976,6 +976,19 @@ export function ResumeReview({
   const acceptedCount = editableSections.filter(s => s.status === "accepted" || s.status === "edited").length;
   const totalCount = editableSections.length;
   
+  // Get icon for section type
+  const getSectionIcon = (title: string) => {
+    const upperTitle = title.toUpperCase();
+    if (upperTitle.includes("SUMMARY") || upperTitle.includes("PROFILE")) return <FileText className="w-5 h-5 text-primary" />;
+    if (upperTitle.includes("ACHIEVEMENT") || upperTitle.includes("ACCOMPLISHMENT")) return <Sparkles className="w-5 h-5 text-primary" />;
+    if (upperTitle.includes("EDUCATION") || upperTitle.includes("ACADEMIC")) return <FileText className="w-5 h-5 text-primary" />;
+    if (upperTitle.includes("SKILL") || upperTitle.includes("EXPERTISE") || upperTitle.includes("COMPETENC")) return <FileText className="w-5 h-5 text-primary" />;
+    if (upperTitle.includes("CERTIFICATION")) return <FileText className="w-5 h-5 text-primary" />;
+    if (upperTitle.includes("PROJECT")) return <FileText className="w-5 h-5 text-primary" />;
+    if (upperTitle.includes("HEADER") || upperTitle === "CONTACT") return <FileText className="w-5 h-5 text-primary" />;
+    return <FileText className="w-5 h-5 text-primary" />;
+  };
+
   // Group sections for rendering
   const renderSections = () => {
     const result: JSX.Element[] = [];
@@ -1013,8 +1026,19 @@ export function ResumeReview({
         
         i = j; // Skip past all the roles we just rendered
       } else if (!section.isRole) {
-        // Regular section (not a role)
-        result.push(renderSectionCard(section, false));
+        // Regular section (not a role) - render with group header
+        result.push(
+          <div key={section.id} className="space-y-3">
+            {/* Section Group Header */}
+            <div className="flex items-center gap-2 px-2 pt-4">
+              {getSectionIcon(section.title)}
+              <h3 className="font-semibold text-lg text-foreground">{section.title}</h3>
+            </div>
+            
+            {/* Section Card */}
+            {renderSectionCard(section, false)}
+          </div>
+        );
         i++;
       } else {
         // Orphan role (shouldn't happen, but handle gracefully)
