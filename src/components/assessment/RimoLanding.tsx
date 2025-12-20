@@ -679,16 +679,19 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </div>
               </div>
             </button>
-            {!linkedInAccess.hasAccess && (
-              <div className="px-6 py-3 bg-muted/30 border-t border-blue-500/20 flex items-center justify-end">
+            <div className="px-6 py-3 bg-muted/30 border-t border-blue-500/20 flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
+              </p>
+              {!linkedInAccess.hasAccess && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs text-primary hover:underline whitespace-nowrap ml-4"
                 >
                   Already purchased?
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Interview Prep - Coming Soon */}
