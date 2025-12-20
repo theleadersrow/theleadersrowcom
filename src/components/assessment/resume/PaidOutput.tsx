@@ -644,6 +644,21 @@ export function PaidOutput({
                 </div>
               </div>
             </Card>
+
+            {/* Interview Prep CTA */}
+            <Card className="p-6 border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <h4 className="font-semibold text-foreground mb-1">Ready to practice?</h4>
+                  <p className="text-sm text-muted-foreground">Explore our full Interview Prep tool for personalized practice sessions.</p>
+                </div>
+                <Button onClick={onBack} className="gap-2 flex-shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                  Go to Interview Prep
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </Card>
           </TabsContent>
         </Tabs>
 
