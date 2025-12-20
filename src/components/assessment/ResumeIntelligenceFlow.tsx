@@ -467,11 +467,11 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   };
 
   // Handle resume review finalization
-  const handleReviewFinalize = async (finalResume: string, acceptedSectionsList: string[]) => {
+  const handleReviewFinalize = async (finalResume: string, acceptedSectionsList: string[], calculatedATSScore: number) => {
     setEnhancedResumeContent(finalResume);
     setAcceptedSections(acceptedSectionsList);
     
-    // Get updated score for the finalized resume
+    // Get updated score for the finalized resume from backend
     const userEmail = getStoredEmail();
     const accessToken = getAccessToken();
     
@@ -496,10 +496,44 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       
       if (scoreResponse.ok) {
         const scoreData = await scoreResponse.json();
-        setPaidScore(scoreData);
+        // Use the calculated ATS score from the review screen for consistency
+        // but keep all other data from backend (keywords, improvements, etc.)
+        setPaidScore({
+          ...scoreData,
+          ats_score: calculatedATSScore
+        });
+      } else {
+        // If backend fails, create a minimal score object with the calculated score
+        setPaidScore({
+          ats_score: calculatedATSScore,
+          keyword_match_score: 0,
+          experience_match_score: 0,
+          skills_match_score: 0,
+          format_score: 0,
+          summary: "Resume optimized successfully",
+          matched_keywords: [],
+          missing_keywords: [],
+          strengths: [],
+          improvements: [],
+          role_fit_assessment: ""
+        });
       }
     } catch (error) {
       console.error("Score calculation error:", error);
+      // Fallback to calculated score
+      setPaidScore({
+        ats_score: calculatedATSScore,
+        keyword_match_score: 0,
+        experience_match_score: 0,
+        skills_match_score: 0,
+        format_score: 0,
+        summary: "Resume optimized successfully",
+        matched_keywords: [],
+        missing_keywords: [],
+        strengths: [],
+        improvements: [],
+        role_fit_assessment: ""
+      });
     }
     
     // Go directly to paid output (interview questions will be shown after)

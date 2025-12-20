@@ -40,7 +40,7 @@ interface ResumeReviewProps {
   enhancedContent: string;
   contentImprovements: ContentImprovement[];
   onBack: () => void;
-  onFinalize: (finalResume: string, acceptedSections: string[]) => void;
+  onFinalize: (finalResume: string, acceptedSections: string[], calculatedATSScore: number) => void;
   isGenerating?: boolean;
   originalATSScore?: number; // Backend-calculated ATS score to use as baseline
 }
@@ -924,7 +924,20 @@ export function ResumeReview({
       }
     });
     
-    onFinalize(finalParts.join('\n\n'), acceptedSectionTitles);
+    // Calculate the current ATS score based on optimizations
+    // This mirrors the logic from RealTimeATSScore to ensure consistency
+    const sectionsOptimized = editableSections.filter(s => s.status !== "declined").length;
+    const totalSections = editableSections.length;
+    
+    let calculatedATSScore = originalATSScore || 70; // Default baseline
+    if (originalATSScore !== undefined && totalSections > 0) {
+      const optimizationProgress = sectionsOptimized / totalSections;
+      const maxImprovement = 25; // Max possible improvement from optimizations
+      const improvement = Math.round(optimizationProgress * maxImprovement);
+      calculatedATSScore = Math.min(100, originalATSScore + improvement);
+    }
+    
+    onFinalize(finalParts.join('\n\n'), acceptedSectionTitles, calculatedATSScore);
   };
 
   // Role status badge (new status model)
