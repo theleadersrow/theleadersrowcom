@@ -668,7 +668,7 @@ export function PaidOutput({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onResetToLanding}>
+                <AlertDialogAction onClick={onBack}>
                   Yes, I'm Done
                 </AlertDialogAction>
               </AlertDialogFooter>
