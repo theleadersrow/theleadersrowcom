@@ -577,21 +577,34 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   const handleDownloadDocx = async () => {
     if (!enhancedResumeContent) return;
     
-    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = await import("docx");
+    const { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, convertInchesToTwip } = await import("docx");
     const { saveAs } = await import("file-saver");
     
     const lines = enhancedResumeContent.split("\n");
     const paragraphs: any[] = [];
     
+    // Track if we just added a section header for spacing
+    let lastWasSectionHeader = false;
+    
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
       
-      // Detect headers (all caps or first line as name)
-      const isHeader = index === 0 || /^[A-Z][A-Z\s]+$/.test(trimmedLine);
-      const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE)$/i.test(trimmedLine);
+      // Detect section headers
+      const isSectionHeader = /^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ACHIEVEMENTS|CERTIFICATIONS|PROJECTS|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|TECHNICAL SKILLS|CORE COMPETENCIES|PUBLICATIONS|AWARDS|LANGUAGES|VOLUNTEER|INTERESTS)$/i.test(trimmedLine);
+      
+      // Detect bullet points (*, -, •, or lines starting with action verbs after bullets)
+      const isBulletLine = /^[\*\-•]/.test(trimmedLine) || trimmedLine.startsWith("*");
       
       if (isSectionHeader) {
-        // Section headers with underline effect
+        // Add extra spacing before section (acts as visual separator)
+        if (paragraphs.length > 0) {
+          paragraphs.push(new Paragraph({ 
+            children: [],
+            spacing: { before: 120, after: 0 }
+          }));
+        }
+        
+        // Section headers with clear underline separator
         paragraphs.push(
           new Paragraph({
             children: [
@@ -602,12 +615,13 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
                 bold: true 
               })
             ],
-            spacing: { before: 240, after: 80 },
+            spacing: { before: 200, after: 120 },
             border: {
-              bottom: { color: "000000", space: 1, style: BorderStyle.SINGLE, size: 6 }
+              bottom: { color: "000000", space: 4, style: BorderStyle.SINGLE, size: 12 }
             }
           })
         );
+        lastWasSectionHeader = true;
       } else if (index === 0) {
         // Name - larger, centered
         paragraphs.push(
@@ -624,6 +638,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             spacing: { after: 80 }
           })
         );
+        lastWasSectionHeader = false;
       } else if (index === 1 || index === 2) {
         // Contact info - centered, smaller
         paragraphs.push(
@@ -639,42 +654,75 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             spacing: { after: 40 }
           })
         );
-      } else if (trimmedLine.startsWith("•") || trimmedLine.startsWith("-")) {
-        // Bullet points
+        lastWasSectionHeader = false;
+      } else if (isBulletLine) {
+        // Convert *, -, or • to proper bullet formatting
+        // Remove the leading bullet character and trim
+        const bulletText = trimmedLine.replace(/^[\*\-•]\s*/, "").trim();
+        
+        // Use Word's native bullet formatting
         paragraphs.push(
           new Paragraph({
             children: [
               new TextRun({ 
-                text: trimmedLine, 
+                text: bulletText, 
                 font: "Times New Roman", 
                 size: 22 
               })
             ],
-            spacing: { after: 40 },
-            indent: { left: 360 }
+            spacing: { after: 60, before: lastWasSectionHeader ? 0 : 20 },
+            bullet: {
+              level: 0
+            }
           })
         );
+        lastWasSectionHeader = false;
       } else if (trimmedLine) {
-        // Regular text
+        // Regular text (job titles, company names, dates, etc.)
+        // Check if it looks like a job title line (often has | or dates)
+        const isJobTitleLine = /\d{4}|present|current|\|/i.test(trimmedLine);
+        
         paragraphs.push(
           new Paragraph({
             children: [
               new TextRun({ 
                 text: trimmedLine, 
                 font: "Times New Roman", 
-                size: 22 
+                size: 22,
+                bold: isJobTitleLine
               })
             ],
-            spacing: { after: 60 }
+            spacing: { after: 40, before: lastWasSectionHeader ? 0 : 20 }
           })
         );
+        lastWasSectionHeader = false;
       } else {
-        // Empty line
-        paragraphs.push(new Paragraph({ children: [] }));
+        // Empty line - small spacing
+        paragraphs.push(new Paragraph({ 
+          children: [],
+          spacing: { before: 60, after: 60 }
+        }));
+        lastWasSectionHeader = false;
       }
     });
     
     const doc = new Document({
+      numbering: {
+        config: [{
+          reference: "bullet-numbering",
+          levels: [{
+            level: 0,
+            format: "bullet",
+            text: "•",
+            alignment: AlignmentType.LEFT,
+            style: {
+              paragraph: {
+                indent: { left: convertInchesToTwip(0.5), hanging: convertInchesToTwip(0.25) }
+              }
+            }
+          }]
+        }]
+      },
       sections: [{
         properties: {
           page: {
