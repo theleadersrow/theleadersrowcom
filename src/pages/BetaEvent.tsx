@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   Calendar, Clock, Users, CheckCircle, Sparkles, ArrowRight,
-  FileText, Linkedin, Eye, MessageSquare, BarChart3
+  FileText, Linkedin, Eye, MessageSquare, BarChart3, Bot
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -45,7 +45,7 @@ const registrationSchema = z.object({
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
-type ToolType = "resume_suite" | "linkedin_signal";
+type ToolType = "resume_suite" | "linkedin_signal" | "career_advisor";
 
 const toolInfo = {
   resume_suite: {
@@ -70,6 +70,18 @@ const toolInfo = {
       "Recruiter-view scoring",
       "Profile optimization tips",
       "AI suggestions walkthrough"
+    ]
+  },
+  career_advisor: {
+    name: "AI Career Advisor",
+    description: "Experience your personal AI career coach. Get 24/7 strategic guidance, interview prep, and personalized career roadmaps.",
+    color: "purple",
+    icon: Bot,
+    features: [
+      "24/7 AI coaching access",
+      "Personalized career strategy",
+      "Interview preparation",
+      "Goal tracking & accountability"
     ]
   }
 };
@@ -310,6 +322,69 @@ const BetaEvent = () => {
                   Apply Now
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
+              </div>
+            </div>
+
+            {/* AI Career Advisor - Coming Soon */}
+            <div className="md:col-span-2 border-2 border-purple-500/30 rounded-xl bg-gradient-to-br from-purple-500/5 to-purple-500/10 overflow-hidden opacity-80">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <Bot className="w-7 h-7 text-purple-600" />
+                  </div>
+                  <div>
+                    <span className="text-xs bg-purple-500/20 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                      Coming Soon
+                    </span>
+                    <h3 className="font-semibold text-lg text-foreground mt-1">
+                      AI Career Advisor
+                    </h3>
+                  </div>
+                </div>
+                
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Experience your personal AI career coach. Get 24/7 strategic guidance, interview prep, and personalized career roadmaps powered by advanced AI.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex items-center gap-1.5 text-xs bg-purple-500/10 rounded-lg px-2.5 py-1.5 text-purple-700">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="font-medium">TBD</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-purple-500/10 rounded-lg px-2.5 py-1.5 text-purple-700">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="font-medium">Time TBD</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-purple-500/10 rounded-lg px-2.5 py-1.5 text-purple-700">
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="font-medium">Limited Spots</span>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 mb-5">
+                  {toolInfo.career_advisor.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle className="w-3.5 h-3.5 text-purple-600" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <Button 
+                    disabled
+                    className="flex-1 bg-purple-600/50 text-white cursor-not-allowed"
+                  >
+                    Registration Opens Soon
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate("/career-advisor")}
+                    className="border-purple-500/50 text-purple-700 hover:bg-purple-500/10"
+                  >
+                    Learn More
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
