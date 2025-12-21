@@ -73,14 +73,14 @@ const toolInfo = {
     ]
   },
   career_advisor: {
-    name: "AI Career Advisor",
-    description: "Experience your personal AI career coach. Get 24/7 strategic guidance, interview prep, and personalized career roadmaps.",
+    name: "AI Personal Advisor",
+    description: "Your personal AI advisor for career, life decisions, and professional growth. Get 24/7 strategic guidance tailored to your unique situation.",
     color: "purple",
     icon: Bot,
     features: [
-      "24/7 AI coaching access",
-      "Personalized career strategy",
-      "Interview preparation",
+      "24/7 AI advisor access",
+      "Personalized guidance",
+      "Strategic decision support",
       "Goal tracking & accountability"
     ]
   }
@@ -337,13 +337,13 @@ const BetaEvent = () => {
                       Coming Soon
                     </span>
                     <h3 className="font-semibold text-lg text-foreground mt-1">
-                      AI Career Advisor
+                      AI Personal Advisor
                     </h3>
                   </div>
                 </div>
                 
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Experience your personal AI career coach. Get 24/7 strategic guidance, interview prep, and personalized career roadmaps powered by advanced AI.
+                  Your personal AI advisor for career, life decisions, and professional growth. Get 24/7 strategic guidance tailored to your unique situation.
                 </p>
 
                 <div className="flex flex-wrap gap-2 mb-4">
