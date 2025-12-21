@@ -45,7 +45,7 @@ const registrationSchema = z.object({
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
-type ToolType = "resume_suite" | "linkedin_signal" | "career_advisor";
+type ToolType = "resume_suite" | "linkedin_signal" | "advisor";
 
 const toolInfo = {
   resume_suite: {
@@ -72,7 +72,7 @@ const toolInfo = {
       "AI suggestions walkthrough"
     ]
   },
-  career_advisor: {
+  advisor: {
     name: "AI Personal Advisor",
     description: "Your personal AI advisor for career, life decisions, and professional growth. Get 24/7 strategic guidance tailored to your unique situation.",
     color: "purple",
@@ -362,7 +362,7 @@ const BetaEvent = () => {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 mb-5">
-                  {toolInfo.career_advisor.features.map((feature, i) => (
+                  {toolInfo.advisor.features.map((feature, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <CheckCircle className="w-3.5 h-3.5 text-purple-600" />
                       <span>{feature}</span>

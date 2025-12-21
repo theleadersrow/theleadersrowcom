@@ -671,7 +671,7 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
           <div>
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-violet-500" />
-              Career Advisor
+              Rimo
               {accessInfo.hasAccess && (
                 <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Crown className="w-3 h-3" />
@@ -754,7 +754,7 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
               <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8 text-violet-500" />
               </div>
-              <h3 className="font-medium text-lg mb-2">Hi! I'm your Career Advisor</h3>
+              <h3 className="font-medium text-lg mb-2">Hi! I'm Rimo, your personal advisor</h3>
               <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
                 {userProfile?.type === "student" 
                   ? "I can help with internships, first jobs, career planning, networking, and making the most of your education."
@@ -822,7 +822,7 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
             </div>
             <h3 className="font-semibold text-lg mb-2">Unlock Unlimited Access</h3>
             <p className="text-muted-foreground text-sm mb-4">
-              You've used your {FREE_CHAT_LIMIT} free chats today. Upgrade to Career Advisor Pro 
+              You've used your {FREE_CHAT_LIMIT} free chats today. Upgrade to Rimo Pro
               for unlimited conversations and personalized career guidance.
             </p>
             
