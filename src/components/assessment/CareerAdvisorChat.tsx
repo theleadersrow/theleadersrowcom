@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { QuickActionButtons } from "./career-advisor/QuickActionButtons";
+import { GoalTracker } from "./career-advisor/GoalTracker";
+import { SessionSummary } from "./career-advisor/SessionSummary";
 
 interface CareerAdvisorChatProps {
   onBack: () => void;
@@ -719,47 +722,37 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         </div>
       </div>
 
+      {/* Goal Tracker & Summary */}
+      <div className="space-y-2 mb-3">
+        <GoalTracker sessionId={sessionId} email={accessInfo.email} />
+        {messages.length >= 4 && (
+          <SessionSummary messages={messages} sessionId={sessionId} email={accessInfo.email} />
+        )}
+      </div>
+
       {/* Chat Area */}
       <ScrollArea className="flex-1 pr-4 border rounded-lg bg-muted/20">
         <div className="p-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8 text-violet-500" />
               </div>
               <h3 className="font-medium text-lg mb-2">Hi! I'm your Career Advisor</h3>
-              <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
+              <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
                 {userProfile?.type === "student" 
-                  ? "I can help with internships, first jobs, career planning, networking, and making the most of your education. What would you like to explore?"
+                  ? "I can help with internships, first jobs, career planning, networking, and making the most of your education."
                   : userProfile?.type === "professional"
-                  ? "I can help with career growth, leadership, negotiations, workplace dynamics, and strategic moves. What's on your mind?"
-                  : "I'm here to help with job searching, career transitions, salary negotiation, workplace dynamics, and professional growth. What's on your mind?"}
+                  ? "I can help with career growth, leadership, negotiations, workplace dynamics, and strategic moves."
+                  : "I'm here to help with job searching, career transitions, salary negotiation, and professional growth."}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md mx-auto">
-                {(userProfile?.type === "student" ? [
-                  "How do I land my first internship?",
-                  "What skills should I develop in college?",
-                  "How do I network without experience?",
-                  "Tips for entry-level interviews",
-                ] : userProfile?.type === "professional" ? [
-                  "How do I negotiate a higher salary?",
-                  "I want to get promoted faster",
-                  "How do I handle a difficult manager?",
-                  "Should I change careers?",
-                ] : [
-                  "How do I transition to a new field?",
-                  "Building credibility as a freelancer",
-                  "How do I price my services?",
-                  "Tips for career reinvention",
-                ]).map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setInput(suggestion)}
-                    className="text-left text-xs p-3 rounded-lg border bg-background hover:bg-muted transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+              <div className="max-w-md mx-auto">
+                <QuickActionButtons 
+                  onAction={setInput}
+                  userProfileType={userProfile?.type}
+                  hasMessages={false}
+                  disabled={isLoading}
+                />
               </div>
             </div>
           ) : (
@@ -873,8 +866,18 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         </div>
       )}
 
+      {/* Quick Actions */}
+      {messages.length > 0 && !showPaywall && (
+        <QuickActionButtons 
+          onAction={setInput}
+          userProfileType={userProfile?.type}
+          hasMessages={true}
+          disabled={isLoading}
+        />
+      )}
+
       {/* Input Area */}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-2 flex gap-2">
         <Input
           ref={inputRef}
           value={input}

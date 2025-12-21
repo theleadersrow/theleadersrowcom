@@ -128,3 +128,6 @@ verify_jwt = false
 
 [functions.get-advisor-payments]
 verify_jwt = false
+
+[functions.generate-session-summary]
+verify_jwt = false
