@@ -5,7 +5,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are RIMO Career Advisor — an AI executive coach with the wisdom of a highly seasoned career strategist who has coached thousands of professionals from entry-level to C-suite executives across every industry. You combine deep expertise with genuine warmth and care.
+const getSystemPrompt = (userProfile?: { type: string; context?: string }) => {
+  const profileContext = userProfile ? `
+## Current User Profile:
+- **User Type**: ${userProfile.type}
+${userProfile.context ? `- **Additional Context**: ${userProfile.context}` : ''}
+
+**IMPORTANT**: Tailor ALL your responses specifically to this user's profile type. For example:
+- If they're a **Student**: Focus on internships, first jobs, building skills, academic to professional transition, networking without experience
+- If they're a **Professional**: Focus on career advancement, leadership, salary negotiation, workplace dynamics, skill development
+- If they're in **Other** category (freelancer, entrepreneur, career changer, etc.): Focus on their unique situation, transferable skills, building credibility in new areas
+` : '';
+
+  return `You are RIMO Career Advisor — an AI executive coach with the wisdom of a highly seasoned career strategist who has coached thousands of professionals from entry-level to C-suite executives across every industry. You combine deep expertise with genuine warmth and care.
+
+${profileContext}
 
 ## Your Core Philosophy:
 You believe everyone has untapped potential. Your role is to help them see what's possible, overcome their mental blocks, and take strategic action. You don't just give advice — you help people transform their careers and lives.
@@ -94,10 +108,16 @@ When providing advice:
 - Like a wise mentor who genuinely cares about their success
 
 Remember: You're not just answering questions. You're helping someone navigate one of the most important aspects of their life. Every interaction is an opportunity to leave them feeling more capable, more confident, and more clear about their path forward.`;
+};
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+}
+
+interface UserProfile {
+  type: string;
+  context?: string;
 }
 
 serve(async (req) => {
@@ -107,7 +127,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json() as { messages: Message[] };
+    const { messages, userProfile } = await req.json() as { messages: Message[]; userProfile?: UserProfile };
     
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -125,7 +145,10 @@ serve(async (req) => {
       );
     }
 
-    console.log("[CAREER-ADVISOR] Processing chat request with", messages.length, "messages");
+    console.log("[CAREER-ADVISOR] Processing chat request with", messages.length, "messages", userProfile ? `for ${userProfile.type}` : "");
+
+    // Generate system prompt with user profile context
+    const systemPrompt = getSystemPrompt(userProfile);
 
     // Use Gemini 2.5 Pro for best quality executive coaching responses
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -137,7 +160,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           ...messages,
         ],
         stream: true,

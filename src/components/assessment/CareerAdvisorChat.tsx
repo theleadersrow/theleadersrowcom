@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowLeft, Send, Sparkles, MessageCircle, Lock, Loader2, 
-  User, Bot, Trash2, Crown, Settings
+  User, Bot, Trash2, Crown, Settings, GraduationCap, Briefcase, Users
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,14 @@ const FREE_CHAT_LIMIT = 4;
 const CHAT_USAGE_KEY = "career_advisor_usage";
 const CAREER_ADVISOR_ACCESS_KEY = "career_advisor_access";
 const CHAT_SESSION_KEY = "career_advisor_session_id";
+const USER_PROFILE_KEY = "career_advisor_profile";
+
+type UserProfileType = "student" | "professional" | "other";
+
+interface UserProfile {
+  type: UserProfileType;
+  context?: string;
+}
 
 interface UsageInfo {
   count: number;
@@ -49,6 +57,9 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
   const [upgradeEmail, setUpgradeEmail] = useState("");
   const [sessionId, setSessionId] = useState<string>("");
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingContext, setOnboardingContext] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -85,6 +96,20 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         localStorage.setItem(CHAT_SESSION_KEY, storedSessionId);
       }
       setSessionId(storedSessionId);
+
+      // Check for stored user profile
+      const storedProfile = localStorage.getItem(USER_PROFILE_KEY);
+      if (storedProfile) {
+        try {
+          const profile = JSON.parse(storedProfile) as UserProfile;
+          setUserProfile(profile);
+        } catch (e) {
+          console.error("Error parsing stored profile:", e);
+          setShowOnboarding(true);
+        }
+      } else {
+        setShowOnboarding(true);
+      }
 
       // Load chat history from database
       await loadChatHistory(storedSessionId);
@@ -278,6 +303,21 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     return Math.max(0, FREE_CHAT_LIMIT - usageCount);
   };
 
+  const handleSelectProfile = (type: UserProfileType) => {
+    const profile: UserProfile = { type, context: onboardingContext.trim() || undefined };
+    setUserProfile(profile);
+    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
+    setShowOnboarding(false);
+  };
+
+  const getProfileLabel = (type: UserProfileType) => {
+    switch (type) {
+      case "student": return "Student";
+      case "professional": return "Professional";
+      case "other": return "Other";
+    }
+  };
+
   const streamChat = useCallback(async (currentMessages: Message[]) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/career-advisor-chat`;
 
@@ -287,7 +327,7 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages: currentMessages }),
+      body: JSON.stringify({ messages: currentMessages, userProfile }),
     });
 
     if (resp.status === 429) {
@@ -402,6 +442,12 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     const newSessionId = generateSessionId();
     localStorage.setItem(CHAT_SESSION_KEY, newSessionId);
     setSessionId(newSessionId);
+    
+    // Reset profile to trigger onboarding
+    localStorage.removeItem(USER_PROFILE_KEY);
+    setUserProfile(null);
+    setShowOnboarding(true);
+    setOnboardingContext("");
   };
 
   const handleUpgrade = async () => {
@@ -473,6 +519,89 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     );
   }
 
+  // Onboarding screen
+  if (showOnboarding && !userProfile) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px] relative">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-violet-500" />
+              Career Advisor
+            </h2>
+            <p className="text-xs text-muted-foreground">Let me get to know you first</p>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
+          <div className="max-w-md w-full text-center space-y-6">
+            <div className="w-20 h-20 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto">
+              <Users className="w-10 h-10 text-violet-500" />
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Welcome! Tell me about yourself</h3>
+              <p className="text-muted-foreground text-sm">
+                This helps me tailor my advice to your specific situation and career stage.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={() => handleSelectProfile("student")}
+                className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-muted/50 hover:border-violet-500/50 hover:bg-violet-500/5 transition-all text-left group"
+              >
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                  <GraduationCap className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Student</p>
+                  <p className="text-xs text-muted-foreground">College, university, bootcamp, or recent grad</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleSelectProfile("professional")}
+                className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-muted/50 hover:border-violet-500/50 hover:bg-violet-500/5 transition-all text-left group"
+              >
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                  <Briefcase className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Professional</p>
+                  <p className="text-xs text-muted-foreground">Currently employed or actively job searching</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleSelectProfile("other")}
+                className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-muted/50 hover:border-violet-500/50 hover:bg-violet-500/5 transition-all text-left group"
+              >
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                  <User className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Other</p>
+                  <p className="text-xs text-muted-foreground">Freelancer, entrepreneur, career changer, or exploring options</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="pt-2">
+              <p className="text-xs text-muted-foreground">
+                You can always update this later by starting a new chat.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px] relative">
       {/* Header */}
@@ -489,6 +618,11 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
                 <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Crown className="w-3 h-3" />
                   Pro
+                </span>
+              )}
+              {userProfile && (
+                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                  {getProfileLabel(userProfile.type)}
                 </span>
               )}
             </h2>
@@ -532,16 +666,29 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
               </div>
               <h3 className="font-medium text-lg mb-2">Hi! I'm your Career Advisor</h3>
               <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
-                I'm here to help with job searching, career transitions, salary negotiation, 
-                workplace dynamics, and professional growth. What's on your mind?
+                {userProfile?.type === "student" 
+                  ? "I can help with internships, first jobs, career planning, networking, and making the most of your education. What would you like to explore?"
+                  : userProfile?.type === "professional"
+                  ? "I can help with career growth, leadership, negotiations, workplace dynamics, and strategic moves. What's on your mind?"
+                  : "I'm here to help with job searching, career transitions, salary negotiation, workplace dynamics, and professional growth. What's on your mind?"}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md mx-auto">
-                {[
+                {(userProfile?.type === "student" ? [
+                  "How do I land my first internship?",
+                  "What skills should I develop in college?",
+                  "How do I network without experience?",
+                  "Tips for entry-level interviews",
+                ] : userProfile?.type === "professional" ? [
                   "How do I negotiate a higher salary?",
-                  "I'm considering a career change",
+                  "I want to get promoted faster",
                   "How do I handle a difficult manager?",
-                  "Tips for senior-level interviews",
-                ].map((suggestion) => (
+                  "Should I change careers?",
+                ] : [
+                  "How do I transition to a new field?",
+                  "Building credibility as a freelancer",
+                  "How do I price my services?",
+                  "Tips for career reinvention",
+                ]).map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => setInput(suggestion)}
