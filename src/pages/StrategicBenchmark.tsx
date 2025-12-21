@@ -227,7 +227,16 @@ const StrategicBenchmark = () => {
           )}
 
           {currentView === "career_advisor" && (
-            <CareerAdvisorChat onBack={handleBackToHub} />
+            <CareerAdvisorChat 
+              onBack={handleBackToHub} 
+              onNavigateToTool={(tool) => {
+                if (tool === "resume" || tool === "cover_letter" || tool === "interview") {
+                  setCurrentView("resume_suite");
+                } else if (tool === "linkedin") {
+                  setCurrentView("linkedin");
+                }
+              }}
+            />
           )}
 
           {currentView === "linkedin" && (

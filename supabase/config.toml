@@ -131,3 +131,6 @@ verify_jwt = false
 
 [functions.generate-session-summary]
 verify_jwt = false
+
+[functions.send-advisor-nudge]
+verify_jwt = false
