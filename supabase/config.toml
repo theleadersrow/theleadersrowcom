@@ -119,3 +119,12 @@ verify_jwt = false
 
 [functions.career-advisor-portal]
 verify_jwt = false
+
+[functions.send-advisor-expiry-reminder]
+verify_jwt = false
+
+[functions.get-advisor-subscribers]
+verify_jwt = false
+
+[functions.get-advisor-payments]
+verify_jwt = false
