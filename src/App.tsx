@@ -28,6 +28,7 @@ import CancelMembership from "./pages/CancelMembership";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import BetaEvent from "./pages/BetaEvent";
+import CareerAdvisorInfo from "./pages/CareerAdvisorInfo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="/beta-event" element={<BetaEvent />} />
+            <Route path="/career-advisor" element={<CareerAdvisorInfo />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
