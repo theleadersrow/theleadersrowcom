@@ -372,6 +372,78 @@ export type Database = {
         }
         Relationships: []
       }
+      career_advisor_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          progress: number | null
+          session_id: string
+          status: string
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          progress?: number | null
+          session_id: string
+          status?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          progress?: number | null
+          session_id?: string
+          status?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      career_advisor_summaries: {
+        Row: {
+          action_items: Json | null
+          created_at: string
+          email: string | null
+          id: string
+          key_insights: Json | null
+          session_id: string
+          summary: string
+        }
+        Insert: {
+          action_items?: Json | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          key_insights?: Json | null
+          session_id: string
+          summary: string
+        }
+        Update: {
+          action_items?: Json | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          key_insights?: Json | null
+          session_id?: string
+          summary?: string
+        }
+        Relationships: []
+      }
       career_assessments: {
         Row: {
           ai_assessment: Json | null
