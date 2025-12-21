@@ -295,28 +295,44 @@ const CareerCoach = () => {
 
         {/* Chat Area */}
         <div className="container max-w-3xl mx-auto px-3 sm:px-4 pb-36 sm:pb-40">
-          {/* Interview Prep Card - shown at the start */}
+          {/* Tool Comparison Card - shown at the start */}
           {messages.length <= 2 && (
-            <div className="py-4">
-              <button
-                onClick={() => setShowInterviewPrepDialog(true)}
-                className="w-full bg-card border border-border rounded-xl p-4 hover:border-primary/50 hover:bg-card/80 transition-all group text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-colors">
-                    <Sparkles className="w-5 h-5 text-secondary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-foreground">AI Interview Prep</span>
-                      <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
+            <div className="py-4 space-y-3">
+              {/* Comparison Banner */}
+              <div className="bg-gradient-to-r from-violet-500/10 via-primary/5 to-amber-500/10 border border-border rounded-xl p-4">
+                <p className="text-xs font-medium text-muted-foreground mb-3 text-center">Choose the right tool for your needs</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Rimo Advisor */}
+                  <div className="bg-background/80 rounded-lg p-3 border border-violet-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center">
+                        <MessageCircle className="w-3 h-3 text-violet-600" />
+                      </div>
+                      <span className="text-xs font-semibold text-violet-600">Rimo Advisor</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      Practice mock interviews with AI feedback and coaching
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      <strong>Strategic & ongoing</strong> — Career decisions, life choices, negotiation strategy, workplace dynamics
                     </p>
+                    <p className="text-[10px] text-violet-600 mt-1.5 font-medium">✓ You're here now</p>
                   </div>
+                  {/* Interview Prep */}
+                  <button
+                    onClick={() => setShowInterviewPrepDialog(true)}
+                    className="bg-background/80 rounded-lg p-3 border border-border hover:border-primary/30 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                        <Sparkles className="w-3 h-3 text-muted-foreground" />
+                      </div>
+                      <span className="text-xs font-semibold text-muted-foreground">Interview Prep</span>
+                      <span className="text-[8px] bg-muted px-1 py-0.5 rounded">Soon</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      <strong>Tactical & job-specific</strong> — Mock interviews, STAR answers, role-tailored questions
+                    </p>
+                  </button>
                 </div>
-              </button>
+              </div>
             </div>
           )}
           <div className="py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -487,16 +503,25 @@ const CareerCoach = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
-                AI Interview Prep
+                Interview Prep
               </DialogTitle>
               <DialogDescription className="pt-4 space-y-4">
                 <p>
-                  Our AI-powered Interview Prep tool will help you practice and prepare for real interviews with personalized mock sessions, feedback, and coaching.
+                  <strong>Different from Rimo:</strong> Interview Prep is for targeted, job-specific preparation. You'll get structured mock interviews, role-tailored questions, and STAR-format answer templates.
                 </p>
+                <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-2">
+                  <p className="font-medium text-foreground">Interview Prep includes:</p>
+                  <ul className="text-muted-foreground space-y-1 text-xs">
+                    <li>• Mock interview sessions for specific roles</li>
+                    <li>• STAR-format answer templates</li>
+                    <li>• Company-specific question predictions</li>
+                    <li>• Structured feedback on responses</li>
+                  </ul>
+                </div>
                 <div className="bg-secondary/20 rounded-lg p-4 text-center">
                   <p className="text-lg font-semibold text-foreground">Coming Soon!</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    This premium feature will be launching in a few months. Stay tuned!
+                    This premium feature will be launching in a few months.
                   </p>
                 </div>
               </DialogDescription>

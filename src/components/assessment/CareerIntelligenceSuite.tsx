@@ -47,7 +47,7 @@ export function CareerIntelligenceSuite({
       icon: MessageSquare,
       title: "Interview Prep",
       tag: "Coming Soon",
-      description: "AI-powered mock interviews with personalized feedback.",
+      description: "Targeted preparation for specific interviews with mock sessions, STAR answers, and role-tailored questions.",
       cta: "Coming Soon",
       featured: false,
       disabled: true,
