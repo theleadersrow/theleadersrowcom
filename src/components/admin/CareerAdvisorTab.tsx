@@ -44,6 +44,8 @@ interface ChatSession {
   session_id: string;
   email: string | null;
   messages: unknown;
+  user_profile_type: string | null;
+  user_profile_context: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -425,6 +427,7 @@ export const CareerAdvisorTab = () => {
                 <TableRow>
                   <TableHead>Session ID</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Profile</TableHead>
                   <TableHead>Messages</TableHead>
                   <TableHead>Last Active</TableHead>
                   <TableHead>Actions</TableHead>
@@ -437,6 +440,15 @@ export const CareerAdvisorTab = () => {
                       {session.session_id.substring(0, 8)}...
                     </TableCell>
                     <TableCell>{session.email || "Anonymous"}</TableCell>
+                    <TableCell>
+                      {session.user_profile_type ? (
+                        <Badge variant="outline" className="capitalize">
+                          {session.user_profile_type}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {Array.isArray(session.messages) ? (session.messages as any[]).length : 0} messages
                     </TableCell>
@@ -456,9 +468,19 @@ export const CareerAdvisorTab = () => {
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[80vh]">
                           <DialogHeader>
-                            <DialogTitle>
+                            <DialogTitle className="flex items-center gap-2">
                               Chat Session - {session.email || "Anonymous"}
+                              {session.user_profile_type && (
+                                <Badge variant="outline" className="capitalize ml-2">
+                                  {session.user_profile_type}
+                                </Badge>
+                              )}
                             </DialogTitle>
+                            {session.user_profile_context && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Context: {session.user_profile_context}
+                              </p>
+                            )}
                           </DialogHeader>
                           <ScrollArea className="max-h-[60vh]">
                             <div className="space-y-4 pr-4">
