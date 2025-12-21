@@ -4,8 +4,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowLeft, Send, Bot, User, Loader2, Play, 
-  Target, Building2, MapPin, Briefcase, MessageSquare,
-  CheckCircle, ChevronRight, Sparkles, RotateCcw
+  Target, Building2, Briefcase, MessageSquare,
+  CheckCircle, ChevronRight, Sparkles, RotateCcw,
+  Code, Brain, Users, Lightbulb, TrendingUp, Zap,
+  FileText, Award
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,15 +20,24 @@ interface Message {
   content: string;
 }
 
+interface WorkExperience {
+  currentRole: string;
+  yearsExperience: string;
+  keyProjects: string;
+  biggestAchievement: string;
+  technicalSkills: string;
+}
+
 interface InterviewContext {
   roleType: "product" | "software";
   level: string;
   company: string;
   location: string;
   interviewType: string;
+  workExperience: WorkExperience;
 }
 
-type OnboardingStep = "role" | "level" | "company" | "interview_type" | "ready";
+type OnboardingStep = "role" | "level" | "company" | "interview_category" | "work_experience" | "ready";
 
 const LEVELS = {
   product: [
@@ -45,27 +56,148 @@ const LEVELS = {
   ],
 };
 
-const INTERVIEW_TYPES = {
+// Company-specific interview categories
+const COMPANY_INTERVIEW_CATEGORIES = {
+  product: {
+    "Google": [
+      { value: "product_sense", label: "Product Sense (Googleyness)", description: "User-focused product design with Google's 10x thinking", icon: Lightbulb },
+      { value: "analytical", label: "Analytical & Metrics", description: "Data-driven decisions, A/B testing, success metrics", icon: TrendingUp },
+      { value: "strategy", label: "Product Strategy", description: "Market analysis, competitive positioning, vision", icon: Target },
+      { value: "execution", label: "Execution & Leadership", description: "Cross-functional collaboration, prioritization", icon: Users },
+      { value: "behavioral", label: "Googleyness & Leadership", description: "Culture fit, values, past experiences", icon: Award },
+    ],
+    "Meta": [
+      { value: "product_sense", label: "Product Sense", description: "Designing for billions, social impact", icon: Lightbulb },
+      { value: "execution", label: "Execution", description: "Shipping fast, iterating, handling ambiguity", icon: Zap },
+      { value: "analytical", label: "Data & Analytics", description: "Metrics-driven decisions, growth analysis", icon: TrendingUp },
+      { value: "leadership", label: "Leadership & Drive", description: "Impact, ownership, influencing without authority", icon: Users },
+      { value: "behavioral", label: "Cultural Fit", description: "Move fast, be bold, focus on impact", icon: Award },
+    ],
+    "Amazon": [
+      { value: "product_sense", label: "Product Sense (Customer Obsession)", description: "Working backwards from customer needs", icon: Lightbulb },
+      { value: "leadership_principles", label: "Leadership Principles", description: "All 16 LPs - Ownership, Bias for Action, etc.", icon: Award },
+      { value: "metrics", label: "Metrics & Business", description: "Flywheel thinking, input/output metrics", icon: TrendingUp },
+      { value: "strategy", label: "Product Strategy", description: "Long-term thinking, competitive moats", icon: Target },
+      { value: "execution", label: "Deliver Results", description: "High bar, driving execution at scale", icon: Zap },
+    ],
+    "Apple": [
+      { value: "product_craft", label: "Product Craft", description: "Attention to detail, design excellence", icon: Sparkles },
+      { value: "hardware_software", label: "Hardware-Software Integration", description: "Holistic product thinking", icon: Lightbulb },
+      { value: "user_experience", label: "User Experience", description: "Simplicity, delight, accessibility", icon: Users },
+      { value: "strategy", label: "Product Strategy", description: "Innovation, market creation, ecosystem", icon: Target },
+      { value: "behavioral", label: "Cultural Fit", description: "Secrecy, excellence, collaboration", icon: Award },
+    ],
+    "Microsoft": [
+      { value: "product_sense", label: "Product Sense", description: "Enterprise + Consumer product thinking", icon: Lightbulb },
+      { value: "technical", label: "Technical Depth", description: "Platform thinking, technical trade-offs", icon: Code },
+      { value: "growth_mindset", label: "Growth Mindset", description: "Learning culture, adaptability", icon: Brain },
+      { value: "strategy", label: "Product Strategy", description: "Cloud-first, AI-driven product vision", icon: Target },
+      { value: "behavioral", label: "Cultural Fit", description: "Inclusion, empowerment, innovation", icon: Award },
+    ],
+    "OpenAI": [
+      { value: "product_sense", label: "AI Product Sense", description: "Building responsible AI products", icon: Brain },
+      { value: "technical", label: "Technical Understanding", description: "AI/ML concepts, limitations, capabilities", icon: Code },
+      { value: "safety", label: "Safety & Alignment", description: "Responsible AI, user trust, ethics", icon: Target },
+      { value: "strategy", label: "Product Strategy", description: "AI market, developer experience, APIs", icon: Lightbulb },
+      { value: "behavioral", label: "Mission Alignment", description: "Safe AGI, research collaboration", icon: Award },
+    ],
+    "Perplexity": [
+      { value: "product_sense", label: "Search & AI Product Sense", description: "Reinventing search with AI", icon: Lightbulb },
+      { value: "technical", label: "Technical Understanding", description: "LLMs, retrieval, ranking", icon: Brain },
+      { value: "user_experience", label: "User Experience", description: "Speed, accuracy, information design", icon: Users },
+      { value: "growth", label: "Growth & Monetization", description: "User acquisition, retention, business model", icon: TrendingUp },
+      { value: "behavioral", label: "Startup Culture", description: "Speed, ownership, adaptability", icon: Zap },
+    ],
+    "Coinbase": [
+      { value: "product_sense", label: "Crypto Product Sense", description: "Building for crypto-native users", icon: Lightbulb },
+      { value: "regulatory", label: "Compliance & Safety", description: "Regulatory understanding, trust", icon: Target },
+      { value: "technical", label: "Blockchain Understanding", description: "DeFi, wallets, on-chain products", icon: Code },
+      { value: "growth", label: "Growth & Adoption", description: "Mainstream crypto adoption", icon: TrendingUp },
+      { value: "behavioral", label: "Cultural Fit", description: "Clear communication, long-term thinking", icon: Award },
+    ],
+  },
+  software: {
+    "Google": [
+      { value: "coding", label: "Coding (Leetcode-style)", description: "Algorithms, data structures, optimization", icon: Code },
+      { value: "system_design", label: "System Design", description: "Scalable systems, distributed computing", icon: Building2 },
+      { value: "googleyness", label: "Googleyness & Leadership", description: "Culture fit, collaboration, ambiguity", icon: Award },
+      { value: "technical_depth", label: "Technical Discussion", description: "Past projects, architecture decisions", icon: Brain },
+      { value: "behavioral", label: "Behavioral", description: "Teamwork, conflict resolution", icon: Users },
+    ],
+    "Meta": [
+      { value: "coding", label: "Coding", description: "Two 45-min coding rounds", icon: Code },
+      { value: "system_design", label: "System Design", description: "Scale to billions, efficiency", icon: Building2 },
+      { value: "behavioral", label: "Behavioral", description: "Meta values, past experiences", icon: Users },
+      { value: "technical", label: "Technical Deep Dive", description: "Domain expertise, past projects", icon: Brain },
+    ],
+    "Amazon": [
+      { value: "coding", label: "Coding & Problem Solving", description: "OA + onsite coding rounds", icon: Code },
+      { value: "system_design", label: "System Design (OOD)", description: "Object-oriented & distributed design", icon: Building2 },
+      { value: "leadership_principles", label: "Leadership Principles", description: "All 16 LPs with STAR format", icon: Award },
+      { value: "bar_raiser", label: "Bar Raiser", description: "Deep dive on any area", icon: Target },
+    ],
+    "Apple": [
+      { value: "coding", label: "Coding", description: "Algorithm & implementation focus", icon: Code },
+      { value: "system_design", label: "System Design", description: "iOS/macOS architecture, performance", icon: Building2 },
+      { value: "domain", label: "Domain Expertise", description: "Team-specific technical depth", icon: Brain },
+      { value: "behavioral", label: "Behavioral & Culture", description: "Collaboration, excellence", icon: Award },
+    ],
+    "Microsoft": [
+      { value: "coding", label: "Coding", description: "Problem solving, optimization", icon: Code },
+      { value: "system_design", label: "System Design", description: "Azure-scale systems, cloud architecture", icon: Building2 },
+      { value: "technical", label: "Technical Discussion", description: "Past projects, debugging approach", icon: Brain },
+      { value: "behavioral", label: "Growth Mindset", description: "Learning, collaboration, inclusion", icon: Award },
+    ],
+    "OpenAI": [
+      { value: "coding", label: "Coding", description: "Algorithms + ML implementation", icon: Code },
+      { value: "system_design", label: "ML Systems Design", description: "Training infra, serving, scale", icon: Building2 },
+      { value: "ml_depth", label: "ML/AI Deep Dive", description: "Research understanding, LLMs", icon: Brain },
+      { value: "mission", label: "Mission Alignment", description: "Safety, responsible AI", icon: Award },
+    ],
+    "Perplexity": [
+      { value: "coding", label: "Coding", description: "Practical problem solving", icon: Code },
+      { value: "system_design", label: "Search & Retrieval Systems", description: "RAG, indexing, ranking", icon: Building2 },
+      { value: "ml", label: "ML/LLM Understanding", description: "Prompting, fine-tuning, evaluation", icon: Brain },
+      { value: "startup", label: "Startup Fit", description: "Speed, ownership, scrappiness", icon: Zap },
+    ],
+    "Coinbase": [
+      { value: "coding", label: "Coding", description: "Security-focused implementation", icon: Code },
+      { value: "system_design", label: "System Design", description: "Blockchain infra, trading systems", icon: Building2 },
+      { value: "blockchain", label: "Blockchain & Crypto", description: "Smart contracts, DeFi, security", icon: Brain },
+      { value: "behavioral", label: "Cultural Fit", description: "Clear communication, crypto passion", icon: Award },
+    ],
+  },
+};
+
+// Default categories for companies not in the list
+const DEFAULT_INTERVIEW_CATEGORIES = {
   product: [
-    { value: "product_sense", label: "Product Sense", description: "Design and improve products", icon: Sparkles },
-    { value: "metrics", label: "Metrics & Analytics", description: "Data-driven decisions", icon: Target },
-    { value: "strategy", label: "Product Strategy", description: "Vision and market analysis", icon: Briefcase },
-    { value: "behavioral", label: "Behavioral", description: "Past experiences (STAR)", icon: MessageSquare },
-    { value: "mixed", label: "Full Interview", description: "All question types", icon: CheckCircle },
+    { value: "product_sense", label: "Product Sense", description: "Design and improve products", icon: Lightbulb },
+    { value: "analytical", label: "Metrics & Analytics", description: "Data-driven decisions", icon: TrendingUp },
+    { value: "strategy", label: "Product Strategy", description: "Vision and market analysis", icon: Target },
+    { value: "execution", label: "Execution", description: "Shipping and prioritization", icon: Zap },
+    { value: "behavioral", label: "Behavioral", description: "Past experiences (STAR)", icon: Award },
   ],
   software: [
+    { value: "coding", label: "Coding", description: "Algorithms and data structures", icon: Code },
     { value: "system_design", label: "System Design", description: "Architecture and scalability", icon: Building2 },
-    { value: "technical", label: "Technical Discussion", description: "Problem-solving approach", icon: Target },
-    { value: "behavioral", label: "Behavioral", description: "Past experiences (STAR)", icon: MessageSquare },
-    { value: "mixed", label: "Full Interview", description: "All question types", icon: CheckCircle },
+    { value: "technical", label: "Technical Discussion", description: "Problem-solving approach", icon: Brain },
+    { value: "behavioral", label: "Behavioral", description: "Past experiences (STAR)", icon: Award },
   ],
 };
 
-const TOP_COMPANIES = [
-  "Google", "Meta", "Amazon", "Apple", "Microsoft", 
-  "Netflix", "Stripe", "Airbnb", "Uber", "Spotify",
-  "Salesforce", "Adobe", "Twitter/X", "LinkedIn", "Other"
+const FEATURED_COMPANIES = [
+  { name: "Google", color: "bg-red-500/10 text-red-600 border-red-200" },
+  { name: "Meta", color: "bg-blue-500/10 text-blue-600 border-blue-200" },
+  { name: "Amazon", color: "bg-orange-500/10 text-orange-600 border-orange-200" },
+  { name: "Apple", color: "bg-gray-500/10 text-gray-600 border-gray-200" },
+  { name: "Microsoft", color: "bg-sky-500/10 text-sky-600 border-sky-200" },
+  { name: "OpenAI", color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
+  { name: "Perplexity", color: "bg-violet-500/10 text-violet-600 border-violet-200" },
+  { name: "Coinbase", color: "bg-blue-500/10 text-blue-600 border-blue-200" },
 ];
+
+const OTHER_COMPANIES = ["Netflix", "Stripe", "Airbnb", "Uber", "Spotify", "Salesforce", "Adobe", "LinkedIn"];
 
 export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
   const [step, setStep] = useState<OnboardingStep>("role");
@@ -75,6 +207,13 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
     company: "",
     location: "",
     interviewType: "",
+    workExperience: {
+      currentRole: "",
+      yearsExperience: "",
+      keyProjects: "",
+      biggestAchievement: "",
+      technicalSkills: "",
+    },
   });
   const [customCompany, setCustomCompany] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -99,24 +238,41 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
   };
 
   const handleCompanySelect = (company: string) => {
-    if (company === "Other") {
-      // Show custom input
-      return;
-    }
     setContext(prev => ({ ...prev, company }));
-    setStep("interview_type");
+    setStep("interview_category");
   };
 
   const handleCustomCompany = () => {
     if (customCompany.trim()) {
       setContext(prev => ({ ...prev, company: customCompany.trim() }));
-      setStep("interview_type");
+      setStep("interview_category");
     }
   };
 
   const handleInterviewTypeSelect = (type: string) => {
     setContext(prev => ({ ...prev, interviewType: type }));
+    setStep("work_experience");
+  };
+
+  const handleWorkExperienceChange = (field: keyof WorkExperience, value: string) => {
+    setContext(prev => ({
+      ...prev,
+      workExperience: { ...prev.workExperience, [field]: value },
+    }));
+  };
+
+  const handleWorkExperienceSubmit = () => {
+    // Validate at least current role is filled
+    if (!context.workExperience.currentRole.trim()) {
+      toast.error("Please enter your current role to continue");
+      return;
+    }
     setStep("ready");
+  };
+
+  const getInterviewCategories = () => {
+    const companyCategories = COMPANY_INTERVIEW_CATEGORIES[context.roleType];
+    return companyCategories[context.company as keyof typeof companyCategories] || DEFAULT_INTERVIEW_CATEGORIES[context.roleType];
   };
 
   const startInterview = async () => {
@@ -255,6 +411,13 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
       company: "",
       location: "",
       interviewType: "",
+      workExperience: {
+        currentRole: "",
+        yearsExperience: "",
+        keyProjects: "",
+        biggestAchievement: "",
+        technicalSkills: "",
+      },
     });
   };
 
@@ -269,7 +432,7 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
           </Button>
           <div>
             <h2 className="font-semibold text-lg">Interview Prep</h2>
-            <p className="text-xs text-muted-foreground">Practice with AI-powered mock interviews</p>
+            <p className="text-xs text-muted-foreground">Company-specific mock interviews with AI</p>
           </div>
         </div>
 
@@ -277,17 +440,17 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
           <div className="max-w-2xl mx-auto p-6">
             {/* Progress indicator */}
             <div className="flex items-center justify-center gap-2 mb-8">
-              {["role", "level", "company", "interview_type", "ready"].map((s, i) => (
+              {["role", "level", "company", "interview_category", "work_experience", "ready"].map((s, i) => (
                 <div key={s} className="flex items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                     step === s ? "bg-primary text-primary-foreground" : 
-                    ["role", "level", "company", "interview_type", "ready"].indexOf(step) > i 
+                    ["role", "level", "company", "interview_category", "work_experience", "ready"].indexOf(step) > i 
                       ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
                   }`}>
                     {i + 1}
                   </div>
-                  {i < 4 && <div className={`w-8 h-0.5 ${
-                    ["role", "level", "company", "interview_type", "ready"].indexOf(step) > i 
+                  {i < 5 && <div className={`w-6 h-0.5 ${
+                    ["role", "level", "company", "interview_category", "work_experience", "ready"].indexOf(step) > i 
                       ? "bg-primary/20" : "bg-muted"
                   }`} />}
                 </div>
@@ -299,7 +462,7 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">What role are you interviewing for?</h3>
-                  <p className="text-muted-foreground">We'll tailor the interview experience to your target role</p>
+                  <p className="text-muted-foreground">We'll tailor questions to your specific role type</p>
                 </div>
                 <div className="grid gap-4">
                   <button
@@ -323,11 +486,11 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                        <Building2 className="w-6 h-6 text-blue-600" />
+                        <Code className="w-6 h-6 text-blue-600" />
                       </div>
                       <div className="flex-1">
                         <h4 className="font-semibold text-lg mb-1">Software Engineer</h4>
-                        <p className="text-sm text-muted-foreground">System design, technical discussions, coding approach</p>
+                        <p className="text-sm text-muted-foreground">System design, coding, technical discussions, architecture</p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
@@ -369,19 +532,41 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">Which company are you interviewing at?</h3>
-                  <p className="text-muted-foreground">We'll reference their products and culture</p>
+                  <p className="text-muted-foreground">We have company-specific interview formats for top tech companies</p>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {TOP_COMPANIES.filter(c => c !== "Other").map((company) => (
-                    <button
-                      key={company}
-                      onClick={() => handleCompanySelect(company)}
-                      className="p-3 border-2 rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-center font-medium"
-                    >
-                      {company}
-                    </button>
-                  ))}
+                
+                {/* Featured Companies with specific prep */}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-3">🎯 Companies with tailored prep</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {FEATURED_COMPANIES.map((company) => (
+                      <button
+                        key={company.name}
+                        onClick={() => handleCompanySelect(company.name)}
+                        className={`p-4 border-2 rounded-lg hover:border-primary transition-all text-center font-semibold ${company.color}`}
+                      >
+                        {company.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Other Companies */}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-3">Other top companies</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {OTHER_COMPANIES.map((company) => (
+                      <button
+                        key={company}
+                        onClick={() => handleCompanySelect(company)}
+                        className="p-2 border rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-center text-sm"
+                      >
+                        {company}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -401,15 +586,23 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
               </div>
             )}
 
-            {/* Step: Interview Type */}
-            {step === "interview_type" && (
+            {/* Step: Interview Category (Company-specific) */}
+            {step === "interview_category" && (
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold mb-2">What would you like to practice?</h3>
-                  <p className="text-muted-foreground">Choose an interview focus area</p>
+                  <h3 className="text-2xl font-bold mb-2">{context.company} Interview Focus</h3>
+                  <p className="text-muted-foreground">Select the interview round you want to practice</p>
                 </div>
+
+                {FEATURED_COMPANIES.some(c => c.name === context.company) && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center text-sm">
+                    <Sparkles className="w-4 h-4 inline-block mr-2 text-primary" />
+                    Tailored for {context.company}'s specific interview format and culture
+                  </div>
+                )}
+
                 <div className="grid gap-3">
-                  {INTERVIEW_TYPES[context.roleType].map((type) => {
+                  {getInterviewCategories().map((type) => {
                     const Icon = type.icon;
                     return (
                       <button
@@ -435,6 +628,95 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
               </div>
             )}
 
+            {/* Step: Work Experience */}
+            {step === "work_experience" && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Tell us about your experience</h3>
+                  <p className="text-muted-foreground">This helps us tailor questions to your background and provide personalized feedback</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Current Role / Title *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Senior Product Manager at Stripe"
+                      value={context.workExperience.currentRole}
+                      onChange={(e) => handleWorkExperienceChange("currentRole", e.target.value)}
+                      className="w-full px-4 py-2 border rounded-lg bg-background"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Years of Experience</label>
+                    <select
+                      value={context.workExperience.yearsExperience}
+                      onChange={(e) => handleWorkExperienceChange("yearsExperience", e.target.value)}
+                      className="w-full px-4 py-2 border rounded-lg bg-background"
+                    >
+                      <option value="">Select...</option>
+                      <option value="0-1">0-1 years</option>
+                      <option value="1-3">1-3 years</option>
+                      <option value="3-5">3-5 years</option>
+                      <option value="5-8">5-8 years</option>
+                      <option value="8-12">8-12 years</option>
+                      <option value="12+">12+ years</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Key Projects / Products</label>
+                    <Textarea
+                      placeholder="Briefly describe 1-2 significant projects you've worked on. These will be referenced in behavioral questions."
+                      value={context.workExperience.keyProjects}
+                      onChange={(e) => handleWorkExperienceChange("keyProjects", e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Biggest Achievement</label>
+                    <Textarea
+                      placeholder="What's a professional accomplishment you're most proud of? We'll use this for STAR-format questions."
+                      value={context.workExperience.biggestAchievement}
+                      onChange={(e) => handleWorkExperienceChange("biggestAchievement", e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+
+                  {context.roleType === "software" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Technical Skills / Stack</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Python, React, AWS, Kubernetes, Machine Learning"
+                        value={context.workExperience.technicalSkills}
+                        onChange={(e) => handleWorkExperienceChange("technicalSkills", e.target.value)}
+                        className="w-full px-4 py-2 border rounded-lg bg-background"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-sm text-amber-700 dark:text-amber-400">
+                  💡 The more context you provide, the more personalized and realistic your interview will be.
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="ghost" onClick={() => setStep("interview_category")} className="flex-1">
+                    <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                  </Button>
+                  <Button onClick={handleWorkExperienceSubmit} className="flex-1">
+                    Continue <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Step: Ready */}
             {step === "ready" && (
               <div className="space-y-6 animate-fade-in">
@@ -443,7 +725,7 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
                     <Play className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2">Ready to start!</h3>
-                  <p className="text-muted-foreground">Your personalized interview is ready</p>
+                  <p className="text-muted-foreground">Your personalized {context.company} interview is ready</p>
                 </div>
 
                 <div className="bg-muted/50 rounded-xl p-4 space-y-3">
@@ -461,26 +743,31 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
                   </div>
                   <div className="flex items-center gap-3">
                     <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm"><strong>Focus:</strong> {INTERVIEW_TYPES[context.roleType].find(t => t.value === context.interviewType)?.label}</span>
+                    <span className="text-sm"><strong>Focus:</strong> {getInterviewCategories().find(t => t.value === context.interviewType)?.label}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm"><strong>Your Background:</strong> {context.workExperience.currentRole}</span>
                   </div>
                 </div>
 
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-                  <h4 className="font-medium text-amber-700 dark:text-amber-400 mb-2">Tips for best results:</h4>
-                  <ul className="text-sm text-amber-700/80 dark:text-amber-400/80 space-y-1">
-                    <li>• Answer as you would in a real interview</li>
-                    <li>• Use the STAR format for behavioral questions</li>
-                    <li>• Ask clarifying questions if needed</li>
-                    <li>• The interviewer will give you feedback after each answer</li>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+                  <h4 className="font-medium text-emerald-700 dark:text-emerald-400 mb-2">What to expect:</h4>
+                  <ul className="text-sm text-emerald-700/80 dark:text-emerald-400/80 space-y-1">
+                    <li>• Questions tailored to {context.company}'s interview style</li>
+                    <li>• Real-time feedback on your responses</li>
+                    <li>• Suggestions using your actual work experience</li>
+                    <li>• Examples of stronger answers</li>
+                    <li>• Follow-up probing questions</li>
                   </ul>
                 </div>
 
                 <Button onClick={startInterview} size="lg" className="w-full">
                   <Play className="w-4 h-4 mr-2" />
-                  Start Interview
+                  Start {context.company} Interview
                 </Button>
 
-                <Button variant="ghost" onClick={() => setStep("interview_type")} className="w-full">
+                <Button variant="ghost" onClick={() => setStep("work_experience")} className="w-full">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
                 </Button>
               </div>
@@ -503,10 +790,10 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
           <div>
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Bot className="w-5 h-5 text-primary" />
-              Mock Interview
+              {context.company} Mock Interview
             </h2>
             <p className="text-xs text-muted-foreground">
-              {context.company} • {LEVELS[context.roleType].find(l => l.value === context.level)?.label} • {INTERVIEW_TYPES[context.roleType].find(t => t.value === context.interviewType)?.label}
+              {LEVELS[context.roleType].find(l => l.value === context.level)?.label} • {getInterviewCategories().find(t => t.value === context.interviewType)?.label}
             </p>
           </div>
         </div>
