@@ -18,6 +18,7 @@ interface RimoLandingProps {
   onStartResumeSuite: () => void;
   onStartLinkedIn: () => void;
   onStartCareerAdvisor: () => void;
+  onStartInterviewPrep?: () => void;
 }
 
 const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
@@ -32,7 +33,7 @@ interface AccessInfo {
   email?: string;
 }
 
-export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn, onStartCareerAdvisor }: RimoLandingProps) {
+export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn, onStartCareerAdvisor, onStartInterviewPrep }: RimoLandingProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -765,23 +766,24 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             </button>
           </div>
 
-          {/* Interview Prep - Coming Soon */}
-          <div className="border-2 border-border rounded-xl bg-muted/20 overflow-hidden opacity-60">
+          {/* Interview Prep - Now Available */}
+          <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent overflow-hidden">
             <button
-              onClick={() => setShowInterviewPrepDialog(true)}
-              className="w-full p-6 hover:bg-muted/30 transition-all group text-left"
+              onClick={onStartInterviewPrep}
+              className="w-full p-6 hover:bg-amber-500/5 transition-all group text-left"
             >
               <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                  <MessageSquare className="w-7 h-7 text-muted-foreground" />
+                <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
+                  <MessageSquare className="w-7 h-7 text-amber-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold text-lg text-foreground">Interview Prep</h3>
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">Coming Soon</span>
+                    <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium">New</span>
+                    <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Targeted preparation for specific interviews. Get role-tailored questions, STAR-format answers, and structured practice sessions.
+                    Targeted preparation for specific interviews. Practice with AI mock interviews, get STAR-format coaching, and role-tailored questions for PM & SWE roles.
                   </p>
                 </div>
               </div>
