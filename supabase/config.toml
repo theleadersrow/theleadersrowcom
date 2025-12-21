@@ -110,3 +110,9 @@ verify_jwt = false
 
 [functions.career-advisor-chat]
 verify_jwt = false
+
+[functions.create-career-advisor-checkout]
+verify_jwt = false
+
+[functions.check-career-advisor-subscription]
+verify_jwt = false
