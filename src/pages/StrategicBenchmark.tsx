@@ -13,10 +13,11 @@ import { ResumeIntelligenceFlow } from "@/components/assessment/ResumeIntelligen
 import { LinkedInSignalScore } from "@/components/assessment/LinkedInSignalScore";
 import { AssessmentLanding } from "@/components/assessment/AssessmentLanding";
 import { RimoLanding } from "@/components/assessment/RimoLanding";
+import { CareerAdvisorChat } from "@/components/assessment/CareerAdvisorChat";
 import { EngagementIndicator, EncouragementBanner } from "@/components/assessment/EngagementIndicator";
 import { Loader2 } from "lucide-react";
 
-type AssessmentView = "hub" | "assessment_landing" | "resume_suite" | "linkedin" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
+type AssessmentView = "hub" | "assessment_landing" | "resume_suite" | "linkedin" | "career_advisor" | "intro" | "questions" | "module_complete" | "email_gate" | "generating" | "complete";
 
 const moduleInsights = [
   "Your strategic calibration is taking shape. We're identifying your current level and growth potential.",
@@ -73,6 +74,10 @@ const StrategicBenchmark = () => {
 
   const handleGoToLinkedIn = () => {
     setCurrentView("linkedin");
+  };
+
+  const handleGoToCareerAdvisor = () => {
+    setCurrentView("career_advisor");
   };
 
   const handleBackToHub = () => {
@@ -201,7 +206,7 @@ const StrategicBenchmark = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background pt-20">
-        {!["hub", "assessment_landing", "resume_suite", "linkedin", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
+        {!["hub", "assessment_landing", "resume_suite", "linkedin", "career_advisor", "module_complete", "email_gate", "generating", "complete"].includes(currentView) && (
           <AssessmentProgress
             modules={modules}
             currentModuleIndex={currentModuleIndex}
@@ -217,7 +222,12 @@ const StrategicBenchmark = () => {
               onStartAssessment={handleGoToAssessmentLanding} 
               onStartResumeSuite={handleGoToResumeSuite}
               onStartLinkedIn={handleGoToLinkedIn}
+              onStartCareerAdvisor={handleGoToCareerAdvisor}
             />
+          )}
+
+          {currentView === "career_advisor" && (
+            <CareerAdvisorChat onBack={handleBackToHub} />
           )}
 
           {currentView === "linkedin" && (

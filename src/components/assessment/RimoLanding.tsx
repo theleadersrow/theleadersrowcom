@@ -17,6 +17,7 @@ interface RimoLandingProps {
   onStartAssessment: () => void;
   onStartResumeSuite: () => void;
   onStartLinkedIn: () => void;
+  onStartCareerAdvisor: () => void;
 }
 
 const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
@@ -30,7 +31,7 @@ interface AccessInfo {
   email?: string;
 }
 
-export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn }: RimoLandingProps) {
+export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn, onStartCareerAdvisor }: RimoLandingProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -692,6 +693,45 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Career Advisor - Free with limit */}
+          <div className="border-2 border-violet-500/30 rounded-xl bg-gradient-to-r from-violet-500/5 to-transparent overflow-hidden">
+            <button
+              onClick={onStartCareerAdvisor}
+              className="w-full p-6 hover:bg-violet-500/5 transition-all group text-left"
+            >
+              <div className="flex items-start gap-5">
+                <div className="w-14 h-14 rounded-xl bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors flex-shrink-0">
+                  <MessageSquare className="w-7 h-7 text-violet-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <h3 className="font-semibold text-lg text-foreground">Career Advisor Chat</h3>
+                    <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">4 Free Chats Daily</span>
+                    <ArrowRight className="w-4 h-4 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    Get personalized career guidance from an AI advisor. Ask about job searching, salary negotiation, career transitions, workplace dynamics, and more.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Brain className="w-3.5 h-3.5 text-violet-600" />
+                      <span><strong>Real-time Advice</strong> — Personalized</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+                      <span><strong>AI-Powered</strong> — Expert insights</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Job search</span>
+                    <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Salary negotiation</span>
+                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Career strategy</span>
+                  </div>
+                </div>
+              </div>
+            </button>
           </div>
 
           {/* Interview Prep - Coming Soon */}
