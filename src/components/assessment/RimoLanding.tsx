@@ -720,7 +720,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             </div>
           </div>
 
-          {/* Career Advisor - Free with limit */}
+          {/* Rimo Personal Advisor - Free with limit */}
           <div className="border-2 border-violet-500/30 rounded-xl bg-gradient-to-r from-violet-500/5 to-transparent overflow-hidden">
             <button
               onClick={onStartCareerAdvisor}
@@ -732,7 +732,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-lg text-foreground">Career Advisor Chat</h3>
+                    <h3 className="font-semibold text-lg text-foreground">Rimo – Personal Advisor</h3>
                     {careerAdvisorAccess.hasAccess ? (
                       <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
                         <Crown className="w-3 h-3" /> Pro Active
@@ -743,22 +743,22 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                     <ArrowRight className="w-4 h-4 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Get personalized career guidance from an AI advisor. Ask about job searching, salary negotiation, career transitions, workplace dynamics, and more.
+                    Your ongoing strategic advisor for career decisions, life choices, and professional growth. Get real-time guidance on any question — big or small.
                   </p>
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
                       <Brain className="w-3.5 h-3.5 text-violet-600" />
-                      <span><strong>Real-time Advice</strong> — Personalized</span>
+                      <span><strong>Strategic Guidance</strong> — Ongoing</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
                       <Sparkles className="w-3.5 h-3.5 text-violet-600" />
-                      <span><strong>AI-Powered</strong> — Expert insights</span>
+                      <span><strong>Conversational</strong> — Any topic</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Job search</span>
+                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Career decisions</span>
                     <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Salary negotiation</span>
-                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Career strategy</span>
+                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Life strategy</span>
                   </div>
                 </div>
               </div>
@@ -777,11 +777,11 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-lg text-foreground">AI Interview Prep</h3>
+                    <h3 className="font-semibold text-lg text-foreground">Interview Prep</h3>
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">Coming Soon</span>
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Practice mock interviews with AI-powered feedback and coaching tailored to your target role.
+                    Targeted preparation for specific interviews. Get role-tailored questions, STAR-format answers, and structured practice sessions.
                   </p>
                 </div>
               </div>
