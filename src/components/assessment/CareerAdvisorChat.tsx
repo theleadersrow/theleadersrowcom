@@ -140,7 +140,7 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     try {
       const { data, error } = await supabase
         .from('career_advisor_chats')
-        .select('messages')
+        .select('messages, user_profile_type, user_profile_context')
         .eq('session_id', sid)
         .maybeSingle();
 
@@ -153,6 +153,16 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         // Safely cast the messages
         const loadedMessages = data.messages as unknown as Message[];
         setMessages(loadedMessages);
+      }
+
+      // Load profile from database if exists
+      if (data?.user_profile_type) {
+        const profile: UserProfile = {
+          type: data.user_profile_type as UserProfileType,
+          context: data.user_profile_context || undefined,
+        };
+        setUserProfile(profile);
+        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
       }
     } catch (error) {
       console.error("Error loading chat history:", error);
@@ -180,6 +190,8 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
           .update({
             email: email,
             messages: messagesJson,
+            user_profile_type: userProfile?.type || null,
+            user_profile_context: userProfile?.context || null,
             updated_at: new Date().toISOString()
           })
           .eq('session_id', sessionId);
@@ -190,7 +202,9 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
           .insert([{
             session_id: sessionId,
             email: email,
-            messages: messagesJson
+            messages: messagesJson,
+            user_profile_type: userProfile?.type || null,
+            user_profile_context: userProfile?.context || null,
           }]);
       }
     } catch (error) {
@@ -303,11 +317,49 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     return Math.max(0, FREE_CHAT_LIMIT - usageCount);
   };
 
-  const handleSelectProfile = (type: UserProfileType) => {
+  const handleSelectProfile = async (type: UserProfileType) => {
     const profile: UserProfile = { type, context: onboardingContext.trim() || undefined };
     setUserProfile(profile);
     localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
     setShowOnboarding(false);
+    
+    // Save to database immediately if session exists
+    if (sessionId) {
+      try {
+        const { data: existing } = await supabase
+          .from('career_advisor_chats')
+          .select('id')
+          .eq('session_id', sessionId)
+          .maybeSingle();
+
+        if (existing) {
+          await supabase
+            .from('career_advisor_chats')
+            .update({
+              user_profile_type: profile.type,
+              user_profile_context: profile.context || null,
+              updated_at: new Date().toISOString()
+            })
+            .eq('session_id', sessionId);
+        } else {
+          await supabase
+            .from('career_advisor_chats')
+            .insert([{
+              session_id: sessionId,
+              user_profile_type: profile.type,
+              user_profile_context: profile.context || null,
+              messages: []
+            }]);
+        }
+      } catch (error) {
+        console.error("Error saving profile:", error);
+      }
+    }
+  };
+
+  const handleChangeProfile = () => {
+    setShowOnboarding(true);
+    setOnboardingContext(userProfile?.context || "");
   };
 
   const getProfileLabel = (type: UserProfileType) => {
@@ -636,6 +688,17 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {userProfile && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleChangeProfile}
+              className="text-xs"
+            >
+              <User className="w-4 h-4 mr-1" />
+              Change Profile
+            </Button>
+          )}
           {accessInfo.hasAccess && (
             <Button 
               variant="ghost" 
