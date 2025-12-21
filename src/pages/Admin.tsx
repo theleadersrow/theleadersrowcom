@@ -37,13 +37,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck, MessageSquare } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 import { LeadsTab } from "@/components/admin/LeadsTab";
 import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
 import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
 import { ToolPurchasesTab } from "@/components/admin/ToolPurchasesTab";
 import { BetaRegistrationsTab } from "@/components/admin/BetaRegistrationsTab";
+import { CareerAdvisorTab } from "@/components/admin/CareerAdvisorTab";
 import InvoiceList from "@/components/InvoiceList";
 
 interface Enrollment {
@@ -459,10 +460,14 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-6">
         <Tabs defaultValue="enrollments" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6">
+          <TabsList className="grid w-full grid-cols-7 mb-6">
             <TabsTrigger value="enrollments" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Enrollments</span>
+            </TabsTrigger>
+            <TabsTrigger value="advisor" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">Advisor</span>
             </TabsTrigger>
             <TabsTrigger value="tools" className="flex items-center gap-2">
               <Wrench className="h-4 w-4" />
@@ -485,6 +490,10 @@ const Admin = () => {
               <span className="hidden sm:inline">Testimonials</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="advisor">
+            <CareerAdvisorTab />
+          </TabsContent>
 
           <TabsContent value="tools">
             <ToolPurchasesTab />
