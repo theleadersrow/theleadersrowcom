@@ -339,6 +339,33 @@ export type Database = {
         }
         Relationships: []
       }
+      career_advisor_chats: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          messages: Json
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          messages?: Json
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          messages?: Json
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       career_assessments: {
         Row: {
           ai_assessment: Json | null

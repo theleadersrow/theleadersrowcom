@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowLeft, Send, Sparkles, MessageCircle, Lock, Loader2, 
-  User, Bot, Trash2, Crown
+  User, Bot, Trash2, Crown, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ interface Message {
 const FREE_CHAT_LIMIT = 4;
 const CHAT_USAGE_KEY = "career_advisor_usage";
 const CAREER_ADVISOR_ACCESS_KEY = "career_advisor_access";
+const CHAT_SESSION_KEY = "career_advisor_session_id";
 
 interface UsageInfo {
   count: number;
@@ -33,6 +34,10 @@ interface AccessInfo {
   email?: string;
 }
 
+const generateSessionId = () => {
+  return `chat_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+};
+
 export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -42,6 +47,8 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
   const [accessInfo, setAccessInfo] = useState<AccessInfo>({ hasAccess: false });
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
   const [upgradeEmail, setUpgradeEmail] = useState("");
+  const [sessionId, setSessionId] = useState<string>("");
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -50,8 +57,17 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     const params = new URLSearchParams(window.location.search);
     if (params.get('success') === 'true') {
       toast.success("Welcome to Career Advisor Pro! You now have unlimited access.");
-      // Clear URL params
       window.history.replaceState({}, '', window.location.pathname);
+      // Re-check subscription after successful payment
+      const storedEmail = localStorage.getItem(CAREER_ADVISOR_ACCESS_KEY);
+      if (storedEmail) {
+        try {
+          const data = JSON.parse(storedEmail);
+          if (data.email) {
+            checkSubscriptionByEmail(data.email);
+          }
+        } catch {}
+      }
     }
     if (params.get('canceled') === 'true') {
       toast.info("Payment canceled. Your free chats are still available.");
@@ -59,10 +75,26 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     }
   }, []);
 
-  // Check access and usage on mount
+  // Initialize session and load chat history
   useEffect(() => {
-    checkAccess();
-    checkUsage();
+    const initSession = async () => {
+      // Get or create session ID
+      let storedSessionId = localStorage.getItem(CHAT_SESSION_KEY);
+      if (!storedSessionId) {
+        storedSessionId = generateSessionId();
+        localStorage.setItem(CHAT_SESSION_KEY, storedSessionId);
+      }
+      setSessionId(storedSessionId);
+
+      // Load chat history from database
+      await loadChatHistory(storedSessionId);
+      
+      checkAccess();
+      checkUsage();
+      setIsLoadingHistory(false);
+    };
+
+    initSession();
   }, []);
 
   // Auto-scroll to bottom when messages change
@@ -74,11 +106,74 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
 
   // Focus input on mount
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!isLoadingHistory) {
+      inputRef.current?.focus();
+    }
+  }, [isLoadingHistory]);
+
+  const loadChatHistory = async (sid: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('career_advisor_chats')
+        .select('messages')
+        .eq('session_id', sid)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error loading chat history:", error);
+        return;
+      }
+
+      if (data?.messages && Array.isArray(data.messages)) {
+        // Safely cast the messages
+        const loadedMessages = data.messages as unknown as Message[];
+        setMessages(loadedMessages);
+      }
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    }
+  };
+
+  const saveChatHistory = async (newMessages: Message[]) => {
+    if (!sessionId) return;
+
+    try {
+      const email = accessInfo.email || upgradeEmail || null;
+      const messagesJson = JSON.parse(JSON.stringify(newMessages));
+      
+      // Check if session exists
+      const { data: existing } = await supabase
+        .from('career_advisor_chats')
+        .select('id')
+        .eq('session_id', sessionId)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing
+        await supabase
+          .from('career_advisor_chats')
+          .update({
+            email: email,
+            messages: messagesJson,
+            updated_at: new Date().toISOString()
+          })
+          .eq('session_id', sessionId);
+      } else {
+        // Insert new
+        await supabase
+          .from('career_advisor_chats')
+          .insert([{
+            session_id: sessionId,
+            email: email,
+            messages: messagesJson
+          }]);
+      }
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+    }
+  };
 
   const checkAccess = async () => {
-    // First check localStorage for cached access
     try {
       const stored = localStorage.getItem(CAREER_ADVISOR_ACCESS_KEY);
       if (stored) {
@@ -89,6 +184,9 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
             expiresAt: new Date(data.expiry).toISOString(),
             email: data.email 
           });
+          if (data.email) {
+            setUpgradeEmail(data.email);
+          }
           return true;
         }
       }
@@ -108,7 +206,6 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
       if (error) throw error;
 
       if (data?.subscribed) {
-        // Cache the access
         const accessData = {
           expiry: data.subscription_end,
           email: email
@@ -140,11 +237,9 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
       const stored = localStorage.getItem(CHAT_USAGE_KEY);
       if (stored) {
         const data: UsageInfo = JSON.parse(stored);
-        // Reset usage daily
         const lastReset = new Date(data.lastReset);
         const today = new Date();
         if (lastReset.toDateString() !== today.toDateString()) {
-          // New day, reset count
           const newUsage = { count: 0, lastReset: today.toISOString() };
           localStorage.setItem(CHAT_USAGE_KEY, JSON.stringify(newUsage));
           setUsageCount(0);
@@ -215,7 +310,6 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
-    // Check if user can send message
     if (!canSendMessage()) {
       setShowPaywall(true);
       return;
@@ -227,12 +321,8 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     setInput("");
     setIsLoading(true);
 
-    // Increment usage for non-paid users
     if (!accessInfo.hasAccess) {
-      const newCount = incrementUsage();
-      if (newCount >= FREE_CHAT_LIMIT) {
-        // Will show paywall after this response
-      }
+      incrementUsage();
     }
 
     try {
@@ -242,7 +332,6 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
       let assistantContent = "";
       let textBuffer = "";
 
-      // Add empty assistant message to start streaming into
       setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
       while (true) {
@@ -275,14 +364,16 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
               });
             }
           } catch {
-            // Incomplete JSON, put it back and wait
             textBuffer = line + "\n" + textBuffer;
             break;
           }
         }
       }
 
-      // Check if we should show paywall after response
+      // Save chat history after response
+      const finalMessages = [...updatedMessages, { role: "assistant" as const, content: assistantContent }];
+      await saveChatHistory(finalMessages);
+
       if (!accessInfo.hasAccess && usageCount >= FREE_CHAT_LIMIT - 1) {
         setTimeout(() => setShowPaywall(true), 1000);
       }
@@ -290,7 +381,6 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     } catch (error) {
       console.error("Chat error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to send message");
-      // Remove the empty assistant message on error
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
@@ -304,9 +394,14 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     }
   };
 
-  const clearChat = () => {
+  const clearChat = async () => {
     setMessages([]);
     setShowPaywall(false);
+    
+    // Generate new session ID
+    const newSessionId = generateSessionId();
+    localStorage.setItem(CHAT_SESSION_KEY, newSessionId);
+    setSessionId(newSessionId);
   };
 
   const handleUpgrade = async () => {
@@ -324,7 +419,6 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
       if (error) throw error;
 
       if (data?.url) {
-        // Open Stripe checkout in new tab
         window.open(data.url, '_blank');
         toast.info("Stripe checkout opened in a new tab. Complete payment to unlock unlimited access.");
       }
@@ -343,6 +437,41 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     }
     await checkSubscriptionByEmail(upgradeEmail.trim());
   };
+
+  const handleManageSubscription = async () => {
+    if (!accessInfo.email) {
+      toast.error("No subscription email found");
+      return;
+    }
+
+    try {
+      setIsCheckingSubscription(true);
+      const { data, error } = await supabase.functions.invoke('career-advisor-portal', {
+        body: { email: accessInfo.email }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        toast.info("Stripe portal opened in a new tab.");
+      }
+    } catch (error) {
+      console.error("Error opening portal:", error);
+      toast.error("Failed to open subscription management. Please try again.");
+    } finally {
+      setIsCheckingSubscription(false);
+    }
+  };
+
+  if (isLoadingHistory) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500 mb-2" />
+        <p className="text-muted-foreground text-sm">Loading your conversation...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px] relative">
@@ -372,12 +501,25 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
             </p>
           </div>
         </div>
-        {messages.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearChat}>
-            <Trash2 className="w-4 h-4 mr-1" />
-            Clear
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {accessInfo.hasAccess && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleManageSubscription}
+              disabled={isCheckingSubscription}
+            >
+              <Settings className="w-4 h-4 mr-1" />
+              Manage
+            </Button>
+          )}
+          {messages.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearChat}>
+              <Trash2 className="w-4 h-4 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Chat Area */}

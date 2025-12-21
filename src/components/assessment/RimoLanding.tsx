@@ -6,7 +6,7 @@ import {
   Target, BarChart3, Briefcase, Brain, Compass, 
   ArrowRight, Clock, Zap, CheckCircle, Sparkles,
   Linkedin, Eye, MessageSquare, Lock, FileText, TrendingUp,
-  AlertTriangle, Mail, Loader2
+  AlertTriangle, Mail, Loader2, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ interface RimoLandingProps {
 
 const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
 const LINKEDIN_SUITE_ACCESS_KEY = "linkedin_suite_access";
+const CAREER_ADVISOR_ACCESS_KEY = "career_advisor_access";
 const PENDING_PURCHASE_EMAIL_KEY = "pending_purchase_email";
 
 interface AccessInfo {
@@ -46,6 +47,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   const [isVerifying, setIsVerifying] = useState(false);
   const [resumeAccess, setResumeAccess] = useState<AccessInfo>({ hasAccess: false });
   const [linkedInAccess, setLinkedInAccess] = useState<AccessInfo>({ hasAccess: false });
+  const [careerAdvisorAccess, setCareerAdvisorAccess] = useState<AccessInfo>({ hasAccess: false });
 
   useEffect(() => {
     const init = async () => {
@@ -167,6 +169,9 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
 
       // Check stored access (but validate against backend so cancelled/expired access is removed)
       await checkStoredAccess();
+      
+      // Check career advisor subscription
+      checkCareerAdvisorAccess();
     };
 
     init();
@@ -238,6 +243,26 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       validateOne(RESUME_SUITE_ACCESS_KEY, "resume_suite", setResumeAccess),
       validateOne(LINKEDIN_SUITE_ACCESS_KEY, "linkedin_signal", setLinkedInAccess),
     ]);
+  };
+
+  const checkCareerAdvisorAccess = () => {
+    try {
+      const stored = localStorage.getItem(CAREER_ADVISOR_ACCESS_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        if (data.expiry && new Date(data.expiry) > new Date()) {
+          const daysRemaining = Math.ceil((new Date(data.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          setCareerAdvisorAccess({ 
+            hasAccess: true, 
+            expiresAt: new Date(data.expiry).toISOString(),
+            daysRemaining,
+            email: data.email 
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Error checking career advisor access:", e);
+    }
   };
 
   const handleResumeSuiteClick = () => {
@@ -708,7 +733,13 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Career Advisor Chat</h3>
-                    <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">4 Free Chats Daily</span>
+                    {careerAdvisorAccess.hasAccess ? (
+                      <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <Crown className="w-3 h-3" /> Pro Active
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">4 Free Chats Daily</span>
+                    )}
                     <ArrowRight className="w-4 h-4 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
