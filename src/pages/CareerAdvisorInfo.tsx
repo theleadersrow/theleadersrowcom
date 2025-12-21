@@ -2,6 +2,12 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { 
   MessageSquare, 
   Target, 
@@ -103,6 +109,41 @@ const CareerAdvisorInfo = () => {
     {
       title: "Leadership Development",
       description: "Develop executive presence and management skills"
+    }
+  ];
+
+  const faqs = [
+    {
+      question: "How does the AI Career Advisor work?",
+      answer: "Our AI Career Advisor uses advanced language models trained on thousands of successful career transitions, salary negotiations, and professional development strategies. It analyzes your unique situation, goals, and background to provide personalized guidance. The AI learns from your conversations to offer increasingly relevant advice over time."
+    },
+    {
+      question: "Is this as good as a human career coach?",
+      answer: "While human coaches offer unique value, our AI Advisor provides several advantages: 24/7 availability, consistent quality, no scheduling hassles, and a fraction of the cost ($29/month vs $200-500/hour). For most career questions and ongoing guidance, users find it equally effective. For complex situations, we recommend combining AI coaching with occasional human consultations."
+    },
+    {
+      question: "What's included in the free trial?",
+      answer: "You get 3 free conversations with the Career Advisor - no credit card required. This lets you experience the quality of advice and see if it's right for you. Free users also get access to goal tracking and session summaries during their trial."
+    },
+    {
+      question: "How much does the subscription cost?",
+      answer: "Career Advisor Pro is $29/month, which includes unlimited AI conversations, personalized action plans, goal tracking, session summaries, proactive reminder nudges, and integration with our Resume and LinkedIn tools. You can cancel anytime with no long-term commitment."
+    },
+    {
+      question: "Is my conversation data private and secure?",
+      answer: "Absolutely. Your conversations are encrypted and stored securely. We never share your personal information or career details with third parties. You can delete your conversation history at any time. We take your privacy seriously and comply with industry-standard security practices."
+    },
+    {
+      question: "What topics can I discuss with the Career Advisor?",
+      answer: "You can discuss any career-related topic including: salary negotiation strategies, interview preparation, resume optimization, LinkedIn profile enhancement, career pivots, leadership development, work-life balance, dealing with difficult colleagues, asking for promotions, and long-term career planning."
+    },
+    {
+      question: "How is this different from ChatGPT?",
+      answer: "While ChatGPT is a general-purpose AI, our Career Advisor is specifically designed and trained for career coaching. It has specialized knowledge about job markets, negotiation tactics, and career progression. It also includes features like goal tracking, session summaries, integration with our resume/LinkedIn tools, and proactive nudges - all tailored for career development."
+    },
+    {
+      question: "Can I cancel my subscription anytime?",
+      answer: "Yes, you can cancel your subscription at any time with no penalties or hidden fees. Your access continues until the end of your billing period. We also offer a 30-day money-back guarantee if you're not satisfied with the service."
     }
   ];
 
@@ -359,6 +400,35 @@ const CareerAdvisorInfo = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Everything you need to know about Career Advisor
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="border-border/50">
+                  <AccordionTrigger className="text-left hover:no-underline hover:text-primary">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
       </section>
