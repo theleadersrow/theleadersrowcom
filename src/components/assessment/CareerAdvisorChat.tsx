@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowLeft, Send, Sparkles, MessageCircle, Lock, Loader2, 
-  User, Bot, Trash2
+  User, Bot, Trash2, Crown
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,8 +40,24 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
   const [showPaywall, setShowPaywall] = useState(false);
   const [usageCount, setUsageCount] = useState(0);
   const [accessInfo, setAccessInfo] = useState<AccessInfo>({ hasAccess: false });
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
+  const [upgradeEmail, setUpgradeEmail] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check URL params for success/cancel
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      toast.success("Welcome to Career Advisor Pro! You now have unlimited access.");
+      // Clear URL params
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (params.get('canceled') === 'true') {
+      toast.info("Payment canceled. Your free chats are still available.");
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   // Check access and usage on mount
   useEffect(() => {
@@ -61,7 +77,8 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
     inputRef.current?.focus();
   }, []);
 
-  const checkAccess = () => {
+  const checkAccess = async () => {
+    // First check localStorage for cached access
     try {
       const stored = localStorage.getItem(CAREER_ADVISOR_ACCESS_KEY);
       if (stored) {
@@ -76,9 +93,46 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         }
       }
     } catch (e) {
-      console.error("Error checking access:", e);
+      console.error("Error checking cached access:", e);
     }
     return false;
+  };
+
+  const checkSubscriptionByEmail = async (email: string) => {
+    try {
+      setIsCheckingSubscription(true);
+      const { data, error } = await supabase.functions.invoke('check-career-advisor-subscription', {
+        body: { email }
+      });
+
+      if (error) throw error;
+
+      if (data?.subscribed) {
+        // Cache the access
+        const accessData = {
+          expiry: data.subscription_end,
+          email: email
+        };
+        localStorage.setItem(CAREER_ADVISOR_ACCESS_KEY, JSON.stringify(accessData));
+        setAccessInfo({ 
+          hasAccess: true, 
+          expiresAt: data.subscription_end,
+          email 
+        });
+        setShowPaywall(false);
+        toast.success("Subscription verified! You have unlimited access.");
+        return true;
+      } else {
+        toast.info("No active subscription found for this email.");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+      toast.error("Failed to check subscription. Please try again.");
+      return false;
+    } finally {
+      setIsCheckingSubscription(false);
+    }
   };
 
   const checkUsage = () => {
@@ -256,13 +310,42 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
   };
 
   const handleUpgrade = async () => {
-    // For now, redirect to contact or show coming soon
-    toast.info("Premium access coming soon! For now, enjoy your daily free chats.");
-    setShowPaywall(false);
+    if (!upgradeEmail.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    try {
+      setIsCheckingSubscription(true);
+      const { data, error } = await supabase.functions.invoke('create-career-advisor-checkout', {
+        body: { customerEmail: upgradeEmail.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open Stripe checkout in new tab
+        window.open(data.url, '_blank');
+        toast.info("Stripe checkout opened in a new tab. Complete payment to unlock unlimited access.");
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setIsCheckingSubscription(false);
+    }
+  };
+
+  const handleVerifySubscription = async () => {
+    if (!upgradeEmail.trim()) {
+      toast.error("Please enter your email to verify subscription");
+      return;
+    }
+    await checkSubscriptionByEmail(upgradeEmail.trim());
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px]">
+    <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px] relative">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -273,6 +356,12 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-violet-500" />
               Career Advisor
+              {accessInfo.hasAccess && (
+                <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Crown className="w-3 h-3" />
+                  Pro
+                </span>
+              )}
             </h2>
             <p className="text-xs text-muted-foreground">
               {accessInfo.hasAccess ? (
@@ -370,18 +459,62 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
             <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
               <Lock className="w-6 h-6 text-violet-500" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">You've used your free chats</h3>
+            <h3 className="font-semibold text-lg mb-2">Unlock Unlimited Access</h3>
             <p className="text-muted-foreground text-sm mb-4">
-              You've had {FREE_CHAT_LIMIT} free conversations today. Come back tomorrow for more, 
-              or upgrade for unlimited access.
+              You've used your {FREE_CHAT_LIMIT} free chats today. Upgrade to Career Advisor Pro 
+              for unlimited conversations and personalized career guidance.
             </p>
-            <div className="space-y-2">
-              <Button onClick={handleUpgrade} className="w-full bg-violet-600 hover:bg-violet-700">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Upgrade to Premium
+            
+            <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4 mb-4">
+              <div className="flex items-baseline justify-center gap-1 mb-1">
+                <span className="text-3xl font-bold text-violet-600">$29.99</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Auto-renews monthly. Cancel anytime.</p>
+            </div>
+
+            <div className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={upgradeEmail}
+                onChange={(e) => setUpgradeEmail(e.target.value)}
+                className="text-center"
+              />
+              
+              <Button 
+                onClick={handleUpgrade} 
+                className="w-full bg-violet-600 hover:bg-violet-700"
+                disabled={isCheckingSubscription}
+              >
+                {isCheckingSubscription ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Crown className="w-4 h-4 mr-2" />
+                )}
+                Subscribe Now
               </Button>
-              <Button variant="ghost" onClick={() => setShowPaywall(false)} className="w-full">
-                Maybe Later
+              
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              <Button 
+                variant="outline" 
+                onClick={handleVerifySubscription} 
+                className="w-full"
+                disabled={isCheckingSubscription}
+              >
+                {isCheckingSubscription ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : null}
+                Already subscribed? Verify
+              </Button>
+              
+              <Button variant="ghost" onClick={() => setShowPaywall(false)} className="w-full text-muted-foreground">
+                Come back tomorrow
               </Button>
             </div>
           </div>
