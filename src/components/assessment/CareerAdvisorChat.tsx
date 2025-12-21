@@ -11,9 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuickActionButtons } from "./career-advisor/QuickActionButtons";
 import { GoalTracker } from "./career-advisor/GoalTracker";
 import { SessionSummary } from "./career-advisor/SessionSummary";
+import { ToolRecommendations } from "./career-advisor/ToolRecommendations";
+import { NudgeSettings } from "./career-advisor/NudgeSettings";
 
 interface CareerAdvisorChatProps {
   onBack: () => void;
+  onNavigateToTool?: (tool: string) => void;
 }
 
 interface Message {
@@ -49,7 +52,7 @@ const generateSessionId = () => {
   return `chat_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 };
 
-export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
+export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -722,13 +725,26 @@ export function CareerAdvisorChat({ onBack }: CareerAdvisorChatProps) {
         </div>
       </div>
 
-      {/* Goal Tracker & Summary */}
+      {/* Goal Tracker, Nudges & Summary */}
       <div className="space-y-2 mb-3">
         <GoalTracker sessionId={sessionId} email={accessInfo.email} />
+        {accessInfo.hasAccess && (
+          <NudgeSettings sessionId={sessionId} email={accessInfo.email} />
+        )}
         {messages.length >= 4 && (
           <SessionSummary messages={messages} sessionId={sessionId} email={accessInfo.email} />
         )}
       </div>
+
+      {/* Tool Recommendations */}
+      {messages.length >= 2 && onNavigateToTool && (
+        <div className="mb-3">
+          <ToolRecommendations 
+            messages={messages} 
+            onNavigateToTool={onNavigateToTool} 
+          />
+        </div>
+      )}
 
       {/* Chat Area */}
       <ScrollArea className="flex-1 pr-4 border rounded-lg bg-muted/20">
