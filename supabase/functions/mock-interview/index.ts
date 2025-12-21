@@ -9,12 +9,21 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[MOCK-INTERVIEW] ${step}`, details ? JSON.stringify(details) : "");
 };
 
+interface WorkExperience {
+  currentRole: string;
+  yearsExperience: string;
+  keyProjects: string;
+  biggestAchievement: string;
+  technicalSkills: string;
+}
+
 interface InterviewContext {
   roleType: "product" | "software";
   level: string;
   company: string;
   location: string;
   interviewType?: string;
+  workExperience?: WorkExperience;
 }
 
 interface Message {
@@ -22,148 +31,356 @@ interface Message {
   content: string;
 }
 
-function getSystemPrompt(context: InterviewContext): string {
-  const { roleType, level, company, location, interviewType } = context;
+// Company-specific interview knowledge
+const COMPANY_KNOWLEDGE = {
+  "Google": {
+    culture: "Google values 'Googleyness' - intellectual humility, bias toward action, comfort with ambiguity, and collaborative problem-solving. They use structured interviews with specific rubrics.",
+    pmFocus: "Product sense questions focus on 10x thinking, user impact at scale, and data-driven decisions. They value structured frameworks but also creative, user-first solutions.",
+    sweFocus: "Strong emphasis on algorithms, system design for Google-scale systems, and code quality. They look for clean, efficient code and ability to handle ambiguity.",
+    products: ["Google Search", "YouTube", "Gmail", "Google Maps", "Google Cloud", "Android", "Chrome"],
+    values: ["Focus on the user", "10x thinking", "Launch and iterate", "Data-driven decisions"],
+  },
+  "Meta": {
+    culture: "Meta values moving fast, being bold, focusing on impact, and being open. They want people who can ship quickly and iterate based on data.",
+    pmFocus: "Strong emphasis on execution and shipping. Product sense questions often involve social features, growth, and designing for billions of users.",
+    sweFocus: "Two coding rounds, system design, and behavioral. They value practical problem-solving and building for scale.",
+    products: ["Facebook", "Instagram", "WhatsApp", "Messenger", "Meta Quest", "Threads"],
+    values: ["Move fast", "Be bold", "Focus on impact", "Be open", "Build social value"],
+  },
+  "Amazon": {
+    culture: "Amazon is obsessed with the 16 Leadership Principles. Every interview question maps to one or more LPs. Customer obsession is paramount.",
+    pmFocus: "Working backwards from customers, writing press releases, defining metrics (input vs output), and demonstrating ownership. Use STAR format heavily.",
+    sweFocus: "OA coding + onsite with LP-focused behavioral rounds. System design often involves distributed systems and AWS services.",
+    products: ["Amazon Shopping", "Prime", "AWS", "Alexa", "Kindle", "Prime Video", "Ring"],
+    values: ["Customer Obsession", "Ownership", "Invent and Simplify", "Bias for Action", "Dive Deep", "Deliver Results"],
+    leadershipPrinciples: [
+      "Customer Obsession", "Ownership", "Invent and Simplify", "Are Right, A Lot",
+      "Learn and Be Curious", "Hire and Develop the Best", "Insist on the Highest Standards",
+      "Think Big", "Bias for Action", "Frugality", "Earn Trust", "Dive Deep",
+      "Have Backbone; Disagree and Commit", "Deliver Results", "Strive to be Earth's Best Employer",
+      "Success and Scale Bring Broad Responsibility"
+    ],
+  },
+  "Apple": {
+    culture: "Apple values secrecy, attention to detail, design excellence, and end-to-end product thinking. They look for people who obsess over craft.",
+    pmFocus: "Product craft, hardware-software integration, user experience perfection, and simplicity. Questions often focus on design decisions and trade-offs.",
+    sweFocus: "Domain-specific technical depth, performance optimization, and platform expertise (iOS, macOS, etc.).",
+    products: ["iPhone", "Mac", "iPad", "Apple Watch", "AirPods", "Apple Music", "iCloud", "App Store"],
+    values: ["Design excellence", "Simplicity", "Integration", "Privacy", "Accessibility"],
+  },
+  "Microsoft": {
+    culture: "Microsoft emphasizes growth mindset, inclusion, and empowering others. Satya Nadella transformed the culture to be more collaborative and learning-oriented.",
+    pmFocus: "Enterprise + consumer product thinking, technical depth, platform ecosystem understanding, and AI/cloud integration.",
+    sweFocus: "Coding, system design (Azure-scale), and growth mindset behavioral questions.",
+    products: ["Windows", "Office 365", "Azure", "Teams", "LinkedIn", "GitHub", "Xbox", "Copilot"],
+    values: ["Growth mindset", "Diverse & inclusive", "One Microsoft", "Making a difference"],
+  },
+  "OpenAI": {
+    culture: "OpenAI is mission-driven around safe AGI development. They value research rigor, safety consciousness, and responsible AI development.",
+    pmFocus: "AI product sense, understanding model capabilities and limitations, developer experience, and safety/alignment considerations.",
+    sweFocus: "Strong ML/AI understanding, systems for training and serving, and research implementation skills.",
+    products: ["ChatGPT", "GPT-4", "DALL-E", "Whisper", "API Platform", "Codex"],
+    values: ["Safe AGI", "Research excellence", "Responsible deployment", "Broad benefit"],
+  },
+  "Perplexity": {
+    culture: "Fast-moving startup reinventing search with AI. Values speed, technical excellence, and product intuition.",
+    pmFocus: "Search and information retrieval product sense, AI-first UX, growth and monetization for a new category.",
+    sweFocus: "LLM application development, retrieval systems, and startup velocity.",
+    products: ["Perplexity Search", "Perplexity Pro", "API", "Copilot"],
+    values: ["Speed", "Technical excellence", "User trust", "Knowledge democratization"],
+  },
+  "Coinbase": {
+    culture: "Crypto-native culture with clear communication, long-term thinking, and regulatory awareness. Mission to increase economic freedom.",
+    pmFocus: "Crypto product sense, regulatory understanding, mainstream adoption, and trust/security.",
+    sweFocus: "Blockchain fundamentals, security-focused development, and high-reliability systems.",
+    products: ["Coinbase Exchange", "Coinbase Wallet", "Coinbase Prime", "Base L2", "NFT Marketplace"],
+    values: ["Clear communication", "Efficient execution", "Crypto-native", "Long-term thinking"],
+  },
+};
+
+function getWorkExperienceContext(workExperience?: WorkExperience): string {
+  if (!workExperience || !workExperience.currentRole) {
+    return "";
+  }
+
+  let context = `\n## Candidate Background (USE THIS TO PERSONALIZE QUESTIONS):`;
+  context += `\n- Current Role: ${workExperience.currentRole}`;
   
-  const roleSpecificContext = roleType === "product" 
-    ? `You are conducting a Product Management interview. Focus on:
-- Product sense and problem framing
-- Product strategy and vision
-- Execution and decision-making
-- Metrics and data-driven thinking
-- Stakeholder management
-- Leadership and growth mindset
+  if (workExperience.yearsExperience) {
+    context += `\n- Experience: ${workExperience.yearsExperience} years`;
+  }
+  
+  if (workExperience.keyProjects) {
+    context += `\n- Key Projects: ${workExperience.keyProjects}`;
+  }
+  
+  if (workExperience.biggestAchievement) {
+    context += `\n- Notable Achievement: ${workExperience.biggestAchievement}`;
+  }
+  
+  if (workExperience.technicalSkills) {
+    context += `\n- Technical Skills: ${workExperience.technicalSkills}`;
+  }
 
-Use realistic PM interview questions from top companies like Google, Meta, Amazon, Microsoft, Stripe, and Airbnb.
-Include product design questions, metrics questions, strategy questions, and behavioral questions.
-For product design: Ask about improving specific products, designing new features, or solving user problems.
-For metrics: Ask about defining success metrics, debugging metric drops, and choosing North Star metrics.
-For strategy: Ask about market entry, competitive positioning, and long-term vision.`
-    : `You are conducting a Software Engineering interview. Focus on:
-- System design and architecture
-- Coding and algorithms
-- Technical problem-solving
-- Code review and best practices
-- Collaboration and communication
-- Technical leadership (for senior roles)
+  context += `\n\n**IMPORTANT**: Reference the candidate's actual experience in your questions and feedback. For behavioral questions, ask them to elaborate on their specific projects. Help them craft better STAR responses using their real experiences.`;
 
-Use realistic SWE interview questions from top companies like Google, Meta, Amazon, Microsoft, Netflix, and Apple.
-Include system design questions, behavioral questions, and technical scenario questions.
-For system design: Ask about designing scalable systems, handling high traffic, and making architectural decisions.
-For coding discussions: Ask about approach to problem-solving, optimization, and trade-offs.
-For behavioral: Ask about past projects, debugging challenges, and team collaboration.`;
-
-  return `You are an expert interviewer conducting a realistic ${level} ${roleType === "product" ? "Product Manager" : "Software Engineer"} interview for ${company || "a top tech company"}${location ? ` (${location} office)` : ""}.
-
-${roleSpecificContext}
-
-## Your Role:
-1. **Act as a real interviewer** - Be professional, engaging, and realistic
-2. **Ask one question at a time** - Wait for the candidate's response before moving on
-3. **Provide constructive feedback** - After each answer, give specific, actionable feedback
-4. **Guide improvement** - Suggest how they could strengthen their response
-5. **Adapt difficulty** - Adjust based on their ${level} level
-
-## Interview Flow:
-${interviewType === "behavioral" ? "Focus on STAR-format behavioral questions about past experiences." : 
-  interviewType === "product_sense" ? "Focus on product design and product sense questions." :
-  interviewType === "system_design" ? "Focus on system design and architecture questions." :
-  interviewType === "metrics" ? "Focus on metrics, analytics, and data-driven decision making." :
-  interviewType === "strategy" ? "Focus on product strategy, market analysis, and competitive positioning." :
-  interviewType === "technical" ? "Focus on technical problem-solving and coding approach discussions." :
-  "Mix different question types for a comprehensive interview experience."}
-
-## Response Format:
-When asking a question, be direct and conversational like a real interviewer.
-When giving feedback, use this structure:
-- **What you did well**: Specific strengths in their answer
-- **Areas to improve**: Constructive suggestions
-- **Stronger response example**: A brief example of how to elevate the answer
-- **Follow-up** (optional): A probing question to go deeper
-
-## Important Guidelines:
-- Be encouraging but honest
-- Reference ${company || "the company"}'s actual products/services when relevant
-- For ${level} level, calibrate expectations appropriately
-- Keep feedback concise but actionable
-- After 3-4 questions in one area, offer to switch topics or end the session
-
-Start by introducing yourself as the interviewer and asking your first question based on the interview type selected.`;
+  return context;
 }
 
-function getProductQuestions(level: string, company: string, interviewType: string): string[] {
-  const companyProducts: Record<string, string[]> = {
-    "google": ["Google Search", "YouTube", "Google Maps", "Gmail", "Google Cloud"],
-    "meta": ["Facebook", "Instagram", "WhatsApp", "Messenger", "Meta Quest"],
-    "amazon": ["Amazon Shopping", "Prime Video", "AWS", "Alexa", "Kindle"],
-    "microsoft": ["Teams", "Office 365", "Azure", "LinkedIn", "Windows"],
-    "apple": ["iPhone", "App Store", "Apple Music", "iCloud", "Apple Pay"],
-    "netflix": ["Netflix streaming", "Netflix recommendations", "Netflix profiles"],
-    "stripe": ["Stripe Payments", "Stripe Atlas", "Stripe Connect", "Stripe Billing"],
-    "airbnb": ["Airbnb search", "Airbnb Experiences", "Host tools", "Trust & Safety"],
-  };
+function getCompanyContext(company: string): string {
+  const knowledge = COMPANY_KNOWLEDGE[company as keyof typeof COMPANY_KNOWLEDGE];
+  if (!knowledge) {
+    return `You are interviewing for ${company}. Research and apply general tech interview best practices.`;
+  }
 
-  const products = companyProducts[company.toLowerCase()] || ["the main product", "a key feature", "the mobile app"];
-  const product = products[Math.floor(Math.random() * products.length)];
+  return `
+## ${company} Interview Context:
 
-  const questions: Record<string, string[]> = {
-    product_sense: [
-      `How would you improve ${product}?`,
-      `Design a new feature for ${product} that would increase user engagement.`,
-      `You're the PM for ${product}. A key metric dropped 10% this week. Walk me through how you'd investigate.`,
-      `How would you prioritize features for ${product}'s next quarter roadmap?`,
-      `Design a product to help small businesses manage their finances.`,
-    ],
-    metrics: [
-      `What metrics would you use to measure the success of ${product}?`,
-      `How would you choose a North Star metric for a new product launch?`,
-      `${product}'s daily active users are flat but revenue is growing. What's happening?`,
-      `How would you design an A/B test to validate a new feature hypothesis?`,
-    ],
-    strategy: [
-      `How would you position ${product} against its main competitors?`,
-      `Should ${company || "the company"} expand ${product} internationally? How would you approach this?`,
-      `What's the 3-year vision for ${product}? How would you get there?`,
-      `A competitor just launched a similar feature. How do you respond?`,
-    ],
-    behavioral: [
-      `Tell me about a product you shipped that you're most proud of. What made it successful?`,
-      `Describe a time you had to make a difficult prioritization decision. How did you approach it?`,
-      `Tell me about a time you disagreed with an engineer or designer. How did you resolve it?`,
-      `Give me an example of when you had to influence without authority.`,
-      `Describe a product failure you experienced. What did you learn?`,
-    ],
-  };
+**Company Culture**: ${knowledge.culture}
 
-  return questions[interviewType] || questions.product_sense;
+**Interview Focus**: ${knowledge.pmFocus || knowledge.sweFocus}
+
+**Key Products to Reference**: ${knowledge.products.join(", ")}
+
+**Core Values**: ${knowledge.values.join(", ")}
+
+${"leadershipPrinciples" in knowledge ? `**Leadership Principles** (for Amazon): ${(knowledge as any).leadershipPrinciples.slice(0, 8).join(", ")}, and more...` : ""}
+
+Use this context to make questions authentic to ${company}'s interview style. Reference their specific products, values, and culture in your questions and feedback.
+`;
 }
 
-function getSoftwareQuestions(level: string, company: string, interviewType: string): string[] {
-  const questions: Record<string, string[]> = {
-    system_design: [
-      `Design a URL shortening service like bit.ly. How would you handle billions of URLs?`,
-      `Design a real-time chat system like Slack. What are the key architectural decisions?`,
-      `Design a news feed system. How would you handle high traffic and personalization?`,
-      `Design a rate limiter for an API. What algorithms would you consider?`,
-      `Design a distributed cache. How would you handle cache invalidation?`,
-    ],
-    technical: [
-      `Walk me through how you would debug a production issue where the application is slow.`,
-      `How would you approach refactoring a legacy codebase that has no tests?`,
-      `Explain how you would optimize a slow database query in a production system.`,
-      `How do you decide between different data structures for a given problem?`,
-      `Walk me through your approach to code reviews. What do you look for?`,
-    ],
-    behavioral: [
-      `Tell me about a complex technical project you led. What were the key challenges?`,
-      `Describe a time you had to learn a new technology quickly. How did you approach it?`,
-      `Tell me about a time you disagreed with a technical decision. How did you handle it?`,
-      `Give me an example of when you had to balance technical debt with feature delivery.`,
-      `Describe a production incident you handled. What was your approach?`,
-    ],
-  };
+function getInterviewTypePrompt(roleType: string, interviewType: string, company: string): string {
+  const isAmazon = company === "Amazon";
+  const isGoogle = company === "Google";
+  const isMeta = company === "Meta";
+  const isOpenAI = company === "OpenAI";
+  const isPerplexity = company === "Perplexity";
+  const isCoinbase = company === "Coinbase";
 
-  return questions[interviewType] || questions.system_design;
+  if (roleType === "product") {
+    switch (interviewType) {
+      case "product_sense":
+        return `Focus on PRODUCT SENSE questions:
+- Ask the candidate to improve or design features for ${company}'s products
+- Probe for user-first thinking, problem framing, and creative solutions
+- ${isGoogle ? "Look for 10x thinking and ability to think at massive scale" : ""}
+- ${isMeta ? "Focus on social features and designing for billions of users" : ""}
+- ${isAmazon ? "Apply 'Working Backwards' methodology - start with customer need" : ""}
+- ${isOpenAI ? "Consider AI capabilities, limitations, and responsible deployment" : ""}
+- Provide framework suggestions (e.g., user segments, use cases, prioritization)`;
+
+      case "analytical":
+      case "metrics":
+        return `Focus on METRICS & ANALYTICS questions:
+- Ask about defining success metrics for products
+- Present metric drop/increase scenarios to debug
+- Discuss A/B testing approaches
+- ${isAmazon ? "Distinguish between input metrics (controllable) and output metrics (results)" : ""}
+- ${isMeta ? "Focus on growth metrics, engagement, and network effects" : ""}
+- Help them think through leading vs lagging indicators`;
+
+      case "strategy":
+        return `Focus on PRODUCT STRATEGY questions:
+- Market entry, competitive positioning, long-term vision
+- ${isAmazon ? "Apply 'Think Big' and 'Customer Obsession' principles" : ""}
+- ${isGoogle ? "Consider platform ecosystem and 10x opportunities" : ""}
+- Ask about competitive threats and strategic responses
+- Evaluate business model and monetization thinking`;
+
+      case "execution":
+      case "leadership":
+        return `Focus on EXECUTION & LEADERSHIP questions:
+- Cross-functional collaboration scenarios
+- Prioritization and trade-off decisions
+- ${isMeta ? "Emphasize 'Move Fast' and shipping velocity" : ""}
+- ${isAmazon ? "Apply 'Bias for Action' and 'Deliver Results'" : ""}
+- Stakeholder management and influence without authority`;
+
+      case "behavioral":
+      case "googleyness":
+      case "leadership_principles":
+        return `Focus on BEHAVIORAL questions:
+- Use STAR format (Situation, Task, Action, Result)
+- ${isAmazon ? "MAP EVERY QUESTION TO A LEADERSHIP PRINCIPLE and evaluate against it" : ""}
+- ${isGoogle ? "Look for 'Googleyness': intellectual humility, handling ambiguity, collaboration" : ""}
+- ${isMeta ? "Evaluate for Meta's values: bold decisions, impact focus, openness" : ""}
+- Ask about failures, conflicts, and learning moments
+- Probe for self-awareness and growth`;
+
+      case "product_craft":
+      case "user_experience":
+        return `Focus on PRODUCT CRAFT & UX questions:
+- Attention to detail in design decisions
+- End-to-end user experience thinking
+- Accessibility and inclusivity
+- ${company === "Apple" ? "Emphasize simplicity, delight, and hardware-software integration" : ""}`;
+
+      case "technical":
+        return `Focus on TECHNICAL DEPTH questions:
+- Understanding of technical constraints and trade-offs
+- ${isOpenAI || isPerplexity ? "AI/ML concepts, LLM capabilities and limitations" : ""}
+- ${isCoinbase ? "Blockchain fundamentals, smart contracts, DeFi" : ""}
+- Platform architecture decisions`;
+
+      case "safety":
+        return `Focus on AI SAFETY & ALIGNMENT:
+- Responsible AI deployment considerations
+- User trust and safety mechanisms
+- Ethical implications of AI products
+- Risk mitigation strategies`;
+
+      case "regulatory":
+        return `Focus on COMPLIANCE & REGULATORY:
+- Understanding of regulatory landscape
+- Trust and safety in crypto/finance
+- Building compliant products
+- Risk management`;
+
+      case "growth":
+        return `Focus on GROWTH & MONETIZATION:
+- User acquisition and retention strategies
+- Viral loops and network effects
+- Pricing and business model
+- Market expansion`;
+
+      default:
+        return `Conduct a comprehensive interview covering multiple areas.`;
+    }
+  } else {
+    // Software Engineer
+    switch (interviewType) {
+      case "coding":
+        return `Focus on CODING questions:
+- Present algorithmic problems appropriate for ${company}
+- Evaluate problem-solving approach, not just solution
+- Discuss time/space complexity
+- Ask about edge cases and testing
+- ${isGoogle ? "Emphasize clean, readable code with optimal solutions" : ""}
+- ${isMeta ? "Focus on practical coding with real-world constraints" : ""}
+- ${isAmazon ? "Connect coding approach to 'Dive Deep' and 'Insist on Highest Standards'" : ""}`;
+
+      case "system_design":
+        return `Focus on SYSTEM DESIGN questions:
+- Design scalable distributed systems
+- ${isGoogle ? "Think at Google scale - billions of users, petabytes of data" : ""}
+- ${isMeta ? "Design for billions of concurrent users, real-time updates" : ""}
+- ${isAmazon ? "Consider AWS services and microservices architecture" : ""}
+- ${company === "Microsoft" ? "Consider Azure services and enterprise scale" : ""}
+- ${isOpenAI ? "ML systems, training infrastructure, model serving" : ""}
+- ${isPerplexity ? "Search/retrieval systems, RAG architecture" : ""}
+- ${isCoinbase ? "High-reliability financial systems, blockchain integration" : ""}
+- Discuss trade-offs, bottlenecks, and failure modes`;
+
+      case "behavioral":
+      case "googleyness":
+      case "leadership_principles":
+      case "bar_raiser":
+        return `Focus on BEHAVIORAL questions:
+- Use STAR format evaluation
+- ${isAmazon ? "Deep dive on Leadership Principles - especially Ownership, Dive Deep, Deliver Results" : ""}
+- ${isGoogle ? "Assess Googleyness: collaboration, handling ambiguity, learning orientation" : ""}
+- ${isMeta ? "Evaluate for impact orientation and collaboration" : ""}
+- Ask about technical disagreements, debugging production issues
+- Explore leadership and mentorship experiences`;
+
+      case "technical":
+      case "technical_depth":
+      case "domain":
+        return `Focus on TECHNICAL DISCUSSION:
+- Deep dive on past projects and architecture decisions
+- Discuss debugging approaches and production incidents
+- Code review philosophy and best practices
+- ${isOpenAI ? "ML/AI system design and research implementation" : ""}
+- ${isCoinbase ? "Security-focused development, blockchain protocols" : ""}`;
+
+      case "ml_depth":
+      case "ml":
+        return `Focus on ML/AI DEPTH:
+- LLM fundamentals, training, fine-tuning
+- Model evaluation and improvement
+- ML system design and infrastructure
+- Research paper understanding
+- Practical ML engineering`;
+
+      case "blockchain":
+        return `Focus on BLOCKCHAIN & CRYPTO:
+- Smart contract development
+- DeFi protocols and mechanisms
+- Security considerations
+- On-chain data and indexing`;
+
+      case "growth_mindset":
+        return `Focus on GROWTH MINDSET:
+- Learning new technologies quickly
+- Handling failure and setbacks
+- Collaboration and mentorship
+- Continuous improvement`;
+
+      case "startup":
+        return `Focus on STARTUP FIT:
+- Speed and scrappiness
+- Wearing multiple hats
+- Ownership and initiative
+- Building with limited resources`;
+
+      case "mission":
+        return `Focus on MISSION ALIGNMENT:
+- Understanding of AI safety challenges
+- Responsible AI development
+- Research-engineering collaboration
+- Long-term thinking`;
+
+      default:
+        return `Conduct a comprehensive technical interview.`;
+    }
+  }
+}
+
+function getSystemPrompt(context: InterviewContext): string {
+  const { roleType, level, company, interviewType, workExperience } = context;
+  
+  const roleTitle = roleType === "product" ? "Product Manager" : "Software Engineer";
+  const companyContext = getCompanyContext(company);
+  const interviewTypeContext = getInterviewTypePrompt(roleType, interviewType || "mixed", company);
+  const workExpContext = getWorkExperienceContext(workExperience);
+
+  return `You are an expert interviewer conducting a realistic ${level} ${roleTitle} interview for ${company}.
+
+${companyContext}
+
+## Interview Type:
+${interviewTypeContext}
+
+${workExpContext}
+
+## Your Role as Interviewer:
+1. **Be authentic to ${company}'s style** - Use their terminology, reference their products, embody their culture
+2. **Ask one question at a time** - Wait for response before continuing
+3. **Provide structured feedback** after each answer:
+   - ✅ **Strengths**: What they did well (be specific)
+   - 🔄 **Improvements**: How to strengthen the response
+   - 💡 **Example**: Show a stronger response snippet
+   - ❓ **Follow-up** (optional): A probing question to go deeper
+
+4. **Personalize to their experience** - Reference their actual projects and achievements
+5. **Calibrate to ${level} level** - Adjust expectations and question difficulty appropriately
+6. **Guide them to better answers** - Don't just critique, teach them how to improve
+
+## Response Quality Guidelines:
+- For STAR responses: Ensure they have specific metrics, clear impact, and self-awareness
+- For Product questions: Look for user focus, structured thinking, and data considerations  
+- For Technical questions: Evaluate trade-offs thinking, scalability awareness, and practical experience
+- For ${company}: Specifically evaluate against their values and culture
+
+## Coaching Mode:
+When a candidate asks for help or seems stuck:
+- Provide hints without giving away the answer
+- Share frameworks they can use
+- Give examples from their stated experience they could leverage
+- Encourage them to think out loud
+
+Start by introducing yourself as a ${company} interviewer and asking your first ${interviewType || "interview"} question.`;
 }
 
 serve(async (req) => {
@@ -173,22 +390,11 @@ serve(async (req) => {
 
   try {
     const { messages, context, action } = await req.json();
-    logStep("Request received", { action, context, messageCount: messages?.length });
+    logStep("Request received", { action, company: context?.company, interviewType: context?.interviewType });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    // Handle different actions
-    if (action === "get_questions") {
-      const questions = context.roleType === "product" 
-        ? getProductQuestions(context.level, context.company, context.interviewType)
-        : getSoftwareQuestions(context.level, context.company, context.interviewType);
-      
-      return new Response(JSON.stringify({ questions }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     // Main chat flow
@@ -198,7 +404,7 @@ serve(async (req) => {
       ...messages.map((m: Message) => ({ role: m.role, content: m.content })),
     ];
 
-    logStep("Calling AI API", { messageCount: apiMessages.length });
+    logStep("Calling AI API", { messageCount: apiMessages.length, company: context.company });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
