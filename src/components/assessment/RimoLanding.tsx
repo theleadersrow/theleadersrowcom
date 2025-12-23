@@ -777,14 +777,29 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                   <MessageSquare className="w-7 h-7 text-amber-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Interview Prep</h3>
-                    <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium">New</span>
+                    <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium">$129.99</span>
                     <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Targeted preparation for specific interviews. Practice with AI mock interviews, get STAR-format coaching, and role-tailored questions for PM & SWE roles.
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    Master your interviews with AI-powered practice sessions. Get personalized feedback, sample answers tailored to your experience, and ace any interview.
                   </p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Brain className="w-3.5 h-3.5 text-amber-600" />
+                      <span><strong>Mock Interviews</strong> — AI-driven</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <span><strong>Role Playing</strong> — Realistic</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-amber-600" /> AI assesses & recommends changes</span>
+                    <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-amber-600" /> Sample answers from your experience</span>
+                    <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-amber-600" /> STAR format coaching</span>
+                  </div>
                 </div>
               </div>
             </button>
