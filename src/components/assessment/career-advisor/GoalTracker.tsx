@@ -207,9 +207,31 @@ export function GoalTracker({ sessionId, email }: GoalTrackerProps) {
 
           {/* Goals List */}
           {goals.length === 0 && !isAdding && (
-            <p className="text-xs text-muted-foreground text-center py-2">
-              Set career goals to track your progress over time.
-            </p>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground text-center py-1">
+                Try adding goals like:
+              </p>
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {[
+                  "Discover what I excel at",
+                  "Update my resume",
+                  "Practice interview skills",
+                  "Build my network",
+                  "Define my ideal role"
+                ].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => {
+                      setNewGoalTitle(suggestion);
+                      setIsAdding(true);
+                    }}
+                    className="text-xs px-2 py-1 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 transition-colors dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/50"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
           {goals.length > 0 && (
