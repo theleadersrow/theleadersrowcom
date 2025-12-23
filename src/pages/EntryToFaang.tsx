@@ -115,7 +115,7 @@ const programFormat = [
 const faqs = [
   {
     question: "When does the next cohort start?",
-    answer: "The next cohort runs from January 8th to February 26th, 2025. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
+    answer: "The next cohort runs from January 22nd to March 19th, 2025. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
   },
   {
     question: "What if I can't attend a live session?",
@@ -170,7 +170,7 @@ const The200KMethod = () => {
             {/* Next Cohort Info */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
               <p className="text-secondary font-semibold mb-1">Next Cohort</p>
-              <p className="text-cream text-lg">Jan 8th – Feb 26th, 2025</p>
+              <p className="text-cream text-lg">Jan 22nd – Mar 19th, 2025</p>
               <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
             </div>
             
@@ -463,7 +463,7 @@ const The200KMethod = () => {
             {/* Next Cohort Info */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
               <p className="text-secondary font-semibold mb-1">Next Cohort</p>
-              <p className="text-cream text-lg">Jan 8th – Feb 26th, 2025</p>
+              <p className="text-cream text-lg">Jan 22nd – Mar 19th, 2025</p>
               <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
             </div>
             
