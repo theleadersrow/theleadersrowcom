@@ -24,7 +24,9 @@ interface RimoLandingProps {
 const RESUME_SUITE_ACCESS_KEY = "resume_suite_access";
 const LINKEDIN_SUITE_ACCESS_KEY = "linkedin_suite_access";
 const CAREER_ADVISOR_ACCESS_KEY = "career_advisor_access";
+const INTERVIEW_PREP_ACCESS_KEY = "interview_prep_access";
 const PENDING_PURCHASE_EMAIL_KEY = "pending_purchase_email";
+const PENDING_PURCHASE_TOOL_KEY = "pending_purchase_tool";
 
 interface AccessInfo {
   hasAccess: boolean;
@@ -38,17 +40,20 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
+  const [showInterviewPrepPaymentDialog, setShowInterviewPrepPaymentDialog] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-  const [recoveryToolType, setRecoveryToolType] = useState<"resume_suite" | "linkedin_signal">("resume_suite");
+  const [recoveryToolType, setRecoveryToolType] = useState<"resume_suite" | "linkedin_signal" | "interview_prep">("resume_suite");
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [recoveryStep, setRecoveryStep] = useState<"input" | "not_found" | "sending">("input");
   const [email, setEmail] = useState("");
   const [linkedInEmail, setLinkedInEmail] = useState("");
+  const [interviewPrepEmail, setInterviewPrepEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [resumeAccess, setResumeAccess] = useState<AccessInfo>({ hasAccess: false });
   const [linkedInAccess, setLinkedInAccess] = useState<AccessInfo>({ hasAccess: false });
   const [careerAdvisorAccess, setCareerAdvisorAccess] = useState<AccessInfo>({ hasAccess: false });
+  const [interviewPrepAccess, setInterviewPrepAccess] = useState<AccessInfo>({ hasAccess: false });
 
   useEffect(() => {
     const init = async () => {
@@ -109,9 +114,11 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
 
       // Check for purchase success - grant immediate access
       const purchaseType = searchParams.get("purchase");
-      if (purchaseType === "resume_success" || purchaseType === "linkedin_success") {
+      if (purchaseType === "resume_success" || purchaseType === "linkedin_success" || purchaseType === "interview_prep_success") {
         const pendingEmail = localStorage.getItem(PENDING_PURCHASE_EMAIL_KEY);
-        const pendingTool = purchaseType === "resume_success" ? "resume_suite" : "linkedin_signal";
+        let pendingTool = "resume_suite";
+        if (purchaseType === "linkedin_success") pendingTool = "linkedin_signal";
+        if (purchaseType === "interview_prep_success") pendingTool = "interview_prep";
         
         if (pendingEmail) {
           setIsProcessing(true);
@@ -139,7 +146,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                   email: pendingEmail 
                 });
                 toast.success("Payment successful! Your Resume Intelligence Suite access is now active.");
-              } else {
+              } else if (pendingTool === "linkedin_signal") {
                 localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
                 setLinkedInAccess({ 
                   hasAccess: true, 
@@ -148,10 +155,20 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                   email: pendingEmail 
                 });
                 toast.success("Payment successful! Your LinkedIn Signal Score access is now active.");
+              } else if (pendingTool === "interview_prep") {
+                localStorage.setItem(INTERVIEW_PREP_ACCESS_KEY, JSON.stringify(accessData));
+                setInterviewPrepAccess({ 
+                  hasAccess: true, 
+                  expiresAt: data.expiresAt, 
+                  daysRemaining: 30,
+                  email: pendingEmail 
+                });
+                toast.success("Payment successful! Your Interview Prep Pro access is now active.");
               }
             }
 
             localStorage.removeItem(PENDING_PURCHASE_EMAIL_KEY);
+            localStorage.removeItem(PENDING_PURCHASE_TOOL_KEY);
             // Access granted immediately - no need to show "check email" dialog
           } catch (error) {
             console.error("Failed to activate access:", error);
@@ -183,7 +200,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
 
     const validateOne = async (
       storageKey: string,
-      toolType: "resume_suite" | "linkedin_signal",
+      toolType: "resume_suite" | "linkedin_signal" | "interview_prep",
       setAccess: (info: AccessInfo) => void
     ) => {
       const stored = localStorage.getItem(storageKey);
@@ -243,6 +260,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     await Promise.all([
       validateOne(RESUME_SUITE_ACCESS_KEY, "resume_suite", setResumeAccess),
       validateOne(LINKEDIN_SUITE_ACCESS_KEY, "linkedin_signal", setLinkedInAccess),
+      validateOne(INTERVIEW_PREP_ACCESS_KEY, "interview_prep", setInterviewPrepAccess),
     ]);
   };
 
@@ -394,7 +412,64 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     }
   };
 
-  const openRecoveryDialog = (toolType: "resume_suite" | "linkedin_signal") => {
+  const handleInterviewPrepCheckout = async () => {
+    if (!interviewPrepEmail) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      // First check if user already has access
+      const { data: accessData, error: accessError } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email: interviewPrepEmail, toolType: "interview_prep", action: "check" },
+      });
+
+      if (!accessError && accessData?.hasAccess) {
+        setShowInterviewPrepPaymentDialog(false);
+        toast.success(`You already have access with this email! ${accessData.daysRemaining} days remaining.`, {
+          duration: 5000,
+        });
+        // Store email and grant access directly
+        setInterviewPrepAccess({ hasAccess: true, email: interviewPrepEmail, expiresAt: accessData.expiresAt });
+        localStorage.setItem(INTERVIEW_PREP_ACCESS_KEY, JSON.stringify({ 
+          expiry: new Date(accessData.expiresAt).getTime(), 
+          email: interviewPrepEmail, 
+          daysRemaining: accessData.daysRemaining 
+        }));
+        return;
+      }
+
+      // Record the email for tracking
+      await supabase.from("tool_purchases").insert({
+        email: interviewPrepEmail,
+        tool_type: "interview_prep",
+        status: "pending",
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      // Store email temporarily
+      localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, interviewPrepEmail);
+      localStorage.setItem(PENDING_PURCHASE_TOOL_KEY, "interview_prep");
+      
+      // Open Stripe Payment Link for Interview Prep Pro ($129.99)
+      const paymentWindow = window.open("https://buy.stripe.com/28E5kCdKx1Me38r08j9sk0g", "_blank");
+      if (paymentWindow) {
+        paymentWindow.focus();
+      }
+      
+      setShowInterviewPrepPaymentDialog(false);
+      toast.info("Complete your purchase in the new tab. Access activates automatically when you return.");
+    } catch (error) {
+      console.error("Failed to record purchase intent:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const openRecoveryDialog = (toolType: "resume_suite" | "linkedin_signal" | "interview_prep") => {
     setRecoveryToolType(toolType);
     setRecoveryEmail("");
     setRecoveryStep("input");
@@ -433,7 +508,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             email: recoveryEmail 
           });
           toast.success("Access restored! You can now use the Resume Intelligence Suite.");
-        } else {
+        } else if (recoveryToolType === "linkedin_signal") {
           localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
           setLinkedInAccess({ 
             hasAccess: true, 
@@ -442,6 +517,15 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             email: recoveryEmail 
           });
           toast.success("Access restored! You can now use the LinkedIn Signal Score.");
+        } else if (recoveryToolType === "interview_prep") {
+          localStorage.setItem(INTERVIEW_PREP_ACCESS_KEY, JSON.stringify(accessData));
+          setInterviewPrepAccess({ 
+            hasAccess: true, 
+            expiresAt: data.expiresAt, 
+            daysRemaining: data.daysRemaining,
+            email: recoveryEmail 
+          });
+          toast.success("Access restored! You can now use Interview Prep Pro.");
         }
         setShowRecoveryDialog(false);
       } else {
@@ -490,9 +574,18 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             email: recoveryEmail 
           });
           toast.success("Access restored! A backup link was also sent to your email.");
-        } else {
+        } else if (recoveryToolType === "linkedin_signal") {
           localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
           setLinkedInAccess({ 
+            hasAccess: true, 
+            expiresAt: data.expiresAt, 
+            daysRemaining: 30,
+            email: recoveryEmail 
+          });
+          toast.success("Access restored! A backup link was also sent to your email.");
+        } else if (recoveryToolType === "interview_prep") {
+          localStorage.setItem(INTERVIEW_PREP_ACCESS_KEY, JSON.stringify(accessData));
+          setInterviewPrepAccess({ 
             hasAccess: true, 
             expiresAt: data.expiresAt, 
             daysRemaining: 30,
@@ -779,7 +872,13 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <h3 className="font-semibold text-lg text-foreground">Interview Prep</h3>
-                    <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium">$129.99</span>
+                    {interviewPrepAccess.hasAccess ? (
+                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> {interviewPrepAccess.daysRemaining}d left
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium">3 Free → $129.99</span>
+                    )}
                     <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-4">
@@ -803,6 +902,19 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 </div>
               </div>
             </button>
+            <div className="px-6 py-3 bg-muted/30 border-t border-amber-500/20 flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">Try free:</span> 3 practice questions → then upgrade for unlimited access
+              </p>
+              {!interviewPrepAccess.hasAccess && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("interview_prep"); }}
+                  className="text-xs text-primary hover:underline whitespace-nowrap ml-4"
+                >
+                  Already purchased?
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -907,6 +1019,58 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Interview Prep Payment Dialog */}
+      <Dialog open={showInterviewPrepPaymentDialog} onOpenChange={setShowInterviewPrepPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-amber-600" />
+              Interview Prep Pro
+            </DialogTitle>
+            <DialogDescription>
+              Get 30 days of unlimited access to AI mock interviews. Your access activates immediately after payment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="text-center">
+              <span className="text-4xl font-bold text-foreground">$129.99</span>
+              <span className="text-muted-foreground ml-2">/ 30 days</span>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="interview-prep-email" className="text-sm font-medium text-foreground">
+                Your email address
+              </label>
+              <Input
+                id="interview-prep-email"
+                type="email"
+                placeholder="you@example.com"
+                value={interviewPrepEmail}
+                onChange={(e) => setInterviewPrepEmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Mail className="w-3 h-3" />
+                For access confirmation & backup access link
+              </p>
+            </div>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Unlimited mock interview sessions</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> AI assesses answers & recommends changes</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Sample answers based on your experience</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Role-playing for PM & SWE roles</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> STAR format coaching</li>
+            </ul>
+            <Button onClick={handleInterviewPrepCheckout} className="w-full" size="lg" disabled={isProcessing}>
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+              ) : (
+                <>Continue to Payment</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Interview Prep Coming Soon Dialog */}
       <Dialog open={showInterviewPrepDialog} onOpenChange={setShowInterviewPrepDialog}>
         <DialogContent className="sm:max-w-md">
