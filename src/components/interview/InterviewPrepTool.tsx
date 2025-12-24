@@ -2,17 +2,32 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Send, Bot, User, Loader2, Play, 
   Target, Building2, Briefcase, MessageSquare,
   CheckCircle, ChevronRight, Sparkles, RotateCcw,
   Code, Brain, Users, Lightbulb, TrendingUp, Zap,
-  FileText, Award
+  FileText, Award, Lock, Mail, Crown
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const FREE_QUESTIONS_LIMIT = 3;
+const INTERVIEW_PREP_ACCESS_KEY = "interview_prep_access";
+const INTERVIEW_PREP_USAGE_KEY = "interview_prep_usage";
 
 interface InterviewPrepToolProps {
   onBack: () => void;
+  onUpgrade?: () => void;
+}
+
+interface AccessInfo {
+  hasAccess: boolean;
+  expiresAt?: string;
+  daysRemaining?: number;
+  email?: string;
 }
 
 interface Message {
@@ -199,7 +214,7 @@ const FEATURED_COMPANIES = [
 
 const OTHER_COMPANIES = ["Netflix", "Stripe", "Airbnb", "Uber", "Spotify", "Salesforce", "Adobe", "LinkedIn"];
 
-export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
+export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps) {
   const [step, setStep] = useState<OnboardingStep>("role");
   const [context, setContext] = useState<InterviewContext>({
     roleType: "product",
@@ -222,10 +237,81 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
   const [interviewStarted, setInterviewStarted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Access and usage tracking
+  const [accessInfo, setAccessInfo] = useState<AccessInfo>({ hasAccess: false });
+  const [questionsUsed, setQuestionsUsed] = useState(0);
+  const [showPaywallDialog, setShowPaywallDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentEmail, setPaymentEmail] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Check access and load usage on mount
+  useEffect(() => {
+    checkAccess();
+    loadUsage();
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const checkAccess = async () => {
+    try {
+      const stored = localStorage.getItem(INTERVIEW_PREP_ACCESS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.expiry && new Date(parsed.expiry) > new Date()) {
+          const daysRemaining = Math.ceil((new Date(parsed.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          setAccessInfo({ 
+            hasAccess: true, 
+            expiresAt: new Date(parsed.expiry).toISOString(),
+            daysRemaining,
+            email: parsed.email 
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Error checking access:", e);
+    }
+    setAccessInfo({ hasAccess: false });
+  };
+
+  const loadUsage = () => {
+    try {
+      const stored = localStorage.getItem(INTERVIEW_PREP_USAGE_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        // Reset if it's a new day
+        const today = new Date().toDateString();
+        if (data.date === today) {
+          setQuestionsUsed(data.count || 0);
+        } else {
+          // New day, reset count
+          localStorage.setItem(INTERVIEW_PREP_USAGE_KEY, JSON.stringify({ date: today, count: 0 }));
+          setQuestionsUsed(0);
+        }
+      }
+    } catch (e) {
+      console.error("Error loading usage:", e);
+    }
+  };
+
+  const incrementUsage = () => {
+    const today = new Date().toDateString();
+    const newCount = questionsUsed + 1;
+    localStorage.setItem(INTERVIEW_PREP_USAGE_KEY, JSON.stringify({ date: today, count: newCount }));
+    setQuestionsUsed(newCount);
+  };
+
+  const canAskQuestion = () => {
+    return accessInfo.hasAccess || questionsUsed < FREE_QUESTIONS_LIMIT;
+  };
+
+  const getRemainingFreeQuestions = () => {
+    return Math.max(0, FREE_QUESTIONS_LIMIT - questionsUsed);
+  };
 
   const handleRoleSelect = (role: "product" | "software") => {
     setContext(prev => ({ ...prev, roleType: role }));
@@ -359,10 +445,21 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    // Check if user can ask questions
+    if (!canAskQuestion()) {
+      setShowPaywallDialog(true);
+      return;
+    }
+
     const userMessage = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
+
+    // Increment usage for free users
+    if (!accessInfo.hasAccess) {
+      incrementUsage();
+    }
 
     try {
       const response = await fetch(
@@ -426,14 +523,25 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
     return (
       <div className="flex flex-col h-full bg-background">
         {/* Header */}
-        <div className="border-b px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h2 className="font-semibold text-lg">Interview Prep</h2>
-            <p className="text-xs text-muted-foreground">Company-specific mock interviews with AI</p>
+        <div className="border-b px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={onBack}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h2 className="font-semibold text-lg">Interview Prep</h2>
+              <p className="text-xs text-muted-foreground">Company-specific mock interviews with AI</p>
+            </div>
           </div>
+          {accessInfo.hasAccess ? (
+            <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full flex items-center gap-1">
+              <Crown className="w-3 h-3" /> Pro ({accessInfo.daysRemaining}d left)
+            </span>
+          ) : (
+            <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded-full">
+              {getRemainingFreeQuestions()} free left
+            </span>
+          )}
         </div>
 
         <ScrollArea className="flex-1">
@@ -864,6 +972,43 @@ export function InterviewPrepTool({ onBack }: InterviewPrepToolProps) {
           </Button>
         </div>
       </div>
+
+      {/* Paywall Dialog */}
+      <Dialog open={showPaywallDialog} onOpenChange={setShowPaywallDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-amber-600" />
+              Upgrade to Continue
+            </DialogTitle>
+            <DialogDescription>
+              You've used all {FREE_QUESTIONS_LIMIT} free practice questions. Upgrade to Interview Prep Pro for unlimited access.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="text-center">
+              <span className="text-4xl font-bold text-foreground">$129.99</span>
+              <span className="text-muted-foreground ml-2">/ 30 days</span>
+            </div>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Unlimited mock interview sessions</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> AI assesses & recommends improvements</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Sample answers based on your experience</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> STAR format coaching</li>
+            </ul>
+            <Button 
+              onClick={() => {
+                setShowPaywallDialog(false);
+                window.open("https://buy.stripe.com/28E5kCdKx1Me38r08j9sk0g", "_blank");
+              }} 
+              className="w-full" 
+              size="lg"
+            >
+              Upgrade Now
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
