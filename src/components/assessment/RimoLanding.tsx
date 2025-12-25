@@ -814,49 +814,43 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             </div>
           </div>
 
-          {/* Rimo Personal Advisor - Free with limit */}
-          <div className="border-2 border-violet-500/30 rounded-xl bg-gradient-to-r from-violet-500/5 to-transparent overflow-hidden">
-            <button
-              onClick={onStartCareerAdvisor}
-              className="w-full p-6 hover:bg-violet-500/5 transition-all group text-left"
+          {/* Rimo Personal Advisor - Coming Soon */}
+          <div className="border-2 border-muted/50 rounded-xl bg-gradient-to-r from-muted/30 to-transparent overflow-hidden opacity-75">
+            <div
+              className="w-full p-6 cursor-not-allowed text-left"
             >
               <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors flex-shrink-0">
-                  <MessageSquare className="w-7 h-7 text-violet-600" />
+                <div className="w-14 h-14 rounded-xl bg-muted/30 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="w-7 h-7 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-lg text-foreground">Rimo – Personal Advisor</h3>
-                    {careerAdvisorAccess.hasAccess ? (
-                      <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                        <Crown className="w-3 h-3" /> Pro Active
-                      </span>
-                    ) : (
-                      <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">4 Free Chats Daily</span>
-                    )}
-                    <ArrowRight className="w-4 h-4 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    <h3 className="font-semibold text-lg text-muted-foreground">Rimo – Personal Advisor</h3>
+                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> Coming Soon
+                    </span>
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  <p className="text-muted-foreground/70 text-sm leading-relaxed mb-4">
                     Your ongoing strategic advisor for career decisions, life choices, and professional growth. Get real-time guidance on any question — big or small.
                   </p>
                   <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Brain className="w-3.5 h-3.5 text-violet-600" />
+                    <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2 text-muted-foreground/60">
+                      <Brain className="w-3.5 h-3.5" />
                       <span><strong>Strategic Guidance</strong> — Ongoing</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+                    <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2 text-muted-foreground/60">
+                      <Sparkles className="w-3.5 h-3.5" />
                       <span><strong>Conversational</strong> — Any topic</span>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground/50">
                     <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Career decisions</span>
                     <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Salary negotiation</span>
                     <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Life strategy</span>
                   </div>
                 </div>
               </div>
-            </button>
+            </div>
           </div>
 
           {/* Interview Prep - Now Available */}
