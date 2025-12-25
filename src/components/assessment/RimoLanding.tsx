@@ -748,7 +748,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                       <CheckCircle className="w-3 h-3" /> Active
                     </span>
                   ) : (
-                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$99</span>
+                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$99/qtr</span>
                   )}
                 </div>
                 <p className="text-muted-foreground text-sm mb-3">
