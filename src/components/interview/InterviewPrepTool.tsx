@@ -886,6 +886,58 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
     );
   }
 
+  // Quick action handler
+  const handleQuickAction = (action: string) => {
+    if (isLoading) return;
+    setInput(action);
+    setTimeout(() => sendMessage(), 50);
+  };
+
+  // Format message with better styling
+  const formatMessageContent = (content: string) => {
+    // Split by score pattern and other markers
+    const lines = content.split('\n');
+    
+    return lines.map((line, i) => {
+      // Score line
+      if (line.match(/\*\*Score:\s*\d+\/10\*\*/)) {
+        const score = line.match(/(\d+)\/10/)?.[1];
+        const scoreNum = parseInt(score || '0');
+        const scoreColor = scoreNum >= 8 ? 'text-green-600' : scoreNum >= 6 ? 'text-amber-600' : 'text-red-500';
+        return (
+          <div key={i} className={`text-lg font-bold ${scoreColor} mb-2`}>
+            Score: {score}/10
+          </div>
+        );
+      }
+      // Good feedback
+      if (line.startsWith('✅')) {
+        return <div key={i} className="text-green-700 dark:text-green-400 text-sm mb-1">{line}</div>;
+      }
+      // Fix feedback
+      if (line.startsWith('⚠️')) {
+        return <div key={i} className="text-amber-700 dark:text-amber-400 text-sm mb-1">{line}</div>;
+      }
+      // Example
+      if (line.startsWith('📝')) {
+        return <div key={i} className="text-blue-700 dark:text-blue-400 text-sm italic mb-1">{line}</div>;
+      }
+      // Next question or separator
+      if (line.startsWith('---')) {
+        return <hr key={i} className="my-3 border-border/50" />;
+      }
+      if (line.includes('**Next question:**')) {
+        return <div key={i} className="font-medium text-foreground mt-2">{line.replace(/\*\*/g, '')}</div>;
+      }
+      // Bold text
+      if (line.includes('**')) {
+        const formatted = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        return <div key={i} className="text-sm" dangerouslySetInnerHTML={{ __html: formatted }} />;
+      }
+      return line.trim() ? <div key={i} className="text-sm">{line}</div> : <div key={i} className="h-1" />;
+    });
+  };
+
   // Interview chat UI
   return (
     <div className="flex flex-col h-full bg-background">
@@ -898,17 +950,27 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
           <div>
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Bot className="w-5 h-5 text-primary" />
-              {context.company} Mock Interview
+              {context.company} Interview
             </h2>
             <p className="text-xs text-muted-foreground">
               {LEVELS[context.roleType].find(l => l.value === context.level)?.label} • {getInterviewCategories().find(t => t.value === context.interviewType)?.label}
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={resetInterview}>
-          <RotateCcw className="w-4 h-4 mr-2" />
-          New Interview
-        </Button>
+        <div className="flex items-center gap-2">
+          {accessInfo.hasAccess ? (
+            <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full flex items-center gap-1">
+              <Crown className="w-3 h-3" /> Pro
+            </span>
+          ) : (
+            <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded-full">
+              {getRemainingFreeQuestions()}/{FREE_QUESTIONS_LIMIT} free
+            </span>
+          )}
+          <Button variant="outline" size="sm" onClick={resetInterview}>
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -931,7 +993,11 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
                     : "bg-muted"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                {msg.role === "assistant" ? (
+                  <div className="space-y-1">{formatMessageContent(msg.content)}</div>
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                )}
               </div>
               {msg.role === "user" && (
                 <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
@@ -954,15 +1020,57 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
         </div>
       </ScrollArea>
 
+      {/* Quick Actions */}
+      <div className="border-t border-b bg-muted/30 px-4 py-2">
+        <div className="max-w-3xl mx-auto flex flex-wrap gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleQuickAction("Give me a hint")}
+            disabled={isLoading}
+            className="text-xs h-7"
+          >
+            <Lightbulb className="w-3 h-3 mr-1" /> Hint
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleQuickAction("Show me an example answer")}
+            disabled={isLoading}
+            className="text-xs h-7"
+          >
+            <FileText className="w-3 h-3 mr-1" /> Example
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleQuickAction("Skip to next question")}
+            disabled={isLoading}
+            className="text-xs h-7"
+          >
+            <ChevronRight className="w-3 h-3 mr-1" /> Skip
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleQuickAction("Make it harder")}
+            disabled={isLoading}
+            className="text-xs h-7"
+          >
+            <TrendingUp className="w-3 h-3 mr-1" /> Harder
+          </Button>
+        </div>
+      </div>
+
       {/* Input */}
-      <div className="border-t p-4">
+      <div className="p-4">
         <div className="max-w-3xl mx-auto flex gap-2">
           <Textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your answer... (Enter to send, Shift+Enter for new line)"
+            placeholder="Type your answer... (Enter to send)"
             disabled={isLoading}
             className="min-h-[60px] max-h-[200px] resize-none"
             rows={2}
