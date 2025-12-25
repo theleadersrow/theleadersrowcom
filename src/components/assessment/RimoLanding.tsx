@@ -901,13 +901,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               Resume Intelligence Suite
             </DialogTitle>
             <DialogDescription>
-              Get 30 days of full access. Your access activates immediately after payment.
+              Full access for 3 months. Your access activates immediately after payment.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$49.99</span>
-              <span className="text-muted-foreground ml-2">/ 30 days</span>
+              <span className="text-4xl font-bold text-foreground">$99</span>
+              <span className="text-muted-foreground ml-2">/ quarter</span>
+              <p className="text-xs text-muted-foreground mt-1">3 months of unlimited access</p>
             </div>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground">
