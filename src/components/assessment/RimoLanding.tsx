@@ -642,272 +642,198 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       )}
 
       {/* Hero */}
-      <div className="text-center max-w-2xl mx-auto mb-10">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary" />
+      <div className="text-center max-w-2xl mx-auto mb-8">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-primary" />
           </div>
-          <span className="text-2xl font-serif font-bold text-foreground">Rimo</span>
+          <span className="text-xl font-serif font-bold text-foreground">Rimo</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4">
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3">
           Your AI Career Coach
         </h1>
-        <p className="text-xl text-muted-foreground mb-2">
+        <p className="text-muted-foreground mb-2">
           AI-powered tools to help you understand where you stand, optimize your resume, and prepare for what's next.
         </p>
-        <p className="text-sm text-muted-foreground">
-          Powered by advanced AI • Built for Product Managers
+        <p className="text-xs text-muted-foreground">
+          Built for <span className="text-primary font-medium">Product Managers</span> & <span className="text-blue-600 font-medium">Software Engineers</span>
         </p>
       </div>
 
-      {/* AI Tools Suite */}
-      <div className="w-full max-w-3xl mx-auto mb-10">
-        <h2 className="text-center text-sm font-medium text-muted-foreground mb-4">AI-POWERED TOOLS</h2>
-        
-        <div className="grid gap-4">
-          {/* Strategic Assessment Tool - FREE */}
-          <div className="border-2 border-emerald-500/30 rounded-xl bg-gradient-to-r from-emerald-500/5 to-transparent overflow-hidden">
-            <button
-              onClick={onStartAssessment}
-              className="w-full p-6 hover:bg-emerald-500/5 transition-all group text-left"
-            >
-              <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
-                  <Target className="w-7 h-7 text-emerald-600" />
+      {/* Compact Tools Grid */}
+      <div className="w-full max-w-4xl mx-auto mb-10">
+        <div className="grid md:grid-cols-2 gap-4">
+          
+          {/* Strategic Assessment - FREE */}
+          <button
+            onClick={onStartAssessment}
+            className="border-2 border-emerald-500/40 rounded-xl p-5 hover:bg-emerald-500/5 transition-all group text-left bg-gradient-to-br from-emerald-500/5 to-transparent"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
+                <Target className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-foreground">Strategic Level Assessment</h3>
+                  <span className="text-xs bg-emerald-500/20 text-emerald-600 px-2 py-0.5 rounded-full font-bold">FREE</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-lg text-foreground">Strategic Level Assessment</h3>
-                    <span className="text-xs bg-emerald-500/20 text-emerald-600 px-2 py-0.5 rounded-full font-medium">Free</span>
-                    <ArrowRight className="w-4 h-4 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Get a clear, honest assessment of where you operate today and what's blocking your next leap.
-                  </p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 8-10 min</span>
-                    <span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Skill analysis</span>
-                    <span className="flex items-center gap-1.5"><Brain className="w-3.5 h-3.5" /> Blocker diagnosis</span>
-                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Role fit</span>
-                  </div>
+                <p className="text-muted-foreground text-sm mb-3">
+                  Discover where you stand and what's blocking your next leap.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 8 min</span>
+                  <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> Skill analysis</span>
+                  <span className="flex items-center gap-1"><Brain className="w-3 h-3" /> Blocker diagnosis</span>
                 </div>
               </div>
-            </button>
-          </div>
-
-          {/* Resume Intelligence Suite - Now with Free Scan */}
-          <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent overflow-hidden">
-            <button
-              onClick={onStartResumeSuite}
-              className="w-full p-6 hover:bg-amber-500/5 transition-all group text-left"
-            >
-              <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
-                  <FileText className="w-7 h-7 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-lg text-foreground">Resume Intelligence Suite</h3>
-                    {resumeAccess.hasAccess ? (
-                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Active
-                      </span>
-                    ) : (
-                      <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">Free scan → Paid optimization</span>
-                    )}
-                    <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Your resume transformed for your target job + your unique professional identity. AI uses your self-description to create authentic, personalized content that gets through ATS and impresses hiring managers.
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <BarChart3 className="w-3.5 h-3.5 text-amber-600" />
-                      <span><strong>ATS Score</strong> — Job-specific analysis</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                      <span><strong>AI Rewrite</strong> — Personalized to you</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Before & After</span>
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Role-targeted</span>
-                    <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Keywords Added</span>
-                  </div>
-                </div>
-              </div>
-            </button>
-            <div className="px-6 py-3 bg-muted/30 border-t border-amber-500/20 flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium">You provide:</span> Resume + Job Description + How you want to be perceived → <span className="font-medium">You get:</span> ATS Score + Personalized AI Rewrite + New Score
-              </p>
-              {!resumeAccess.hasAccess && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
-                  className="text-xs text-primary hover:underline whitespace-nowrap ml-4"
-                >
-                  Already purchased?
-                </button>
-              )}
+              <ArrowRight className="w-4 h-4 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
             </div>
-          </div>
+          </button>
 
-          {/* LinkedIn Signal Score - PAID */}
-          <div className="border-2 border-blue-500/30 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent overflow-hidden">
-            <button
-              onClick={handleLinkedInClick}
-              className="w-full p-6 hover:bg-blue-500/5 transition-all group text-left"
-            >
-              <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
-                  <Linkedin className="w-7 h-7 text-blue-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-lg text-foreground">LinkedIn Signal Score</h3>
-                    {linkedInAccess.hasAccess ? (
-                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Active
-                      </span>
-                    ) : (
-                      <>
-                        <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
-                        <Lock className="w-4 h-4 text-muted-foreground" />
-                      </>
-                    )}
-                    <ArrowRight className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Get your profile scored the way recruiters see it, then get AI suggestions to boost visibility.
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Eye className="w-3.5 h-3.5 text-blue-600" />
-                      <span><strong>Signal Score</strong> — Recruiter view</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                      <span><strong>AI Optimize</strong> — Get suggestions</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Headline rewrites</span>
-                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Leadership signals</span>
-                    <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Score improvement</span>
-                  </div>
-                </div>
+          {/* Resume Intelligence Suite */}
+          <button
+            onClick={onStartResumeSuite}
+            className="border-2 border-amber-500/40 rounded-xl p-5 hover:bg-amber-500/5 transition-all group text-left bg-gradient-to-br from-amber-500/5 to-transparent"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
+                <FileText className="w-6 h-6 text-amber-600" />
               </div>
-            </button>
-            <div className="px-6 py-3 bg-muted/30 border-t border-blue-500/20 flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium">You get:</span> Profile Signal Score → Dimension Analysis → AI Suggestions → Projected Score Impact
-              </p>
-              {!linkedInAccess.hasAccess && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
-                  className="text-xs text-primary hover:underline whitespace-nowrap ml-4"
-                >
-                  Already purchased?
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Rimo Personal Advisor - Coming Soon */}
-          <div className="border-2 border-muted/50 rounded-xl bg-gradient-to-r from-muted/30 to-transparent overflow-hidden opacity-75">
-            <div
-              className="w-full p-6 cursor-not-allowed text-left"
-            >
-              <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-muted/30 flex items-center justify-center flex-shrink-0">
-                  <MessageSquare className="w-7 h-7 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-lg text-muted-foreground">Rimo – Personal Advisor</h3>
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> Coming Soon
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-foreground">Resume Intelligence</h3>
+                  {resumeAccess.hasAccess ? (
+                    <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Active
                     </span>
-                  </div>
-                  <p className="text-muted-foreground/70 text-sm leading-relaxed mb-4">
-                    Your ongoing strategic advisor for career decisions, life choices, and professional growth. Get real-time guidance on any question — big or small.
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2 text-muted-foreground/60">
-                      <Brain className="w-3.5 h-3.5" />
-                      <span><strong>Strategic Guidance</strong> — Ongoing</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2 text-muted-foreground/60">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span><strong>Conversational</strong> — Any topic</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground/50">
-                    <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> Career decisions</span>
-                    <span className="flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Salary negotiation</span>
-                    <span className="flex items-center gap-1.5"><Compass className="w-3.5 h-3.5" /> Life strategy</span>
-                  </div>
+                  ) : (
+                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$99</span>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-sm mb-3">
+                  ATS scoring + AI rewrite personalized to your target role.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Free scan</span>
+                  <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> Before/After</span>
+                  <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI rewrite</span>
                 </div>
               </div>
+              <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
             </div>
-          </div>
-
-          {/* Interview Prep - Now Available */}
-          <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-r from-amber-500/5 to-transparent overflow-hidden">
-            <button
-              onClick={onStartInterviewPrep}
-              className="w-full p-6 hover:bg-amber-500/5 transition-all group text-left"
-            >
-              <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
-                  <MessageSquare className="w-7 h-7 text-amber-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-lg text-foreground">Interview Prep</h3>
-                    {interviewPrepAccess.hasAccess ? (
-                      <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> {interviewPrepAccess.daysRemaining}d left
-                      </span>
-                    ) : (
-                      <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium">3 Free → $129.99</span>
-                    )}
-                    <ArrowRight className="w-4 h-4 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    Master your interviews with AI-powered practice sessions. Get personalized feedback, sample answers tailored to your experience, and ace any interview.
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Brain className="w-3.5 h-3.5 text-amber-600" />
-                      <span><strong>Mock Interviews</strong> — AI-driven</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-lg px-3 py-2">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                      <span><strong>Role Playing</strong> — Realistic</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-amber-600" /> AI assesses & recommends changes</span>
-                    <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-amber-600" /> Sample answers from your experience</span>
-                    <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-amber-600" /> STAR format coaching</span>
-                  </div>
-                </div>
-              </div>
-            </button>
-            <div className="px-6 py-3 bg-muted/30 border-t border-amber-500/20 flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium">Try free:</span> 3 practice questions → then upgrade for unlimited access
-              </p>
-              {!interviewPrepAccess.hasAccess && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("interview_prep"); }}
-                  className="text-xs text-primary hover:underline whitespace-nowrap ml-4"
+            {!resumeAccess.hasAccess && (
+              <div className="mt-3 pt-3 border-t border-amber-500/20 flex justify-end">
+                <span 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("resume_suite"); }}
+                  className="text-xs text-primary hover:underline"
                 >
                   Already purchased?
-                </button>
-              )}
+                </span>
+              </div>
+            )}
+          </button>
+
+          {/* Interview Prep */}
+          <button
+            onClick={onStartInterviewPrep}
+            className="border-2 border-violet-500/40 rounded-xl p-5 hover:bg-violet-500/5 transition-all group text-left bg-gradient-to-br from-violet-500/5 to-transparent"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors flex-shrink-0">
+                <MessageSquare className="w-6 h-6 text-violet-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-foreground">Interview Prep</h3>
+                  {interviewPrepAccess.hasAccess ? (
+                    <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> {interviewPrepAccess.daysRemaining}d
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">3 Free → $129</span>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-sm mb-3">
+                  Company-specific mock interviews with AI feedback.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Target className="w-3 h-3" /> FAANG-ready</span>
+                  <span className="flex items-center gap-1"><Brain className="w-3 h-3" /> Real-time feedback</span>
+                  <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> STAR coaching</span>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
+            </div>
+            {!interviewPrepAccess.hasAccess && (
+              <div className="mt-3 pt-3 border-t border-violet-500/20 flex justify-end">
+                <span 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("interview_prep"); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Already purchased?
+                </span>
+              </div>
+            )}
+          </button>
+
+          {/* LinkedIn Signal Score */}
+          <button
+            onClick={handleLinkedInClick}
+            className="border-2 border-blue-500/40 rounded-xl p-5 hover:bg-blue-500/5 transition-all group text-left bg-gradient-to-br from-blue-500/5 to-transparent"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
+                <Linkedin className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <h3 className="font-semibold text-foreground">LinkedIn Signal Score</h3>
+                  {linkedInAccess.hasAccess ? (
+                    <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Active
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-sm mb-3">
+                  Score your profile like recruiters do + AI optimization tips.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Recruiter view</span>
+                  <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> Score impact</span>
+                  <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI suggestions</span>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
+            </div>
+            {!linkedInAccess.hasAccess && (
+              <div className="mt-3 pt-3 border-t border-blue-500/20 flex justify-end">
+                <span 
+                  onClick={(e) => { e.stopPropagation(); openRecoveryDialog("linkedin_signal"); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Already purchased?
+                </span>
+              </div>
+            )}
+          </button>
+
+        </div>
+
+        {/* Coming Soon Section */}
+        <div className="mt-4 border border-muted rounded-xl p-4 bg-muted/20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
+              <Compass className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium text-muted-foreground">Rimo – Personal Advisor</h3>
+                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Coming Soon</span>
+              </div>
+              <p className="text-xs text-muted-foreground/70">Your ongoing AI advisor for career decisions and life strategy.</p>
             </div>
           </div>
         </div>
