@@ -35,8 +35,11 @@ interface AccessInfo {
   email?: string;
 }
 
+type RoleFilter = "all" | "pm" | "swe";
+
 export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLinkedIn, onStartCareerAdvisor, onStartInterviewPrep }: RimoLandingProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [showInterviewPrepDialog, setShowInterviewPrepDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
@@ -655,19 +658,54 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
         <p className="text-muted-foreground mb-2">
           AI-powered tools to help you understand where you stand, optimize your resume, and prepare for what's next.
         </p>
-        <p className="text-xs text-muted-foreground">
-          Built for <span className="text-primary font-medium">Product Managers</span> & <span className="text-blue-600 font-medium">Software Engineers</span>
-        </p>
+        {/* Role Toggle */}
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <span className="text-xs text-muted-foreground mr-2">Show tools for:</span>
+          <div className="flex rounded-full border border-border bg-muted/30 p-0.5">
+            <button
+              onClick={() => setRoleFilter("all")}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
+                roleFilter === "all" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setRoleFilter("pm")}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
+                roleFilter === "pm" 
+                  ? "bg-primary text-primary-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Product Managers
+            </button>
+            <button
+              onClick={() => setRoleFilter("swe")}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
+                roleFilter === "swe" 
+                  ? "bg-blue-600 text-white shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Engineers
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Compact Tools Grid */}
       <div className="w-full max-w-4xl mx-auto mb-10">
         <div className="grid md:grid-cols-2 gap-4">
           
-          {/* Strategic Assessment - FREE */}
+          {/* Strategic Assessment - FREE - Best for: Both */}
           <button
             onClick={onStartAssessment}
-            className="border-2 border-emerald-500/40 rounded-xl p-5 hover:bg-emerald-500/5 transition-all group text-left bg-gradient-to-br from-emerald-500/5 to-transparent"
+            className={`border-2 rounded-xl p-5 hover:bg-emerald-500/5 transition-all group text-left bg-gradient-to-br from-emerald-500/5 to-transparent ${
+              roleFilter === "all" ? "border-emerald-500/40" : "border-emerald-500/60 ring-2 ring-emerald-500/20"
+            }`}
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
@@ -691,10 +729,12 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             </div>
           </button>
 
-          {/* Resume Intelligence Suite */}
+          {/* Resume Intelligence Suite - Best for: Both */}
           <button
             onClick={onStartResumeSuite}
-            className="border-2 border-amber-500/40 rounded-xl p-5 hover:bg-amber-500/5 transition-all group text-left bg-gradient-to-br from-amber-500/5 to-transparent"
+            className={`border-2 rounded-xl p-5 hover:bg-amber-500/5 transition-all group text-left bg-gradient-to-br from-amber-500/5 to-transparent ${
+              roleFilter === "all" ? "border-amber-500/40" : "border-amber-500/60 ring-2 ring-amber-500/20"
+            }`}
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors flex-shrink-0">
@@ -734,10 +774,16 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             )}
           </button>
 
-          {/* Interview Prep */}
+          {/* Interview Prep - Best for: Both, but especially SWE */}
           <button
             onClick={onStartInterviewPrep}
-            className="border-2 border-violet-500/40 rounded-xl p-5 hover:bg-violet-500/5 transition-all group text-left bg-gradient-to-br from-violet-500/5 to-transparent"
+            className={`border-2 rounded-xl p-5 hover:bg-violet-500/5 transition-all group text-left bg-gradient-to-br from-violet-500/5 to-transparent ${
+              roleFilter === "swe" 
+                ? "border-violet-500/60 ring-2 ring-violet-500/30 shadow-md" 
+                : roleFilter === "pm" 
+                  ? "border-violet-500/30 opacity-80" 
+                  : "border-violet-500/40"
+            }`}
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors flex-shrink-0">
@@ -777,10 +823,16 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             )}
           </button>
 
-          {/* LinkedIn Signal Score */}
+          {/* LinkedIn Signal Score - Best for: PM */}
           <button
             onClick={handleLinkedInClick}
-            className="border-2 border-blue-500/40 rounded-xl p-5 hover:bg-blue-500/5 transition-all group text-left bg-gradient-to-br from-blue-500/5 to-transparent"
+            className={`border-2 rounded-xl p-5 hover:bg-blue-500/5 transition-all group text-left bg-gradient-to-br from-blue-500/5 to-transparent ${
+              roleFilter === "pm" 
+                ? "border-blue-500/60 ring-2 ring-blue-500/30 shadow-md" 
+                : roleFilter === "swe" 
+                  ? "border-blue-500/30 opacity-80" 
+                  : "border-blue-500/40"
+            }`}
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
