@@ -525,7 +525,21 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
         {/* Header */}
         <div className="border-b px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onBack}>
+            <Button variant="ghost" size="icon" onClick={() => {
+              if (step === "role") {
+                onBack();
+              } else if (step === "level") {
+                setStep("role");
+              } else if (step === "company") {
+                setStep("level");
+              } else if (step === "interview_category") {
+                setStep("company");
+              } else if (step === "work_experience") {
+                setStep("interview_category");
+              } else if (step === "ready") {
+                setStep("work_experience");
+              }
+            }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
@@ -944,7 +958,11 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
       {/* Header */}
       <div className="border-b px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button variant="ghost" size="icon" onClick={() => {
+            // Go back to ready step instead of exiting completely
+            setInterviewStarted(false);
+            setMessages([]);
+          }}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
