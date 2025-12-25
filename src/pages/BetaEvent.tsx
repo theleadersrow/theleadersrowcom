@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   Calendar, Clock, Users, CheckCircle, Sparkles, ArrowRight,
-  FileText, Linkedin, Eye, MessageSquare, BarChart3, Bot
+  FileText, Linkedin, Eye, MessageSquare, BarChart3, Bot, Mic
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -45,7 +45,7 @@ const registrationSchema = z.object({
 
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
-type ToolType = "resume_suite" | "linkedin_signal" | "advisor";
+type ToolType = "resume_suite" | "linkedin_signal" | "interview_prep" | "advisor";
 
 const toolInfo = {
   resume_suite: {
@@ -70,6 +70,18 @@ const toolInfo = {
       "Recruiter-view scoring",
       "Profile optimization tips",
       "AI suggestions walkthrough"
+    ]
+  },
+  interview_prep: {
+    name: "Interview Prep",
+    description: "Practice company-specific mock interviews with AI feedback. Get personalized coaching for PM and SWE roles at top tech companies.",
+    color: "emerald",
+    icon: Mic,
+    features: [
+      "Live mock interview session",
+      "Company-specific questions",
+      "Real-time AI feedback",
+      "Role-play practice"
     ]
   },
   advisor: {
@@ -318,6 +330,61 @@ const BetaEvent = () => {
                 <Button 
                   onClick={() => openRegistration("linkedin_signal")}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Apply Now
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Interview Prep Beta */}
+            <div className="border-2 border-emerald-500/50 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 overflow-hidden hover:border-emerald-500 transition-all group">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                    <Mic className="w-7 h-7 text-emerald-600" />
+                  </div>
+                  <div>
+                    <span className="text-xs bg-emerald-500/20 text-emerald-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
+                      Live Beta Event
+                    </span>
+                    <h3 className="font-semibold text-lg text-foreground mt-1">
+                      Interview Prep
+                    </h3>
+                  </div>
+                </div>
+                
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  Practice company-specific mock interviews with AI feedback. Get personalized coaching for PM and SWE roles at top tech companies.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex items-center gap-1.5 text-xs bg-emerald-500/10 rounded-lg px-2.5 py-1.5 text-emerald-700">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="font-medium">Jan 9, 2025</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-emerald-500/10 rounded-lg px-2.5 py-1.5 text-emerald-700">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="font-medium">6–8 PM CT</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-emerald-500/10 rounded-lg px-2.5 py-1.5 text-emerald-700">
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="font-medium">20 Spots</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-5">
+                  {toolInfo.interview_prep.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  onClick={() => openRegistration("interview_prep")}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   Apply Now
                   <ArrowRight className="w-4 h-4 ml-2" />
