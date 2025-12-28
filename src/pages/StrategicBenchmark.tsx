@@ -62,7 +62,15 @@ const StrategicBenchmark = () => {
     const toolParam = searchParams.get("tool");
     if (toolParam === "interview_prep") {
       setCurrentView("interview_prep");
-      // Clear the param to avoid re-triggering
+      setSearchParams({}, { replace: true });
+    } else if (toolParam === "resume_suite") {
+      setCurrentView("resume_suite");
+      setSearchParams({}, { replace: true });
+    } else if (toolParam === "linkedin") {
+      setCurrentView("linkedin");
+      setSearchParams({}, { replace: true });
+    } else if (toolParam === "career_advisor") {
+      setCurrentView("career_advisor");
       setSearchParams({}, { replace: true });
     } else {
       setCurrentView("hub");
