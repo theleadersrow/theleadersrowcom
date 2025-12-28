@@ -110,7 +110,12 @@ const StrategicBenchmark = () => {
   };
 
   const handleBackToHub = () => {
-    setCurrentView("hub");
+    // If on dedicated interview-tool route, navigate to career-coach hub
+    if (location.pathname === "/interview-tool") {
+      navigate("/career-coach");
+    } else {
+      setCurrentView("hub");
+    }
   };
 
   const handleStartAssessment = () => {
