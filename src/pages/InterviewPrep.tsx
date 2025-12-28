@@ -21,7 +21,7 @@ const companies = [
 ];
 
 const outcomes = [
-  { metric: "2.3x", label: "More likely to get offers", sublabel: "vs. unprepared candidates" },
+  { metric: "2.3x", label: "More likely to get offers", sublabel: "PM & SWE candidates" },
   { metric: "85%", label: "Interview confidence boost", sublabel: "after 5 sessions" },
   { metric: "40+", label: "Hours saved", sublabel: "vs. self-study prep" },
 ];
@@ -32,18 +32,28 @@ const testimonials = [
     name: "Sarah K.",
     role: "Staff PM at Google",
     previousRole: "Senior PM at Series B startup",
+    type: "pm" as const,
   },
   {
-    quote: "The AI feedback on my product sense answers helped me identify blind spots I didn't know I had.",
-    name: "Michael R.",
-    role: "Senior PM at Meta",
-    previousRole: "PM at Fortune 500",
+    quote: "The system design practice was exactly like my actual Meta interview. Got L5 SWE offer.",
+    name: "James L.",
+    role: "Senior SWE at Meta",
+    previousRole: "SWE at Mid-size Tech",
+    type: "swe" as const,
   },
   {
-    quote: "Best mock interview prep I've used. Way better than practicing with friends who don't know what to look for.",
+    quote: "Best mock interview prep I've used. The behavioral coaching helped me articulate my leadership experience.",
     name: "Priya T.",
     role: "PM at Stripe",
     previousRole: "APM at Big Tech",
+    type: "pm" as const,
+  },
+  {
+    quote: "Practiced 20+ coding problems with real-time feedback. Amazon L5 offer in hand!",
+    name: "David C.",
+    role: "SDE II at Amazon",
+    previousRole: "SWE at Startup",
+    type: "swe" as const,
   },
 ];
 
@@ -52,43 +62,43 @@ const howItWorks = [
     step: 1,
     icon: Target,
     title: "Choose Your Target",
-    description: "Select your target company and role. We'll customize everything to match their actual interview format.",
+    description: "Select your target company and role (PM or SWE). We customize everything to match their actual interview format.",
   },
   {
     step: 2,
     icon: Mic,
     title: "Practice Live Interviews",
-    description: "Engage in realistic mock interviews with our AI interviewer. Answer product sense, execution, and behavioral questions.",
+    description: "Engage in realistic mock interviews. PMs practice product sense & execution. Engineers practice system design & coding.",
   },
   {
     step: 3,
     icon: BarChart3,
     title: "Get Instant Feedback",
-    description: "Receive detailed scoring and actionable feedback on structure, depth, and communication after each answer.",
+    description: "Receive detailed scoring on structure, depth, and communication. See exactly where to improve.",
   },
 ];
 
 const interviewTypes = [
-  { name: "Product Sense", icon: Brain, description: "Design products that solve real user problems" },
-  { name: "Execution", icon: Target, description: "Prioritize, scope, and drive results" },
-  { name: "Behavioral", icon: MessageSquare, description: "Tell your story with impact" },
-  { name: "Technical", icon: Zap, description: "System design & technical depth" },
+  { name: "Product Sense", icon: Brain, description: "Design products that solve real problems", forRole: "PM" },
+  { name: "System Design", icon: Zap, description: "Architect scalable distributed systems", forRole: "SWE" },
+  { name: "Behavioral", icon: MessageSquare, description: "Tell your story with impact", forRole: "Both" },
+  { name: "Coding", icon: Target, description: "Solve algorithms & data structures", forRole: "SWE" },
 ];
 
 const freeFeatures = [
   "3 free mock interview questions",
   "Basic feedback on answers",
   "Company-specific question bank preview",
-  "Self-assessment framework",
+  "PM & SWE interview formats",
 ];
 
 const proFeatures = [
   "Unlimited mock interviews",
   "Detailed scoring & feedback per answer",
-  "All interview types (Product Sense, Execution, Behavioral, Technical)",
+  "PM: Product Sense, Execution, Strategy",
+  "SWE: System Design, Coding, Technical Deep-dives",
   "Company-specific prep for FAANG & top startups",
-  "Answer improvement suggestions",
-  "Role-level calibration (PM, Senior, Staff+)",
+  "Role-level calibration (IC to Staff+)",
   "Quarterly access (auto-renews)",
 ];
 
@@ -111,18 +121,18 @@ export default function InterviewPrep() {
             {/* Trust Badge */}
             <Badge variant="outline" className="mb-6 px-4 py-2 text-sm font-medium border-emerald-500/30 bg-emerald-500/5">
               <Trophy className="w-4 h-4 mr-2 inline text-emerald-600" />
-              Trusted by 500+ PMs who landed at top tech companies
+              Trusted by 500+ PMs & Engineers who landed at top tech companies
             </Badge>
             
             {/* Main Headline - Outcome Focused */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Land Your Dream PM Role at
+              Land Your Dream Role at
               <span className="block text-emerald-600 mt-2">Google, Meta, or Any Top Company</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
               Practice with an AI interviewer trained on real FAANG interview patterns. 
-              Get instant feedback that actually helps you improve — not generic advice.
+              Whether you're a <strong className="text-foreground">PM</strong> or <strong className="text-foreground">Software Engineer</strong> — get instant feedback that actually helps you improve.
             </p>
 
             {/* CTA Buttons */}
@@ -185,13 +195,13 @@ export default function InterviewPrep() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Stop Winging Your PM Interviews
+              Stop Winging Your Tech Interviews
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               You've got the skills. You've done the work. But without realistic practice 
               and expert-level feedback, you're leaving your dream job to chance. 
-              <strong className="text-foreground"> Most candidates fail not because they lack ability — 
-              they fail because they can't articulate it under pressure.</strong>
+              <strong className="text-foreground"> Whether you're a PM preparing for product sense or an engineer tackling system design — 
+              most candidates fail not because they lack ability, but because they can't articulate it under pressure.</strong>
             </p>
           </div>
 
@@ -207,6 +217,9 @@ export default function InterviewPrep() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">{type.name}</h3>
                 <p className="text-sm text-muted-foreground">{type.description}</p>
+                <Badge variant="outline" className="mt-2 text-xs border-emerald-500/30 text-emerald-600">
+                  {type.forRole}
+                </Badge>
               </Card>
             ))}
           </div>
@@ -245,18 +258,23 @@ export default function InterviewPrep() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               From Practice to Offer Letter
             </h2>
-            <p className="text-muted-foreground text-lg">See what PMs are saying after landing their dream roles</p>
+            <p className="text-muted-foreground text-lg">See what PMs & Engineers are saying after landing their dream roles</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {testimonials.map((testimonial, i) => (
               <Card key={i} className="p-6 relative overflow-hidden">
-                <div className="absolute top-4 right-4 flex gap-0.5">
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <Badge variant="outline" className={`text-xs ${testimonial.type === 'pm' ? 'border-amber-500/30 text-amber-600' : 'border-blue-500/30 text-blue-600'}`}>
+                    {testimonial.type === 'pm' ? 'PM' : 'SWE'}
+                  </Badge>
+                </div>
+                <div className="flex gap-0.5 mb-3">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 text-amber-500 fill-amber-500" />
                   ))}
                 </div>
-                <p className="text-foreground mb-6 leading-relaxed pt-4">
+                <p className="text-foreground mb-6 leading-relaxed text-sm">
                   "{testimonial.quote}"
                 </p>
                 <div className="border-t border-border pt-4">
@@ -350,11 +368,11 @@ export default function InterviewPrep() {
           <Card className="max-w-3xl mx-auto p-8 md:p-12 text-center bg-gradient-to-br from-emerald-500/10 to-primary/5 border-emerald-500/30">
             <Sparkles className="w-10 h-10 text-emerald-600 mx-auto mb-6" />
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Your Next PM Interview Could Be Your Last
+              Your Next Interview Could Be Your Last
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
               Stop practicing alone. Start practicing with AI that knows exactly 
-              what Google, Meta, and Amazon are looking for.
+              what Google, Meta, and Amazon are looking for — whether you're a PM or Engineer.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
