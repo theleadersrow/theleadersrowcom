@@ -583,8 +583,9 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
       <div className="flex flex-col h-[calc(100vh-180px)] max-h-[700px] relative">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Career Coach Hub
           </Button>
           <div>
             <h2 className="font-semibold text-lg flex items-center gap-2">
@@ -665,8 +666,9 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Career Coach Hub
           </Button>
           <div>
             <h2 className="font-semibold text-lg flex items-center gap-2">

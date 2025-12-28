@@ -59,8 +59,9 @@ export function ResumeLanding({ onBack, onProceed, onActivate }: ResumeLandingPr
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button onClick={onBack} className="p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0">
-            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+          <button onClick={onBack} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm">Back to Career Coach Hub</span>
           </button>
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-foreground">
