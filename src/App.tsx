@@ -22,6 +22,9 @@ import AdminSignup from "./pages/AdminSignup";
 import AdminLogin from "./pages/AdminLogin";
 import StrategicBenchmark from "./pages/StrategicBenchmark";
 import RimoHub from "./pages/RimoHub";
+import LinkedInSignal from "./pages/LinkedInSignal";
+import ResumeSuite from "./pages/ResumeSuite";
+import CareerAdvisor from "./pages/CareerAdvisor";
 import CareerReport from "./pages/CareerReport";
 import Review from "./pages/Review";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -62,6 +65,9 @@ const App = () => (
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/career-coach" element={<RimoHub />} />
             <Route path="/strategic-benchmark" element={<StrategicBenchmark />} />
+            <Route path="/linkedin-signal" element={<LinkedInSignal />} />
+            <Route path="/resume-suite" element={<ResumeSuite />} />
+            <Route path="/career-advisor" element={<CareerAdvisor />} />
             <Route path="/career-report" element={<CareerReport />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/cancel-membership" element={<CancelMembership />} />
