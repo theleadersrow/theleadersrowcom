@@ -58,6 +58,12 @@ const StrategicBenchmark = () => {
   const [completedModuleIndex, setCompletedModuleIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    // Check if on interview-tool route
+    if (location.pathname === "/interview-tool") {
+      setCurrentView("interview_prep");
+      return;
+    }
+    
     // Check if a tool is specified in the URL
     const toolParam = searchParams.get("tool");
     if (toolParam === "interview_prep") {
@@ -76,7 +82,7 @@ const StrategicBenchmark = () => {
       // Default to assessment landing when visiting /strategic-benchmark directly
       setCurrentView("assessment_landing");
     }
-  }, [location.key, searchParams, setSearchParams]);
+  }, [location.key, location.pathname, searchParams, setSearchParams]);
 
   const currentModule = modules[currentModuleIndex];
   const moduleQuestions = currentModule ? getQuestionsForModule(currentModule.id) : [];

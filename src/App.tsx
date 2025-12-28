@@ -68,14 +68,15 @@ const App = () => (
             <Route path="/linkedin-signal" element={<LinkedInSignal />} />
             <Route path="/resume-suite" element={<ResumeSuite />} />
             <Route path="/career-advisor" element={<CareerAdvisor />} />
+            <Route path="/career-advisor-info" element={<CareerAdvisorInfo />} />
             <Route path="/career-report" element={<CareerReport />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/cancel-membership" element={<CancelMembership />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="/beta-event" element={<BetaEvent />} />
-            <Route path="/career-advisor" element={<CareerAdvisorInfo />} />
             <Route path="/interview-prep" element={<InterviewPrep />} />
+            <Route path="/interview-tool" element={<StrategicBenchmark />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
