@@ -1113,8 +1113,9 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$129.99</span>
-              <span className="text-muted-foreground ml-2">/ 30 days</span>
+              <span className="text-4xl font-bold text-foreground">$249</span>
+              <span className="text-muted-foreground ml-2">/ quarter</span>
+              <p className="text-xs text-muted-foreground mt-1">Auto-renews. Cancel anytime.</p>
             </div>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Unlimited mock interview sessions</li>
@@ -1123,14 +1124,39 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
               <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> STAR format coaching</li>
             </ul>
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 setShowPaywallDialog(false);
-                window.open("https://buy.stripe.com/28E5kCdKx1Me38r08j9sk0g", "_blank");
+                // Use subscription checkout
+                const storedAccess = localStorage.getItem(INTERVIEW_PREP_ACCESS_KEY);
+                let email = "";
+                if (storedAccess) {
+                  const accessData = JSON.parse(storedAccess);
+                  email = accessData.email || "";
+                }
+                if (!email) {
+                  email = prompt("Enter your email to continue:") || "";
+                }
+                if (email) {
+                  try {
+                    const { data, error } = await supabase.functions.invoke("create-tool-subscription", {
+                      body: { email, toolType: "interview_prep" },
+                    });
+                    if (error) throw error;
+                    if (data?.url) {
+                      localStorage.setItem("pending_purchase_email", email);
+                      localStorage.setItem("pending_purchase_tool", "interview_prep");
+                      window.open(data.url, "_blank");
+                    }
+                  } catch (err) {
+                    console.error("Checkout error:", err);
+                    toast.error("Failed to start checkout. Please try again.");
+                  }
+                }
               }} 
               className="w-full" 
               size="lg"
             >
-              Upgrade Now
+              Upgrade Now - $249/qtr
             </Button>
           </div>
         </DialogContent>
