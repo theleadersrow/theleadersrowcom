@@ -82,7 +82,7 @@ const StrategicBenchmark = () => {
   };
 
   const handleGoToInterviewPrep = () => {
-    setCurrentView("interview_prep");
+    navigate("/interview-prep");
   };
 
   const handleBackToHub = () => {
