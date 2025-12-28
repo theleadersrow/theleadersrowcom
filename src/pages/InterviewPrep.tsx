@@ -113,7 +113,7 @@ export default function InterviewPrep() {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
 
   const handleStartFree = () => {
-    navigate("/career-coach?tool=interview_prep");
+    navigate("/strategic-benchmark?tool=interview_prep");
   };
 
   const filteredTestimonials = roleFilter === "all" 

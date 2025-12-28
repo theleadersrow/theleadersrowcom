@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useAssessment } from "@/hooks/useAssessment";
 import { AssessmentProgress } from "@/components/assessment/AssessmentProgress";
@@ -31,6 +31,7 @@ const moduleInsights = [
 const StrategicBenchmark = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     modules,
     questions,
@@ -57,8 +58,16 @@ const StrategicBenchmark = () => {
   const [completedModuleIndex, setCompletedModuleIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    setCurrentView("hub");
-  }, [location.key]);
+    // Check if a tool is specified in the URL
+    const toolParam = searchParams.get("tool");
+    if (toolParam === "interview_prep") {
+      setCurrentView("interview_prep");
+      // Clear the param to avoid re-triggering
+      setSearchParams({}, { replace: true });
+    } else {
+      setCurrentView("hub");
+    }
+  }, [location.key, searchParams, setSearchParams]);
 
   const currentModule = modules[currentModuleIndex];
   const moduleQuestions = currentModule ? getQuestionsForModule(currentModule.id) : [];
@@ -82,7 +91,7 @@ const StrategicBenchmark = () => {
   };
 
   const handleGoToInterviewPrep = () => {
-    navigate("/interview-prep");
+    setCurrentView("interview_prep");
   };
 
   const handleBackToHub = () => {
