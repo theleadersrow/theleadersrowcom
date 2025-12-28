@@ -10,15 +10,15 @@ const RimoHub = () => {
   };
 
   const handleStartResumeSuite = () => {
-    navigate("/strategic-benchmark?tool=resume_suite");
+    navigate("/resume-suite");
   };
 
   const handleStartLinkedIn = () => {
-    navigate("/strategic-benchmark?tool=linkedin");
+    navigate("/linkedin-signal");
   };
 
   const handleStartCareerAdvisor = () => {
-    navigate("/strategic-benchmark?tool=career_advisor");
+    navigate("/career-advisor");
   };
 
   const handleStartInterviewPrep = () => {
