@@ -952,150 +952,166 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
     });
   };
 
-  // Interview chat UI
+  // Interview chat UI - Full screen immersive experience
   return (
-    <div className="flex flex-col h-full bg-background">
-      {/* Header */}
-      <div className="border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      {/* Header - Sticky at top */}
+      <div className="border-b px-4 py-4 flex items-center justify-between bg-background/95 backdrop-blur-sm shadow-sm">
+        <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => {
-            // Go back to ready step instead of exiting completely
             setInterviewStarted(false);
             setMessages([]);
           }}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <Bot className="w-5 h-5 text-primary" />
-              {context.company} Interview
+            <h2 className="font-semibold text-xl flex items-center gap-2">
+              <Bot className="w-6 h-6 text-primary" />
+              {context.company} Interview Session
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {LEVELS[context.roleType].find(l => l.value === context.level)?.label} • {getInterviewCategories().find(t => t.value === context.interviewType)?.label}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {accessInfo.hasAccess ? (
-            <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full flex items-center gap-1">
-              <Crown className="w-3 h-3" /> Pro
+            <span className="text-sm bg-green-500/20 text-green-600 px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium">
+              <Crown className="w-4 h-4" /> Pro Access
             </span>
           ) : (
-            <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded-full">
-              {getRemainingFreeQuestions()}/{FREE_QUESTIONS_LIMIT} free
+            <span className="text-sm bg-amber-500/20 text-amber-700 px-3 py-1.5 rounded-full font-medium">
+              {getRemainingFreeQuestions()}/{FREE_QUESTIONS_LIMIT} free questions
             </span>
           )}
-          <Button variant="outline" size="sm" onClick={resetInterview}>
+          <Button variant="outline" size="sm" onClick={resetInterview} className="gap-2">
             <RotateCcw className="w-4 h-4" />
+            <span className="hidden sm:inline">New Session</span>
           </Button>
         </div>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="max-w-3xl mx-auto space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              {msg.role === "assistant" && (
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-primary" />
-                </div>
-              )}
+      {/* Messages Area - Scrollable center with max width */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="max-w-4xl mx-auto p-6 space-y-6 pb-4">
+            {messages.map((msg, idx) => (
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
-                }`}
+                key={idx}
+                className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                {msg.role === "assistant" ? (
-                  <div className="space-y-1">{formatMessageContent(msg.content)}</div>
-                ) : (
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                {msg.role === "assistant" && (
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-5 h-5 text-primary" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-5 py-4 shadow-sm ${
+                    msg.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card border"
+                  }`}
+                >
+                  {msg.role === "assistant" ? (
+                    <div className="space-y-2 text-base leading-relaxed">{formatMessageContent(msg.content)}</div>
+                  ) : (
+                    <p className="text-base whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  )}
+                </div>
+                {msg.role === "user" && (
+                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
+                    <User className="w-5 h-5" />
+                  </div>
                 )}
               </div>
-              {msg.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4" />
+            ))}
+            {isLoading && messages[messages.length - 1]?.role === "user" && (
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-5 h-5 text-primary" />
                 </div>
-              )}
-            </div>
-          ))}
-          {isLoading && messages[messages.length - 1]?.role === "user" && (
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4 text-primary" />
+                <div className="bg-card border rounded-2xl px-5 py-4 shadow-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm">Thinking...</span>
+                  </div>
+                </div>
               </div>
-              <div className="bg-muted rounded-2xl px-4 py-3">
-                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-              </div>
-            </div>
-          )}
-          <div ref={scrollRef} />
-        </div>
-      </ScrollArea>
-
-      {/* Quick Actions */}
-      <div className="border-t border-b bg-muted/30 px-4 py-2">
-        <div className="max-w-3xl mx-auto flex flex-wrap gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickAction("Give me a hint")}
-            disabled={isLoading}
-            className="text-xs h-7"
-          >
-            <Lightbulb className="w-3 h-3 mr-1" /> Hint
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickAction("Show me an example answer")}
-            disabled={isLoading}
-            className="text-xs h-7"
-          >
-            <FileText className="w-3 h-3 mr-1" /> Example
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickAction("Skip to next question")}
-            disabled={isLoading}
-            className="text-xs h-7"
-          >
-            <ChevronRight className="w-3 h-3 mr-1" /> Skip
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickAction("Make it harder")}
-            disabled={isLoading}
-            className="text-xs h-7"
-          >
-            <TrendingUp className="w-3 h-3 mr-1" /> Harder
-          </Button>
-        </div>
+            )}
+            <div ref={scrollRef} />
+          </div>
+        </ScrollArea>
       </div>
 
-      {/* Input */}
-      <div className="p-4">
-        <div className="max-w-3xl mx-auto flex gap-2">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your answer... (Enter to send)"
-            disabled={isLoading}
-            className="min-h-[60px] max-h-[200px] resize-none"
-            rows={2}
-          />
-          <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon" className="h-auto">
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </Button>
+      {/* Fixed Bottom Section - Quick Actions + Input */}
+      <div className="border-t bg-background/95 backdrop-blur-sm shadow-lg">
+        {/* Quick Actions */}
+        <div className="border-b bg-muted/30 px-4 py-3">
+          <div className="max-w-4xl mx-auto flex flex-wrap gap-2 justify-center sm:justify-start">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleQuickAction("Give me a hint")}
+              disabled={isLoading}
+              className="text-sm h-9 gap-2"
+            >
+              <Lightbulb className="w-4 h-4" /> Get a Hint
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleQuickAction("Show me an example answer")}
+              disabled={isLoading}
+              className="text-sm h-9 gap-2"
+            >
+              <FileText className="w-4 h-4" /> Example Answer
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleQuickAction("Skip to next question")}
+              disabled={isLoading}
+              className="text-sm h-9 gap-2"
+            >
+              <ChevronRight className="w-4 h-4" /> Skip Question
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleQuickAction("Make it harder")}
+              disabled={isLoading}
+              className="text-sm h-9 gap-2"
+            >
+              <TrendingUp className="w-4 h-4" /> Harder
+            </Button>
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4">
+          <div className="max-w-4xl mx-auto flex gap-3">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your answer here... (Press Enter to send, Shift+Enter for new line)"
+              disabled={isLoading}
+              className="min-h-[80px] max-h-[200px] resize-none text-base"
+              rows={3}
+            />
+            <Button 
+              onClick={sendMessage} 
+              disabled={isLoading || !input.trim()} 
+              size="lg"
+              className="h-auto px-6"
+            >
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground text-center mt-2 max-w-4xl mx-auto">
+            Tip: Structure your answers using the STAR method (Situation, Task, Action, Result) for behavioral questions
+          </p>
         </div>
       </div>
 

@@ -321,6 +321,7 @@ export default function InterviewPrep() {
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">Pro Access</h3>
                   <p className="text-2xl font-bold text-foreground">$249 <span className="text-sm font-normal text-muted-foreground">/ quarter</span></p>
+                  <p className="text-xs text-muted-foreground">Billed every 3 months. Cancel anytime.</p>
                 </div>
               </div>
               <ul className="space-y-3 mb-6">
@@ -367,7 +368,7 @@ export default function InterviewPrep() {
             </div>
             <p className="text-sm text-muted-foreground mt-6 flex items-center justify-center gap-2">
               <Shield className="w-4 h-4" />
-              No credit card required • 3 free questions included
+              No credit card required • 3 free questions • $249/quarter if you upgrade
             </p>
           </Card>
         </div>
