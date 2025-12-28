@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -5,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Mic, ArrowRight, CheckCircle, Star, Target, Brain, 
   Building2, MessageSquare, Trophy, Zap, Clock, Users,
-  Play, BarChart3, Sparkles, Shield, TrendingUp
+  Play, BarChart3, Sparkles, Shield, TrendingUp, Code, Briefcase
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+type RoleFilter = "all" | "pm" | "swe";
 
 const companies = [
   { name: "Google", logo: "G" },
@@ -80,9 +83,10 @@ const howItWorks = [
 
 const interviewTypes = [
   { name: "Product Sense", icon: Brain, description: "Design products that solve real problems", forRole: "PM" },
+  { name: "Execution", icon: Target, description: "Prioritize, scope, and drive results", forRole: "PM" },
   { name: "System Design", icon: Zap, description: "Architect scalable distributed systems", forRole: "SWE" },
+  { name: "Coding", icon: Code, description: "Solve algorithms & data structures", forRole: "SWE" },
   { name: "Behavioral", icon: MessageSquare, description: "Tell your story with impact", forRole: "Both" },
-  { name: "Coding", icon: Target, description: "Solve algorithms & data structures", forRole: "SWE" },
 ];
 
 const freeFeatures = [
@@ -104,9 +108,20 @@ const proFeatures = [
 
 export default function InterviewPrep() {
   const navigate = useNavigate();
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
 
   const handleStartFree = () => {
     navigate("/career-coach?tool=interview_prep");
+  };
+
+  const filteredTestimonials = roleFilter === "all" 
+    ? testimonials 
+    : testimonials.filter(t => t.type === roleFilter);
+
+  const getInterviewTypeHighlight = (forRole: string) => {
+    if (roleFilter === "all") return false;
+    if (forRole === "Both") return true;
+    return forRole.toLowerCase() === roleFilter;
   };
 
   return (
@@ -190,38 +205,94 @@ export default function InterviewPrep() {
         </div>
       </section>
 
-      {/* Problem Statement */}
+      {/* Problem Statement + Role Toggle */}
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               Stop Winging Your Tech Interviews
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
               You've got the skills. You've done the work. But without realistic practice 
-              and expert-level feedback, you're leaving your dream job to chance. 
-              <strong className="text-foreground"> Whether you're a PM preparing for product sense or an engineer tackling system design — 
-              most candidates fail not because they lack ability, but because they can't articulate it under pressure.</strong>
+              and expert-level feedback, you're leaving your dream job to chance.
             </p>
+            
+            {/* Role Toggle */}
+            <div className="inline-flex items-center gap-2 p-1.5 bg-muted/50 rounded-xl border border-border">
+              <button
+                onClick={() => setRoleFilter("all")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  roleFilter === "all" 
+                    ? "bg-emerald-600 text-white shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                All Roles
+              </button>
+              <button
+                onClick={() => setRoleFilter("pm")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  roleFilter === "pm" 
+                    ? "bg-amber-600 text-white shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <Briefcase className="w-4 h-4" />
+                Product Manager
+              </button>
+              <button
+                onClick={() => setRoleFilter("swe")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  roleFilter === "swe" 
+                    ? "bg-blue-600 text-white shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <Code className="w-4 h-4" />
+                Software Engineer
+              </button>
+            </div>
           </div>
 
           {/* Interview Types Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            {interviewTypes.map((type) => (
-              <Card 
-                key={type.name} 
-                className="p-5 text-center hover:border-emerald-500/50 transition-all hover:shadow-lg hover:shadow-emerald-500/5"
-              >
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
-                  <type.icon className="w-6 h-6 text-emerald-600" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-1">{type.name}</h3>
-                <p className="text-sm text-muted-foreground">{type.description}</p>
-                <Badge variant="outline" className="mt-2 text-xs border-emerald-500/30 text-emerald-600">
-                  {type.forRole}
-                </Badge>
-              </Card>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+            {interviewTypes.map((type) => {
+              const isHighlighted = getInterviewTypeHighlight(type.forRole);
+              const isRelevant = roleFilter === "all" || type.forRole === "Both" || type.forRole.toLowerCase() === roleFilter;
+              
+              return (
+                <Card 
+                  key={type.name} 
+                  className={`p-5 text-center transition-all ${
+                    isHighlighted 
+                      ? "border-emerald-500/60 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10 bg-emerald-500/5" 
+                      : isRelevant
+                        ? "hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5"
+                        : "opacity-40"
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 ${
+                    isHighlighted ? "bg-emerald-500/20" : "bg-emerald-500/10"
+                  }`}>
+                    <type.icon className={`w-6 h-6 ${isHighlighted ? "text-emerald-500" : "text-emerald-600"}`} />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-1">{type.name}</h3>
+                  <p className="text-sm text-muted-foreground">{type.description}</p>
+                  <Badge 
+                    variant="outline" 
+                    className={`mt-2 text-xs ${
+                      type.forRole === "PM" 
+                        ? "border-amber-500/30 text-amber-600" 
+                        : type.forRole === "SWE"
+                          ? "border-blue-500/30 text-blue-600"
+                          : "border-emerald-500/30 text-emerald-600"
+                    }`}
+                  >
+                    {type.forRole}
+                  </Badge>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -258,11 +329,19 @@ export default function InterviewPrep() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               From Practice to Offer Letter
             </h2>
-            <p className="text-muted-foreground text-lg">See what PMs & Engineers are saying after landing their dream roles</p>
+            <p className="text-muted-foreground text-lg">
+              See what {roleFilter === "pm" ? "Product Managers" : roleFilter === "swe" ? "Engineers" : "PMs & Engineers"} are saying after landing their dream roles
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, i) => (
+          <div className={`grid grid-cols-1 gap-6 max-w-6xl mx-auto ${
+            filteredTestimonials.length === 2 
+              ? "md:grid-cols-2 max-w-4xl" 
+              : filteredTestimonials.length >= 4 
+                ? "md:grid-cols-2 lg:grid-cols-4" 
+                : "md:grid-cols-2 lg:grid-cols-4"
+          }`}>
+            {filteredTestimonials.map((testimonial, i) => (
               <Card key={i} className="p-6 relative overflow-hidden">
                 <div className="absolute top-4 right-4 flex items-center gap-2">
                   <Badge variant="outline" className={`text-xs ${testimonial.type === 'pm' ? 'border-amber-500/30 text-amber-600' : 'border-blue-500/30 text-blue-600'}`}>
