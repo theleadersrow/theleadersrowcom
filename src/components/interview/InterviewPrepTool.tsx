@@ -1120,60 +1120,87 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5 text-amber-600" />
-              Upgrade to Continue
+              <Crown className="w-5 h-5 text-amber-500" />
+              Upgrade to Interview Prep Pro
             </DialogTitle>
             <DialogDescription>
-              You've used all {FREE_QUESTIONS_LIMIT} free practice questions. Upgrade to Interview Prep Pro for unlimited access.
+              You've used all {FREE_QUESTIONS_LIMIT} free practice questions. Unlock unlimited access to ace your interviews.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="text-center">
+          <div className="space-y-5 pt-4">
+            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
               <span className="text-4xl font-bold text-foreground">$249</span>
               <span className="text-muted-foreground ml-2">/ quarter</span>
-              <p className="text-xs text-muted-foreground mt-1">Auto-renews. Cancel anytime.</p>
+              <p className="text-xs text-muted-foreground mt-1">Billed every 3 months. Cancel anytime.</p>
             </div>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Unlimited mock interview sessions</li>
-              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> AI assesses & recommends improvements</li>
-              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Sample answers based on your experience</li>
-              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> STAR format coaching</li>
+            
+            <ul className="text-sm space-y-2">
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" /> <span>Unlimited mock interview sessions</span></li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" /> <span>AI feedback & improvement suggestions</span></li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" /> <span>Company-specific prep (Google, Meta, Amazon...)</span></li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" /> <span>STAR format coaching & sample answers</span></li>
             </ul>
+
+            <div className="space-y-2">
+              <label htmlFor="upgrade-email" className="text-sm font-medium">
+                Enter your email to continue
+              </label>
+              <Input
+                id="upgrade-email"
+                type="email"
+                placeholder="you@example.com"
+                value={paymentEmail}
+                onChange={(e) => setPaymentEmail(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
             <Button 
               onClick={async () => {
-                setShowPaywallDialog(false);
-                // Use subscription checkout
-                const storedAccess = localStorage.getItem(INTERVIEW_PREP_ACCESS_KEY);
-                let email = "";
-                if (storedAccess) {
-                  const accessData = JSON.parse(storedAccess);
-                  email = accessData.email || "";
+                if (!paymentEmail.trim() || !paymentEmail.includes("@")) {
+                  toast.error("Please enter a valid email address");
+                  return;
                 }
-                if (!email) {
-                  email = prompt("Enter your email to continue:") || "";
-                }
-                if (email) {
-                  try {
-                    const { data, error } = await supabase.functions.invoke("create-tool-subscription", {
-                      body: { email, toolType: "interview_prep" },
-                    });
-                    if (error) throw error;
-                    if (data?.url) {
-                      localStorage.setItem("pending_purchase_email", email);
-                      localStorage.setItem("pending_purchase_tool", "interview_prep");
-                      window.open(data.url, "_blank");
-                    }
-                  } catch (err) {
-                    console.error("Checkout error:", err);
-                    toast.error("Failed to start checkout. Please try again.");
+                setIsProcessing(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("create-tool-subscription", {
+                    body: { email: paymentEmail.trim(), toolType: "interview_prep" },
+                  });
+                  if (error) throw error;
+                  if (data?.url) {
+                    localStorage.setItem("pending_purchase_email", paymentEmail.trim());
+                    localStorage.setItem("pending_purchase_tool", "interview_prep");
+                    window.open(data.url, "_blank");
+                    setShowPaywallDialog(false);
+                    toast.success("Checkout opened in new tab");
                   }
+                } catch (err) {
+                  console.error("Checkout error:", err);
+                  toast.error("Failed to start checkout. Please try again.");
+                } finally {
+                  setIsProcessing(false);
                 }
               }} 
-              className="w-full" 
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" 
               size="lg"
+              disabled={isProcessing || !paymentEmail.trim()}
             >
-              Upgrade Now - $249/qtr
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade Now - $249/quarter
+                </>
+              )}
             </Button>
+            
+            <p className="text-xs text-center text-muted-foreground">
+              Secure payment via Stripe. Your data is protected.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
