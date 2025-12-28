@@ -86,17 +86,23 @@ serve(async (req) => {
   try {
     const { linkedinUrl, targetIndustry, targetRole, targetJobDescription, profileText, resumeText, requestType, currentHeadline, currentAbout, email, accessToken } = await req.json();
     
-    // Verify tool access
-    const accessCheck = await verifyToolAccess(email, accessToken, "linkedin_signal");
-    if (!accessCheck.valid) {
-      console.log("Access denied:", accessCheck.error);
-      return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Define which request types are free (initial score analysis)
+    const freeRequestTypes = ["score"];
+    const isPaidFeature = !freeRequestTypes.includes(requestType);
+    
+    // Only verify tool access for paid features
+    if (isPaidFeature) {
+      const accessCheck = await verifyToolAccess(email, accessToken, "linkedin_signal");
+      if (!accessCheck.valid) {
+        console.log("Access denied for paid feature:", accessCheck.error);
+        return new Response(JSON.stringify({ error: accessCheck.error || "Access denied. Please purchase LinkedIn Signal Score Pro to use this feature." }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
     
-    console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType, hasResume: !!resumeText, hasJobDesc: !!targetJobDescription });
+    console.log("LinkedIn analysis request:", { linkedinUrl, targetIndustry, targetRole, requestType, isPaidFeature, hasResume: !!resumeText, hasJobDesc: !!targetJobDescription });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

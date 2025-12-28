@@ -86,15 +86,9 @@ serve(async (req) => {
   try {
     const { linkedinUrl, email, accessToken } = await req.json();
 
-    // Verify tool access
-    const accessCheck = await verifyToolAccess(email, accessToken, "linkedin_signal");
-    if (!accessCheck.valid) {
-      console.log("Access denied:", accessCheck.error);
-      return new Response(JSON.stringify({ error: accessCheck.error || "Access denied" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Scrape LinkedIn is part of the free tier - no access verification needed
+    // This allows users to get their initial profile analysis for free
+    console.log("LinkedIn scrape request - free tier access");
 
     if (!linkedinUrl || !linkedinUrl.includes("linkedin.com")) {
       return new Response(
