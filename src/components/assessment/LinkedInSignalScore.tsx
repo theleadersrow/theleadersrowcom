@@ -125,8 +125,8 @@ type Step = "input" | "analyzing" | "score" | "improving" | "suggestions" | "che
 // Helper function to get stored email from localStorage
 const getStoredEmail = (): string | undefined => {
   try {
-    // First check linkedin_signal_access
-    const linkedinAccess = localStorage.getItem("linkedin_signal_access");
+    // First check linkedin_suite_access (the correct key used by RimoLanding)
+    const linkedinAccess = localStorage.getItem("linkedin_suite_access");
     if (linkedinAccess) {
       const parsed = JSON.parse(linkedinAccess);
       if (parsed.email) return parsed.email;
@@ -135,6 +135,12 @@ const getStoredEmail = (): string | undefined => {
     const resumeAccess = localStorage.getItem("resume_suite_access");
     if (resumeAccess) {
       const parsed = JSON.parse(resumeAccess);
+      if (parsed.email) return parsed.email;
+    }
+    // Also check interview_prep_access
+    const interviewAccess = localStorage.getItem("interview_prep_access");
+    if (interviewAccess) {
+      const parsed = JSON.parse(interviewAccess);
       if (parsed.email) return parsed.email;
     }
   } catch (e) {
