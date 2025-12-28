@@ -73,7 +73,8 @@ const StrategicBenchmark = () => {
       setCurrentView("career_advisor");
       setSearchParams({}, { replace: true });
     } else {
-      setCurrentView("hub");
+      // Default to assessment landing when visiting /strategic-benchmark directly
+      setCurrentView("assessment_landing");
     }
   }, [location.key, searchParams, setSearchParams]);
 
