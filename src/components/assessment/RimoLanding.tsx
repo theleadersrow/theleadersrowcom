@@ -44,6 +44,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showLinkedInPaymentDialog, setShowLinkedInPaymentDialog] = useState(false);
   const [showInterviewPrepPaymentDialog, setShowInterviewPrepPaymentDialog] = useState(false);
+  const [showBundlePaymentDialog, setShowBundlePaymentDialog] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [recoveryToolType, setRecoveryToolType] = useState<"resume_suite" | "linkedin_signal" | "interview_prep">("resume_suite");
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -51,12 +52,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   const [email, setEmail] = useState("");
   const [linkedInEmail, setLinkedInEmail] = useState("");
   const [interviewPrepEmail, setInterviewPrepEmail] = useState("");
+  const [bundleEmail, setBundleEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [resumeAccess, setResumeAccess] = useState<AccessInfo>({ hasAccess: false });
   const [linkedInAccess, setLinkedInAccess] = useState<AccessInfo>({ hasAccess: false });
   const [careerAdvisorAccess, setCareerAdvisorAccess] = useState<AccessInfo>({ hasAccess: false });
   const [interviewPrepAccess, setInterviewPrepAccess] = useState<AccessInfo>({ hasAccess: false });
+  const [bundleAccess, setBundleAccess] = useState<AccessInfo>({ hasAccess: false });
 
   useEffect(() => {
     const init = async () => {
@@ -501,6 +504,52 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
     }
   };
 
+  const handleBundleCheckout = async () => {
+    if (!bundleEmail) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      // Record the email for tracking
+      await supabase.from("tool_purchases").insert({
+        email: bundleEmail,
+        tool_type: "bundle",
+        status: "pending",
+        expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      // Store email temporarily
+      localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, bundleEmail);
+      localStorage.setItem(PENDING_PURCHASE_TOOL_KEY, "bundle");
+      
+      // Create subscription checkout session
+      const { data, error: checkoutError } = await supabase.functions.invoke("create-tool-subscription", {
+        body: { email: bundleEmail, toolType: "bundle" },
+      });
+
+      if (checkoutError) throw checkoutError;
+
+      // Redirect to Stripe checkout
+      if (data?.url) {
+        const paymentWindow = window.open(data.url, "_blank");
+        if (paymentWindow) {
+          paymentWindow.focus();
+        }
+      }
+      
+      setShowBundlePaymentDialog(false);
+      toast.info("Complete your purchase in the new tab. Access activates automatically when you return.");
+    } catch (error) {
+      console.error("Failed to record purchase intent:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const openRecoveryDialog = (toolType: "resume_suite" | "linkedin_signal" | "interview_prep") => {
     setRecoveryToolType(toolType);
     setRecoveryEmail("");
@@ -903,6 +952,33 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
 
         </div>
 
+        {/* Bundle Offer Card */}
+        <button
+          onClick={() => setShowBundlePaymentDialog(true)}
+          className="mt-4 w-full border-2 rounded-xl p-5 hover:bg-gradient-to-r hover:from-amber-500/5 hover:via-emerald-500/5 hover:to-blue-500/5 transition-all group text-left bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-blue-500/10 border-primary/40 ring-2 ring-primary/20"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 via-emerald-500/20 to-blue-500/20 flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+              <Crown className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <h3 className="font-semibold text-foreground">Complete Career Bundle</h3>
+                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">SAVE $47</span>
+              </div>
+              <p className="text-muted-foreground text-sm mb-3">
+                All 3 tools: Resume Intelligence + LinkedIn Signal + Interview Prep
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-2xl font-bold text-foreground">$399</span>
+                <span className="text-sm text-muted-foreground line-through">$447</span>
+                <span className="text-xs text-muted-foreground">/ quarter</span>
+              </div>
+            </div>
+            <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
+          </div>
+        </button>
+
         {/* Coming Soon Section */}
         <div className="mt-4 border border-muted rounded-xl p-4 bg-muted/20">
           <div className="flex items-center gap-3">
@@ -1069,6 +1145,62 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
               ) : (
                 <>Continue to Payment</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bundle Payment Dialog */}
+      <Dialog open={showBundlePaymentDialog} onOpenChange={setShowBundlePaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary" />
+              Complete Career Bundle
+            </DialogTitle>
+            <DialogDescription>
+              Get all 3 career tools at a discounted rate. Full access for 3 months.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-4xl font-bold text-foreground">$399</span>
+                <span className="text-lg text-muted-foreground line-through">$447</span>
+              </div>
+              <span className="text-muted-foreground">/ quarter</span>
+              <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="bundle-email" className="text-sm font-medium text-foreground">
+                Your email address
+              </label>
+              <Input
+                id="bundle-email"
+                type="email"
+                placeholder="you@example.com"
+                value={bundleEmail}
+                onChange={(e) => setBundleEmail(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Mail className="w-3 h-3" />
+                For access confirmation & backup access link
+              </p>
+            </div>
+            <div className="space-y-2 text-sm">
+              <p className="font-medium text-foreground">Includes:</p>
+              <ul className="text-muted-foreground space-y-1">
+                <li className="flex items-center gap-2"><FileText className="w-4 h-4 text-amber-500" /> Resume Intelligence Suite ($99 value)</li>
+                <li className="flex items-center gap-2"><Linkedin className="w-4 h-4 text-blue-500" /> LinkedIn Signal Score ($99 value)</li>
+                <li className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-emerald-500" /> Interview Prep Pro ($249 value)</li>
+              </ul>
+            </div>
+            <Button onClick={handleBundleCheckout} className="w-full" size="lg" disabled={isProcessing}>
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+              ) : (
+                <>Get the Bundle – Save $47</>
               )}
             </Button>
           </div>
