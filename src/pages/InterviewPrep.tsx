@@ -83,7 +83,9 @@ const howItWorks = [
 
 const interviewTypes = [
   { name: "Product Sense", icon: Brain, description: "Design products that solve real problems", forRole: "PM" },
-  { name: "Execution", icon: Target, description: "Prioritize, scope, and drive results", forRole: "PM" },
+  { name: "Case Study Prep", icon: Target, description: "Frameworks for product case interviews", forRole: "PM" },
+  { name: "Product Strategy", icon: TrendingUp, description: "Vision, roadmap, and market analysis", forRole: "PM" },
+  { name: "Leadership Style", icon: Users, description: "Influence, stakeholder management", forRole: "PM" },
   { name: "System Design", icon: Zap, description: "Architect scalable distributed systems", forRole: "SWE" },
   { name: "Coding", icon: Code, description: "Solve algorithms & data structures", forRole: "SWE" },
   { name: "Behavioral", icon: MessageSquare, description: "Tell your story with impact", forRole: "Both" },
