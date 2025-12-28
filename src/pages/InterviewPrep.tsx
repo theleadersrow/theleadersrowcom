@@ -170,7 +170,7 @@ export default function InterviewPrep() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                onClick={handleStartFree}
+                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
                 className="border-emerald-500/30 hover:bg-emerald-500/5 px-8 py-6 text-lg"
               >
                 See How It Works
@@ -305,7 +305,7 @@ export default function InterviewPrep() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 lg:py-20 bg-muted/30">
+      <section id="how-it-works" className="py-16 lg:py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
