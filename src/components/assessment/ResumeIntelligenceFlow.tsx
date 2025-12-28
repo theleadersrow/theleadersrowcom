@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -366,11 +367,25 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
     // This is just for the animation sync
   }, []);
 
-  // Handle upgrade/payment - redirect to Stripe payment link
-  const handleUpgrade = () => {
-    // Direct Stripe payment link for Resume Intelligence Suite ($99, 3-month access)
-    // Open in new tab for better reliability
-    window.open("https://buy.stripe.com/00waEW6i58aCfVdbR19sk0f", "_blank");
+  // Handle upgrade/payment - use subscription checkout
+  const handleUpgrade = async () => {
+    const email = prompt("Enter your email to continue:") || "";
+    if (email) {
+      try {
+        const { data, error } = await supabase.functions.invoke("create-tool-subscription", {
+          body: { email, toolType: "resume_suite" },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          localStorage.setItem("pending_purchase_email", email);
+          localStorage.setItem("pending_purchase_tool", "resume_suite");
+          window.open(data.url, "_blank");
+        }
+      } catch (err) {
+        console.error("Checkout error:", err);
+        sonnerToast.error("Failed to start checkout. Please try again.");
+      }
+    }
   };
 
   // Handle save report (email capture)

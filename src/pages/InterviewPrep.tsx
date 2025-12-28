@@ -89,7 +89,7 @@ const proFeatures = [
   "Company-specific prep for FAANG & top startups",
   "Answer improvement suggestions",
   "Role-level calibration (PM, Senior, Staff+)",
-  "30-day access",
+  "Quarterly access (auto-renews)",
 ];
 
 export default function InterviewPrep() {
@@ -320,7 +320,7 @@ export default function InterviewPrep() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">Pro Access</h3>
-                  <p className="text-2xl font-bold text-foreground">$129 <span className="text-sm font-normal text-muted-foreground">/ 30 days</span></p>
+                  <p className="text-2xl font-bold text-foreground">$249 <span className="text-sm font-normal text-muted-foreground">/ quarter</span></p>
                 </div>
               </div>
               <ul className="space-y-3 mb-6">

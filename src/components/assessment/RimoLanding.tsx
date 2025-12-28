@@ -342,11 +342,21 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
 
       // Store email temporarily to send access email after payment
       localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, email);
+      localStorage.setItem(PENDING_PURCHASE_TOOL_KEY, "resume_suite");
       
-      // Open Stripe Payment Link
-      const paymentWindow = window.open("https://buy.stripe.com/eVq00i9uh3UmdN508j9sk0e", "_blank");
-      if (paymentWindow) {
-        paymentWindow.focus();
+      // Create subscription checkout session
+      const { data, error } = await supabase.functions.invoke("create-tool-subscription", {
+        body: { email, toolType: "resume_suite" },
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe checkout
+      if (data?.url) {
+        const paymentWindow = window.open(data.url, "_blank");
+        if (paymentWindow) {
+          paymentWindow.focus();
+        }
       }
       
       setShowPaymentDialog(false);
@@ -398,11 +408,21 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
 
       // Store email temporarily
       localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, linkedInEmail);
+      localStorage.setItem(PENDING_PURCHASE_TOOL_KEY, "linkedin_signal");
       
-      // Open Stripe Payment Link
-      const paymentWindow = window.open("https://buy.stripe.com/14A00iayl2Qi9wP4oz9sk0d", "_blank");
-      if (paymentWindow) {
-        paymentWindow.focus();
+      // Create subscription checkout session
+      const { data, error: checkoutError } = await supabase.functions.invoke("create-tool-subscription", {
+        body: { email: linkedInEmail, toolType: "linkedin_signal" },
+      });
+
+      if (checkoutError) throw checkoutError;
+
+      // Redirect to Stripe checkout
+      if (data?.url) {
+        const paymentWindow = window.open(data.url, "_blank");
+        if (paymentWindow) {
+          paymentWindow.focus();
+        }
       }
       
       setShowLinkedInPaymentDialog(false);
@@ -456,10 +476,19 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
       localStorage.setItem(PENDING_PURCHASE_EMAIL_KEY, interviewPrepEmail);
       localStorage.setItem(PENDING_PURCHASE_TOOL_KEY, "interview_prep");
       
-      // Open Stripe Payment Link for Interview Prep Pro ($129.99)
-      const paymentWindow = window.open("https://buy.stripe.com/28E5kCdKx1Me38r08j9sk0g", "_blank");
-      if (paymentWindow) {
-        paymentWindow.focus();
+      // Create subscription checkout session
+      const { data, error: checkoutError } = await supabase.functions.invoke("create-tool-subscription", {
+        body: { email: interviewPrepEmail, toolType: "interview_prep" },
+      });
+
+      if (checkoutError) throw checkoutError;
+
+      // Redirect to Stripe checkout
+      if (data?.url) {
+        const paymentWindow = window.open(data.url, "_blank");
+        if (paymentWindow) {
+          paymentWindow.focus();
+        }
       }
       
       setShowInterviewPrepPaymentDialog(false);
@@ -797,7 +826,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                       <CheckCircle className="w-3 h-3" /> {interviewPrepAccess.daysRemaining}d
                     </span>
                   ) : (
-                    <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">3 Free → $129</span>
+                    <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-medium">3 Free → $249/qtr</span>
                   )}
                 </div>
                 <p className="text-muted-foreground text-sm mb-3">
@@ -846,7 +875,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                       <CheckCircle className="w-3 h-3" /> Active
                     </span>
                   ) : (
-                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$29.99</span>
+                    <span className="text-xs bg-blue-500/20 text-blue-600 px-2 py-0.5 rounded-full font-medium">$99/qtr</span>
                   )}
                 </div>
                 <p className="text-muted-foreground text-sm mb-3">
@@ -908,7 +937,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             <div className="text-center">
               <span className="text-4xl font-bold text-foreground">$99</span>
               <span className="text-muted-foreground ml-2">/ quarter</span>
-              <p className="text-xs text-muted-foreground mt-1">3 months of unlimited access</p>
+              <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
             </div>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground">
@@ -952,13 +981,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               LinkedIn Signal Score
             </DialogTitle>
             <DialogDescription>
-              Get 30 days of full access. Your access activates immediately after payment.
+              Full access for 3 months. Auto-renews quarterly unless cancelled.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$29.99</span>
-              <span className="text-muted-foreground ml-2">/ 30 days</span>
+              <span className="text-4xl font-bold text-foreground">$99</span>
+              <span className="text-muted-foreground ml-2">/ quarter</span>
+              <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
             </div>
             <div className="space-y-2">
               <label htmlFor="linkedin-email" className="text-sm font-medium text-foreground">
@@ -1002,13 +1032,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               Interview Prep Pro
             </DialogTitle>
             <DialogDescription>
-              Get 30 days of unlimited access to AI mock interviews. Your access activates immediately after payment.
+              Full access for 3 months. Auto-renews quarterly unless cancelled.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$129.99</span>
-              <span className="text-muted-foreground ml-2">/ 30 days</span>
+              <span className="text-4xl font-bold text-foreground">$249</span>
+              <span className="text-muted-foreground ml-2">/ quarter</span>
+              <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
             </div>
             <div className="space-y-2">
               <label htmlFor="interview-prep-email" className="text-sm font-medium text-foreground">
