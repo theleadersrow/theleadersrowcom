@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Linkedin, ArrowLeft, ArrowRight, Sparkles, CheckCircle, 
   Target, Eye, MessageSquare, TrendingUp, AlertCircle, Copy, Loader2, FileText, RefreshCw, Upload, Link, Briefcase,
@@ -149,6 +150,15 @@ const getStoredEmail = (): string | undefined => {
   return undefined;
 };
 
+const LINKEDIN_SUITE_ACCESS_KEY = "linkedin_suite_access";
+
+interface AccessInfo {
+  hasAccess: boolean;
+  expiresAt?: string;
+  daysRemaining?: number;
+  email?: string;
+}
+
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
   const [linkedinUrl, setLinkedinUrl] = useState("");
@@ -165,6 +175,12 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Access and payment states
+  const [accessInfo, setAccessInfo] = useState<AccessInfo>({ hasAccess: false });
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentEmail, setPaymentEmail] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
   // New feature states
   const [headlineOptions, setHeadlineOptions] = useState<HeadlineOption[]>([]);
   const [selectedHeadline, setSelectedHeadline] = useState<string>("");
@@ -180,6 +196,62 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
+
+  // Check access on mount
+  useEffect(() => {
+    checkAccess();
+  }, []);
+
+  const checkAccess = () => {
+    try {
+      const stored = localStorage.getItem(LINKEDIN_SUITE_ACCESS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.expiry && new Date(parsed.expiry) > new Date()) {
+          const daysRemaining = Math.ceil((new Date(parsed.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          setAccessInfo({ 
+            hasAccess: true, 
+            expiresAt: new Date(parsed.expiry).toISOString(),
+            daysRemaining,
+            email: parsed.email 
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Error checking access:", e);
+    }
+    setAccessInfo({ hasAccess: false });
+  };
+
+  const handlePaymentCheckout = async () => {
+    if (!paymentEmail.trim() || !paymentEmail.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-tool-subscription", {
+        body: { email: paymentEmail.trim(), toolType: "linkedin_signal" },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        localStorage.setItem("pending_purchase_email", paymentEmail.trim());
+        localStorage.setItem("pending_purchase_tool", "linkedin_signal");
+        window.open(data.url, "_blank");
+        setShowPaymentDialog(false);
+        toast.success("Checkout opened in new tab. Complete payment to unlock Pro features.");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   // Change detection for rescore
   const detectedChanges = useMemo(() => {
@@ -1050,21 +1122,132 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           </CardContent>
         </Card>
 
+        {/* Free vs Pro Comparison */}
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <Card className="border-border bg-muted/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                Free Analysis ✓
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> Overall Signal Score</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> 6 Profile Dimension Scores</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> Strengths & Critical Gaps</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> Recruiter Perspective Preview</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-blue-500/40 bg-gradient-to-br from-blue-500/5 to-transparent">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-500" />
+                Pro Optimization
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> AI Headline Generator (5+ options)</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> About Section Rewriter</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> Experience Bullet Rewrites</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> Recruiter Search Simulation</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> Keyword & Skills Optimization</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> Personalized Outreach Messages</li>
+                <li className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0" /> Re-score After Changes</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Get AI Help CTA */}
-        <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
+        <Card className="border-2 border-blue-500/30 bg-gradient-to-r from-blue-500/5 to-transparent">
           <CardContent className="py-6 text-center">
-            <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
+            <Zap className="w-8 h-8 text-blue-600 mx-auto mb-3" />
             <h3 className="font-semibold text-lg mb-2">Ready to Boost Your Score?</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Get a personalized optimization checklist with AI-powered tools to rewrite your headline, 
               about section, and see how recruiters will find you.
             </p>
-            <Button onClick={handleGetSuggestions} size="lg" className="bg-primary hover:bg-primary/90">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Get My Optimization Plan
-            </Button>
+            {accessInfo.hasAccess ? (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-4 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">Pro Access Active ({accessInfo.daysRemaining} days remaining)</span>
+                </div>
+                <Button onClick={handleGetSuggestions} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Get My Optimization Plan
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <span className="text-2xl font-bold text-foreground">$99</span>
+                  <span className="text-muted-foreground">/ quarter</span>
+                </div>
+                <Button onClick={() => setShowPaymentDialog(true)} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Unlock Pro Optimization
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
+
+        {/* Payment Dialog */}
+        <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Linkedin className="w-5 h-5 text-blue-600" />
+                LinkedIn Signal Score Pro
+              </DialogTitle>
+              <DialogDescription>
+                Unlock all optimization features for 3 months.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div className="text-center">
+                <span className="text-4xl font-bold text-foreground">$99</span>
+                <span className="text-muted-foreground ml-2">/ quarter</span>
+                <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="payment-email" className="text-sm font-medium text-foreground">
+                  Your email address
+                </label>
+                <Input
+                  id="payment-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={paymentEmail}
+                  onChange={(e) => setPaymentEmail(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  For access confirmation & backup access link
+                </p>
+              </div>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> AI Headline Generator</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> About Section Rewriter</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Experience Bullet Rewrites</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Recruiter Search Simulation</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Personalized Outreach Messages</li>
+              </ul>
+              <Button onClick={handlePaymentCheckout} className="w-full" size="lg" disabled={isProcessingPayment}>
+                {isProcessingPayment ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+                ) : (
+                  <>Continue to Payment</>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
