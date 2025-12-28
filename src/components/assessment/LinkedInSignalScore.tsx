@@ -440,6 +440,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("analyzing");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -449,6 +450,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText,
           resumeText,
           requestType: "score",
+          email,
         },
       });
 
@@ -481,6 +483,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("improving");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -490,6 +493,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText,
           resumeText,
           requestType: "improve",
+          email,
         },
       });
 
@@ -523,6 +527,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("headlines");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -532,6 +537,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText,
           resumeText,
           requestType: "generate_headlines",
+          email,
         },
       });
 
@@ -551,6 +557,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("about");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -560,6 +567,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText,
           resumeText,
           requestType: "generate_about",
+          email,
         },
       });
 
@@ -580,6 +588,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("recruiter-sim");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -589,6 +598,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText,
           resumeText,
           requestType: "recruiter_simulation",
+          email,
         },
       });
 
@@ -608,6 +618,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("outreach");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -617,6 +628,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText,
           resumeText,
           requestType: "generate_outreach",
+          email,
         },
       });
 
@@ -674,6 +686,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     setStep("rescoring");
 
     try {
+      const email = getStoredEmail();
       const { data, error } = await supabase.functions.invoke("analyze-linkedin", {
         body: {
           linkedinUrl,
@@ -682,6 +695,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           profileText: updatedProfileText,
           resumeText,
           requestType: "score",
+          email,
         },
       });
 

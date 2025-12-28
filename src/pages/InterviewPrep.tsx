@@ -134,10 +134,15 @@ export default function InterviewPrep() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             {/* Trust Badge */}
-            <Badge variant="outline" className="mb-6 px-4 py-2 text-sm font-medium border-emerald-500/30 bg-emerald-500/5">
+            <Badge variant="outline" className="mb-4 px-4 py-2 text-sm font-medium border-emerald-500/30 bg-emerald-500/5">
               <Trophy className="w-4 h-4 mr-2 inline text-emerald-600" />
               Trusted by 500+ PMs & Engineers who landed at top tech companies
             </Badge>
+            
+            {/* Credibility Badge */}
+            <p className="text-sm text-muted-foreground mb-6">
+              Created by an <strong className="text-foreground">Apple Leader</strong> with extensive experience interviewing PM & engineering candidates
+            </p>
             
             {/* Main Headline - Outcome Focused */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">

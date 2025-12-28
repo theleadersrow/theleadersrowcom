@@ -732,18 +732,18 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           {/* Strategic Assessment - FREE - Best for: Both */}
           <button
             onClick={onStartAssessment}
-            className={`border-2 rounded-xl p-5 hover:bg-emerald-500/5 transition-all group text-left bg-gradient-to-br from-emerald-500/5 to-transparent ${
-              roleFilter === "all" ? "border-emerald-500/40" : "border-emerald-500/60 ring-2 ring-emerald-500/20"
+            className={`border-2 rounded-xl p-5 hover:bg-violet-500/5 transition-all group text-left bg-gradient-to-br from-violet-500/5 to-transparent ${
+              roleFilter === "all" ? "border-violet-500/40" : "border-violet-500/60 ring-2 ring-violet-500/20"
             }`}
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors flex-shrink-0">
-                <Target className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors flex-shrink-0">
+                <Target className="w-6 h-6 text-violet-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h3 className="font-semibold text-foreground">Strategic Level Assessment</h3>
-                  <span className="text-xs bg-emerald-500/20 text-emerald-600 px-2 py-0.5 rounded-full font-bold">FREE</span>
+                  <span className="text-xs bg-violet-500/20 text-violet-600 px-2 py-0.5 rounded-full font-bold">FREE</span>
                 </div>
                 <p className="text-muted-foreground text-sm mb-3">
                   Discover where you stand and what's blocking your next leap.
@@ -754,7 +754,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                   <span className="flex items-center gap-1"><Brain className="w-3 h-3" /> Blocker diagnosis</span>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
+              <ArrowRight className="w-4 h-4 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
             </div>
           </button>
 
