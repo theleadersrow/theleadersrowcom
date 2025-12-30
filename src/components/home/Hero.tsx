@@ -86,16 +86,16 @@ const Hero = () => {
           
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 opacity-0 animate-fade-up delay-400 px-4">
-            <Link to="/200k-method" className="w-full sm:w-auto">
+            <Link to="/live-programs" className="w-full sm:w-auto">
               <Button variant="hero" size="xl" className="w-full sm:w-auto">
-                Get the 200K Method
+                Start Your Journey
               </Button>
             </Link>
-            <a href="#programs" className="w-full sm:w-auto">
+            <Link to="/career-coach" className="w-full sm:w-auto">
               <Button variant="heroOutline" size="xl" className="w-full sm:w-auto">
-                View All Programs
+                Try AI Career Tools
               </Button>
-            </a>
+            </Link>
           </div>
 
           {/* Social Proof Testimonial Bar */}
