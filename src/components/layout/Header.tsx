@@ -90,7 +90,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-            <span className={`font-serif text-2xl md:text-3xl font-bold tracking-tight transition-colors ${textColor}`}>
+            <span className={`font-serif text-xl md:text-2xl font-bold tracking-tight transition-colors ${textColor}`}>
               TLR
             </span>
             <span className={`text-lg md:text-xl ${textColor} opacity-40`}>|</span>
