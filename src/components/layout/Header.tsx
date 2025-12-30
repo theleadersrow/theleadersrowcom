@@ -127,45 +127,41 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[280px] p-2"
+                className="bg-card border border-border shadow-elevated z-50 min-w-[180px] p-1"
               >
-                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2">
-                  Self-Paced Learning
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2 py-1">
+                  Self-Paced
                 </DropdownMenuLabel>
                 {programsLinks.selfPaced.map((link) => (
                   <DropdownMenuItem key={link.href} asChild>
                     <Link
                       to={link.href}
-                      className={`w-full cursor-pointer flex flex-col gap-0.5 py-2 ${
+                      className={`w-full cursor-pointer py-1.5 ${
                         isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
                       }`}
                     >
-                      <span className="font-medium">{link.label}</span>
-                      <span className="text-xs text-muted-foreground">{link.description}</span>
+                      {link.label}
                     </Link>
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2">
-                  Live Courses & Accelerators
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2 py-1">
+                  Live Programs
                 </DropdownMenuLabel>
                 {programsLinks.live.map((link) => (
                   <DropdownMenuItem key={link.href} asChild>
                     <Link
                       to={link.href}
-                      className={`w-full cursor-pointer flex flex-col gap-0.5 py-2 ${
+                      className={`w-full cursor-pointer py-1.5 flex items-center gap-2 ${
                         isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
                       }`}
                     >
-                      <span className="font-medium flex items-center gap-2">
-                        {link.label}
-                        {link.isLive && (
-                          <span className="bg-green-500/20 text-green-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                            Live
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{link.description}</span>
+                      {link.label}
+                      {link.isLive && (
+                        <span className="bg-green-500/20 text-green-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                          Live
+                        </span>
+                      )}
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -182,43 +178,15 @@ const Header = () => {
               AI Tools
             </Link>
 
-            {/* Speaking Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
-                  isSpeakingActive ? "text-secondary" : textColor
-                }`}
-              >
-                Speaking
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[240px] p-2"
-              >
-                {speakingLinks.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      to={link.href}
-                      className="w-full cursor-pointer flex items-center gap-3 py-2 text-foreground hover:text-secondary"
-                    >
-                      <link.icon className="h-4 w-4 text-muted-foreground" />
-                      <span>{link.label}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/contact?type=speaking"
-                    className="w-full cursor-pointer flex items-center gap-2 py-2 text-secondary font-medium"
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                    Book Me to Speak
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Speaking - Direct Link */}
+            <Link
+              to="/speaking"
+              className={`text-sm font-medium transition-colors hover:text-secondary ${
+                location.pathname === "/speaking" ? "text-secondary" : textColor
+              }`}
+            >
+              Speaking
+            </Link>
 
             {/* Content Dropdown */}
             <DropdownMenu>
@@ -232,7 +200,7 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[260px] p-2"
+                className="bg-card border border-border shadow-elevated z-50 min-w-[160px] p-1"
               >
                 {contentLinks.map((link) => (
                   <DropdownMenuItem 
@@ -241,19 +209,17 @@ const Header = () => {
                     disabled={link.disabled}
                   >
                     {link.disabled ? (
-                      <div className="w-full flex flex-col gap-0.5 py-2 text-muted-foreground/60 cursor-not-allowed">
-                        <span className="font-medium">{link.label}</span>
-                        <span className="text-xs">{link.description}</span>
-                      </div>
+                      <span className="w-full py-1.5 text-muted-foreground/60 cursor-not-allowed">
+                        {link.label} (Coming Soon)
+                      </span>
                     ) : (
                       <Link
                         to={link.href}
-                        className={`w-full cursor-pointer flex flex-col gap-0.5 py-2 ${
+                        className={`w-full cursor-pointer py-1.5 ${
                           isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
                         }`}
                       >
-                        <span className="font-medium">{link.label}</span>
-                        <span className="text-xs text-muted-foreground">{link.description}</span>
+                        {link.label}
                       </Link>
                     )}
                   </DropdownMenuItem>
@@ -273,18 +239,17 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[260px] p-2"
+                className="bg-card border border-border shadow-elevated z-50 min-w-[180px] p-1"
               >
                 {communityLinks.map((link) => (
                   <DropdownMenuItem key={link.href + link.label} asChild>
                     <Link
                       to={link.href}
-                      className={`w-full cursor-pointer flex flex-col gap-0.5 py-2 ${
+                      className={`w-full cursor-pointer py-1.5 ${
                         isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
                       }`}
                     >
-                      <span className="font-medium">{link.label}</span>
-                      <span className="text-xs text-muted-foreground">{link.description}</span>
+                      {link.label}
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -292,9 +257,8 @@ const Header = () => {
                 <DropdownMenuItem asChild>
                   <Link
                     to="/register"
-                    className="w-full cursor-pointer flex items-center gap-2 py-2 text-secondary font-medium"
+                    className="w-full cursor-pointer py-1.5 text-secondary font-medium"
                   >
-                    <ArrowRight className="h-4 w-4" />
                     Join the Community
                   </Link>
                 </DropdownMenuItem>
@@ -313,13 +277,13 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[220px] p-2"
+                className="bg-card border border-border shadow-elevated z-50 min-w-[180px] p-1"
               >
                 {contactLinks.map((link) => (
                   <DropdownMenuItem key={link.href + link.label} asChild>
                     <Link
                       to={link.href}
-                      className={`w-full cursor-pointer flex items-center gap-3 py-2 ${
+                      className={`w-full cursor-pointer py-1.5 ${
                         link.highlight 
                           ? "text-secondary font-medium" 
                           : isActiveLink(link.href) 
@@ -327,8 +291,7 @@ const Header = () => {
                             : "text-foreground hover:text-secondary"
                       }`}
                     >
-                      <link.icon className={`h-4 w-4 ${link.highlight ? "text-secondary" : "text-muted-foreground"}`} />
-                      <span>{link.label}</span>
+                      {link.label}
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -432,39 +395,16 @@ const Header = () => {
                 AI Tools
               </Link>
 
-              {/* Mobile Speaking Section */}
-              <div className="border-t border-border pt-2">
-                <button
-                  onClick={() => toggleMobileSection('speaking')}
-                  className="flex items-center justify-between w-full text-base font-medium py-3 text-foreground"
-                >
-                  Speaking
-                  <ChevronDown className={`h-4 w-4 transition-transform ${openMobileSection === 'speaking' ? "rotate-180" : ""}`} />
-                </button>
-                {openMobileSection === 'speaking' && (
-                  <div className="pl-4 flex flex-col gap-1 pb-2">
-                    {speakingLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        to={link.href}
-                        className="text-sm py-2 transition-colors text-muted-foreground hover:text-secondary flex items-center gap-2"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <link.icon className="h-4 w-4" />
-                        {link.label}
-                      </Link>
-                    ))}
-                    <Link
-                      to="/contact?type=speaking"
-                      className="text-sm py-2 mt-2 transition-colors text-secondary font-medium flex items-center gap-2"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                      Book Me to Speak
-                    </Link>
-                  </div>
-                )}
-              </div>
+              {/* Mobile Speaking - Direct Link */}
+              <Link
+                to="/speaking"
+                className={`text-base font-medium py-3 transition-colors border-t border-border pt-4 ${
+                  location.pathname === "/speaking" ? "text-secondary" : "text-foreground hover:text-secondary"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Speaking
+              </Link>
 
               {/* Mobile Content Section */}
               <div className="border-t border-border pt-2">

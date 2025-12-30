@@ -36,6 +36,7 @@ import CareerAdvisorInfo from "./pages/CareerAdvisorInfo";
 import InterviewPrep from "./pages/InterviewPrep";
 import NotFound from "./pages/NotFound";
 import Social from "./pages/Social";
+import Speaking from "./pages/Speaking";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App = () => (
             <Route path="/beta-event" element={<BetaEvent />} />
             <Route path="/interview-prep" element={<InterviewPrep />} />
             <Route path="/social" element={<Social />} />
+            <Route path="/speaking" element={<Speaking />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
