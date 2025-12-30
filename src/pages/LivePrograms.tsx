@@ -50,11 +50,12 @@ const LivePrograms = () => {
               Live Programs
             </div>
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6">
-              Accelerate Your Career with Live Coaching
+              Transform Your Career Through Live, Interactive Learning
             </h1>
             <p className="text-lg text-muted-foreground">
-              Join cohort-based programs with real-time guidance, accountability, 
-              and a community of ambitious professionals on the same journey.
+              Our live programs combine expert-led sessions, real-time feedback, and peer accountability 
+              to create breakthrough moments that self-study simply cannot match. Learn alongside ambitious 
+              professionals, get your questions answered on the spot, and build lasting connections.
             </p>
           </div>
         </div>
