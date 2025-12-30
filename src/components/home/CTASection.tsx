@@ -21,7 +21,7 @@ const CTASection = () => {
             Join professionals who are accelerating their careers with proven strategies.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <Link to="/register" className="w-full sm:w-auto">
+            <Link to="/live-programs" className="w-full sm:w-auto">
               <Button variant="hero" size="xl" className="group w-full sm:w-auto">
                 Start Your Journey
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
