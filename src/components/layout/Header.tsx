@@ -34,6 +34,7 @@ const Header = () => {
   const programsLinks = [
     { href: "/live-programs", label: "Live Programs" },
     { href: "/courses", label: "Self-Paced Learning" },
+    { href: "/coaching", label: "1:1 Results-Driven Coaching" },
   ];
 
   const aiToolsLinks = [
