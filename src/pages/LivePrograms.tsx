@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, Users, Clock, CheckCircle, Zap } from "lucide-react";
+import { ArrowRight, Calendar, Users, Clock, CheckCircle, Zap, X, Video, MessageSquare, Target, TrendingUp } from "lucide-react";
 
 const livePrograms = [
   {
@@ -57,6 +57,133 @@ const LivePrograms = () => {
               to create breakthrough moments that self-study simply cannot match. Learn alongside ambitious 
               professionals, get your questions answered on the spot, and build lasting connections.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
+                Why Live Programs Beat Self-Paced Learning
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                While self-paced courses have their place, live programs deliver results that 
+                asynchronous learning simply cannot match.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Live Programs Column */}
+              <div className="bg-card border-2 border-secondary rounded-2xl p-6 md:p-8 relative">
+                <div className="absolute -top-3 left-6 bg-secondary text-secondary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                  Live Programs
+                </div>
+                <div className="space-y-5 mt-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <Video className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Real-Time Interaction</h4>
+                      <p className="text-sm text-muted-foreground">Get immediate answers to your specific questions and situations</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <Users className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Built-In Accountability</h4>
+                      <p className="text-sm text-muted-foreground">Scheduled sessions and cohort pressure keep you on track</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <MessageSquare className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Personalized Feedback</h4>
+                      <p className="text-sm text-muted-foreground">Tailored advice based on your unique career context</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <Target className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Peer Network</h4>
+                      <p className="text-sm text-muted-foreground">Connect with ambitious professionals on the same journey</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Higher Completion Rates</h4>
+                      <p className="text-sm text-muted-foreground">85%+ completion vs. 5-15% for self-paced courses</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Self-Paced Column */}
+              <div className="bg-muted/50 border border-border rounded-2xl p-6 md:p-8 relative">
+                <div className="absolute -top-3 left-6 bg-muted-foreground/20 text-muted-foreground px-4 py-1 rounded-full text-sm font-medium">
+                  Self-Paced Courses
+                </div>
+                <div className="space-y-5 mt-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground">One-Way Content</h4>
+                      <p className="text-sm text-muted-foreground/70">Generic videos without interaction or Q&A</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground">Easy to Abandon</h4>
+                      <p className="text-sm text-muted-foreground/70">No deadlines or external motivation to finish</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground">No Personalization</h4>
+                      <p className="text-sm text-muted-foreground/70">Same content regardless of your experience level</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground">Isolated Learning</h4>
+                      <p className="text-sm text-muted-foreground/70">No community or networking opportunities</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-muted-foreground">Low Completion</h4>
+                      <p className="text-sm text-muted-foreground/70">Most courses sit unfinished in your library</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
