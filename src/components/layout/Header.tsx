@@ -89,11 +89,12 @@ const Header = () => {
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex flex-col items-start flex-shrink-0">
+          <Link to="/" className="flex flex-col items-start flex-shrink-0 group">
             <span className={`font-serif text-xl md:text-2xl font-bold tracking-tight transition-colors ${textColor}`}>
-              TLR
+              <span className="text-secondary">T</span>LR
+              <span className="block h-0.5 w-full bg-gradient-to-r from-secondary to-secondary/50 mt-0.5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </span>
-            <span className={`text-[10px] md:text-xs font-medium tracking-wide transition-colors ${textColor} opacity-70 -mt-1`}>
+            <span className={`text-[10px] md:text-xs font-medium tracking-wide transition-colors ${textColor} opacity-70`}>
               The Leader's Row
             </span>
           </Link>
