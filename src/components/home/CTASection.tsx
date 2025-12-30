@@ -42,7 +42,7 @@ const CTASection = () => {
               className="inline-flex items-center gap-2 text-secondary hover:text-secondary/80 font-medium transition-colors"
             >
               <Sparkles className="w-4 h-4" />
-              Try Our AI Career Coach
+              Try Our AI Career Tools
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
