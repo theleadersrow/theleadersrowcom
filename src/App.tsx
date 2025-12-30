@@ -38,6 +38,9 @@ import NotFound from "./pages/NotFound";
 import Social from "./pages/Social";
 import Speaking from "./pages/Speaking";
 import LivePrograms from "./pages/LivePrograms";
+import Community from "./pages/Community";
+import AMAEvents from "./pages/AMAEvents";
+import JoinCommunity from "./pages/JoinCommunity";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +85,9 @@ const App = () => (
             <Route path="/social" element={<Social />} />
             <Route path="/speaking" element={<Speaking />} />
             <Route path="/live-programs" element={<LivePrograms />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/ama-events" element={<AMAEvents />} />
+            <Route path="/join-community" element={<JoinCommunity />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

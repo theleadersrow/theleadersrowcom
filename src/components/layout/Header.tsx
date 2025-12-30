@@ -37,12 +37,7 @@ const Header = () => {
   ];
 
   const aiToolsLinks = [
-    { href: "/career-coach", label: "All AI Tools" },
-    { href: "/resume-suite", label: "Resume Intelligence Suite" },
-    { href: "/interview-prep", label: "Interview Prep Suite" },
-    { href: "/linkedin-signal", label: "LinkedIn Signal Score" },
-    { href: "/strategic-benchmark", label: "Career Compass Dashboard" },
-    { href: "/career-advisor", label: "AI Personal Advisor (Rimo)" },
+    { href: "/career-coach", label: "All Tools" },
     { href: "/beta-event", label: "Beta Testing", isBeta: true },
   ];
 
@@ -55,16 +50,15 @@ const Header = () => {
   ];
 
   const contentLinks = [
-    { href: "/newsletter", label: "Newsletter", description: "Weekly insights on Substack" },
-    { href: "/guide", label: "Free Guide", description: "Career acceleration blueprint" },
-    { href: "#", label: "Book", description: "Coming Soon", disabled: true },
-    { href: "/social", label: "Social Media", description: "Follow along on social" },
+    { href: "/newsletter", label: "Newsletter" },
+    { href: "/guide", label: "Free Guide" },
+    { href: "#", label: "Book", disabled: true },
+    { href: "/social", label: "Social Media" },
   ];
 
   const communityLinks = [
-    { href: "/register", label: "Leader's Row Community", description: "Join our private community" },
-    { href: "/beta-event", label: "Live Roundtables", description: "Interactive sessions" },
-    { href: "/beta-event", label: "Ask Me Anything Events", description: "Direct Q&A sessions" },
+    { href: "/community", label: "Leader's Row Community" },
+    { href: "/ama-events", label: "Ask Me Anything Events" },
   ];
 
   const contactLinks = [
@@ -253,7 +247,7 @@ const Header = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link
-                    to="/register"
+                    to="/join-community"
                     className="w-full cursor-pointer py-1.5 text-secondary font-medium"
                   >
                     Join the Community
