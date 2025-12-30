@@ -42,21 +42,31 @@ const LivePrograms = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-b from-primary/5 to-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-32 pb-16 md:pt-40 md:pb-20 bg-gradient-to-b from-navy-dark via-navy to-navy-light overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(45_80%_55%_/_0.15)_0%,transparent_50%)]" />
+        </div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-green-500/10 text-green-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Zap className="h-4 w-4" />
-              Live Programs
-            </div>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6">
-              Transform Your Career Through Live, Interactive Learning
+            <p className="text-secondary font-medium mb-3 animate-fade-up">Learn Live. Grow Together.</p>
+            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-cream mb-4 animate-fade-up leading-tight">
+              Live <span className="text-secondary">Programs</span>
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-cream/80 text-lg sm:text-xl leading-relaxed animate-fade-up delay-100 mb-4">
+              Transform your career through live, interactive learning.
+            </p>
+            <p className="text-cream/70 text-base leading-relaxed animate-fade-up delay-150 mb-8">
               Our live programs combine expert-led sessions, real-time feedback, and peer accountability 
               to create breakthrough moments that self-study simply cannot match. Learn alongside ambitious 
               professionals, get your questions answered on the spot, and build lasting connections.
             </p>
+            <a href="#programs">
+              <Button variant="gold" size="lg" className="group animate-fade-up delay-200">
+                Explore Programs
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </a>
           </div>
         </div>
       </section>
