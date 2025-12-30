@@ -178,38 +178,15 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* AI Tools Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
-                  isAIToolsActive ? "text-secondary" : textColor
-                }`}
-              >
-                AI Tools
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[280px] p-2"
-              >
-                <p className="text-xs text-muted-foreground px-2 pb-2">
-                  Career intelligence powered by AI
-                </p>
-                {aiToolsLinks.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      to={link.href}
-                      className={`w-full cursor-pointer flex flex-col gap-0.5 py-2 ${
-                        isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
-                      }`}
-                    >
-                      <span className="font-medium">{link.label}</span>
-                      <span className="text-xs text-muted-foreground">{link.description}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* AI Tools - Direct Link */}
+            <Link
+              to="/career-coach"
+              className={`text-sm font-medium transition-colors hover:text-secondary ${
+                isAIToolsActive || location.pathname === "/career-coach" ? "text-secondary" : textColor
+              }`}
+            >
+              AI Tools
+            </Link>
 
             {/* Speaking Dropdown */}
             <DropdownMenu>
@@ -467,32 +444,16 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Mobile AI Tools Section */}
-              <div className="border-t border-border pt-2">
-                <button
-                  onClick={() => toggleMobileSection('ai-tools')}
-                  className="flex items-center justify-between w-full text-base font-medium py-3 text-foreground"
-                >
-                  AI Tools
-                  <ChevronDown className={`h-4 w-4 transition-transform ${openMobileSection === 'ai-tools' ? "rotate-180" : ""}`} />
-                </button>
-                {openMobileSection === 'ai-tools' && (
-                  <div className="pl-4 flex flex-col gap-1 pb-2">
-                    {aiToolsLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        to={link.href}
-                        className={`text-sm py-2 transition-colors ${
-                          isActiveLink(link.href) ? "text-secondary" : "text-muted-foreground hover:text-secondary"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* Mobile AI Tools - Direct Link */}
+              <Link
+                to="/career-coach"
+                className={`text-base font-medium py-3 transition-colors border-t border-border pt-4 ${
+                  isAIToolsActive || location.pathname === "/career-coach" ? "text-secondary" : "text-foreground hover:text-secondary"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                AI Tools
+              </Link>
 
               {/* Mobile Speaking Section */}
               <div className="border-t border-border pt-2">
