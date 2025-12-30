@@ -35,6 +35,7 @@ import BetaEvent from "./pages/BetaEvent";
 import CareerAdvisorInfo from "./pages/CareerAdvisorInfo";
 import InterviewPrep from "./pages/InterviewPrep";
 import NotFound from "./pages/NotFound";
+import Social from "./pages/Social";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="/beta-event" element={<BetaEvent />} />
             <Route path="/interview-prep" element={<InterviewPrep />} />
+            <Route path="/social" element={<Social />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

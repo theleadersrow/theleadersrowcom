@@ -57,18 +57,12 @@ const Header = () => {
     { href: "/contact?type=media", label: "Media & Podcast Appearances", icon: MessageSquare },
   ];
 
-  const contentLinks = {
-    main: [
-      { href: "/newsletter", label: "Newsletter", description: "Weekly insights on Substack" },
-      { href: "#", label: "Book (The Invisible Ladder)", description: "Coming Soon", disabled: true },
-      { href: "/guide", label: "Free Guide", description: "Career acceleration blueprint" },
-    ],
-    social: [
-      { href: "https://linkedin.com/in/omoniyitolu", label: "LinkedIn", icon: Linkedin, external: true },
-      { href: "https://twitter.com", label: "Twitter / X", icon: Twitter, external: true },
-      { href: "https://instagram.com", label: "Instagram", icon: Instagram, external: true },
-    ],
-  };
+  const contentLinks = [
+    { href: "/newsletter", label: "Newsletter", description: "Weekly insights on Substack" },
+    { href: "/guide", label: "Free Guide", description: "Career acceleration blueprint" },
+    { href: "#", label: "Book", description: "Coming Soon", disabled: true },
+    { href: "/social", label: "Social Media", description: "Follow along on social" },
+  ];
 
   const communityLinks = [
     { href: "/register", label: "Leader's Row Community", description: "Join our private community" },
@@ -94,7 +88,7 @@ const Header = () => {
   const isProgramsActive = [...programsLinks.selfPaced, ...programsLinks.live].some(link => isActiveLink(link.href));
   const isAIToolsActive = aiToolsLinks.some(link => isActiveLink(link.href));
   const isSpeakingActive = speakingLinks.some(link => location.pathname.startsWith(link.href.split('?')[0]));
-  const isContentActive = contentLinks.main.some(link => isActiveLink(link.href));
+  const isContentActive = contentLinks.some(link => isActiveLink(link.href));
   const isCommunityActive = communityLinks.some(link => isActiveLink(link.href));
   const isContactActive = contactLinks.some(link => isActiveLink(link.href));
 
@@ -240,7 +234,7 @@ const Header = () => {
                 align="start" 
                 className="bg-card border border-border shadow-elevated z-50 min-w-[260px] p-2"
               >
-                {contentLinks.main.map((link) => (
+                {contentLinks.map((link) => (
                   <DropdownMenuItem 
                     key={link.href + link.label} 
                     asChild={!link.disabled} 
@@ -264,23 +258,6 @@ const Header = () => {
                     )}
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2">
-                  Social Links
-                </DropdownMenuLabel>
-                <div className="flex items-center gap-2 px-2 py-2">
-                  {contentLinks.social.map((link) => (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                      <link.icon className="h-4 w-4" />
-                    </a>
-                  ))}
-                </div>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -500,7 +477,7 @@ const Header = () => {
                 </button>
                 {openMobileSection === 'content' && (
                   <div className="pl-4 flex flex-col gap-1 pb-2">
-                    {contentLinks.main.map((link) => (
+                    {contentLinks.map((link) => (
                       link.disabled ? (
                         <span
                           key={link.href + link.label}
@@ -521,19 +498,6 @@ const Header = () => {
                         </Link>
                       )
                     ))}
-                    <div className="flex items-center gap-3 py-3">
-                      {contentLinks.social.map((link) => (
-                        <a
-                          key={link.href}
-                          href={link.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground"
-                        >
-                          <link.icon className="h-4 w-4" />
-                        </a>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
