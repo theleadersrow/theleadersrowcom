@@ -22,7 +22,7 @@ const AMAEvents = () => {
   const nextEvent = {
     title: "Ask Me Anything: Career Acceleration",
     date: "January 15, 2025",
-    time: "6:00 PM EST",
+    time: "6-7pm CST",
     description: "Join us for an interactive Q&A session where you can ask anything about career growth, job searching, interview prep, and more.",
   };
 

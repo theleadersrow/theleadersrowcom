@@ -32,8 +32,8 @@ const Header = () => {
 
   // Navigation structure
   const programsLinks = [
-    { href: "/courses", label: "Self-Paced Learning" },
     { href: "/live-programs", label: "Live Programs" },
+    { href: "/courses", label: "Self-Paced Learning" },
   ];
 
   const aiToolsLinks = [
