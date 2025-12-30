@@ -94,7 +94,7 @@ const Header = () => {
               TLR
             </span>
             <span className={`text-lg md:text-xl ${textColor} opacity-40`}>|</span>
-            <span className={`text-base md:text-lg font-medium tracking-wide transition-colors ${textColor}`}>
+            <span className={`text-lg md:text-xl font-medium tracking-wide transition-colors ${textColor}`}>
               The Leader's Row
             </span>
           </Link>
