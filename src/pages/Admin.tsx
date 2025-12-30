@@ -37,7 +37,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck, MessageSquare } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck, MessageSquare, Mic } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 import { LeadsTab } from "@/components/admin/LeadsTab";
 import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
@@ -45,6 +45,7 @@ import { TestimonialsTab } from "@/components/admin/TestimonialsTab";
 import { ToolPurchasesTab } from "@/components/admin/ToolPurchasesTab";
 import { BetaRegistrationsTab } from "@/components/admin/BetaRegistrationsTab";
 import { CareerAdvisorTab } from "@/components/admin/CareerAdvisorTab";
+import { AMARegistrationsTab } from "@/components/admin/AMARegistrationsTab";
 import InvoiceList from "@/components/InvoiceList";
 
 interface Enrollment {
@@ -460,7 +461,7 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-6">
         <Tabs defaultValue="enrollments" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6">
+          <TabsList className="grid w-full grid-cols-8 mb-6">
             <TabsTrigger value="enrollments" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Enrollments</span>
@@ -476,6 +477,10 @@ const Admin = () => {
             <TabsTrigger value="beta" className="flex items-center gap-2">
               <CalendarCheck className="h-4 w-4" />
               <span className="hidden sm:inline">Beta Event</span>
+            </TabsTrigger>
+            <TabsTrigger value="ama" className="flex items-center gap-2">
+              <Mic className="h-4 w-4" />
+              <span className="hidden sm:inline">AMA Events</span>
             </TabsTrigger>
             <TabsTrigger value="leads" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
@@ -501,6 +506,10 @@ const Admin = () => {
 
           <TabsContent value="beta">
             <BetaRegistrationsTab />
+          </TabsContent>
+
+          <TabsContent value="ama">
+            <AMARegistrationsTab />
           </TabsContent>
 
           <TabsContent value="enrollments" className="space-y-6">
