@@ -94,7 +94,7 @@ const Header = () => {
               TLR
               <span className="block h-0.5 w-full bg-gradient-to-r from-secondary to-secondary/50 mt-0.5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </span>
-            <span className={`text-[10px] md:text-xs font-medium tracking-wide transition-colors ${textColor} opacity-70`}>
+            <span className={`text-xs md:text-sm font-medium tracking-wide transition-colors ${textColor} opacity-70`}>
               The Leader's Row
             </span>
           </Link>
