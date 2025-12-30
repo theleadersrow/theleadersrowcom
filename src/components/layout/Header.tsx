@@ -31,15 +31,10 @@ const Header = () => {
   };
 
   // Navigation structure
-  const programsLinks = {
-    selfPaced: [
-      { href: "/courses", label: "Self-Paced Courses", description: "Learn at your own pace" },
-    ],
-    live: [
-      { href: "/200k-method", label: "200K Method", description: "8-Week Career Accelerator", isLive: true },
-      { href: "/weekly-edge", label: "Weekly Edge", description: "Ongoing group coaching", isLive: true },
-    ],
-  };
+  const programsLinks = [
+    { href: "/courses", label: "Self-Paced Learning" },
+    { href: "/live-programs", label: "Live Programs" },
+  ];
 
   const aiToolsLinks = [
     { href: "/resume-suite", label: "Resume Intelligence Suite", description: "AI-powered resume optimization" },
@@ -85,7 +80,7 @@ const Header = () => {
     : "text-cream";
 
   const isActiveLink = (href: string) => location.pathname === href;
-  const isProgramsActive = [...programsLinks.selfPaced, ...programsLinks.live].some(link => isActiveLink(link.href));
+  const isProgramsActive = programsLinks.some(link => isActiveLink(link.href));
   const isAIToolsActive = aiToolsLinks.some(link => isActiveLink(link.href));
   const isSpeakingActive = speakingLinks.some(link => location.pathname.startsWith(link.href.split('?')[0]));
   const isContentActive = contentLinks.some(link => isActiveLink(link.href));
@@ -127,12 +122,9 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[180px] p-1"
+                className="bg-card border border-border shadow-elevated z-50 min-w-[160px] p-1"
               >
-                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2 py-1">
-                  Self-Paced
-                </DropdownMenuLabel>
-                {programsLinks.selfPaced.map((link) => (
+                {programsLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild>
                     <Link
                       to={link.href}
@@ -141,27 +133,6 @@ const Header = () => {
                       }`}
                     >
                       {link.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal px-2 py-1">
-                  Live Programs
-                </DropdownMenuLabel>
-                {programsLinks.live.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      to={link.href}
-                      className={`w-full cursor-pointer py-1.5 flex items-center gap-2 ${
-                        isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
-                      }`}
-                    >
-                      {link.label}
-                      {link.isLive && (
-                        <span className="bg-green-500/20 text-green-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                          Live
-                        </span>
-                      )}
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -351,8 +322,7 @@ const Header = () => {
                 </button>
                 {openMobileSection === 'programs' && (
                   <div className="pl-4 flex flex-col gap-1 pb-2">
-                    <p className="text-xs text-muted-foreground py-2 font-medium">Self-Paced</p>
-                    {programsLinks.selfPaced.map((link) => (
+                    {programsLinks.map((link) => (
                       <Link
                         key={link.href}
                         to={link.href}
@@ -362,22 +332,6 @@ const Header = () => {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {link.label}
-                      </Link>
-                    ))}
-                    <p className="text-xs text-muted-foreground py-2 font-medium mt-2">Live Programs</p>
-                    {programsLinks.live.map((link) => (
-                      <Link
-                        key={link.href}
-                        to={link.href}
-                        className={`text-sm py-2 transition-colors flex items-center gap-2 ${
-                          isActiveLink(link.href) ? "text-secondary" : "text-muted-foreground hover:text-secondary"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {link.label}
-                        <span className="bg-green-500/20 text-green-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                          Live
-                        </span>
                       </Link>
                     ))}
                   </div>
