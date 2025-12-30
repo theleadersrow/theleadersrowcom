@@ -91,7 +91,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex flex-col items-start flex-shrink-0 group">
             <span className={`font-serif text-xl md:text-2xl font-bold tracking-tight transition-colors ${textColor}`}>
-              <span className="text-secondary">T</span>LR
+              TLR
               <span className="block h-0.5 w-full bg-gradient-to-r from-secondary to-secondary/50 mt-0.5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </span>
             <span className={`text-[10px] md:text-xs font-medium tracking-wide transition-colors ${textColor} opacity-70`}>
