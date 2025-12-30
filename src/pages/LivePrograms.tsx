@@ -71,6 +71,30 @@ const LivePrograms = () => {
         </div>
       </section>
 
+      {/* Why It Matters - Stats Bar */}
+      <section className="py-12 bg-background border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {[
+              { icon: Users, title: "85%+ Completion Rate", desc: "vs. 5-15% for self-paced" },
+              { icon: Zap, title: "Real-Time Feedback", desc: "Get answers on the spot" },
+              { icon: Target, title: "Accountability Built-In", desc: "Stay on track with cohorts" },
+              { icon: TrendingUp, title: "Faster Results", desc: "Compress years into weeks" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">{item.title}</p>
+                  <p className="text-muted-foreground text-xs">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Comparison Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
