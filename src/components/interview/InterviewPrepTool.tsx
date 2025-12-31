@@ -311,7 +311,7 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
       recognitionRef.current = recognition;
       recognition.start();
       setIsRecording(true);
-      toast.info("Listening... Speak now");
+      toast.info("Listening... Speak now", { duration: 1000 });
     }
   };
 
