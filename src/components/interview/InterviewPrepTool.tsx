@@ -9,7 +9,7 @@ import {
   Target, Building2, Briefcase, MessageSquare,
   CheckCircle, ChevronRight, Sparkles, RotateCcw,
   Code, Brain, Users, Lightbulb, TrendingUp, Zap,
-  FileText, Award, Lock, Mail, Crown
+  FileText, Award, Lock, Mail, Crown, Mic, MicOff
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -254,7 +254,9 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Access and usage tracking
@@ -267,6 +269,51 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
+
+  // Voice recording toggle
+  const toggleRecording = () => {
+    if (isRecording) {
+      // Stop recording
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      // Start recording
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        toast.error("Voice input not supported in this browser");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInput(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setIsRecording(false);
+        if (event.error === "not-allowed") {
+          toast.error("Microphone access denied");
+        }
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      setIsRecording(true);
+      toast.info("Listening... Speak now");
+    }
+  };
 
   // Check access and load usage on mount
   useEffect(() => {
@@ -1245,26 +1292,40 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="p-4">
-          <div className="max-w-4xl mx-auto flex gap-3">
-            <Textarea
-              ref={textareaRef}
+        {/* Input Area - Sleek and slim */}
+        <div className="px-4 py-3">
+          <div className="max-w-4xl mx-auto flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2 border focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
+            <input
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your answer here... (Press Enter to send, Shift+Enter for new line)"
-              disabled={isLoading}
-              className="min-h-[80px] max-h-[200px] resize-none text-base"
-              rows={3}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="Type your answer..."
+              disabled={isLoading || isRecording}
+              className="flex-1 bg-transparent border-none outline-none text-base placeholder:text-muted-foreground"
             />
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={toggleRecording}
+              disabled={isLoading}
+              className={`h-9 w-9 rounded-full transition-colors ${isRecording ? 'bg-red-500 text-white hover:bg-red-600' : 'hover:bg-muted'}`}
+              title={isRecording ? "Stop recording" : "Start voice input"}
+            >
+              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </Button>
             <Button 
               onClick={sendMessage} 
               disabled={isLoading || !input.trim()} 
-              size="lg"
-              className="h-auto px-6"
+              size="icon"
+              className="h-9 w-9 rounded-full"
             >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-2 max-w-4xl mx-auto">
