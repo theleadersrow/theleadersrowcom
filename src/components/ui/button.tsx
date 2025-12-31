@@ -19,6 +19,8 @@ const buttonVariants = cva(
         hero: "bg-secondary text-secondary-foreground font-semibold hover:shadow-gold hover:-translate-y-0.5",
         heroOutline: "bg-transparent border-2 border-gold-light/50 text-cream hover:bg-gold-light/10 hover:border-gold-light",
         navHero: "bg-secondary/90 text-secondary-foreground hover:bg-secondary hover:shadow-gold",
+        goldOutline: "bg-transparent border-2 border-secondary text-secondary hover:bg-secondary/10 hover:-translate-y-0.5",
+        goldOutlineLight: "bg-transparent border-2 border-secondary/70 text-cream hover:bg-secondary/10 hover:border-secondary hover:-translate-y-0.5",
       },
       size: {
         default: "h-11 px-6 py-2",
