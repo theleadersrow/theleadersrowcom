@@ -278,7 +278,7 @@ const Header = () => {
                   className="h-10 px-4"
                 >
                   <Sparkles className="h-4 w-4" />
-                  AI Tools
+                  AI Coach
                   <ChevronDown className="h-4 w-4 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
