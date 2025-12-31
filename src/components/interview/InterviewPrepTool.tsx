@@ -264,6 +264,9 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentEmail, setPaymentEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false);
 
   // Check access and load usage on mount
   useEffect(() => {
@@ -295,6 +298,46 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
       console.error("Error checking access:", e);
     }
     setAccessInfo({ hasAccess: false });
+  };
+
+  const handleRecoveryCheck = async () => {
+    if (!recoveryEmail.trim() || !recoveryEmail.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    
+    setIsCheckingAccess(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email: recoveryEmail.trim(), toolType: "interview_prep", action: "check" },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.hasAccess) {
+        const daysRemaining = Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const accessData = { 
+          expiry: data.expiresAt, 
+          email: recoveryEmail.trim() 
+        };
+        localStorage.setItem(INTERVIEW_PREP_ACCESS_KEY, JSON.stringify(accessData));
+        setAccessInfo({ 
+          hasAccess: true, 
+          expiresAt: data.expiresAt,
+          daysRemaining,
+          email: recoveryEmail.trim() 
+        });
+        setShowRecoveryDialog(false);
+        toast.success(`Access restored! ${daysRemaining} days remaining.`);
+      } else {
+        toast.error("No active access found for this email. Please purchase access or try a different email.");
+      }
+    } catch (err) {
+      console.error("Recovery check error:", err);
+      toast.error("Failed to verify access. Please try again.");
+    } finally {
+      setIsCheckingAccess(false);
+    }
   };
 
   const loadUsage = () => {
@@ -566,15 +609,25 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
               <p className="text-xs text-muted-foreground">Company-specific mock interviews with AI</p>
             </div>
           </div>
-          {accessInfo.hasAccess ? (
-            <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full flex items-center gap-1">
-              <Crown className="w-3 h-3" /> Pro ({accessInfo.daysRemaining}d left)
-            </span>
-          ) : (
-            <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded-full">
-              {getRemainingFreeQuestions()} free left
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {accessInfo.hasAccess ? (
+              <span className="text-xs bg-green-500/20 text-green-600 px-2 py-1 rounded-full flex items-center gap-1">
+                <Crown className="w-3 h-3" /> Pro ({accessInfo.daysRemaining}d left)
+              </span>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowRecoveryDialog(true)}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Restore access
+                </button>
+                <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-1 rounded-full">
+                  {getRemainingFreeQuestions()} free left
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         <ScrollArea className="flex-1">
@@ -999,9 +1052,17 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
               <Crown className="w-4 h-4" /> Pro Access
             </span>
           ) : (
-            <span className="text-sm bg-amber-500/20 text-amber-700 px-3 py-1.5 rounded-full font-medium">
-              {getRemainingFreeQuestions()}/{FREE_QUESTIONS_LIMIT} free questions
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowRecoveryDialog(true)}
+                className="text-sm text-primary hover:underline"
+              >
+                Restore access
+              </button>
+              <span className="text-sm bg-amber-500/20 text-amber-700 px-3 py-1.5 rounded-full font-medium">
+                {getRemainingFreeQuestions()}/{FREE_QUESTIONS_LIMIT} free questions
+              </span>
+            </div>
           )}
           <Button variant="outline" size="sm" onClick={resetInterview} className="gap-2">
             <RotateCcw className="w-4 h-4" />
@@ -1219,6 +1280,70 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
             
             <p className="text-xs text-center text-muted-foreground">
               Secure payment via Stripe. Your data is protected.
+            </p>
+            
+            <button
+              onClick={() => {
+                setShowPaywallDialog(false);
+                setShowRecoveryDialog(true);
+              }}
+              className="text-sm text-primary hover:underline w-full text-center"
+            >
+              Already purchased? Restore your access
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Access Recovery Dialog */}
+      <Dialog open={showRecoveryDialog} onOpenChange={setShowRecoveryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              Restore Your Access
+            </DialogTitle>
+            <DialogDescription>
+              Enter the email you used to purchase Interview Prep Pro to restore your access.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <label htmlFor="recovery-email" className="text-sm font-medium">
+                Your purchase email
+              </label>
+              <Input
+                id="recovery-email"
+                type="email"
+                placeholder="you@example.com"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleRecoveryCheck()}
+                className="w-full"
+              />
+            </div>
+
+            <Button 
+              onClick={handleRecoveryCheck}
+              className="w-full" 
+              size="lg"
+              disabled={isCheckingAccess || !recoveryEmail.trim()}
+            >
+              {isCheckingAccess ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Restore Access
+                </>
+              )}
+            </Button>
+            
+            <p className="text-xs text-center text-muted-foreground">
+              If you've purchased access, we'll restore it instantly.
             </p>
           </div>
         </DialogContent>
