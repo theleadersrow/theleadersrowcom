@@ -180,6 +180,11 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentEmail, setPaymentEmail] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  
+  // Recovery dialog states
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false);
 
   // New feature states
   const [headlineOptions, setHeadlineOptions] = useState<HeadlineOption[]>([]);
@@ -197,9 +202,10 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
 
-  // Check access on mount
+  // Check access on mount - also verify via API
   useEffect(() => {
     checkAccess();
+    checkAccessViaAPI();
   }, []);
 
   const checkAccess = () => {
@@ -222,6 +228,75 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       console.error("Error checking access:", e);
     }
     setAccessInfo({ hasAccess: false });
+  };
+
+  // Check access via API using stored email
+  const checkAccessViaAPI = async () => {
+    const email = getStoredEmail();
+    if (!email) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+        body: { action: "check", email, toolType: "linkedin_signal" },
+      });
+      
+      if (!error && data?.hasAccess) {
+        const daysRemaining = Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify({
+          email,
+          expiry: data.expiresAt,
+        }));
+        setAccessInfo({ 
+          hasAccess: true, 
+          expiresAt: data.expiresAt,
+          daysRemaining,
+          email 
+        });
+      }
+    } catch (e) {
+      console.error("Error checking access via API:", e);
+    }
+  };
+
+  // Handle recovery/restore access
+  const handleRecoveryCheck = async () => {
+    if (!recoveryEmail.trim() || !recoveryEmail.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    
+    setIsCheckingAccess(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+        body: { email: recoveryEmail.trim(), toolType: "linkedin_signal", action: "check" },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.hasAccess) {
+        const daysRemaining = Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const accessData = { 
+          expiry: data.expiresAt, 
+          email: recoveryEmail.trim() 
+        };
+        localStorage.setItem(LINKEDIN_SUITE_ACCESS_KEY, JSON.stringify(accessData));
+        setAccessInfo({ 
+          hasAccess: true, 
+          expiresAt: data.expiresAt,
+          daysRemaining,
+          email: recoveryEmail.trim() 
+        });
+        setShowRecoveryDialog(false);
+        toast.success(`Access restored! ${daysRemaining} days remaining.`);
+      } else {
+        toast.error("No active access found for this email. Please purchase access or try a different email.");
+      }
+    } catch (err) {
+      console.error("Recovery check error:", err);
+      toast.error("Failed to verify access. Please try again.");
+    } finally {
+      setIsCheckingAccess(false);
+    }
   };
 
   const handlePaymentCheckout = async () => {
@@ -818,6 +893,22 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <p className="text-muted-foreground">
             Get your profile scored the way recruiters see it, then use our AI tools to boost your visibility.
           </p>
+          
+          {/* Access status & restore button */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            {accessInfo.hasAccess ? (
+              <span className="text-xs bg-green-500/20 text-green-700 px-3 py-1 rounded-full">
+                ✓ Pro Access ({accessInfo.daysRemaining} days left)
+              </span>
+            ) : (
+              <button
+                onClick={() => setShowRecoveryDialog(true)}
+                className="text-xs text-primary hover:underline"
+              >
+                Already purchased? Restore access
+              </button>
+            )}
+          </div>
         </div>
 
         <Card>
@@ -2407,5 +2498,61 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     );
   }
 
-  return null;
+  return (
+    <>
+      {/* Recovery Dialog */}
+      <Dialog open={showRecoveryDialog} onOpenChange={setShowRecoveryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              Restore Your Access
+            </DialogTitle>
+            <DialogDescription>
+              Enter the email you used to purchase LinkedIn Signal Score Pro to restore your access.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <label htmlFor="recovery-email" className="text-sm font-medium">
+                Your purchase email
+              </label>
+              <Input
+                id="recovery-email"
+                type="email"
+                placeholder="you@example.com"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleRecoveryCheck()}
+                className="w-full"
+              />
+            </div>
+
+            <Button 
+              onClick={handleRecoveryCheck}
+              className="w-full" 
+              size="lg"
+              disabled={isCheckingAccess || !recoveryEmail.trim()}
+            >
+              {isCheckingAccess ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Restore Access
+                </>
+              )}
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Can't find your access? Contact support@theleadersrow.com
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
