@@ -271,15 +271,40 @@ const Header = () => {
                 Log In
               </Button>
             </Link>
-            <Link to="/career-coach">
-              <Button 
-                variant={isScrolled || !isHomePage ? "goldOutline" : "goldOutlineLight"} 
-                className="h-10 px-4"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant={isScrolled || !isHomePage ? "goldOutline" : "goldOutlineLight"} 
+                  className="h-10 px-4"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  AI Tools
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                className="bg-card border border-border shadow-elevated z-50 min-w-[180px] p-1"
               >
-                <Sparkles className="h-4 w-4" />
-                AI Tools
-              </Button>
-            </Link>
+                {aiToolsLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      to={link.href}
+                      className={`w-full cursor-pointer py-1.5 flex items-center gap-2 ${
+                        isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
+                      }`}
+                    >
+                      {link.label}
+                      {link.isBeta && (
+                        <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">
+                          Beta
+                        </span>
+                      )}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Link to="/register">
               <Button variant={isScrolled || !isHomePage ? "gold" : "navHero"} className="h-10 px-5">
                 Get Started
