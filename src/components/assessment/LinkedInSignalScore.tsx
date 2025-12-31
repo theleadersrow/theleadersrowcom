@@ -473,40 +473,14 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   };
 
   const handleAnalyze = async () => {
-    const hasProfileContent = profileText.trim().length > 0;
-    const hasLinkedInUrl = linkedinUrl.trim().includes("linkedin.com");
-    
-    if (!hasProfileContent && !hasLinkedInUrl) {
-      toast.error("Please provide your LinkedIn URL or paste your profile content");
+    if (!profileText.trim()) {
+      toast.error("Please paste your LinkedIn profile content");
       return;
     }
     
     if (!targetIndustry.trim() || !targetRole.trim()) {
       toast.error("Please fill in target industry and role");
       return;
-    }
-
-    if (!hasProfileContent && hasLinkedInUrl) {
-      setIsFetchingProfile(true);
-      try {
-        const email = getStoredEmail();
-        const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
-          body: { linkedinUrl, email },
-        });
-
-        if (error) throw error;
-
-        if (data.profileContent) {
-          setProfileText(data.profileContent);
-          toast.info("Profile content generated from URL. Proceeding with analysis...");
-        }
-      } catch (error) {
-        console.error("Error fetching LinkedIn profile:", error);
-        toast.error("Could not fetch profile content. Please paste your profile manually.");
-        setIsFetchingProfile(false);
-        return;
-      }
-      setIsFetchingProfile(false);
     }
 
     setStep("analyzing");
@@ -850,37 +824,23 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           <CardHeader>
             <CardTitle>Your LinkedIn Profile</CardTitle>
             <CardDescription>
-              Enter your LinkedIn URL to auto-fetch your profile, or paste your content manually.
+              Copy and paste your LinkedIn profile content below. Go to your LinkedIn profile, copy your headline, About section, and experience, then paste it here.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">LinkedIn URL</label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="https://linkedin.com/in/yourprofile"
-                  value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
-                  className="flex-1"
-                />
-                <Button 
-                  onClick={handleFetchLinkedInProfile} 
-                  variant="outline"
-                  disabled={isFetchingProfile || !linkedinUrl.includes("linkedin.com")}
-                >
-                  {isFetchingProfile ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Fetching...
-                    </>
-                  ) : (
-                    <>
-                      <Link className="w-4 h-4 mr-2" />
-                      Fetch Profile
-                    </>
-                  )}
-                </Button>
-              </div>
+              <label className="text-sm font-medium mb-2 block">LinkedIn Profile URL <span className="text-muted-foreground text-xs">(optional - for reference)</span></label>
+              <Input
+                placeholder="https://linkedin.com/in/yourprofile"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                <a href="https://linkedin.com/in/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  Open LinkedIn →
+                </a>
+                {" "}to copy your profile content
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -916,14 +876,22 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
 
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Profile Content {!linkedinUrl.includes("linkedin.com") && <span className="text-destructive">*</span>}
+                Profile Content <span className="text-destructive">*</span>
               </label>
               <Textarea
-                placeholder="Click 'Fetch Profile' above or paste your LinkedIn headline, about section, and experience here..."
+                placeholder={`Paste your LinkedIn content here. Include:
+
+• Your headline (e.g., "Senior Product Manager | SaaS | B2B")
+• Your About/Summary section
+• Your work experience (company, role, bullet points)
+• Key skills and achievements`}
                 value={profileText}
                 onChange={(e) => setProfileText(e.target.value)}
-                className="min-h-[180px]"
+                className="min-h-[200px]"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Tip: On LinkedIn, click your profile → scroll down → select and copy all relevant sections
+              </p>
             </div>
 
             <div className="border-t border-border pt-4">
