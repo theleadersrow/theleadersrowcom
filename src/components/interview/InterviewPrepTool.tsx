@@ -458,6 +458,9 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
     }
   };
 
+  // Helper to add visible typing delay
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const streamResponse = async (response: Response) => {
     if (!response.body) return;
 
@@ -468,6 +471,9 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
 
     // Add empty assistant message that we'll update with streaming content
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+    // Collect all tokens first, then display with typing effect
+    const tokens: string[] = [];
 
     try {
       while (true) {
@@ -488,7 +494,6 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
 
           const jsonStr = line.slice(6).trim();
           if (jsonStr === "[DONE]") {
-            console.log("[Streaming] Complete - total length:", assistantContent.length);
             break;
           }
 
@@ -496,15 +501,7 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
-              assistantContent += content;
-              // Update immediately on each token for real-time streaming effect
-              setMessages(prev => {
-                const newMessages = [...prev];
-                if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
-                  newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
-                }
-                return newMessages;
-              });
+              tokens.push(content);
             }
           } catch {
             // Incomplete JSON split across chunks - put back and wait for more data
@@ -527,18 +524,27 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
-              assistantContent += content;
-              setMessages(prev => {
-                const newMessages = [...prev];
-                if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
-                  newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
-                }
-                return newMessages;
-              });
+              tokens.push(content);
             }
           } catch { /* ignore partial leftovers */ }
         }
       }
+
+      // Now display tokens with visible typing effect
+      for (const token of tokens) {
+        assistantContent += token;
+        setMessages(prev => {
+          const newMessages = [...prev];
+          if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
+            newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
+          }
+          return newMessages;
+        });
+        // Add delay between tokens for visible streaming effect (15-30ms feels natural)
+        await sleep(20);
+      }
+
+      console.log("[Streaming] Complete - total length:", assistantContent.length);
     } catch (error) {
       console.error("[Streaming] Error:", error);
     }
