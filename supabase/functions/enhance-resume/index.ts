@@ -459,10 +459,22 @@ Return the result as JSON with the specified structure.`;
       throw new Error(`AI gateway error after retries: ${lastError}`);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      const responseText = await response.text();
+      if (!responseText || responseText.trim().length === 0) {
+        throw new Error("AI returned empty response");
+      }
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", parseError);
+      throw new Error("AI service returned invalid response. Please try again.");
+    }
+    
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
+      console.error("AI response structure:", JSON.stringify(data).slice(0, 500));
       throw new Error("No content in AI response");
     }
 
