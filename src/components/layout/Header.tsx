@@ -140,40 +140,6 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* AI Tools Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-secondary outline-none ${
-                  isAIToolsActive ? "text-secondary" : textColor
-                }`}
-              >
-                AI Tools
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-card border border-border shadow-elevated z-50 min-w-[200px] p-1"
-              >
-                {aiToolsLinks.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      to={link.href}
-                      className={`w-full cursor-pointer py-1.5 flex items-center gap-2 ${
-                        isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
-                      }`}
-                    >
-                      {link.label}
-                      {link.isBeta && (
-                        <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">
-                          Beta
-                        </span>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {/* Speaking - Direct Link */}
             <Link
               to="/speaking"
@@ -366,38 +332,6 @@ const Header = () => {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {link.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile AI Tools Section */}
-              <div className="border-t border-border pt-2">
-                <button
-                  onClick={() => toggleMobileSection('ai-tools')}
-                  className="flex items-center justify-between w-full text-base font-medium py-3 text-foreground"
-                >
-                  AI Tools
-                  <ChevronDown className={`h-4 w-4 transition-transform ${openMobileSection === 'ai-tools' ? "rotate-180" : ""}`} />
-                </button>
-                {openMobileSection === 'ai-tools' && (
-                  <div className="pl-4 flex flex-col gap-1 pb-2">
-                    {aiToolsLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        to={link.href}
-                        className={`text-sm py-2 transition-colors flex items-center gap-2 ${
-                          isActiveLink(link.href) ? "text-secondary" : "text-muted-foreground hover:text-secondary"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {link.label}
-                        {link.isBeta && (
-                          <span className="bg-secondary text-secondary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">
-                            Beta
-                          </span>
-                        )}
                       </Link>
                     ))}
                   </div>
