@@ -466,41 +466,81 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
     let textBuffer = "";
     let assistantContent = "";
 
+    // Add empty assistant message that we'll update with streaming content
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      textBuffer += decoder.decode(value, { stream: true });
+        textBuffer += decoder.decode(value, { stream: true });
 
-      let newlineIndex: number;
-      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-        let line = textBuffer.slice(0, newlineIndex);
-        textBuffer = textBuffer.slice(newlineIndex + 1);
+        // Process complete lines as they arrive
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
 
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (line.startsWith(":") || line.trim() === "") continue;
-        if (!line.startsWith("data: ")) continue;
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
 
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") break;
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) {
-            assistantContent += content;
-            setMessages(prev => {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
-              return newMessages;
-            });
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            console.log("[Streaming] Complete - total length:", assistantContent.length);
+            break;
           }
-        } catch {
-          // Incomplete JSON, continue
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantContent += content;
+              // Update immediately on each token for real-time streaming effect
+              setMessages(prev => {
+                const newMessages = [...prev];
+                if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
+                  newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
+                }
+                return newMessages;
+              });
+            }
+          } catch {
+            // Incomplete JSON split across chunks - put back and wait for more data
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
         }
       }
+
+      // Final flush for any remaining data
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantContent += content;
+              setMessages(prev => {
+                const newMessages = [...prev];
+                if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
+                  newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
+                }
+                return newMessages;
+              });
+            }
+          } catch { /* ignore partial leftovers */ }
+        }
+      }
+    } catch (error) {
+      console.error("[Streaming] Error:", error);
     }
   };
 
