@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, ExternalLink, Linkedin, Twitter, Instagram, Calendar, Mic, Users, BookOpen, MessageSquare, Phone, Star, ArrowRight } from "lucide-react";
+import { Menu, X, ChevronDown, ExternalLink, Linkedin, Twitter, Instagram, Calendar, Mic, Users, BookOpen, MessageSquare, Phone, Star, ArrowRight, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -303,6 +303,15 @@ const Header = () => {
                 className={`h-10 px-4 ${isScrolled || !isHomePage ? '' : 'text-cream hover:text-cream hover:bg-cream/10'}`}
               >
                 Log In
+              </Button>
+            </Link>
+            <Link to="/career-coach">
+              <Button 
+                variant={isScrolled || !isHomePage ? "goldOutline" : "goldOutlineLight"} 
+                className="h-10 px-4"
+              >
+                <Sparkles className="h-4 w-4" />
+                AI Tools
               </Button>
             </Link>
             <Link to="/register">
