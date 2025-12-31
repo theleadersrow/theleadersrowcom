@@ -275,8 +275,9 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Avoid janky repeated smooth-scroll animations while streaming tokens
+    scrollRef.current?.scrollIntoView({ behavior: isLoading ? "auto" : "smooth" });
+  }, [messages, isLoading]);
 
   const checkAccess = async () => {
     try {
@@ -458,22 +459,59 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
     }
   };
 
-  // Helper to add visible typing delay
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   const streamResponse = async (response: Response) => {
     if (!response.body) return;
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+
     let textBuffer = "";
     let assistantContent = "";
+    let queuedText = "";
+    let streamFinished = false;
 
     // Add empty assistant message that we'll update with streaming content
-    setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
-    // Collect all tokens first, then display with typing effect
-    const tokens: string[] = [];
+    const STREAM_TICK_MS = 45; // slower + smoother
+    const STREAM_CHARS_PER_TICK = 6; // small chunks to feel like token streaming
+
+    const upsertAssistant = () => {
+      setMessages((prev) => {
+        const next = [...prev];
+        if (next.length > 0 && next[next.length - 1].role === "assistant") {
+          next[next.length - 1] = { role: "assistant", content: assistantContent };
+        }
+        return next;
+      });
+    };
+
+    let resolved = false;
+    let resolveDrain: () => void;
+    const drainDone = new Promise<void>((res) => {
+      resolveDrain = res;
+    });
+
+    const finishDrain = (intervalId: number) => {
+      if (resolved) return;
+      resolved = true;
+      window.clearInterval(intervalId);
+      resolveDrain();
+    };
+
+    const intervalId = window.setInterval(() => {
+      if (queuedText.length > 0) {
+        const nextChunk = queuedText.slice(0, STREAM_CHARS_PER_TICK);
+        queuedText = queuedText.slice(STREAM_CHARS_PER_TICK);
+        assistantContent += nextChunk;
+        upsertAssistant();
+        return;
+      }
+
+      if (streamFinished) {
+        finishDrain(intervalId);
+      }
+    }, STREAM_TICK_MS);
 
     try {
       while (true) {
@@ -494,15 +532,14 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
 
           const jsonStr = line.slice(6).trim();
           if (jsonStr === "[DONE]") {
+            streamFinished = true;
             break;
           }
 
           try {
             const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              tokens.push(content);
-            }
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) queuedText += content;
           } catch {
             // Incomplete JSON split across chunks - put back and wait for more data
             textBuffer = line + "\n" + textBuffer;
@@ -511,7 +548,7 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
         }
       }
 
-      // Final flush for any remaining data
+      // Final flush for any remaining buffered SSE lines
       if (textBuffer.trim()) {
         for (let raw of textBuffer.split("\n")) {
           if (!raw) continue;
@@ -519,35 +556,30 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
           if (raw.startsWith(":") || raw.trim() === "") continue;
           if (!raw.startsWith("data: ")) continue;
           const jsonStr = raw.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
+          if (jsonStr === "[DONE]") {
+            streamFinished = true;
+            continue;
+          }
           try {
             const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              tokens.push(content);
-            }
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) queuedText += content;
           } catch { /* ignore partial leftovers */ }
         }
       }
-
-      // Now display tokens with visible typing effect
-      for (const token of tokens) {
-        assistantContent += token;
-        setMessages(prev => {
-          const newMessages = [...prev];
-          if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === "assistant") {
-            newMessages[newMessages.length - 1] = { role: "assistant", content: assistantContent };
-          }
-          return newMessages;
-        });
-        // Add delay between tokens for visible streaming effect (15-30ms feels natural)
-        await sleep(20);
-      }
-
-      console.log("[Streaming] Complete - total length:", assistantContent.length);
     } catch (error) {
       console.error("[Streaming] Error:", error);
+    } finally {
+      streamFinished = true;
+      // If nothing left to render, finish immediately
+      if (queuedText.length === 0) {
+        finishDrain(intervalId);
+      }
     }
+
+    // Keep loading state until our smooth type-out completes
+    await drainDone;
+    console.log("[Streaming] Complete - total length:", assistantContent.length);
   };
 
   const sendMessage = async () => {
