@@ -9,6 +9,43 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[EVALUATE-PM-ANSWER] ${step}`, details ? JSON.stringify(details) : "");
 };
 
+// Retry with exponential backoff for resilience
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  maxRetries = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      
+      // Don't retry on client errors (except rate limit)
+      if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+        return response;
+      }
+      
+      // Retry on server errors or rate limits with backoff
+      if (response.status === 429 || response.status >= 500) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 8000) + Math.random() * 1000;
+        logStep(`Retry attempt ${attempt + 1}`, { status: response.status, delayMs: delay });
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const delay = Math.min(1000 * Math.pow(2, attempt), 8000) + Math.random() * 1000;
+      logStep(`Network error, retry ${attempt + 1}`, { error: lastError.message, delayMs: delay });
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError || new Error("Max retries exceeded");
+}
+
 interface EvaluationRequest {
   questionId: string;
   questionText: string;
@@ -18,6 +55,10 @@ interface EvaluationRequest {
   targetCompany: string;
 }
 
+// Cache for repeated evaluations (simple in-memory, resets on cold start)
+const responseCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -25,11 +66,33 @@ serve(async (req) => {
 
   try {
     const { questionId, questionText, category, answerText, targetLevel, targetCompany }: EvaluationRequest = await req.json();
-    logStep("Evaluating answer", { category, targetLevel, answerLength: answerText.length });
+    
+    // Input validation
+    if (!answerText || answerText.length < 10) {
+      return new Response(JSON.stringify({ error: "Answer too short" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Truncate very long answers to prevent token overflow
+    const truncatedAnswer = answerText.slice(0, 8000);
+    
+    logStep("Evaluating answer", { category, targetLevel, answerLength: truncatedAnswer.length });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Check cache for identical evaluations
+    const cacheKey = `${questionId}-${truncatedAnswer.slice(0, 100)}-${targetLevel}`;
+    const cached = responseCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      logStep("Cache hit", { cacheKey: cacheKey.slice(0, 50) });
+      return new Response(JSON.stringify(cached.data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const systemPrompt = `You are a senior PM interviewer and hiring committee member at ${targetCompany}. 
@@ -78,11 +141,11 @@ Return a JSON object ONLY with this exact structure:
     const userPrompt = `Question (${category}): ${questionText}
 
 Candidate's Answer:
-${answerText}
+${truncatedAnswer}
 
 Evaluate this answer for a ${targetLevel} PM candidate at ${targetCompany}. Be rigorous and specific. Return ONLY valid JSON.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetchWithRetry("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -100,9 +163,9 @@ Evaluate this answer for a ${targetLevel} PM candidate at ${targetCompany}. Be r
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }), {
           status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "30" },
         });
       }
       throw new Error(`AI API error: ${response.status}`);
@@ -142,6 +205,19 @@ Evaluate this answer for a ${targetLevel} PM candidate at ${targetCompany}. Be r
         rewrittenAnswer: "A stronger answer would start with the problem, include metrics, and clarify personal ownership.",
         coachNextSteps: ["Practice quantifying impact", "Use the STAR framework"]
       };
+    }
+
+    // Cache successful evaluation
+    responseCache.set(cacheKey, { data: evaluation, timestamp: Date.now() });
+    
+    // Clean old cache entries periodically (1% chance per request)
+    if (Math.random() < 0.01) {
+      const now = Date.now();
+      for (const [key, value] of responseCache.entries()) {
+        if (now - value.timestamp > CACHE_TTL_MS) {
+          responseCache.delete(key);
+        }
+      }
     }
 
     logStep("Evaluation complete", { categoryScore: evaluation.categoryScore, level: evaluation.levelCalibration });

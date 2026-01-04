@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,12 +10,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Send, Bot, User, Loader2, CheckCircle, XCircle, 
   AlertTriangle, RotateCcw, Sparkles, Clock, Target, Brain,
-  TrendingUp, Users, BarChart3, Crown, Zap, ChevronRight, Mic, Keyboard
+  TrendingUp, Users, BarChart3, Crown, Zap, ChevronRight, Mic, Keyboard, WifiOff
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { InterviewUserProfile } from "@/pages/PMInterview";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { useConnectionStatus } from "@/hooks/useConnectionStatus";
+import { withRetry } from "@/hooks/useRetry";
+import { useDebouncedCallback } from "@/hooks/useDebounce";
 
 interface LiveInterviewProps {
   sessionId: string;
@@ -104,8 +107,20 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
   });
   const [notes, setNotes] = useState("");
   const [inputMode, setInputMode] = useState<"text" | "voice">("text");
+  const [retryCount, setRetryCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { isOnline, isSlowConnection } = useConnectionStatus();
+
+  // Debounced notes save to prevent excessive DB writes
+  const debouncedSaveNotes = useDebouncedCallback((noteText: string) => {
+    // Save notes to session in background (non-blocking)
+    supabase
+      .from("interview_sessions")
+      .update({ notes: noteText })
+      .eq("id", sessionId)
+      .then(() => console.log("Notes saved"));
+  }, 2000);
 
   // Load questions and start interview
   useEffect(() => {
@@ -118,6 +133,12 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Save notes with debounce
+  const handleNotesChange = (value: string) => {
+    setNotes(value);
+    debouncedSaveNotes(value);
+  };
 
   const loadQuestions = async () => {
     try {
@@ -171,7 +192,8 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
   };
 
   const analyzeAnswer = async (answerText: string): Promise<Evaluation> => {
-    try {
+    // Use retry wrapper for resilience
+    return withRetry(async () => {
       const { data, error } = await supabase.functions.invoke("evaluate-pm-answer", {
         body: {
           questionId: currentQuestion?.id,
@@ -183,11 +205,22 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle rate limiting gracefully
+        if (error.message?.includes("429") || error.message?.includes("rate limit")) {
+          toast.warning("High traffic - please wait a moment...");
+          throw error; // Will trigger retry
+        }
+        throw error;
+      }
+      
+      setRetryCount(0);
       return data;
-    } catch (e) {
-      console.error("Evaluation error:", e);
-      // Return mock evaluation on error
+    }, 3, 2000).catch((e) => {
+      console.error("Evaluation error after retries:", e);
+      setRetryCount(prev => prev + 1);
+      
+      // Return fallback evaluation after all retries fail
       return {
         scores: {
           problem_framing: 3,
@@ -198,19 +231,25 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
           ownership_impact: 3,
         },
         categoryScore: 60,
-        levelCalibration: "at",
+        levelCalibration: "at" as const,
         strengths: ["Clear structure", "Good examples"],
         gaps: ["Needs more metrics", "Ownership unclear"],
-        hireSignals: [{ type: "neutral", label: "Adequate depth" }],
+        hireSignals: [{ type: "neutral" as const, label: "Adequate depth" }],
         followupQuestions: ["Can you quantify the impact?"],
         rewrittenAnswer: "A stronger answer would...",
         coachNextSteps: ["Add specific metrics", "Clarify your role"]
       };
-    }
+    });
   };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading || !currentQuestion) return;
+    
+    // Warn user if offline
+    if (!isOnline) {
+      toast.error("You're offline. Please check your connection.");
+      return;
+    }
 
     const userMessage = input.trim();
     setInput("");
@@ -592,11 +631,21 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
           <h4 className="text-sm font-medium mb-2">Interview Notes</h4>
           <Textarea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(e) => handleNotesChange(e.target.value)}
             placeholder="Jot down key points..."
             className="h-32 text-sm resize-none"
           />
         </div>
+
+        {/* Connection Status */}
+        {(!isOnline || isSlowConnection) && (
+          <div className="p-3 bg-amber-500/10 border-t border-amber-500/20">
+            <div className="flex items-center gap-2 text-xs text-amber-600">
+              <WifiOff className="h-3 w-3" />
+              {!isOnline ? "Offline - answers will fail" : "Slow connection"}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Evaluation Sheet (Mobile) */}
