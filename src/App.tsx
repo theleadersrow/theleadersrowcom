@@ -42,6 +42,7 @@ import Community from "./pages/Community";
 import AMAEvents from "./pages/AMAEvents";
 import JoinCommunity from "./pages/JoinCommunity";
 import Coaching from "./pages/Coaching";
+import PMInterview from "./pages/PMInterview";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ const App = () => (
             <Route path="/join-community" element={<JoinCommunity />} />
             <Route path="/coaching" element={<Coaching />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />
+            <Route path="/pm-interview" element={<PMInterview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

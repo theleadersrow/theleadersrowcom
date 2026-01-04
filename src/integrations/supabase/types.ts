@@ -682,6 +682,384 @@ export type Database = {
           },
         ]
       }
+      interview_answers: {
+        Row: {
+          answer_text: string
+          audio_url: string | null
+          created_at: string
+          id: string
+          is_retry: boolean | null
+          original_answer_id: string | null
+          question_id: string
+          question_index: number
+          session_id: string
+          timestamp_end: string | null
+          timestamp_start: string
+          transcript: string | null
+        }
+        Insert: {
+          answer_text: string
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          is_retry?: boolean | null
+          original_answer_id?: string | null
+          question_id: string
+          question_index?: number
+          session_id: string
+          timestamp_end?: string | null
+          timestamp_start?: string
+          transcript?: string | null
+        }
+        Update: {
+          answer_text?: string
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          is_retry?: boolean | null
+          original_answer_id?: string | null
+          question_id?: string
+          question_index?: number
+          session_id?: string
+          timestamp_end?: string | null
+          timestamp_start?: string
+          transcript?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_answers_original_answer_id_fkey"
+            columns: ["original_answer_id"]
+            isOneToOne: false
+            referencedRelation: "interview_answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "interview_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_evaluations: {
+        Row: {
+          answer_id: string
+          category_score_0_100: number | null
+          coach_next_steps: string[] | null
+          communication_clarity_1_5: number | null
+          created_at: string
+          decision_quality_1_5: number | null
+          execution_rigor_1_5: number | null
+          feedback_gaps: string[] | null
+          feedback_strengths: string[] | null
+          followup_questions: string[] | null
+          hire_signals: Json | null
+          id: string
+          interviewer_notes: string | null
+          level_calibration: string | null
+          live_checklist: Json | null
+          ownership_impact_1_5: number | null
+          problem_framing_1_5: number | null
+          question_id: string
+          rewritten_sample_answer: string | null
+          session_id: string
+          strategic_thinking_1_5: number | null
+        }
+        Insert: {
+          answer_id: string
+          category_score_0_100?: number | null
+          coach_next_steps?: string[] | null
+          communication_clarity_1_5?: number | null
+          created_at?: string
+          decision_quality_1_5?: number | null
+          execution_rigor_1_5?: number | null
+          feedback_gaps?: string[] | null
+          feedback_strengths?: string[] | null
+          followup_questions?: string[] | null
+          hire_signals?: Json | null
+          id?: string
+          interviewer_notes?: string | null
+          level_calibration?: string | null
+          live_checklist?: Json | null
+          ownership_impact_1_5?: number | null
+          problem_framing_1_5?: number | null
+          question_id: string
+          rewritten_sample_answer?: string | null
+          session_id: string
+          strategic_thinking_1_5?: number | null
+        }
+        Update: {
+          answer_id?: string
+          category_score_0_100?: number | null
+          coach_next_steps?: string[] | null
+          communication_clarity_1_5?: number | null
+          created_at?: string
+          decision_quality_1_5?: number | null
+          execution_rigor_1_5?: number | null
+          feedback_gaps?: string[] | null
+          feedback_strengths?: string[] | null
+          followup_questions?: string[] | null
+          hire_signals?: Json | null
+          id?: string
+          interviewer_notes?: string | null
+          level_calibration?: string | null
+          live_checklist?: Json | null
+          ownership_impact_1_5?: number | null
+          problem_framing_1_5?: number | null
+          question_id?: string
+          rewritten_sample_answer?: string | null
+          session_id?: string
+          strategic_thinking_1_5?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_evaluations_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "interview_answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_evaluations_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "interview_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_evaluations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_questions: {
+        Row: {
+          category: string
+          company_context: string | null
+          created_at: string
+          difficulty: number
+          followup_prompts: string[] | null
+          id: string
+          is_active: boolean | null
+          prompt_text: string
+          rubric_weights: Json
+          target_level: string
+        }
+        Insert: {
+          category: string
+          company_context?: string | null
+          created_at?: string
+          difficulty?: number
+          followup_prompts?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          prompt_text: string
+          rubric_weights?: Json
+          target_level?: string
+        }
+        Update: {
+          category?: string
+          company_context?: string | null
+          created_at?: string
+          difficulty?: number
+          followup_prompts?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          prompt_text?: string
+          rubric_weights?: Json
+          target_level?: string
+        }
+        Relationships: []
+      }
+      interview_sessions: {
+        Row: {
+          committee_notes: string | null
+          committee_recommendation: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          interview_type: string
+          notes: string | null
+          overall_score_0_100: number | null
+          readiness_verdict: string | null
+          red_flags_count: number | null
+          selected_categories: string[] | null
+          session_token: string | null
+          status: string
+          strong_hire_signals_count: number | null
+          target_company: string | null
+          target_level: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          committee_notes?: string | null
+          committee_recommendation?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          interview_type?: string
+          notes?: string | null
+          overall_score_0_100?: number | null
+          readiness_verdict?: string | null
+          red_flags_count?: number | null
+          selected_categories?: string[] | null
+          session_token?: string | null
+          status?: string
+          strong_hire_signals_count?: number | null
+          target_company?: string | null
+          target_level?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          committee_notes?: string | null
+          committee_recommendation?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          interview_type?: string
+          notes?: string | null
+          overall_score_0_100?: number | null
+          readiness_verdict?: string | null
+          red_flags_count?: number | null
+          selected_categories?: string[] | null
+          session_token?: string | null
+          status?: string
+          strong_hire_signals_count?: number | null
+          target_company?: string | null
+          target_level?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "interview_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_users: {
+        Row: {
+          created_at: string
+          domain_focus: string | null
+          email: string | null
+          id: string
+          name: string | null
+          target_company_type: string
+          target_role_level: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain_focus?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          target_company_type?: string
+          target_role_level?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain_focus?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          target_company_type?: string
+          target_role_level?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      narrative_insights: {
+        Row: {
+          clarity_gaps: string[] | null
+          concision_clarity_score: number | null
+          coverage_score: number | null
+          created_at: string
+          decision_tradeoffs_score: number | null
+          id: string
+          metric_gaps: string[] | null
+          missing_themes: string[] | null
+          narrative_score_0_100: number | null
+          next_drill_plan: Json | null
+          ownership_clarity_score: number | null
+          ownership_gaps: string[] | null
+          proof_gaps: Json | null
+          proof_metrics_score: number | null
+          repeated_themes: string[] | null
+          session_id: string
+          story_recommendations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          clarity_gaps?: string[] | null
+          concision_clarity_score?: number | null
+          coverage_score?: number | null
+          created_at?: string
+          decision_tradeoffs_score?: number | null
+          id?: string
+          metric_gaps?: string[] | null
+          missing_themes?: string[] | null
+          narrative_score_0_100?: number | null
+          next_drill_plan?: Json | null
+          ownership_clarity_score?: number | null
+          ownership_gaps?: string[] | null
+          proof_gaps?: Json | null
+          proof_metrics_score?: number | null
+          repeated_themes?: string[] | null
+          session_id: string
+          story_recommendations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          clarity_gaps?: string[] | null
+          concision_clarity_score?: number | null
+          coverage_score?: number | null
+          created_at?: string
+          decision_tradeoffs_score?: number | null
+          id?: string
+          metric_gaps?: string[] | null
+          missing_themes?: string[] | null
+          narrative_score_0_100?: number | null
+          next_drill_plan?: Json | null
+          ownership_clarity_score?: number | null
+          ownership_gaps?: string[] | null
+          proof_gaps?: Json | null
+          proof_metrics_score?: number | null
+          repeated_themes?: string[] | null
+          session_id?: string
+          story_recommendations?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "narrative_insights_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -803,6 +1181,158 @@ export type Database = {
           window_start?: string | null
         }
         Relationships: []
+      }
+      session_category_scores: {
+        Row: {
+          above_count: number | null
+          at_count: number | null
+          below_count: number | null
+          category: string
+          created_at: string
+          id: string
+          questions_count: number | null
+          score_0_100: number | null
+          session_id: string
+          strongest_dimension: string | null
+          weakest_dimension: string | null
+        }
+        Insert: {
+          above_count?: number | null
+          at_count?: number | null
+          below_count?: number | null
+          category: string
+          created_at?: string
+          id?: string
+          questions_count?: number | null
+          score_0_100?: number | null
+          session_id: string
+          strongest_dimension?: string | null
+          weakest_dimension?: string | null
+        }
+        Update: {
+          above_count?: number | null
+          at_count?: number | null
+          below_count?: number | null
+          category?: string
+          created_at?: string
+          id?: string
+          questions_count?: number | null
+          score_0_100?: number | null
+          session_id?: string
+          strongest_dimension?: string | null
+          weakest_dimension?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_category_scores_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      star_bank: {
+        Row: {
+          action: string
+          best_categories: string[] | null
+          competency_tags: string[] | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          last_used_at: string | null
+          level_signal: string | null
+          metrics: Json | null
+          missing_fields: string[] | null
+          result: string
+          risk_areas: string[] | null
+          scope: Json | null
+          session_token: string | null
+          situation: string
+          source_answer_id: string | null
+          stakeholders: string[] | null
+          task: string
+          theme_tags: string[] | null
+          title: string
+          updated_at: string
+          usage_count: number | null
+          user_id: string | null
+          version_2min: string | null
+          version_30sec: string | null
+          version_deep_dive: string | null
+        }
+        Insert: {
+          action: string
+          best_categories?: string[] | null
+          competency_tags?: string[] | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          level_signal?: string | null
+          metrics?: Json | null
+          missing_fields?: string[] | null
+          result: string
+          risk_areas?: string[] | null
+          scope?: Json | null
+          session_token?: string | null
+          situation: string
+          source_answer_id?: string | null
+          stakeholders?: string[] | null
+          task: string
+          theme_tags?: string[] | null
+          title: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string | null
+          version_2min?: string | null
+          version_30sec?: string | null
+          version_deep_dive?: string | null
+        }
+        Update: {
+          action?: string
+          best_categories?: string[] | null
+          competency_tags?: string[] | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          level_signal?: string | null
+          metrics?: Json | null
+          missing_fields?: string[] | null
+          result?: string
+          risk_areas?: string[] | null
+          scope?: Json | null
+          session_token?: string | null
+          situation?: string
+          source_answer_id?: string | null
+          stakeholders?: string[] | null
+          task?: string
+          theme_tags?: string[] | null
+          title?: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string | null
+          version_2min?: string | null
+          version_30sec?: string | null
+          version_deep_dive?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "star_bank_source_answer_id_fkey"
+            columns: ["source_answer_id"]
+            isOneToOne: false
+            referencedRelation: "interview_answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "star_bank_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "interview_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       testimonials: {
         Row: {
