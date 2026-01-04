@@ -10,31 +10,64 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[COMPUTE-SESSION-SCORES] ${step}`, details ? JSON.stringify(details) : "");
 };
 
+// Processing lock to prevent duplicate computations
+const processingLocks = new Set<string>();
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let sessionId: string | null = null;
+
   try {
-    const { sessionId } = await req.json();
+    const body = await req.json();
+    sessionId = body.sessionId;
+    
+    if (!sessionId) {
+      return new Response(JSON.stringify({ error: "sessionId required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Prevent duplicate processing
+    if (processingLocks.has(sessionId)) {
+      logStep("Session already being processed", { sessionId });
+      return new Response(JSON.stringify({ success: true, message: "Already processing" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    processingLocks.add(sessionId);
     logStep("Computing scores for session", { sessionId });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all evaluations for this session
+    // Get all evaluations for this session with a single optimized query
     const { data: evaluations, error: evalError } = await supabase
       .from("interview_evaluations")
       .select(`
-        *,
-        interview_questions (category)
+        id,
+        category_score_0_100,
+        level_calibration,
+        hire_signals,
+        problem_framing_1_5,
+        strategic_thinking_1_5,
+        execution_rigor_1_5,
+        decision_quality_1_5,
+        communication_clarity_1_5,
+        ownership_impact_1_5,
+        interview_questions!inner (category)
       `)
       .eq("session_id", sessionId);
 
     if (evalError) throw evalError;
     if (!evaluations || evaluations.length === 0) {
       logStep("No evaluations found");
+      processingLocks.delete(sessionId);
       return new Response(JSON.stringify({ success: false, message: "No evaluations found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -42,7 +75,7 @@ serve(async (req) => {
 
     logStep("Found evaluations", { count: evaluations.length });
 
-    // Calculate category scores
+    // Calculate category scores in memory (batch operations)
     const categoryMap: Record<string, {
       scores: number[];
       dimensions: Record<string, number[]>;
@@ -52,7 +85,7 @@ serve(async (req) => {
     }> = {};
 
     evaluations.forEach(e => {
-      const category = e.interview_questions?.category || "unknown";
+      const category = (e.interview_questions as any)?.category || "unknown";
       if (!categoryMap[category]) {
         categoryMap[category] = {
           scores: [],
@@ -84,31 +117,37 @@ serve(async (req) => {
       else if (e.level_calibration === "above") categoryMap[category].above++;
     });
 
-    // Insert/update category scores
-    for (const [category, data] of Object.entries(categoryMap)) {
+    // Batch upsert all category scores at once
+    const categoryUpserts = Object.entries(categoryMap).map(([category, data]) => {
       const avgScore = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length);
       
-      // Find strongest and weakest dimensions
       const dimAvgs: [string, number][] = Object.entries(data.dimensions)
         .map(([dim, vals]) => [dim, vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0]);
       
-      dimAvgs.sort((a, b) => b[1] - a[1]);
+      dimAvgs.sort((a, b) => (b[1] as number) - (a[1] as number));
       const strongest = dimAvgs[0]?.[0] || "";
       const weakest = dimAvgs[dimAvgs.length - 1]?.[0] || "";
 
-      await supabase
-        .from("session_category_scores")
-        .upsert({
-          session_id: sessionId,
-          category,
-          score_0_100: avgScore,
-          strongest_dimension: strongest,
-          weakest_dimension: weakest,
-          questions_count: data.scores.length,
-          below_count: data.below,
-          at_count: data.at,
-          above_count: data.above
-        }, { onConflict: "session_id,category" });
+      return {
+        session_id: sessionId,
+        category,
+        score_0_100: avgScore,
+        strongest_dimension: strongest,
+        weakest_dimension: weakest,
+        questions_count: data.scores.length,
+        below_count: data.below,
+        at_count: data.at,
+        above_count: data.above
+      };
+    });
+
+    // Single batch upsert instead of multiple individual ones
+    const { error: upsertError } = await supabase
+      .from("session_category_scores")
+      .upsert(categoryUpserts, { onConflict: "session_id,category" });
+    
+    if (upsertError) {
+      logStep("Category upsert error", { error: upsertError.message });
     }
 
     // Calculate overall session score
@@ -154,6 +193,7 @@ serve(async (req) => {
       })
       .eq("id", sessionId);
 
+    processingLocks.delete(sessionId);
     logStep("Session scores computed", { overallScore, readinessVerdict, committeeRec });
 
     return new Response(JSON.stringify({ 
@@ -165,6 +205,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    if (sessionId) processingLocks.delete(sessionId);
     logStep("Error", { error: error instanceof Error ? error.message : "Unknown error" });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
