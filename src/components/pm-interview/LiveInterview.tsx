@@ -556,6 +556,8 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
                 </div>
               ) : (
                 <VoiceRecorder 
+                  transcript={input}
+                  onTranscriptChange={setInput}
                   onTranscript={(text) => {
                     if (text) {
                       setInput(text);

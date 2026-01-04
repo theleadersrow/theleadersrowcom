@@ -1,18 +1,29 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2, Square } from "lucide-react";
+import { Mic, Loader2, Square } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
   isProcessing: boolean;
   disabled?: boolean;
+  transcript?: string;
+  onTranscriptChange?: (text: string) => void;
 }
 
-export function VoiceRecorder({ onTranscript, isProcessing, disabled }: VoiceRecorderProps) {
+export function VoiceRecorder({ 
+  onTranscript, 
+  isProcessing, 
+  disabled,
+  transcript = "",
+  onTranscriptChange 
+}: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [liveTranscript, setLiveTranscript] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -20,6 +31,7 @@ export function VoiceRecorder({ onTranscript, isProcessing, disabled }: VoiceRec
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const transcriptRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -150,74 +162,93 @@ export function VoiceRecorder({ onTranscript, isProcessing, disabled }: VoiceRec
     );
   }
 
+  // Keep transcript ref scrolled to bottom
+  useEffect(() => {
+    if (transcriptRef.current) {
+      transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
+    }
+  }, [liveTranscript, transcript]);
+
+  const displayTranscript = transcript || liveTranscript;
+
   if (isRecording) {
     return (
-      <div className="flex flex-col items-center gap-4 py-4">
-        {/* Voice visualization - ChatGPT style pulsing rings */}
-        <div className="relative">
-          {/* Outer pulsing rings */}
-          <div 
-            className="absolute inset-0 rounded-full bg-primary/20 animate-ping"
-            style={{ 
-              transform: `scale(${1 + audioLevel * 0.5})`,
-              opacity: 0.3 + audioLevel * 0.4
-            }}
-          />
-          <div 
-            className="absolute -inset-2 rounded-full bg-primary/10"
-            style={{ 
-              transform: `scale(${1 + audioLevel * 0.8})`,
-              transition: 'transform 0.1s ease-out'
-            }}
-          />
-          <div 
-            className="absolute -inset-4 rounded-full bg-primary/5"
-            style={{ 
-              transform: `scale(${1 + audioLevel * 1.2})`,
-              transition: 'transform 0.15s ease-out'
-            }}
-          />
-          
-          {/* Main button */}
+      <div className="flex flex-col gap-4 py-2">
+        {/* Transcript display area */}
+        {displayTranscript && (
+          <div className="relative">
+            <Textarea
+              ref={transcriptRef}
+              value={displayTranscript}
+              onChange={(e) => {
+                setLiveTranscript(e.target.value);
+                onTranscriptChange?.(e.target.value);
+              }}
+              placeholder="Your speech will appear here..."
+              className="min-h-[100px] max-h-[200px] resize-none overflow-y-auto"
+            />
+            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+              {displayTranscript.split(/\s+/).filter(Boolean).length} words
+            </div>
+          </div>
+        )}
+
+        {/* Voice visualization row */}
+        <div className="flex items-center justify-center gap-4">
+          {/* Audio level bars */}
+          <div className="flex items-center gap-1 h-8">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const barLevel = Math.sin((i / 4) * Math.PI) * audioLevel;
+              return (
+                <div
+                  key={i}
+                  className="w-1 bg-primary rounded-full transition-all duration-75"
+                  style={{
+                    height: `${8 + barLevel * 24}px`,
+                    opacity: 0.4 + barLevel * 0.6
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          {/* Main stop button */}
           <Button
             onClick={stopRecording}
             variant="destructive"
             size="lg"
             className={cn(
-              "relative z-10 w-20 h-20 rounded-full",
+              "relative w-14 h-14 rounded-full",
               "transition-all duration-200"
             )}
-            style={{
-              boxShadow: `0 0 ${20 + audioLevel * 40}px ${audioLevel * 20}px rgba(var(--primary), ${0.2 + audioLevel * 0.3})`
-            }}
           >
-            <Square className="h-6 w-6" />
+            <Square className="h-5 w-5" />
           </Button>
+
+          {/* Audio level bars (mirrored) */}
+          <div className="flex items-center gap-1 h-8">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const barLevel = Math.sin(((4 - i) / 4) * Math.PI) * audioLevel;
+              return (
+                <div
+                  key={i}
+                  className="w-1 bg-primary rounded-full transition-all duration-75"
+                  style={{
+                    height: `${8 + barLevel * 24}px`,
+                    opacity: 0.4 + barLevel * 0.6
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        {/* Audio level bars */}
-        <div className="flex items-center gap-1 h-8">
-          {Array.from({ length: 7 }).map((_, i) => {
-            const barLevel = Math.sin((i / 6) * Math.PI) * audioLevel;
-            return (
-              <div
-                key={i}
-                className="w-1 bg-primary rounded-full transition-all duration-75"
-                style={{
-                  height: `${8 + barLevel * 24}px`,
-                  opacity: 0.4 + barLevel * 0.6
-                }}
-              />
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center justify-center gap-2 text-sm">
           <span className="text-destructive font-medium animate-pulse">● Recording</span>
           <span className="text-muted-foreground">{formatTime(recordingTime)}</span>
         </div>
 
-        <p className="text-xs text-muted-foreground">Tap to stop and submit</p>
+        <p className="text-xs text-muted-foreground text-center">Tap to stop and submit</p>
       </div>
     );
   }
