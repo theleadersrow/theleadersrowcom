@@ -6,14 +6,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Send, Bot, User, Loader2, CheckCircle, XCircle, 
   AlertTriangle, RotateCcw, Sparkles, Clock, Target, Brain,
-  TrendingUp, Users, BarChart3, Crown, Zap, ChevronRight
+  TrendingUp, Users, BarChart3, Crown, Zap, ChevronRight, Mic, Keyboard
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { InterviewUserProfile } from "@/pages/PMInterview";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 interface LiveInterviewProps {
   sessionId: string;
@@ -101,6 +103,7 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
     ownership_explicit: false,
   });
   const [notes, setNotes] = useState("");
+  const [inputMode, setInputMode] = useState<"text" | "voice">("text");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -235,28 +238,30 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
 
       // Save evaluation to database
       if (answerData) {
+        const evaluationInsert = {
+          session_id: sessionId,
+          question_id: currentQuestion.id,
+          answer_id: answerData.id,
+          problem_framing_1_5: evaluation.scores.problem_framing,
+          strategic_thinking_1_5: evaluation.scores.strategic_thinking,
+          execution_rigor_1_5: evaluation.scores.execution_rigor,
+          decision_quality_1_5: evaluation.scores.decision_quality,
+          communication_clarity_1_5: evaluation.scores.communication_clarity,
+          ownership_impact_1_5: evaluation.scores.ownership_impact,
+          category_score_0_100: evaluation.categoryScore,
+          level_calibration: evaluation.levelCalibration,
+          hire_signals: evaluation.hireSignals as any,
+          feedback_strengths: evaluation.strengths,
+          feedback_gaps: evaluation.gaps,
+          followup_questions: evaluation.followupQuestions,
+          rewritten_sample_answer: evaluation.rewrittenAnswer,
+          coach_next_steps: evaluation.coachNextSteps,
+          live_checklist: liveChecklist as any
+        };
+        
         await supabase
           .from("interview_evaluations")
-          .insert({
-            session_id: sessionId,
-            question_id: currentQuestion.id,
-            answer_id: answerData.id,
-            problem_framing_1_5: evaluation.scores.problem_framing,
-            strategic_thinking_1_5: evaluation.scores.strategic_thinking,
-            execution_rigor_1_5: evaluation.scores.execution_rigor,
-            decision_quality_1_5: evaluation.scores.decision_quality,
-            communication_clarity_1_5: evaluation.scores.communication_clarity,
-            ownership_impact_1_5: evaluation.scores.ownership_impact,
-            category_score_0_100: evaluation.categoryScore,
-            level_calibration: evaluation.levelCalibration,
-            hire_signals: evaluation.hireSignals,
-            feedback_strengths: evaluation.strengths,
-            feedback_gaps: evaluation.gaps,
-            followup_questions: evaluation.followupQuestions,
-            rewritten_sample_answer: evaluation.rewrittenAnswer,
-            coach_next_steps: evaluation.coachNextSteps,
-            live_checklist: liveChecklist
-          });
+          .insert(evaluationInsert);
       }
 
       // Update live checklist based on answer content
@@ -473,25 +478,57 @@ export function LiveInterview({ sessionId, sessionToken, userProfile, onEndSessi
         </ScrollArea>
 
         {/* Input */}
-        <div className="border-t p-4 bg-background">
-          <div className="max-w-3xl mx-auto flex gap-3">
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder="Type your answer... (Shift+Enter for new line)"
-              className="min-h-[80px] resize-none"
-              disabled={isLoading}
-            />
-            <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-auto">
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-            </Button>
+        <div className="border-t bg-background">
+          {/* Input Mode Tabs */}
+          <div className="max-w-3xl mx-auto px-4 pt-3">
+            <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "text" | "voice")}>
+              <TabsList className="grid w-48 grid-cols-2">
+                <TabsTrigger value="text" className="gap-2">
+                  <Keyboard className="h-4 w-4" /> Type
+                </TabsTrigger>
+                <TabsTrigger value="voice" className="gap-2">
+                  <Mic className="h-4 w-4" /> Voice
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="p-4 pt-3">
+            <div className="max-w-3xl mx-auto">
+              {inputMode === "text" ? (
+                <div className="flex gap-3">
+                  <Textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder="Type your answer... (Shift+Enter for new line)"
+                    className="min-h-[80px] resize-none"
+                    disabled={isLoading}
+                  />
+                  <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-auto">
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                  </Button>
+                </div>
+              ) : (
+                <VoiceRecorder 
+                  onTranscript={(text) => {
+                    if (text) {
+                      setInput(text);
+                      // Auto-send after transcription
+                      setTimeout(() => handleSend(), 100);
+                    }
+                  }}
+                  isProcessing={isLoading}
+                  disabled={isLoading}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
