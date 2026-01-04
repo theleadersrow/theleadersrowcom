@@ -495,6 +495,133 @@ export type Database = {
         }
         Relationships: []
       }
+      career_leverage_analysis: {
+        Row: {
+          best_fit_company_types: string[] | null
+          best_fit_roles: string[] | null
+          created_at: string
+          current_level_assessment: string | null
+          id: string
+          level_gap_analysis: string | null
+          leveling_strategy: string | null
+          market_positioning: string | null
+          recommended_level: string | null
+          session_id: string | null
+          undervaluation_signals: string[] | null
+        }
+        Insert: {
+          best_fit_company_types?: string[] | null
+          best_fit_roles?: string[] | null
+          created_at?: string
+          current_level_assessment?: string | null
+          id?: string
+          level_gap_analysis?: string | null
+          leveling_strategy?: string | null
+          market_positioning?: string | null
+          recommended_level?: string | null
+          session_id?: string | null
+          undervaluation_signals?: string[] | null
+        }
+        Update: {
+          best_fit_company_types?: string[] | null
+          best_fit_roles?: string[] | null
+          created_at?: string
+          current_level_assessment?: string | null
+          id?: string
+          level_gap_analysis?: string | null
+          leveling_strategy?: string | null
+          market_positioning?: string | null
+          recommended_level?: string | null
+          session_id?: string | null
+          undervaluation_signals?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_leverage_analysis_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      committee_summaries: {
+        Row: {
+          consensus_level: string | null
+          created_at: string
+          final_verdict: string
+          id: string
+          session_id: string | null
+          tipping_factors: string[] | null
+          verdict_explanation: string | null
+          what_would_change: string[] | null
+        }
+        Insert: {
+          consensus_level?: string | null
+          created_at?: string
+          final_verdict: string
+          id?: string
+          session_id?: string | null
+          tipping_factors?: string[] | null
+          verdict_explanation?: string | null
+          what_would_change?: string[] | null
+        }
+        Update: {
+          consensus_level?: string | null
+          created_at?: string
+          final_verdict?: string
+          id?: string
+          session_id?: string | null
+          tipping_factors?: string[] | null
+          verdict_explanation?: string | null
+          what_would_change?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "committee_summaries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_profiles: {
+        Row: {
+          bar_raiser_expectations: string | null
+          category_weights: Json
+          common_red_flags: string[] | null
+          company_name: string
+          core_values: string[] | null
+          created_at: string
+          display_name: string
+          id: string
+          preferred_answer_style: string | null
+        }
+        Insert: {
+          bar_raiser_expectations?: string | null
+          category_weights?: Json
+          common_red_flags?: string[] | null
+          company_name: string
+          core_values?: string[] | null
+          created_at?: string
+          display_name: string
+          id?: string
+          preferred_answer_style?: string | null
+        }
+        Update: {
+          bar_raiser_expectations?: string | null
+          category_weights?: Json
+          common_red_flags?: string[] | null
+          company_name?: string
+          core_values?: string[] | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          preferred_answer_style?: string | null
+        }
+        Relationships: []
+      }
       content: {
         Row: {
           created_at: string
@@ -682,6 +809,53 @@ export type Database = {
           },
         ]
       }
+      hiring_committee_reviews: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          detailed_feedback: string | null
+          id: string
+          persona_name: string
+          persona_role: string
+          session_id: string | null
+          top_concerns: string[]
+          top_positives: string[]
+          verdict: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          detailed_feedback?: string | null
+          id?: string
+          persona_name: string
+          persona_role: string
+          session_id?: string | null
+          top_concerns?: string[]
+          top_positives?: string[]
+          verdict: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          detailed_feedback?: string | null
+          id?: string
+          persona_name?: string
+          persona_role?: string
+          session_id?: string | null
+          top_concerns?: string[]
+          top_positives?: string[]
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hiring_committee_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_answers: {
         Row: {
           answer_text: string
@@ -752,15 +926,20 @@ export type Database = {
       interview_evaluations: {
         Row: {
           answer_id: string
+          assertion_evidence_ratio: number | null
           category_score_0_100: number | null
           coach_next_steps: string[] | null
           communication_clarity_1_5: number | null
+          confidence_calibration: string | null
+          confidence_coaching: string[] | null
+          confidence_score: number | null
           created_at: string
           decision_quality_1_5: number | null
           execution_rigor_1_5: number | null
           feedback_gaps: string[] | null
           feedback_strengths: string[] | null
           followup_questions: string[] | null
+          hedging_language_count: number | null
           hire_signals: Json | null
           id: string
           interviewer_notes: string | null
@@ -775,15 +954,20 @@ export type Database = {
         }
         Insert: {
           answer_id: string
+          assertion_evidence_ratio?: number | null
           category_score_0_100?: number | null
           coach_next_steps?: string[] | null
           communication_clarity_1_5?: number | null
+          confidence_calibration?: string | null
+          confidence_coaching?: string[] | null
+          confidence_score?: number | null
           created_at?: string
           decision_quality_1_5?: number | null
           execution_rigor_1_5?: number | null
           feedback_gaps?: string[] | null
           feedback_strengths?: string[] | null
           followup_questions?: string[] | null
+          hedging_language_count?: number | null
           hire_signals?: Json | null
           id?: string
           interviewer_notes?: string | null
@@ -798,15 +982,20 @@ export type Database = {
         }
         Update: {
           answer_id?: string
+          assertion_evidence_ratio?: number | null
           category_score_0_100?: number | null
           coach_next_steps?: string[] | null
           communication_clarity_1_5?: number | null
+          confidence_calibration?: string | null
+          confidence_coaching?: string[] | null
+          confidence_score?: number | null
           created_at?: string
           decision_quality_1_5?: number | null
           execution_rigor_1_5?: number | null
           feedback_gaps?: string[] | null
           feedback_strengths?: string[] | null
           followup_questions?: string[] | null
+          hedging_language_count?: number | null
           hire_signals?: Json | null
           id?: string
           interviewer_notes?: string | null
@@ -886,11 +1075,13 @@ export type Database = {
         Row: {
           committee_notes: string | null
           committee_recommendation: string | null
+          company_profile_id: string | null
           completed_at: string | null
           created_at: string
           id: string
           interview_type: string
           notes: string | null
+          objection_mode: boolean | null
           overall_score_0_100: number | null
           readiness_verdict: string | null
           red_flags_count: number | null
@@ -906,11 +1097,13 @@ export type Database = {
         Insert: {
           committee_notes?: string | null
           committee_recommendation?: string | null
+          company_profile_id?: string | null
           completed_at?: string | null
           created_at?: string
           id?: string
           interview_type?: string
           notes?: string | null
+          objection_mode?: boolean | null
           overall_score_0_100?: number | null
           readiness_verdict?: string | null
           red_flags_count?: number | null
@@ -926,11 +1119,13 @@ export type Database = {
         Update: {
           committee_notes?: string | null
           committee_recommendation?: string | null
+          company_profile_id?: string | null
           completed_at?: string | null
           created_at?: string
           id?: string
           interview_type?: string
           notes?: string | null
+          objection_mode?: boolean | null
           overall_score_0_100?: number | null
           readiness_verdict?: string | null
           red_flags_count?: number | null
@@ -944,6 +1139,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "interview_sessions_company_profile_id_fkey"
+            columns: ["company_profile_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "interview_sessions_user_id_fkey"
             columns: ["user_id"]
@@ -1055,6 +1257,53 @@ export type Database = {
             foreignKeyName: "narrative_insights_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_readiness: {
+        Row: {
+          compensation_leverage_signals: string[] | null
+          created_at: string
+          downlevel_probability: number | null
+          id: string
+          leveling_risks: string[] | null
+          negotiation_readiness: string | null
+          negotiation_recommendations: string[] | null
+          predicted_level: string | null
+          session_id: string | null
+          target_company_fit: Json | null
+        }
+        Insert: {
+          compensation_leverage_signals?: string[] | null
+          created_at?: string
+          downlevel_probability?: number | null
+          id?: string
+          leveling_risks?: string[] | null
+          negotiation_readiness?: string | null
+          negotiation_recommendations?: string[] | null
+          predicted_level?: string | null
+          session_id?: string | null
+          target_company_fit?: Json | null
+        }
+        Update: {
+          compensation_leverage_signals?: string[] | null
+          created_at?: string
+          downlevel_probability?: number | null
+          id?: string
+          leveling_risks?: string[] | null
+          negotiation_readiness?: string | null
+          negotiation_recommendations?: string[] | null
+          predicted_level?: string | null
+          session_id?: string | null
+          target_company_fit?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_readiness_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
             referencedRelation: "interview_sessions"
             referencedColumns: ["id"]
           },
@@ -1182,6 +1431,39 @@ export type Database = {
         }
         Relationships: []
       }
+      required_signals: {
+        Row: {
+          category: string
+          created_at: string
+          example_prompts: string[] | null
+          id: string
+          importance: string | null
+          signal_description: string | null
+          signal_name: string
+          target_level: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          example_prompts?: string[] | null
+          id?: string
+          importance?: string | null
+          signal_description?: string | null
+          signal_name: string
+          target_level: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          example_prompts?: string[] | null
+          id?: string
+          importance?: string | null
+          signal_description?: string | null
+          signal_name?: string
+          target_level?: string
+        }
+        Relationships: []
+      }
       session_category_scores: {
         Row: {
           above_count: number | null
@@ -1228,6 +1510,61 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signal_coverage: {
+        Row: {
+          coverage_strength: string | null
+          created_at: string
+          id: string
+          is_covered: boolean | null
+          notes: string | null
+          session_id: string | null
+          signal_id: string | null
+          source_answer_id: string | null
+        }
+        Insert: {
+          coverage_strength?: string | null
+          created_at?: string
+          id?: string
+          is_covered?: boolean | null
+          notes?: string | null
+          session_id?: string | null
+          signal_id?: string | null
+          source_answer_id?: string | null
+        }
+        Update: {
+          coverage_strength?: string | null
+          created_at?: string
+          id?: string
+          is_covered?: boolean | null
+          notes?: string | null
+          session_id?: string | null
+          signal_id?: string | null
+          source_answer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_coverage_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_coverage_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "required_signals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_coverage_source_answer_id_fkey"
+            columns: ["source_answer_id"]
+            isOneToOne: false
+            referencedRelation: "interview_answers"
             referencedColumns: ["id"]
           },
         ]
