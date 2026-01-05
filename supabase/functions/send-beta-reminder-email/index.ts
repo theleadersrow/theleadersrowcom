@@ -33,7 +33,7 @@ const getToolConfig = (toolType: string) => {
     case "interview_prep":
       return {
         name: "Interview Prep",
-        date: "Thursday, January 9, 2026",
+        date: "Friday, January 9, 2026",
         color: "#10b981",
         checklist: `
           <li>✅ Check your email for the Zoom link we sent earlier</li>
