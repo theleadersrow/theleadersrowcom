@@ -1,14 +1,15 @@
 import { CheckCircle2 } from "lucide-react";
 
 const offerings = [
-  "You gain clarity on your brand identity",
-  "You build tools to influence, inspire, and lead",
-  "You accelerate into high-visibility roles",
-  "You transform your mindset for long-term success",
-  "You sharpen skills weekly to elevate your leadership identity",
-  "You join a supportive community of ambitious professionals",
-  "You receive personalized coaching to unlock your next level",
-  "You become a confident, respected, high-impact leader",
+  "Clarity on where you stand and where you're going — including your level, positioning, and next career move",
+  "A clear, confident professional brand that reflects your impact and leadership potential",
+  "Practical tools to influence, inspire, and lead in high-stakes conversations",
+  "Accelerated path into higher-visibility, higher-impact roles",
+  "A mindset shift from \"performing well\" to operating at the next level",
+  "Weekly skill development that strengthens decision-making, judgment, and leadership presence",
+  "Personalized coaching that targets your specific gaps — not generic advice",
+  "Access to a focused community of ambitious, high-caliber professionals",
+  "The confidence to speak, act, and negotiate as a trusted, high-impact leader",
 ];
 
 const WhatWeDo = () => {
