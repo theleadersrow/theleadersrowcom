@@ -34,7 +34,7 @@ const faqs = [
   },
   {
     question: "When does the AMA happen?",
-    answer: "The AMA takes place once a month, on the third Wednesday, from 7-9pm CST. You'll receive the Zoom link via email 24 hours before the event."
+    answer: "The next AMA is January 21, 2026. Sessions take place on the 3rd Wednesday of every month, from 7-9pm CST. You'll receive the Zoom link via email 24 hours before the event."
   },
   {
     question: "What if I can't attend live?",
