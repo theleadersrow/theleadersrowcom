@@ -85,7 +85,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-            <p>© 2025 The Leader's Row. All rights reserved.</p>
+            <p>© 2026 The Leader's Row. All rights reserved.</p>
           </div>
         </body>
         </html>

@@ -21,13 +21,13 @@ const getToolConfig = (toolType: string) => {
     case "linkedin_signal":
       return {
         name: "LinkedIn Signal Score",
-        date: "Wednesday, January 7, 2025",
+        date: "Wednesday, January 7, 2026",
         color: "#0077b5",
       };
     case "interview_prep":
       return {
         name: "Interview Prep",
-        date: "Thursday, January 9, 2025",
+        date: "Thursday, January 9, 2026",
         color: "#10b981",
       };
     case "advisor":
@@ -39,7 +39,7 @@ const getToolConfig = (toolType: string) => {
     default: // resume_suite
       return {
         name: "Resume Intelligence Suite",
-        date: "Monday, January 6, 2025",
+        date: "Tuesday, January 6, 2026",
         color: "#4f46e5",
       };
   }
@@ -111,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-            <p>© 2025 The Leader's Row. All rights reserved.</p>
+            <p>© 2026 The Leader's Row. All rights reserved.</p>
           </div>
         </body>
         </html>

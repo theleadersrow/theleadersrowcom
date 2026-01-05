@@ -25,7 +25,7 @@ const getToolConfig = (toolType: string) => {
         emoji: "🔗",
         color: "#0077b5",
         gradientEnd: "#005582",
-        date: "Wednesday, January 7, 2025",
+        date: "Wednesday, January 7, 2026",
         prepareInstructions: `
           <ul style="font-size: 14px; padding-left: 20px;">
             <li>Have your LinkedIn profile URL ready</li>
@@ -49,7 +49,7 @@ const getToolConfig = (toolType: string) => {
         emoji: "🎤",
         color: "#10b981",
         gradientEnd: "#059669",
-        date: "Thursday, January 9, 2025",
+        date: "Thursday, January 9, 2026",
         prepareInstructions: `
           <ul style="font-size: 14px; padding-left: 20px;">
             <li>Know your target company and role level</li>
@@ -96,7 +96,7 @@ const getToolConfig = (toolType: string) => {
         emoji: "📄",
         color: "#4f46e5",
         gradientEnd: "#7c3aed",
-        date: "Monday, January 6, 2025",
+        date: "Tuesday, January 6, 2026",
         prepareInstructions: `
           <ul style="font-size: 14px; padding-left: 20px;">
             <li>Have your current resume ready (PDF or Word)</li>
@@ -192,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-            <p>© 2025 The Leader's Row. All rights reserved.</p>
+            <p>© 2026 The Leader's Row. All rights reserved.</p>
           </div>
         </body>
         </html>
