@@ -943,12 +943,20 @@ export function BetaRegistrationsTab() {
                     <TableCell>
                       <Badge 
                         variant="outline" 
-                        className={reg.tool_type === "resume_suite" 
-                          ? "border-amber-500/50 text-amber-700 bg-amber-500/10" 
-                          : "border-blue-500/50 text-blue-700 bg-blue-500/10"
+                        className={
+                          reg.tool_type === "resume_suite" 
+                            ? "border-amber-500/50 text-amber-700 bg-amber-500/10" 
+                            : reg.tool_type === "linkedin_signal"
+                            ? "border-blue-500/50 text-blue-700 bg-blue-500/10"
+                            : reg.tool_type === "interview_prep"
+                            ? "border-emerald-500/50 text-emerald-700 bg-emerald-500/10"
+                            : "border-purple-500/50 text-purple-700 bg-purple-500/10"
                         }
                       >
-                        {reg.tool_type === "resume_suite" ? "Resume" : "LinkedIn"}
+                        {reg.tool_type === "resume_suite" ? "Resume" 
+                          : reg.tool_type === "linkedin_signal" ? "LinkedIn" 
+                          : reg.tool_type === "interview_prep" ? "Interview"
+                          : "Advisor"}
                       </Badge>
                     </TableCell>
                     <TableCell>
