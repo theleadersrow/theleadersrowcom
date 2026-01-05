@@ -60,7 +60,8 @@ const AMAEvents = () => {
 
   const nextEvent = {
     title: "Monthly AMA (Ask Me Anything): Career Acceleration",
-    date: "Third Wednesday of Every Month",
+    date: "January 21, 2026",
+    recurring: "3rd Wednesday of Every Month",
     time: "7-9pm CST",
     description: "A live, no-fluff Q&A session where you get direct answers to your toughest career questions—from leveling up and negotiating offers to navigating transitions and building executive presence.",
   };
@@ -190,7 +191,10 @@ const AMAEvents = () => {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3 text-muted-foreground">
                       <Calendar className="h-5 w-5 text-secondary" />
-                      <span>{nextEvent.date}</span>
+                      <div>
+                        <span className="font-medium text-foreground">{nextEvent.date}</span>
+                        <span className="text-sm block text-muted-foreground">{nextEvent.recurring}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 text-muted-foreground">
                       <Clock className="h-5 w-5 text-secondary" />
