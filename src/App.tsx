@@ -43,6 +43,7 @@ import AMAEvents from "./pages/AMAEvents";
 import JoinCommunity from "./pages/JoinCommunity";
 import Coaching from "./pages/Coaching";
 import PMInterview from "./pages/PMInterview";
+import AMAFeedback from "./pages/AMAFeedback";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/live-programs" element={<LivePrograms />} />
             <Route path="/community" element={<Community />} />
             <Route path="/ama-events" element={<AMAEvents />} />
+            <Route path="/ama-feedback" element={<AMAFeedback />} />
             <Route path="/join-community" element={<JoinCommunity />} />
             <Route path="/coaching" element={<Coaching />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />

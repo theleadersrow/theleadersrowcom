@@ -68,7 +68,6 @@ serve(async (req) => {
       );
     }
 
-    const feedbackFormUrl = "https://forms.gle/your-feedback-form"; // Replace with actual feedback form
     const eventDateFormatted = eventDate.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -80,6 +79,8 @@ serve(async (req) => {
     let errorCount = 0;
 
     for (const registration of registrations) {
+      const feedbackFormUrl = `https://rimocareers.com/ama-feedback?email=${encodeURIComponent(registration.email)}&name=${encodeURIComponent(registration.full_name || '')}`;
+      
       try {
         await resend.emails.send({
           from: "RIMO <events@rimocareers.com>",

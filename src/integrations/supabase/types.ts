@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      ama_feedback: {
+        Row: {
+          allow_testimonial_use: boolean | null
+          content_quality: number | null
+          created_at: string
+          email: string
+          event_date: string
+          full_name: string | null
+          id: string
+          most_valuable: string | null
+          overall_rating: number
+          registration_id: string | null
+          speaker_quality: number | null
+          suggestions: string | null
+          testimonial: string | null
+          topics_for_next: string | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          allow_testimonial_use?: boolean | null
+          content_quality?: number | null
+          created_at?: string
+          email: string
+          event_date: string
+          full_name?: string | null
+          id?: string
+          most_valuable?: string | null
+          overall_rating: number
+          registration_id?: string | null
+          speaker_quality?: number | null
+          suggestions?: string | null
+          testimonial?: string | null
+          topics_for_next?: string | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          allow_testimonial_use?: boolean | null
+          content_quality?: number | null
+          created_at?: string
+          email?: string
+          event_date?: string
+          full_name?: string | null
+          id?: string
+          most_valuable?: string | null
+          overall_rating?: number
+          registration_id?: string | null
+          speaker_quality?: number | null
+          suggestions?: string | null
+          testimonial?: string | null
+          topics_for_next?: string | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ama_feedback_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "beta_event_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_modules: {
         Row: {
           created_at: string
