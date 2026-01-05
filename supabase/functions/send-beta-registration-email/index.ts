@@ -16,6 +16,35 @@ interface BetaRegistrationRequest {
   toolName?: string;
 }
 
+const getToolConfig = (toolType: string) => {
+  switch (toolType) {
+    case "linkedin_signal":
+      return {
+        name: "LinkedIn Signal Score",
+        date: "Wednesday, January 7, 2025",
+        color: "#0077b5",
+      };
+    case "interview_prep":
+      return {
+        name: "Interview Prep",
+        date: "Thursday, January 9, 2025",
+        color: "#10b981",
+      };
+    case "advisor":
+      return {
+        name: "AI Personal Advisor",
+        date: "TBD",
+        color: "#8b5cf6",
+      };
+    default: // resume_suite
+      return {
+        name: "Resume Intelligence Suite",
+        date: "Monday, January 6, 2025",
+        color: "#4f46e5",
+      };
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,7 +53,8 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { name, email, toolType, toolName }: BetaRegistrationRequest = await req.json();
     
-    const displayToolName = toolName || (toolType === "linkedin_signal" ? "LinkedIn Signal Score" : "Resume Intelligence Suite");
+    const config = getToolConfig(toolType || "resume_suite");
+    const displayToolName = toolName || config.name;
 
     // Send confirmation email to applicant
     const emailResponse = await resend.emails.send({
@@ -50,9 +80,9 @@ const handler = async (req: Request): Promise<Response> => {
               Thank you for applying to participate in the <strong>${displayToolName} Live Beta Testing</strong> session!
             </p>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
               <p style="margin: 0 0 10px 0; font-weight: 600;">Event Details:</p>
-              <p style="margin: 5px 0;">📅 <strong>Date:</strong> Tuesday, January 6, 2026</p>
+              <p style="margin: 5px 0;">📅 <strong>Date:</strong> ${config.date}</p>
               <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–8:00 PM Central (CT)</p>
               <p style="margin: 5px 0;">👥 <strong>Spots:</strong> 20 invited beta users</p>
             </div>
@@ -98,6 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Tool:</strong> ${displayToolName}</p>
+        <p><strong>Event Date:</strong> ${config.date}</p>
         <p>View all registrations in the admin dashboard.</p>
       `,
     });
