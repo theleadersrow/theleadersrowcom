@@ -26,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending beta reminder to ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "The Leader's Row <onboarding@resend.dev>",
+      from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
       subject: "Reminder: Resume Intelligence Suite Beta Testing Tomorrow!",
       html: `
