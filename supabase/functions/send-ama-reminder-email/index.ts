@@ -79,14 +79,14 @@ serve(async (req) => {
           
           <p style="margin-top: 30px; font-size: 16px;">
             Best regards,<br>
-            <strong>The RIMO Team</strong>
+            <strong>The Leaders Row Team</strong>
           </p>
         </div>
         
         <div style="text-align: center; margin-top: 20px;">
           <p style="font-size: 12px; color: #6b7280;">
-            You're receiving this because you registered for the RIMO Monthly AMA.<br>
-            <a href="mailto:support@rimocareers.com" style="color: #6b7280;">Contact Support</a>
+            You're receiving this because you registered for the Leaders Row Monthly AMA.<br>
+            <a href="mailto:support@leadersrow.com" style="color: #6b7280;">Contact Support</a>
           </p>
         </div>
       </body>
