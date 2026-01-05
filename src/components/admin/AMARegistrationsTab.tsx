@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -33,9 +34,10 @@ import { toast } from "sonner";
 import { 
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Trash2,
-  Download, Bell, Search
+  Download, Bell, Search, Star
 } from "lucide-react";
 import { format } from "date-fns";
+import { AMAFeedbackPanel } from "./AMAFeedbackPanel";
 
 interface AMARegistration {
   id: string;
@@ -749,6 +751,30 @@ export function AMARegistrationsTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Feedback Tab Section */}
+      <div className="mt-8 pt-8 border-t">
+        <Tabs defaultValue="registrations" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="registrations" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Registrations
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Feedback
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="registrations">
+            <p className="text-sm text-muted-foreground">
+              Registration data is shown in the table above.
+            </p>
+          </TabsContent>
+          <TabsContent value="feedback">
+            <AMAFeedbackPanel />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
