@@ -606,6 +606,7 @@ export function BetaRegistrationsTab() {
                     <SelectItem value="all">All Tools</SelectItem>
                     <SelectItem value="resume_suite">Resume Suite</SelectItem>
                     <SelectItem value="linkedin_signal">LinkedIn Signal</SelectItem>
+                    <SelectItem value="interview_prep">Interview Prep</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
