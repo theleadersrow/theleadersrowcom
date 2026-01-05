@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const AMAEvents = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,40 +28,51 @@ const AMAEvents = () => {
     description: "Join us for an interactive Q&A session where you can ask anything about career growth, job searching, interview prep, and more.",
   };
 
+  // Check for successful payment
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      setIsRegistered(true);
+      toast({
+        title: "Payment Successful!",
+        description: "You're registered for the next AMA event. Check your email for details.",
+      });
+    } else if (searchParams.get("canceled") === "true") {
+      toast({
+        title: "Payment Canceled",
+        description: "Your payment was canceled. You can try again when ready.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('beta_event_registrations')
-        .insert({
-          full_name: formData.fullName,
+      const { data, error } = await supabase.functions.invoke('create-ama-checkout', {
+        body: {
           email: formData.email,
-          current_position: formData.currentRole,
-          target_roles: formData.question || "AMA Event Registration",
-          phone: "N/A",
-          job_search_status: "AMA Event",
-          tool_type: "ama_event",
-          agrees_to_communication: true,
-          understands_beta_terms: true,
-        });
+          fullName: formData.fullName,
+          currentRole: formData.currentRole,
+          question: formData.question,
+        },
+      });
 
       if (error) throw error;
 
-      setIsRegistered(true);
-      toast({
-        title: "Registration Successful!",
-        description: "You're registered for the next AMA event. Check your email for details.",
-      });
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Checkout error:", error);
       toast({
-        title: "Registration Failed",
+        title: "Checkout Failed",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -162,7 +175,6 @@ const AMAEvents = () => {
                     "Real-time answers to your questions",
                     "Insights from other professionals",
                     "Actionable takeaways",
-                    "Recording sent after the event",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2 text-muted-foreground">
                       <CheckCircle className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
@@ -229,7 +241,7 @@ const AMAEvents = () => {
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Registering..." : "Register for Free"}
+                      {isSubmitting ? "Processing..." : "Register for $20"}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
                       By registering, you agree to receive event updates via email.
