@@ -31,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
     const personalizedMessage = message.replace(/\{name\}/gi, name);
 
     const emailResponse = await resend.emails.send({
-      from: "The Level Residency <onboarding@resend.dev>",
+      from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
       subject: subject,
       html: `

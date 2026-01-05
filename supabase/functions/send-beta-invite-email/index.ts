@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending beta invite to ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "The Leader's Row <onboarding@resend.dev>",
+      from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
       subject: "You're Invited! Resume Intelligence Suite Beta Testing - Jan 6",
       html: `

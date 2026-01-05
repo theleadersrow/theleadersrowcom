@@ -28,7 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to applicant
     const emailResponse = await resend.emails.send({
-      from: "The Leader's Row <onboarding@resend.dev>",
+      from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
       subject: `Application Received: ${displayToolName} Beta Testing`,
       html: `
@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to admin
     await resend.emails.send({
-      from: "The Leader's Row <onboarding@resend.dev>",
+      from: "The Leader's Row <hello@theleadersrow.com>",
       to: ["theleadersrow@gmail.com"],
       subject: `New Beta Registration: ${name} (${displayToolName})`,
       html: `
