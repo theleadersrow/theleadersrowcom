@@ -135,7 +135,6 @@ const whoItsFor = [
 ];
 
 const whoItsNotFor = [
-  "Entry-level candidates looking for basic practice",
   "Anyone who wants shortcuts or memorized answers",
   "People who don't want honest feedback",
 ];
