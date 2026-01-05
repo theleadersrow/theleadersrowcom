@@ -41,7 +41,7 @@ import { toast } from "sonner";
 import { 
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Video, Calendar,
-  Download, Bell, Filter, X, Search
+  Download, Bell, Filter, X, Search, Plus, Pencil, Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -109,6 +109,31 @@ export function BetaRegistrationsTab() {
   const [bulkEmailSubject, setBulkEmailSubject] = useState("");
   const [bulkEmailMessage, setBulkEmailMessage] = useState("");
   const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
+
+  // Add/Edit registration dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingRegistration, setEditingRegistration] = useState<BetaRegistration | null>(null);
+  const [savingRegistration, setSavingRegistration] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    current_position: "",
+    company: "",
+    job_search_status: "actively_interviewing",
+    target_roles: "",
+    linkedin_url: "",
+    tool_type: "resume_suite",
+    status: "pending",
+    understands_beta_terms: true,
+    agrees_to_communication: true,
+    subscribe_to_newsletter: false,
+  });
+
+  // Delete confirmation dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -379,6 +404,152 @@ export function BetaRegistrationsTab() {
     }
   };
 
+  // Add new registration
+  const openAddDialog = () => {
+    setEditingRegistration(null);
+    setFormData({
+      full_name: "",
+      email: "",
+      phone: "",
+      current_position: "",
+      company: "",
+      job_search_status: "actively_interviewing",
+      target_roles: "",
+      linkedin_url: "",
+      tool_type: "resume_suite",
+      status: "pending",
+      understands_beta_terms: true,
+      agrees_to_communication: true,
+      subscribe_to_newsletter: false,
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Edit existing registration
+  const openEditDialog = (reg: BetaRegistration) => {
+    setEditingRegistration(reg);
+    setFormData({
+      full_name: reg.full_name,
+      email: reg.email,
+      phone: reg.phone,
+      current_position: reg.current_position,
+      company: reg.company || "",
+      job_search_status: reg.job_search_status,
+      target_roles: reg.target_roles,
+      linkedin_url: reg.linkedin_url || "",
+      tool_type: reg.tool_type,
+      status: reg.status,
+      understands_beta_terms: reg.understands_beta_terms,
+      agrees_to_communication: reg.agrees_to_communication,
+      subscribe_to_newsletter: reg.subscribe_to_newsletter || false,
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Save registration (add or update)
+  const saveRegistration = async () => {
+    if (!formData.full_name.trim() || !formData.email.trim() || !formData.phone.trim()) {
+      toast.error("Please fill in required fields (name, email, phone)");
+      return;
+    }
+
+    setSavingRegistration(true);
+    try {
+      const dataToSave = {
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        current_position: formData.current_position.trim(),
+        company: formData.company.trim() || null,
+        job_search_status: formData.job_search_status,
+        target_roles: formData.target_roles.trim(),
+        linkedin_url: formData.linkedin_url.trim() || null,
+        tool_type: formData.tool_type,
+        status: formData.status,
+        understands_beta_terms: formData.understands_beta_terms,
+        agrees_to_communication: formData.agrees_to_communication,
+        subscribe_to_newsletter: formData.subscribe_to_newsletter,
+      };
+
+      if (editingRegistration) {
+        // Update existing
+        const { error } = await supabase
+          .from("beta_event_registrations")
+          .update(dataToSave)
+          .eq("id", editingRegistration.id);
+
+        if (error) throw error;
+        toast.success("Registration updated successfully");
+      } else {
+        // Create new
+        const { error } = await supabase
+          .from("beta_event_registrations")
+          .insert(dataToSave);
+
+        if (error) throw error;
+        toast.success("Registration added successfully");
+      }
+
+      setEditDialogOpen(false);
+      fetchRegistrations();
+    } catch (error: any) {
+      console.error("Error saving registration:", error);
+      toast.error(error.message || "Failed to save registration");
+    } finally {
+      setSavingRegistration(false);
+    }
+  };
+
+  // Delete registration
+  const openDeleteDialog = (id: string) => {
+    setDeletingId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const deleteRegistration = async () => {
+    if (!deletingId) return;
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("beta_event_registrations")
+        .delete()
+        .eq("id", deletingId);
+
+      if (error) throw error;
+      toast.success("Registration deleted");
+      setDeleteDialogOpen(false);
+      setDeletingId(null);
+      setSelectedIds(selectedIds.filter(id => id !== deletingId));
+      fetchRegistrations();
+    } catch (error) {
+      console.error("Error deleting registration:", error);
+      toast.error("Failed to delete registration");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Bulk delete
+  const bulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("beta_event_registrations")
+        .delete()
+        .in("id", selectedIds);
+
+      if (error) throw error;
+      toast.success(`Deleted ${selectedIds.length} registration(s)`);
+      setSelectedIds([]);
+      fetchRegistrations();
+    } catch (error) {
+      console.error("Error bulk deleting:", error);
+      toast.error("Failed to delete some registrations");
+    }
+  };
+
   const waitlistSelected = async () => {
     const pendingSelected = filteredRegistrations.filter(
       r => selectedIds.includes(r.id) && r.status === "pending"
@@ -562,6 +733,10 @@ export function BetaRegistrationsTab() {
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
+            <Button size="sm" onClick={openAddDialog}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Registration
+            </Button>
           </div>
         </div>
 
@@ -695,6 +870,10 @@ export function BetaRegistrationsTab() {
               <Button size="sm" variant="secondary" onClick={waitlistSelected} disabled={selectedPendingCount === 0}>
                 <UserX className="w-4 h-4 mr-2" />
                 Waitlist ({selectedPendingCount})
+              </Button>
+              <Button size="sm" variant="destructive" onClick={bulkDelete}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete ({selectedIds.length})
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
                 <X className="w-4 h-4 mr-2" />
@@ -844,6 +1023,10 @@ export function BetaRegistrationsTab() {
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openEditDialog(reg)}>
+                            <Pencil className="w-4 h-4 mr-2" />
+                            Edit Registration
+                          </DropdownMenuItem>
                           {reg.linkedin_url && (
                             <DropdownMenuItem asChild>
                               <a href={reg.linkedin_url} target="_blank" rel="noopener noreferrer">
@@ -856,6 +1039,14 @@ export function BetaRegistrationsTab() {
                               <Mail className="w-4 h-4 mr-2" />
                               Email Directly
                             </a>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => openDeleteDialog(reg.id)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -984,6 +1175,182 @@ export function BetaRegistrationsTab() {
             </Button>
             <Button onClick={sendBulkEmail} disabled={sendingBulkEmail}>
               {sendingBulkEmail ? "Sending..." : `Send to ${selectedIds.length} Recipients`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Registration Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRegistration ? "Edit Registration" : "Add New Registration"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Full Name *</Label>
+                <Input
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <Label>Email *</Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div>
+                <Label>Phone *</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+1 234 567 8900"
+                />
+              </div>
+              <div>
+                <Label>Current Position</Label>
+                <Input
+                  value={formData.current_position}
+                  onChange={(e) => setFormData(prev => ({ ...prev, current_position: e.target.value }))}
+                  placeholder="Product Manager"
+                />
+              </div>
+              <div>
+                <Label>Company</Label>
+                <Input
+                  value={formData.company}
+                  onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                  placeholder="Acme Corp"
+                />
+              </div>
+              <div>
+                <Label>Target Roles</Label>
+                <Input
+                  value={formData.target_roles}
+                  onChange={(e) => setFormData(prev => ({ ...prev, target_roles: e.target.value }))}
+                  placeholder="Senior PM, Director of Product"
+                />
+              </div>
+              <div>
+                <Label>LinkedIn URL</Label>
+                <Input
+                  value={formData.linkedin_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, linkedin_url: e.target.value }))}
+                  placeholder="https://linkedin.com/in/..."
+                />
+              </div>
+              <div>
+                <Label>Tool Type</Label>
+                <Select
+                  value={formData.tool_type}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, tool_type: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="resume_suite">Resume Suite</SelectItem>
+                    <SelectItem value="linkedin_signal">LinkedIn Signal</SelectItem>
+                    <SelectItem value="interview_prep">Interview Prep</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Job Search Status</Label>
+                <Select
+                  value={formData.job_search_status}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, job_search_status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="actively_interviewing">Actively Interviewing</SelectItem>
+                    <SelectItem value="preparing_soon">Preparing (1-2 months)</SelectItem>
+                    <SelectItem value="exploring">Exploring (3+ months)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="invited">Invited</SelectItem>
+                    <SelectItem value="waitlisted">Waitlisted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="agrees_communication"
+                  checked={formData.agrees_to_communication}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, agrees_to_communication: !!checked }))}
+                />
+                <Label htmlFor="agrees_communication" className="text-sm font-normal">Agrees to communication</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="understands_terms"
+                  checked={formData.understands_beta_terms}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, understands_beta_terms: !!checked }))}
+                />
+                <Label htmlFor="understands_terms" className="text-sm font-normal">Understands beta terms</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="subscribe_newsletter"
+                  checked={formData.subscribe_to_newsletter}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, subscribe_to_newsletter: !!checked }))}
+                />
+                <Label htmlFor="subscribe_newsletter" className="text-sm font-normal">Subscribe to newsletter</Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveRegistration} disabled={savingRegistration}>
+              {savingRegistration ? "Saving..." : (editingRegistration ? "Update" : "Add Registration")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Registration</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">
+              Are you sure you want to delete this registration? This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteRegistration} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
