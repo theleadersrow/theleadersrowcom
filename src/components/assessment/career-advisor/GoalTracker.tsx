@@ -39,11 +39,9 @@ export function GoalTracker({ sessionId, email }: GoalTrackerProps) {
 
   const loadGoals = async () => {
     try {
+      // Use secure RPC function instead of direct table access
       const { data, error } = await supabase
-        .from('career_advisor_goals')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: false });
+        .rpc('get_goals_by_session', { p_session_id: sessionId });
 
       if (error) throw error;
       setGoals((data || []) as Goal[]);
@@ -58,20 +56,28 @@ export function GoalTracker({ sessionId, email }: GoalTrackerProps) {
     if (!newGoalTitle.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('career_advisor_goals')
-        .insert([{
-          session_id: sessionId,
-          email: email || null,
-          title: newGoalTitle.trim(),
-          status: 'in_progress',
-          progress: 0
-        }])
-        .select()
-        .single();
+      // Use secure RPC function instead of direct table access
+      const { data: goalId, error } = await supabase
+        .rpc('upsert_goal_by_session', {
+          p_session_id: sessionId,
+          p_title: newGoalTitle.trim(),
+          p_email: email || null,
+          p_status: 'in_progress',
+          p_progress: 0
+        });
 
       if (error) throw error;
-      setGoals(prev => [data as Goal, ...prev]);
+      
+      // Create a new goal object for the UI
+      const newGoal: Goal = {
+        id: goalId,
+        title: newGoalTitle.trim(),
+        status: 'in_progress',
+        progress: 0,
+        created_at: new Date().toISOString()
+      };
+      
+      setGoals(prev => [newGoal, ...prev]);
       setNewGoalTitle("");
       setIsAdding(false);
       toast.success("Goal added!");
@@ -83,16 +89,20 @@ export function GoalTracker({ sessionId, email }: GoalTrackerProps) {
 
   const updateProgress = async (goalId: string, newProgress: number) => {
     const status = newProgress >= 100 ? 'completed' : 'in_progress';
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
     
     try {
+      // Use secure RPC function instead of direct table access
       const { error } = await supabase
-        .from('career_advisor_goals')
-        .update({ 
-          progress: newProgress, 
-          status,
-          completed_at: status === 'completed' ? new Date().toISOString() : null
-        })
-        .eq('id', goalId);
+        .rpc('upsert_goal_by_session', {
+          p_session_id: sessionId,
+          p_title: goal.title,
+          p_email: email || null,
+          p_status: status,
+          p_progress: newProgress,
+          p_completed_at: status === 'completed' ? new Date().toISOString() : null
+        });
 
       if (error) throw error;
       
@@ -112,10 +122,12 @@ export function GoalTracker({ sessionId, email }: GoalTrackerProps) {
 
   const deleteGoal = async (goalId: string) => {
     try {
+      // Use secure RPC function instead of direct table access
       const { error } = await supabase
-        .from('career_advisor_goals')
-        .delete()
-        .eq('id', goalId);
+        .rpc('delete_goal_by_id', {
+          p_goal_id: goalId,
+          p_session_id: sessionId
+        });
 
       if (error) throw error;
       setGoals(prev => prev.filter(g => g.id !== goalId));

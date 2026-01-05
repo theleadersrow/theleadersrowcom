@@ -144,28 +144,27 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
 
   const loadChatHistory = async (sid: string) => {
     try {
+      // Use secure RPC function instead of direct table access
       const { data, error } = await supabase
-        .from('career_advisor_chats')
-        .select('messages, user_profile_type, user_profile_context')
-        .eq('session_id', sid)
-        .maybeSingle();
+        .rpc('get_chat_by_session', { p_session_id: sid });
 
       if (error) {
         console.error("Error loading chat history:", error);
         return;
       }
 
-      if (data?.messages && Array.isArray(data.messages)) {
+      const chatData = data?.[0];
+      if (chatData?.messages && Array.isArray(chatData.messages)) {
         // Safely cast the messages
-        const loadedMessages = data.messages as unknown as Message[];
+        const loadedMessages = chatData.messages as unknown as Message[];
         setMessages(loadedMessages);
       }
 
       // Load profile from database if exists
-      if (data?.user_profile_type) {
+      if (chatData?.user_profile_type) {
         const profile: UserProfile = {
-          type: data.user_profile_type as UserProfileType,
-          context: data.user_profile_context || undefined,
+          type: chatData.user_profile_type as UserProfileType,
+          context: chatData.user_profile_context || undefined,
         };
         setUserProfile(profile);
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
@@ -182,37 +181,14 @@ export function CareerAdvisorChat({ onBack, onNavigateToTool }: CareerAdvisorCha
       const email = accessInfo.email || upgradeEmail || null;
       const messagesJson = JSON.parse(JSON.stringify(newMessages));
       
-      // Check if session exists
-      const { data: existing } = await supabase
-        .from('career_advisor_chats')
-        .select('id')
-        .eq('session_id', sessionId)
-        .maybeSingle();
-
-      if (existing) {
-        // Update existing
-        await supabase
-          .from('career_advisor_chats')
-          .update({
-            email: email,
-            messages: messagesJson,
-            user_profile_type: userProfile?.type || null,
-            user_profile_context: userProfile?.context || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('session_id', sessionId);
-      } else {
-        // Insert new
-        await supabase
-          .from('career_advisor_chats')
-          .insert([{
-            session_id: sessionId,
-            email: email,
-            messages: messagesJson,
-            user_profile_type: userProfile?.type || null,
-            user_profile_context: userProfile?.context || null,
-          }]);
-      }
+      // Use secure RPC function for upsert instead of direct table access
+      await supabase.rpc('upsert_chat_by_session', {
+        p_session_id: sessionId,
+        p_email: email,
+        p_messages: messagesJson,
+        p_user_profile_type: userProfile?.type || null,
+        p_user_profile_context: userProfile?.context || null
+      });
     } catch (error) {
       console.error("Error saving chat history:", error);
     }

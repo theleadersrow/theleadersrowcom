@@ -1933,7 +1933,40 @@ export type Database = {
           user_id: string
         }[]
       }
+      delete_goal_by_id: {
+        Args: { p_goal_id: string; p_session_id: string }
+        Returns: boolean
+      }
       generate_enrollment_code: { Args: never; Returns: string }
+      get_chat_by_session: {
+        Args: { p_session_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          messages: Json
+          session_id: string
+          updated_at: string
+          user_profile_context: string
+          user_profile_type: string
+        }[]
+      }
+      get_goals_by_session: {
+        Args: { p_session_id: string }
+        Returns: {
+          completed_at: string
+          created_at: string
+          description: string
+          email: string
+          id: string
+          progress: number
+          session_id: string
+          status: string
+          target_date: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_session_by_token: {
         Args: { p_session_token: string }
         Returns: {
@@ -1949,6 +1982,18 @@ export type Database = {
           status: Database["public"]["Enums"]["session_status"]
           submitted_at: string
           user_id: string
+        }[]
+      }
+      get_summaries_by_session: {
+        Args: { p_session_id: string }
+        Returns: {
+          action_items: Json
+          created_at: string
+          email: string
+          id: string
+          key_insights: Json
+          session_id: string
+          summary: string
         }[]
       }
       has_role: {
@@ -1977,6 +2022,39 @@ export type Database = {
           p_session_token: string
           p_status?: Database["public"]["Enums"]["session_status"]
           p_submitted_at?: string
+        }
+        Returns: string
+      }
+      upsert_chat_by_session: {
+        Args: {
+          p_email?: string
+          p_messages?: Json
+          p_session_id: string
+          p_user_profile_context?: string
+          p_user_profile_type?: string
+        }
+        Returns: string
+      }
+      upsert_goal_by_session: {
+        Args: {
+          p_completed_at?: string
+          p_description?: string
+          p_email?: string
+          p_progress?: number
+          p_session_id: string
+          p_status?: string
+          p_target_date?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      upsert_summary_by_session: {
+        Args: {
+          p_action_items?: Json
+          p_email?: string
+          p_key_insights?: Json
+          p_session_id: string
+          p_summary: string
         }
         Returns: string
       }

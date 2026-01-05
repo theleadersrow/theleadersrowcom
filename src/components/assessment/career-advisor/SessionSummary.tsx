@@ -53,14 +53,14 @@ export function SessionSummary({ messages, sessionId, email }: SessionSummaryPro
       setIsExpanded(true);
       setCompletedItems(new Set());
 
-      // Save to database
-      await supabase.from('career_advisor_summaries').insert([{
-        session_id: sessionId,
-        email: email || null,
-        summary: data.summary,
-        key_insights: data.key_insights,
-        action_items: data.action_items
-      }]);
+      // Save to database using secure RPC function
+      await supabase.rpc('upsert_summary_by_session', {
+        p_session_id: sessionId,
+        p_email: email || null,
+        p_summary: data.summary,
+        p_key_insights: data.key_insights,
+        p_action_items: data.action_items
+      });
 
       toast.success("Session summary generated!");
     } catch (error) {
