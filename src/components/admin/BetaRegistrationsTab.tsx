@@ -888,8 +888,8 @@ export function BetaRegistrationsTab() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Beta Event: January 6, 2026
+            <Users className="w-5 h-5" />
+            Registrations
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
