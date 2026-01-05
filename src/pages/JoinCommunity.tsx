@@ -28,20 +28,23 @@ const JoinCommunity = () => {
     {
       name: "LinkedIn",
       icon: Linkedin,
-      href: "https://linkedin.com/in/omoniyitolu",
+      href: "#",
       color: "bg-[#0077B5]",
+      enabled: false,
     },
     {
       name: "Twitter / X",
       icon: Twitter,
-      href: "https://twitter.com",
+      href: "#",
       color: "bg-[#1DA1F2]",
+      enabled: false,
     },
     {
       name: "Instagram",
       icon: Instagram,
-      href: "https://instagram.com",
+      href: "#",
       color: "bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737]",
+      enabled: false,
     },
   ];
 
@@ -128,20 +131,18 @@ const JoinCommunity = () => {
             </h2>
             <div className="grid sm:grid-cols-3 gap-4">
               {socialLinks.map((social) => (
-                <a
+                <div
                   key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-card border border-border rounded-xl p-6 text-center hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 group"
+                  className="bg-card border border-border rounded-xl p-6 text-center opacity-60 cursor-not-allowed"
                 >
-                  <div className={`w-12 h-12 ${social.color} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                  <div className={`w-12 h-12 ${social.color} rounded-xl flex items-center justify-center mx-auto mb-4 opacity-50`}>
                     <social.icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-foreground group-hover:text-secondary transition-colors">
+                  <h3 className="font-semibold text-muted-foreground">
                     {social.name}
                   </h3>
-                </a>
+                  <p className="text-xs text-muted-foreground mt-1">Coming Soon</p>
+                </div>
               ))}
             </div>
           </div>
