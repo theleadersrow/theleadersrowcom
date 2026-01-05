@@ -1,24 +1,29 @@
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, Users, Clock, CheckCircle, Zap, X, Video, MessageSquare, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, Calendar, Users, Clock, CheckCircle, Zap, X, Video, MessageSquare, Target, TrendingUp, Star } from "lucide-react";
 
 const livePrograms = [
   {
-    title: "200K Method",
-    subtitle: "8-Week Career Accelerator",
-    description: "An intensive program designed to help you break through career plateaus and reach your next level. Perfect for ambitious professionals ready to make a significant leap.",
+    title: "The 200K Method",
+    subtitle: "An 8-Week Accelerator for $200K+ Roles",
+    description: "Designed for Product Managers who are strong performers but under-leveled — and ready to move into higher-impact, higher-compensation roles.",
     duration: "8 weeks",
     format: "Live cohort-based",
     href: "/200k-method",
-    highlights: [
-      "Weekly live coaching sessions",
-      "Personalized career strategy",
-      "Interview preparation",
-      "Salary negotiation tactics",
-      "Exclusive community access",
+    youllWorkOn: [
+      "Level calibration & career strategy",
+      "Interview performance at the Senior / Principal bar",
+      "Executive storytelling & decision judgment",
+      "Negotiation tactics that protect your value",
+    ],
+    includes: [
+      "Weekly live coaching",
+      "Personalized guidance",
+      "Private community access",
     ],
     featured: true,
+    ctaText: "Start Your Application",
   },
   {
     title: "Weekly Edge",
@@ -27,14 +32,19 @@ const livePrograms = [
     duration: "Ongoing",
     format: "Weekly live sessions",
     href: "/weekly-edge",
-    highlights: [
-      "Weekly group coaching calls",
+    youllWorkOn: [
       "Real-time Q&A sessions",
       "Peer networking",
       "Latest industry insights",
       "Continuous support",
     ],
+    includes: [
+      "Weekly group coaching calls",
+      "Community access",
+      "Session recordings",
+    ],
     featured: false,
+    ctaText: "Learn More",
   },
 ];
 
@@ -235,6 +245,7 @@ const LivePrograms = () => {
               >
                 {program.featured && (
                   <div className="inline-flex items-center gap-2 bg-secondary/10 text-secondary px-3 py-1 rounded-full text-xs font-medium mb-4">
+                    <Star className="w-3 h-3 fill-secondary" />
                     Most Popular
                   </div>
                 )}
@@ -259,19 +270,39 @@ const LivePrograms = () => {
                         {program.format}
                       </div>
                     </div>
-                    <ul className="space-y-2 mb-6">
-                      {program.highlights.map((highlight) => (
-                        <li key={highlight} className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-secondary flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground">{highlight}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    
+                    <div className="grid sm:grid-cols-2 gap-6 mb-6">
+                      {/* You'll Work On */}
+                      <div>
+                        <h4 className="font-semibold text-foreground text-sm mb-3">You'll work on</h4>
+                        <ul className="space-y-2">
+                          {program.youllWorkOn.map((item) => (
+                            <li key={item} className="flex items-start gap-2 text-sm">
+                              <CheckCircle className="h-4 w-4 text-secondary flex-shrink-0 mt-0.5" />
+                              <span className="text-foreground">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      {/* Includes */}
+                      <div>
+                        <h4 className="font-semibold text-foreground text-sm mb-3">Includes</h4>
+                        <ul className="space-y-2">
+                          {program.includes.map((item) => (
+                            <li key={item} className="flex items-start gap-2 text-sm">
+                              <CheckCircle className="h-4 w-4 text-secondary flex-shrink-0 mt-0.5" />
+                              <span className="text-foreground">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex-shrink-0 lg:self-center">
                     <Button variant={program.featured ? "gold" : "outline"} size="lg" asChild>
                       <Link to={program.href} className="flex items-center gap-2">
-                        Learn More
+                        👉 {program.ctaText}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
