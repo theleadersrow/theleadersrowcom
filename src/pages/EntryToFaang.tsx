@@ -155,7 +155,7 @@ const The200KMethod = () => {
           <div className="max-w-4xl">
             <p className="text-secondary font-medium mb-4">8-Week Accelerator</p>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-4">
-              200K Method: The Product Leader's Recalibration
+              The 200K Method: Career Recalibration for Product Leaders
             </h1>
             <p className="text-xl md:text-2xl text-cream font-medium mb-6">
               Stop guessing your worth. Start commanding it.

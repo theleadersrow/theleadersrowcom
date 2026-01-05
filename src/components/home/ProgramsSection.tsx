@@ -21,8 +21,8 @@ const ProgramsSection = () => {
         {/* Program Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
           <ProgramCard
-            title="200K Method"
-            subtitle="8-Week Accelerator"
+            title="The 200K Method"
+            subtitle="Career Recalibration for Product Leaders"
             description="The definitive strategic playbook for experienced Product Managers aiming for high-impact, $200K+ roles. You get the precise framework to define your next level, engineer an executive-ready personal brand, and negotiate like a CEO."
             features={[
               "The Strategic Benchmark",
@@ -36,7 +36,7 @@ const ProgramsSection = () => {
             ]}
             price="$2,000"
             href="/200k-method"
-            ctaText="Join 200K Method"
+            ctaText="Join The 200K Method"
             featured
             badge="High Demand"
           />

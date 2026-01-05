@@ -236,8 +236,8 @@ const QuizLeadMagnet = () => {
         growthType === "Both - I want it all") {
       return {
         title: "The 200K Method is Perfect for You",
-        message: "You're ready for a complete career transformation. Our 8-week accelerator will rebuild your brand, sharpen your skills, and position you for senior roles.",
-        cta: "Explore 200K Method",
+        message: "You're ready for a complete career transformation. Our career recalibration program will rebuild your brand, sharpen your skills, and position you for senior roles.",
+        cta: "Explore The 200K Method",
         link: "/200k-method",
       };
     }

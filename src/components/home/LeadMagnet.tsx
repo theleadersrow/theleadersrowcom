@@ -75,7 +75,7 @@ const LeadMagnet = () => {
                 FREE GUIDE
               </span>
               <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-cream mb-3 sm:mb-4">
-                200K Method Quick Start Guide
+                The 200K Method Quick Start Guide
               </h2>
               <p className="text-cream/70 mb-4 sm:mb-6 text-sm sm:text-base">
                 Discover the 3 key strategies that separate $200K+ Product Leaders from everyone else. A quick preview of what's possible.
