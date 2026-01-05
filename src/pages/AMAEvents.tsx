@@ -211,12 +211,12 @@ const AMAEvents = () => {
                 </h3>
                 <ul className="space-y-3">
                   {[
-                    "Breaking into Senior, Principal, or Director-level roles",
-                    "Negotiating compensation, scope, and leveling",
-                    "Navigating career transitions and pivots",
-                    "Building executive presence and influence",
-                    "Preparing for high-stakes interviews",
-                    "Getting unstuck when you've hit a career plateau",
+                    "Get direct advice from leaders who've worked at FAANG and top tech companies",
+                    "Ask your toughest career questions and get honest, unscripted answers",
+                    "Make real connections with peers navigating similar career challenges",
+                    "Receive personalized guidance on leveling up, negotiating, and positioning yourself",
+                    "Interact live with experts—no fluff, no sales pitch, just real talk",
+                    "Learn from others' questions and gain insights you didn't know you needed",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2 text-muted-foreground">
                       <CheckCircle className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
