@@ -173,6 +173,8 @@ export function AMARegistrationsTab() {
       toast.error("Please select pending registrations to invite");
       return;
     }
+    // Auto-populate with next AMA event details
+    setEventDate("Wednesday, January 21, 2026 at 7-9pm CST");
     setInviteDialogOpen(true);
   };
 
@@ -636,12 +638,13 @@ export function AMARegistrationsTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Event Date & Time</Label>
+              <Label>Event Day, Date & Time *</Label>
               <Input
-                placeholder="January 15, 2026 at 6-7pm CST"
+                placeholder="Wednesday, January 21, 2026 at 7-9pm CST"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">Auto-filled with next AMA date. Edit if needed.</p>
             </div>
             <div className="space-y-2">
               <Label>Custom Message (optional)</Label>
