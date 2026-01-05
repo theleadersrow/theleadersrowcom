@@ -29,12 +29,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { 
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Trash2,
-  Download, Bell, Search, Star
+  Download, Bell, Search, Star, Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { AMAFeedbackPanel } from "./AMAFeedbackPanel";
@@ -88,6 +94,14 @@ export function AMARegistrationsTab() {
   // Delete confirmation
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Email preview
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewType, setPreviewType] = useState<"invite" | "reminder">("invite");
+
+  // Reminder dialog with event details
+  const [reminderEventDate, setReminderEventDate] = useState("");
+  const [reminderZoomLink, setReminderZoomLink] = useState("");
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -234,6 +248,8 @@ export function AMARegistrationsTab() {
       toast.error("Please select invited registrations to send reminders");
       return;
     }
+    // Auto-populate with next AMA event details
+    setReminderEventDate("Wednesday, January 21, 2026 at 7-9pm CST");
     setReminderDialogOpen(true);
   };
 
@@ -245,11 +261,13 @@ export function AMARegistrationsTab() {
 
     try {
       for (const reg of invitedSelected) {
-        await supabase.functions.invoke("send-beta-reminder-email", {
+        await supabase.functions.invoke("send-ama-reminder-email", {
           body: {
             name: reg.full_name,
             email: reg.email,
-            customMessage: reminderMessage.trim() || "This is a reminder about the upcoming AMA event. We look forward to seeing you there!",
+            eventDateTime: reminderEventDate.trim() || undefined,
+            zoomLink: reminderZoomLink.trim() || undefined,
+            customMessage: reminderMessage.trim() || undefined,
           },
         });
       }
@@ -257,6 +275,8 @@ export function AMARegistrationsTab() {
       toast.success(`Sent ${invitedSelected.length} reminder(s)`);
       setReminderDialogOpen(false);
       setReminderMessage("");
+      setReminderEventDate("");
+      setReminderZoomLink("");
       setSelectedIds([]);
     } catch (error) {
       console.error("Error sending reminders:", error);
@@ -576,8 +596,25 @@ export function AMARegistrationsTab() {
                       <TableCell className="text-sm">
                         {reg.event_date ? format(new Date(reg.event_date), "MMM d, yyyy") : <span className="text-muted-foreground">—</span>}
                       </TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={reg.target_roles}>
-                        {reg.target_roles || "—"}
+                      <TableCell className="max-w-[200px]">
+                        {reg.target_roles ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help truncate block">
+                                  {reg.target_roles.length > 30 
+                                    ? `${reg.target_roles.substring(0, 30)}...` 
+                                    : reg.target_roles}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[400px] whitespace-pre-wrap">
+                                <p className="text-sm">{reg.target_roles}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>{getStatusBadge(reg.status)}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">
@@ -656,9 +693,19 @@ export function AMARegistrationsTab() {
                 rows={3}
               />
             </div>
-            <p className="text-sm text-muted-foreground">
-              This will send invites to {selectedPendingCount} pending registration(s).
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                This will send invites to {selectedPendingCount} pending registration(s).
+              </p>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { setPreviewType("invite"); setPreviewDialogOpen(true); }}
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Preview
+              </Button>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
@@ -673,23 +720,49 @@ export function AMARegistrationsTab() {
 
       {/* Reminder Dialog */}
       <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Send Event Reminder</DialogTitle>
+            <DialogTitle>Send AMA Event Reminder</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Reminder Message</Label>
-              <Textarea
-                placeholder="Reminder about the upcoming AMA event..."
-                value={reminderMessage}
-                onChange={(e) => setReminderMessage(e.target.value)}
-                rows={4}
+              <Label>Event Day, Date & Time</Label>
+              <Input
+                placeholder="Wednesday, January 21, 2026 at 7-9pm CST"
+                value={reminderEventDate}
+                onChange={(e) => setReminderEventDate(e.target.value)}
               />
             </div>
-            <p className="text-sm text-muted-foreground">
-              This will send reminders to {selectedInvitedCount} invited attendee(s).
-            </p>
+            <div className="space-y-2">
+              <Label>Zoom Link (optional)</Label>
+              <Input
+                placeholder="https://zoom.us/j/..."
+                value={reminderZoomLink}
+                onChange={(e) => setReminderZoomLink(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Custom Message (optional)</Label>
+              <Textarea
+                placeholder="Add any additional reminders or notes..."
+                value={reminderMessage}
+                onChange={(e) => setReminderMessage(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                This will send reminders to {selectedInvitedCount} invited attendee(s).
+              </p>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { setPreviewType("reminder"); setPreviewDialogOpen(true); }}
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Preview
+              </Button>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReminderDialogOpen(false)}>
@@ -757,6 +830,127 @@ export function AMARegistrationsTab() {
             </Button>
             <Button variant="destructive" onClick={deleteSelected} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Preview Dialog */}
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Email Preview - {previewType === "invite" ? "AMA Invite" : "AMA Reminder"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {previewType === "invite" ? (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-muted px-4 py-2 border-b">
+                  <p className="text-sm"><strong>Subject:</strong> 🎉 You're Invited: RIMO Monthly Career Acceleration AMA</p>
+                  <p className="text-sm"><strong>From:</strong> RIMO &lt;events@rimocareers.com&gt;</p>
+                </div>
+                <div className="p-4 bg-background">
+                  <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+                    <div className="text-center mb-6">
+                      <div className="text-4xl mb-2">🎉</div>
+                      <h1 className="text-xl font-bold">You're Invited!</h1>
+                      <p className="text-muted-foreground">Monthly Career Acceleration AMA</p>
+                    </div>
+                    
+                    <p>Hi [Name],</p>
+                    <p className="mt-4">Great news! Your spot is confirmed for our upcoming Monthly Career Acceleration AMA session.</p>
+                    
+                    <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg p-4 my-4 text-center">
+                      <h2 className="font-bold mb-2">📅 Event Details</h2>
+                      <p><strong>Date & Time:</strong> {eventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</p>
+                      <p className="mt-2"><strong>Duration:</strong> 2 hours</p>
+                    </div>
+                    
+                    {eventLink && (
+                      <div className="text-center my-4">
+                        <span className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">
+                          Join Zoom Meeting →
+                        </span>
+                      </div>
+                    )}
+                    
+                    {customMessage && (
+                      <div className="bg-amber-50 border-l-4 border-amber-400 p-3 my-4">
+                        <p className="text-amber-800">{customMessage}</p>
+                      </div>
+                    )}
+                    
+                    <div className="bg-muted rounded-lg p-4 my-4">
+                      <h3 className="font-bold mb-2">What to expect:</h3>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>Live Q&A with career acceleration experts</li>
+                        <li>Real strategies for landing $200K+ roles</li>
+                        <li>Network with other ambitious professionals</li>
+                        <li>Personalized advice for your career situation</li>
+                      </ul>
+                    </div>
+                    
+                    <p className="mt-6">Best,<br/><strong>The RIMO Team</strong></p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-muted px-4 py-2 border-b">
+                  <p className="text-sm"><strong>Subject:</strong> 🔔 Reminder: Your AMA Session is Coming Up!</p>
+                  <p className="text-sm"><strong>From:</strong> RIMO &lt;events@rimocareers.com&gt;</p>
+                </div>
+                <div className="p-4 bg-background">
+                  <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+                    <div className="text-center mb-6">
+                      <div className="text-4xl mb-2">🔔</div>
+                      <h1 className="text-xl font-bold">Event Reminder</h1>
+                      <p className="text-muted-foreground">Your AMA Session is Coming Up!</p>
+                    </div>
+                    
+                    <p>Hi [Name],</p>
+                    <p className="mt-4">This is a friendly reminder about the upcoming <strong>Monthly Career Acceleration AMA</strong> session!</p>
+                    
+                    <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg p-4 my-4 text-center">
+                      <h2 className="font-bold mb-2">📅 Event Details</h2>
+                      <p className="text-lg"><strong>{reminderEventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</strong></p>
+                    </div>
+                    
+                    {reminderMessage && (
+                      <div className="bg-amber-50 border-l-4 border-amber-400 p-3 my-4">
+                        <p className="text-amber-800">{reminderMessage}</p>
+                      </div>
+                    )}
+                    
+                    {reminderZoomLink && (
+                      <div className="text-center my-4">
+                        <span className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">
+                          Join Zoom Meeting →
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="bg-green-50 rounded-lg p-4 my-4">
+                      <h3 className="font-bold text-green-800 mb-2">💡 Quick Reminders:</h3>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-green-700">
+                        <li>Join 5 minutes early to test your audio/video</li>
+                        <li>Have your questions ready</li>
+                        <li>Bring a notepad to capture insights</li>
+                        <li>Engage with other attendees' questions for bonus value</li>
+                      </ul>
+                    </div>
+                    
+                    <p className="mt-6">We're excited to see you there!</p>
+                    <p className="mt-4">Best regards,<br/><strong>The RIMO Team</strong></p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
