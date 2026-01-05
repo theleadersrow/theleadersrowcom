@@ -6,11 +6,11 @@ const socialLinks = [
   {
     name: "LinkedIn",
     icon: Linkedin,
-    url: "https://linkedin.com/in/omoniyitolu",
+    url: "#",
     description: "Professional insights, career tips, and industry perspectives",
     color: "bg-[#0077B5]",
-    followers: "10K+",
-    enabled: true,
+    followers: "Coming Soon",
+    enabled: false,
   },
   {
     name: "Twitter / X",
