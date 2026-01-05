@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${isLinkedIn ? '#0077b5' : '#4f46e5'};">
               <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 18px;">Event Details</p>
-              <p style="margin: 5px 0;">📅 <strong>Date:</strong> Tuesday, January 6, 2026</p>
+              <p style="margin: 5px 0;">📅 <strong>Date:</strong> ${isLinkedIn ? 'Wednesday, January 7, 2025' : 'Tuesday, January 6, 2025'}</p>
               <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–8:00 PM Central (CT)</p>
               <p style="margin: 5px 0;">💻 <strong>Format:</strong> Live Zoom Session</p>
             </div>
