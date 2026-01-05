@@ -632,7 +632,7 @@ export function AMARegistrationsTab() {
             <div className="space-y-2">
               <Label>Event Date & Time</Label>
               <Input
-                placeholder="January 15, 2025 at 6-7pm CST"
+                placeholder="January 15, 2026 at 6-7pm CST"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
               />
