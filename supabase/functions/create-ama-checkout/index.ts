@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, fullName, currentRole, question } = await req.json();
+    const { email, fullName, currentRole, question, eventDate } = await req.json();
     
     if (!email || !fullName) {
       throw new Error("Email and full name are required");
@@ -51,6 +51,7 @@ serve(async (req) => {
         currentRole: currentRole || "",
         question: question || "",
         eventType: "ama_event",
+        eventDate: eventDate || "",
       },
     });
 

@@ -66,6 +66,7 @@ serve(async (req) => {
             agrees_to_communication: true,
             understands_beta_terms: true,
             status: "paid",
+            event_date: metadata.eventDate || null,
           })
           .select()
           .single();

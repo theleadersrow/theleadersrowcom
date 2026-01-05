@@ -94,6 +94,7 @@ const AMAEvents = () => {
           fullName: formData.fullName,
           currentRole: formData.currentRole,
           question: formData.question,
+          eventDate: "2026-01-21",
         },
       });
 

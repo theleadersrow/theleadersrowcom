@@ -348,6 +348,7 @@ export type Database = {
           created_at: string
           current_position: string
           email: string
+          event_date: string | null
           full_name: string
           id: string
           invited_at: string | null
@@ -367,6 +368,7 @@ export type Database = {
           created_at?: string
           current_position: string
           email: string
+          event_date?: string | null
           full_name: string
           id?: string
           invited_at?: string | null
@@ -386,6 +388,7 @@ export type Database = {
           created_at?: string
           current_position?: string
           email?: string
+          event_date?: string | null
           full_name?: string
           id?: string
           invited_at?: string | null
