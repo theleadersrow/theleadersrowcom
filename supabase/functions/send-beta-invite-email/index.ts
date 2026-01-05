@@ -14,6 +14,7 @@ interface InviteEmailRequest {
   email: string;
   zoomLink: string;
   customMessage?: string;
+  toolType?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -22,14 +23,51 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, zoomLink, customMessage }: InviteEmailRequest = await req.json();
+    const { name, email, zoomLink, customMessage, toolType }: InviteEmailRequest = await req.json();
 
-    console.log(`Sending beta invite to ${email}`);
+    console.log(`Sending beta invite to ${email} for tool: ${toolType || 'resume_suite'}`);
+
+    const isLinkedIn = toolType === "linkedin_signal";
+    const toolName = isLinkedIn ? "LinkedIn Signal Score" : "Resume Intelligence Suite";
+    const toolEmoji = isLinkedIn ? "🔗" : "📄";
+
+    // Tool-specific preparation instructions
+    const prepareInstructions = isLinkedIn ? `
+      <ul style="font-size: 14px; padding-left: 20px;">
+        <li>Have your LinkedIn profile URL ready</li>
+        <li>Know the role(s) you're targeting</li>
+        <li>Come with questions about LinkedIn optimization</li>
+      </ul>
+    ` : `
+      <ul style="font-size: 14px; padding-left: 20px;">
+        <li>Have your current resume ready (PDF or Word)</li>
+        <li>Know the role(s) you're targeting</li>
+        <li>Come with questions about resume optimization</li>
+      </ul>
+    `;
+
+    // Tool-specific session details
+    const sessionDetails = isLinkedIn ? `
+      <ul style="font-size: 14px; padding-left: 20px;">
+        <li>Walk through the LinkedIn Signal Score experience</li>
+        <li>Analyze your profile's visibility and impact</li>
+        <li>Identify gaps in headline, summary, and experience sections</li>
+        <li>Get a prioritized improvement checklist</li>
+        <li>Share feedback to help us improve</li>
+      </ul>
+    ` : `
+      <ul style="font-size: 14px; padding-left: 20px;">
+        <li>Walk through the Resume Intelligence experience with guided prompts</li>
+        <li>Identify gaps in your resume (impact, keywords, role-fit)</li>
+        <li>Get a prioritized improvement checklist</li>
+        <li>Share feedback to help us improve</li>
+      </ul>
+    `;
 
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
-      subject: "You're Invited! Resume Intelligence Suite Beta Testing - Jan 6",
+      subject: `You're Invited! ${toolName} Beta Testing - Jan 6`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -40,17 +78,17 @@ const handler = async (req: Request): Promise<Response> => {
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
             <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎉 You're Invited!</h1>
-            <p style="color: #e0e0e0; margin-top: 10px; font-size: 16px;">Resume Intelligence Suite Beta Testing</p>
+            <p style="color: #e0e0e0; margin-top: 10px; font-size: 16px;">${toolEmoji} ${toolName} Beta Testing</p>
           </div>
           
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
             <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name},</p>
             
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Great news! You've been selected to participate in our <strong>Resume Intelligence Suite Live Beta Testing</strong> session.
+              Great news! You've been selected to participate in our <strong>${toolName} Live Beta Testing</strong> session.
             </p>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5;">
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${isLinkedIn ? '#0077b5' : '#4f46e5'};">
               <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 18px;">Event Details</p>
               <p style="margin: 5px 0;">📅 <strong>Date:</strong> Tuesday, January 6, 2026</p>
               <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–8:00 PM Central (CT)</p>
@@ -58,13 +96,13 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${zoomLink}" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+              <a href="${zoomLink}" style="background: linear-gradient(135deg, ${isLinkedIn ? '#0077b5 0%, #005582' : '#4f46e5 0%, #7c3aed'} 100%); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
                 🎥 Join Zoom Meeting
               </a>
             </div>
             
             <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
-              <strong>Zoom Link:</strong> <a href="${zoomLink}" style="color: #4f46e5;">${zoomLink}</a>
+              <strong>Zoom Link:</strong> <a href="${zoomLink}" style="color: ${isLinkedIn ? '#0077b5' : '#4f46e5'};">${zoomLink}</a>
             </p>
             
             ${customMessage ? `
@@ -74,19 +112,10 @@ const handler = async (req: Request): Promise<Response> => {
             ` : ''}
             
             <h3 style="margin-top: 30px; margin-bottom: 15px;">What to Prepare</h3>
-            <ul style="font-size: 14px; padding-left: 20px;">
-              <li>Have your current resume ready (PDF or Word)</li>
-              <li>Know the role(s) you're targeting</li>
-              <li>Come with questions about resume optimization</li>
-            </ul>
+            ${prepareInstructions}
             
             <h3 style="margin-top: 30px; margin-bottom: 15px;">During the Session</h3>
-            <ul style="font-size: 14px; padding-left: 20px;">
-              <li>Walk through the Resume Intelligence experience with guided prompts</li>
-              <li>Identify gaps in your resume (impact, keywords, role-fit)</li>
-              <li>Get a prioritized improvement checklist</li>
-              <li>Share feedback to help us improve</li>
-            </ul>
+            ${sessionDetails}
             
             <p style="font-size: 16px; margin-top: 30px;">
               We're excited to have you join us!
