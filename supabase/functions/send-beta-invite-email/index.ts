@@ -49,7 +49,7 @@ const getToolConfig = (toolType: string) => {
         emoji: "🎤",
         color: "#10b981",
         gradientEnd: "#059669",
-        date: "Thursday, January 9, 2026",
+        date: "Friday, January 9, 2026",
         prepareInstructions: `
           <ul style="font-size: 14px; padding-left: 20px;">
             <li>Know your target company and role level</li>
