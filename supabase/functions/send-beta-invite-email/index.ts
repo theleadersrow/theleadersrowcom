@@ -17,6 +17,105 @@ interface InviteEmailRequest {
   toolType?: string;
 }
 
+const getToolConfig = (toolType: string) => {
+  switch (toolType) {
+    case "linkedin_signal":
+      return {
+        name: "LinkedIn Signal Score",
+        emoji: "🔗",
+        color: "#0077b5",
+        gradientEnd: "#005582",
+        date: "Wednesday, January 7, 2025",
+        prepareInstructions: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Have your LinkedIn profile URL ready</li>
+            <li>Know the role(s) you're targeting</li>
+            <li>Come with questions about LinkedIn optimization</li>
+          </ul>
+        `,
+        sessionDetails: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Walk through the LinkedIn Signal Score experience</li>
+            <li>Analyze your profile's visibility and impact</li>
+            <li>Identify gaps in headline, summary, and experience sections</li>
+            <li>Get a prioritized improvement checklist</li>
+            <li>Share feedback to help us improve</li>
+          </ul>
+        `,
+      };
+    case "interview_prep":
+      return {
+        name: "Interview Prep",
+        emoji: "🎤",
+        color: "#10b981",
+        gradientEnd: "#059669",
+        date: "Thursday, January 9, 2025",
+        prepareInstructions: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Know your target company and role level</li>
+            <li>Have 2-3 STAR stories ready to practice</li>
+            <li>Come with questions about interview techniques</li>
+          </ul>
+        `,
+        sessionDetails: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Walk through the Interview Prep tool experience</li>
+            <li>Practice company-specific mock interview questions</li>
+            <li>Get real-time AI feedback on your answers</li>
+            <li>Identify areas for improvement</li>
+            <li>Share feedback to help us improve</li>
+          </ul>
+        `,
+      };
+    case "advisor":
+      return {
+        name: "AI Personal Advisor",
+        emoji: "🤖",
+        color: "#8b5cf6",
+        gradientEnd: "#7c3aed",
+        date: "TBD",
+        prepareInstructions: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Think about your current career challenges</li>
+            <li>Have specific questions or decisions you need guidance on</li>
+            <li>Come ready to explore goal-setting features</li>
+          </ul>
+        `,
+        sessionDetails: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Walk through the AI Advisor experience</li>
+            <li>Get personalized career guidance</li>
+            <li>Explore goal tracking and accountability features</li>
+            <li>Share feedback to help us improve</li>
+          </ul>
+        `,
+      };
+    default: // resume_suite
+      return {
+        name: "Resume Intelligence Suite",
+        emoji: "📄",
+        color: "#4f46e5",
+        gradientEnd: "#7c3aed",
+        date: "Monday, January 6, 2025",
+        prepareInstructions: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Have your current resume ready (PDF or Word)</li>
+            <li>Know the role(s) you're targeting</li>
+            <li>Come with questions about resume optimization</li>
+          </ul>
+        `,
+        sessionDetails: `
+          <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Walk through the Resume Intelligence experience with guided prompts</li>
+            <li>Identify gaps in your resume (impact, keywords, role-fit)</li>
+            <li>Get a prioritized improvement checklist</li>
+            <li>Share feedback to help us improve</li>
+          </ul>
+        `,
+      };
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,47 +126,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending beta invite to ${email} for tool: ${toolType || 'resume_suite'}`);
 
-    const isLinkedIn = toolType === "linkedin_signal";
-    const toolName = isLinkedIn ? "LinkedIn Signal Score" : "Resume Intelligence Suite";
-    const toolEmoji = isLinkedIn ? "🔗" : "📄";
-
-    // Tool-specific preparation instructions
-    const prepareInstructions = isLinkedIn ? `
-      <ul style="font-size: 14px; padding-left: 20px;">
-        <li>Have your LinkedIn profile URL ready</li>
-        <li>Know the role(s) you're targeting</li>
-        <li>Come with questions about LinkedIn optimization</li>
-      </ul>
-    ` : `
-      <ul style="font-size: 14px; padding-left: 20px;">
-        <li>Have your current resume ready (PDF or Word)</li>
-        <li>Know the role(s) you're targeting</li>
-        <li>Come with questions about resume optimization</li>
-      </ul>
-    `;
-
-    // Tool-specific session details
-    const sessionDetails = isLinkedIn ? `
-      <ul style="font-size: 14px; padding-left: 20px;">
-        <li>Walk through the LinkedIn Signal Score experience</li>
-        <li>Analyze your profile's visibility and impact</li>
-        <li>Identify gaps in headline, summary, and experience sections</li>
-        <li>Get a prioritized improvement checklist</li>
-        <li>Share feedback to help us improve</li>
-      </ul>
-    ` : `
-      <ul style="font-size: 14px; padding-left: 20px;">
-        <li>Walk through the Resume Intelligence experience with guided prompts</li>
-        <li>Identify gaps in your resume (impact, keywords, role-fit)</li>
-        <li>Get a prioritized improvement checklist</li>
-        <li>Share feedback to help us improve</li>
-      </ul>
-    `;
+    const config = getToolConfig(toolType || "resume_suite");
 
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
-      subject: `You're Invited! ${toolName} Beta Testing - Jan 6`,
+      subject: `You're Invited! ${config.name} Beta Testing - ${config.date.split(',')[1]?.trim() || config.date}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -78,31 +142,31 @@ const handler = async (req: Request): Promise<Response> => {
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
             <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎉 You're Invited!</h1>
-            <p style="color: #e0e0e0; margin-top: 10px; font-size: 16px;">${toolEmoji} ${toolName} Beta Testing</p>
+            <p style="color: #e0e0e0; margin-top: 10px; font-size: 16px;">${config.emoji} ${config.name} Beta Testing</p>
           </div>
           
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
             <p style="font-size: 16px; margin-bottom: 20px;">Hi ${name},</p>
             
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Great news! You've been selected to participate in our <strong>${toolName} Live Beta Testing</strong> session.
+              Great news! You've been selected to participate in our <strong>${config.name} Live Beta Testing</strong> session.
             </p>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${isLinkedIn ? '#0077b5' : '#4f46e5'};">
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
               <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 18px;">Event Details</p>
-              <p style="margin: 5px 0;">📅 <strong>Date:</strong> ${isLinkedIn ? 'Wednesday, January 7, 2025' : 'Tuesday, January 6, 2025'}</p>
+              <p style="margin: 5px 0;">📅 <strong>Date:</strong> ${config.date}</p>
               <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–8:00 PM Central (CT)</p>
               <p style="margin: 5px 0;">💻 <strong>Format:</strong> Live Zoom Session</p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${zoomLink}" style="background: linear-gradient(135deg, ${isLinkedIn ? '#0077b5 0%, #005582' : '#4f46e5 0%, #7c3aed'} 100%); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
+              <a href="${zoomLink}" style="background: linear-gradient(135deg, ${config.color} 0%, ${config.gradientEnd} 100%); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
                 🎥 Join Zoom Meeting
               </a>
             </div>
             
             <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
-              <strong>Zoom Link:</strong> <a href="${zoomLink}" style="color: ${isLinkedIn ? '#0077b5' : '#4f46e5'};">${zoomLink}</a>
+              <strong>Zoom Link:</strong> <a href="${zoomLink}" style="color: ${config.color};">${zoomLink}</a>
             </p>
             
             ${customMessage ? `
@@ -112,10 +176,10 @@ const handler = async (req: Request): Promise<Response> => {
             ` : ''}
             
             <h3 style="margin-top: 30px; margin-bottom: 15px;">What to Prepare</h3>
-            ${prepareInstructions}
+            ${config.prepareInstructions}
             
             <h3 style="margin-top: 30px; margin-bottom: 15px;">During the Session</h3>
-            ${sessionDetails}
+            ${config.sessionDetails}
             
             <p style="font-size: 16px; margin-top: 30px;">
               We're excited to have you join us!
