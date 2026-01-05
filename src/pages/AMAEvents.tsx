@@ -34,7 +34,7 @@ const faqs = [
   },
   {
     question: "When does the AMA happen?",
-    answer: "The AMA takes place once a month, on the third Wednesday, from 6-7pm CST. You'll receive the Zoom link via email 24 hours before the event."
+    answer: "The AMA takes place once a month, on the third Wednesday, from 7-9pm CST. You'll receive the Zoom link via email 24 hours before the event."
   },
   {
     question: "What if I can't attend live?",
@@ -59,9 +59,9 @@ const AMAEvents = () => {
   });
 
   const nextEvent = {
-    title: "Monthly AMA: Career Acceleration",
+    title: "Monthly AMA (Ask Me Anything): Career Acceleration",
     date: "Third Wednesday of Every Month",
-    time: "6-7pm CST",
+    time: "7-9pm CST",
     description: "A live, no-fluff Q&A session where you get direct answers to your toughest career questions—from leveling up and negotiating offers to navigating transitions and building executive presence.",
   };
 
@@ -161,7 +161,7 @@ const AMAEvents = () => {
               Monthly Live Event
             </div>
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6">
-              Monthly AMA: Career Acceleration
+              Monthly AMA (Ask Me Anything): Career Acceleration
             </h1>
             <p className="text-lg text-muted-foreground mb-4">
               Get unstuck. Get answers. Get ahead.
@@ -206,24 +206,6 @@ const AMAEvents = () => {
                   </p>
                 </div>
 
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  What This Session Will Help You With
-                </h3>
-                <ul className="space-y-3">
-                  {[
-                    "Get direct advice from leaders who've worked at FAANG and top tech companies",
-                    "Ask your toughest career questions and get honest, unscripted answers",
-                    "Make real connections with peers navigating similar career challenges",
-                    "Receive personalized guidance on leveling up, negotiating, and positioning yourself",
-                    "Interact live with experts—no fluff, no sales pitch, just real talk",
-                    "Learn from others' questions and gain insights you didn't know you needed",
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-muted-foreground">
-                      <CheckCircle className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
 
               {/* Registration Form */}
