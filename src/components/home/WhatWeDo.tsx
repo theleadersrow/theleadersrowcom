@@ -17,15 +17,15 @@ interface Offering {
 }
 
 const offerings: Offering[] = [
-  { icon: Compass, text: "Clarity on where you stand and where you're going — including your level, positioning, and next career move" },
-  { icon: Award, text: "A clear, confident professional brand that reflects your impact and leadership potential" },
-  { icon: MessageSquare, text: "Practical tools to influence, inspire, and lead in high-stakes conversations" },
-  { icon: Rocket, text: "Accelerated path into higher-visibility, higher-impact roles" },
-  { icon: TrendingUp, text: "A mindset shift from \"performing well\" to operating at the next level" },
-  { icon: Calendar, text: "Weekly skill development that strengthens decision-making, judgment, and leadership presence" },
-  { icon: Target, text: "Personalized coaching that targets your specific gaps — not generic advice" },
-  { icon: Users, text: "Access to a focused community of ambitious, high-caliber professionals" },
-  { icon: Shield, text: "The confidence to speak, act, and negotiate as a trusted, high-impact leader" },
+  { icon: Compass, text: "Clarity on your level, positioning & next move" },
+  { icon: Award, text: "A professional brand that reflects your impact" },
+  { icon: MessageSquare, text: "Tools to influence & lead high-stakes conversations" },
+  { icon: Rocket, text: "Accelerated path to higher-impact roles" },
+  { icon: TrendingUp, text: "Mindset shift to operating at the next level" },
+  { icon: Calendar, text: "Weekly skill-building for sharper judgment" },
+  { icon: Target, text: "Personalized coaching for your specific gaps" },
+  { icon: Users, text: "Community of ambitious, high-caliber professionals" },
+  { icon: Shield, text: "Confidence to negotiate as a trusted leader" },
 ];
 
 const WhatWeDo = () => {
