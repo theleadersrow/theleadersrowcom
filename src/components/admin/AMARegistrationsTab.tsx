@@ -847,51 +847,93 @@ export function AMARegistrationsTab() {
             {previewType === "invite" ? (
               <div className="border rounded-lg overflow-hidden">
                 <div className="bg-muted px-4 py-2 border-b">
-                  <p className="text-sm"><strong>Subject:</strong> 🎉 You're Invited: RIMO Monthly Career Acceleration AMA</p>
-                  <p className="text-sm"><strong>From:</strong> RIMO &lt;events@rimocareers.com&gt;</p>
+                  <p className="text-sm"><strong>Subject:</strong> 🎤 You're Invited! Monthly AMA: Career Acceleration - {eventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</p>
+                  <p className="text-sm"><strong>From:</strong> The Leader's Row &lt;hello@theleadersrow.com&gt;</p>
                 </div>
-                <div className="p-4 bg-background">
-                  <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-                    <div className="text-center mb-6">
-                      <div className="text-4xl mb-2">🎉</div>
-                      <h1 className="text-xl font-bold">You're Invited!</h1>
-                      <p className="text-muted-foreground">Monthly Career Acceleration AMA</p>
+                <div className="p-0 bg-background">
+                  <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+                    {/* Header */}
+                    <div style={{ background: 'linear-gradient(135deg, #1a1f2e 0%, #2d3548 100%)', padding: '30px', textAlign: 'center' }}>
+                      <h1 style={{ color: '#d4a853', margin: 0, fontSize: '28px' }}>🎤 You're Invited!</h1>
+                      <p style={{ color: '#e0e0e0', marginTop: '10px', fontSize: '18px' }}>Monthly AMA: Career Acceleration</p>
                     </div>
                     
-                    <p>Hi [Name],</p>
-                    <p className="mt-4">Great news! Your spot is confirmed for our upcoming Monthly Career Acceleration AMA session.</p>
-                    
-                    <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg p-4 my-4 text-center">
-                      <h2 className="font-bold mb-2">📅 Event Details</h2>
-                      <p><strong>Date & Time:</strong> {eventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</p>
-                      <p className="mt-2"><strong>Duration:</strong> 2 hours</p>
-                    </div>
-                    
-                    {eventLink && (
-                      <div className="text-center my-4">
-                        <span className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">
-                          Join Zoom Meeting →
+                    {/* Body */}
+                    <div style={{ padding: '30px' }}>
+                      <p style={{ fontSize: '16px', marginBottom: '20px' }}>Hi [First Name],</p>
+                      
+                      <p style={{ fontSize: '16px', marginBottom: '20px' }}>
+                        Thank you for registering for our <strong>Monthly AMA (Ask Me Anything): Career Acceleration</strong> session! Here are your event details:
+                      </p>
+                      
+                      {/* Event Details Box */}
+                      <div style={{ background: '#1a1f2e', color: '#fff', padding: '25px', borderRadius: '8px', margin: '25px 0' }}>
+                        <h3 style={{ color: '#d4a853', margin: '0 0 15px 0', fontSize: '18px' }}>📅 Event Details</h3>
+                        <p style={{ margin: '8px 0', fontSize: '15px' }}>🗓️ <strong>Date & Time:</strong> {eventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</p>
+                        <p style={{ margin: '8px 0', fontSize: '15px' }}>💻 <strong>Format:</strong> Live Zoom Q&A Session</p>
+                        <p style={{ margin: '8px 0', fontSize: '15px' }}>⏱️ <strong>Duration:</strong> 2 hours</p>
+                      </div>
+                      
+                      {/* Zoom Button */}
+                      <div style={{ textAlign: 'center', margin: '30px 0' }}>
+                        <span style={{ background: 'linear-gradient(135deg, #d4a853 0%, #b8942e 100%)', color: '#1a1f2e', padding: '16px 32px', borderRadius: '8px', fontWeight: 700, display: 'inline-block', fontSize: '16px' }}>
+                          🎥 Join Zoom Meeting
                         </span>
                       </div>
-                    )}
-                    
-                    {customMessage && (
-                      <div className="bg-amber-50 border-l-4 border-amber-400 p-3 my-4">
-                        <p className="text-amber-800">{customMessage}</p>
+                      
+                      {eventLink && (
+                        <p style={{ fontSize: '14px', color: '#666', marginBottom: '25px', textAlign: 'center' }}>
+                          <strong>Zoom Link:</strong> <span style={{ color: '#d4a853' }}>{eventLink}</span>
+                        </p>
+                      )}
+                      
+                      {customMessage && (
+                        <div style={{ background: '#f8f9fa', borderLeft: '4px solid #d4a853', padding: '15px 20px', borderRadius: '0 8px 8px 0', margin: '25px 0' }}>
+                          <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{customMessage}</p>
+                        </div>
+                      )}
+                      
+                      {/* What to Expect */}
+                      <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', margin: '25px 0' }}>
+                        <h3 style={{ margin: '0 0 15px 0', color: '#1a1f2e', fontSize: '16px' }}>📝 What to Expect</h3>
+                        <ul style={{ fontSize: '14px', paddingLeft: '20px', margin: 0, color: '#555' }}>
+                          <li style={{ marginBottom: '8px' }}>Live, unscripted Q&A with career experts</li>
+                          <li style={{ marginBottom: '8px' }}>Direct answers to your career questions</li>
+                          <li style={{ marginBottom: '8px' }}>Topics: leveling up, negotiating offers, career transitions, executive presence</li>
+                          <li style={{ marginBottom: '8px' }}>Hear from peers facing similar challenges</li>
+                        </ul>
                       </div>
-                    )}
-                    
-                    <div className="bg-muted rounded-lg p-4 my-4">
-                      <h3 className="font-bold mb-2">What to expect:</h3>
-                      <ul className="list-disc list-inside space-y-1 text-sm">
-                        <li>Live Q&A with career acceleration experts</li>
-                        <li>Real strategies for landing $200K+ roles</li>
-                        <li>Network with other ambitious professionals</li>
-                        <li>Personalized advice for your career situation</li>
-                      </ul>
+                      
+                      {/* Tips */}
+                      <div style={{ background: '#fff9e6', padding: '20px', borderRadius: '8px', margin: '25px 0' }}>
+                        <h3 style={{ margin: '0 0 15px 0', color: '#1a1f2e', fontSize: '16px' }}>💡 Tips for the Session</h3>
+                        <ul style={{ fontSize: '14px', paddingLeft: '20px', margin: 0, color: '#555' }}>
+                          <li style={{ marginBottom: '8px' }}>Join a few minutes early to get settled</li>
+                          <li style={{ marginBottom: '8px' }}>Have your questions ready (or think of new ones during the session!)</li>
+                          <li style={{ marginBottom: '8px' }}>Use the chat or raise hand feature to ask questions</li>
+                          <li style={{ marginBottom: '8px' }}>Take notes on insights that resonate with you</li>
+                        </ul>
+                      </div>
+                      
+                      <p style={{ fontSize: '16px', marginTop: '30px' }}>
+                        We're excited to have you join us for this interactive session!
+                      </p>
+                      
+                      <p style={{ fontSize: '14px', color: '#666', marginTop: '20px' }}>
+                        Questions? Reply to this email or reach out to us at <span style={{ color: '#d4a853' }}>theleadersrow@gmail.com</span>
+                      </p>
+                      
+                      <p style={{ fontSize: '16px', marginTop: '25px', marginBottom: 0 }}>
+                        See you there!<br/><br/>
+                        <strong>The Leader's Row Team</strong>
+                      </p>
                     </div>
                     
-                    <p className="mt-6">Best,<br/><strong>The RIMO Team</strong></p>
+                    {/* Footer */}
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#888', fontSize: '12px' }}>
+                      <p style={{ margin: '5px 0' }}>© 2026 The Leader's Row. All rights reserved.</p>
+                      <p style={{ margin: '5px 0' }}><span style={{ color: '#d4a853' }}>theleadersrow.com</span></p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -899,50 +941,62 @@ export function AMARegistrationsTab() {
               <div className="border rounded-lg overflow-hidden">
                 <div className="bg-muted px-4 py-2 border-b">
                   <p className="text-sm"><strong>Subject:</strong> 🔔 Reminder: Your AMA Session is Coming Up!</p>
-                  <p className="text-sm"><strong>From:</strong> RIMO &lt;events@rimocareers.com&gt;</p>
+                  <p className="text-sm"><strong>From:</strong> Leaders Row &lt;events@rimocareers.com&gt;</p>
                 </div>
-                <div className="p-4 bg-background">
-                  <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-                    <div className="text-center mb-6">
-                      <div className="text-4xl mb-2">🔔</div>
-                      <h1 className="text-xl font-bold">Event Reminder</h1>
-                      <p className="text-muted-foreground">Your AMA Session is Coming Up!</p>
-                    </div>
-                    
-                    <p>Hi [Name],</p>
-                    <p className="mt-4">This is a friendly reminder about the upcoming <strong>Monthly Career Acceleration AMA</strong> session!</p>
-                    
-                    <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg p-4 my-4 text-center">
-                      <h2 className="font-bold mb-2">📅 Event Details</h2>
-                      <p className="text-lg"><strong>{reminderEventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</strong></p>
-                    </div>
-                    
-                    {reminderMessage && (
-                      <div className="bg-amber-50 border-l-4 border-amber-400 p-3 my-4">
-                        <p className="text-amber-800">{reminderMessage}</p>
+                <div className="p-0 bg-background">
+                  <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: '600px', margin: '0 auto', padding: '20px', backgroundColor: '#f5f5f5' }}>
+                    <div style={{ background: 'white', borderRadius: '12px', padding: '40px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                        <div style={{ fontSize: '48px', marginBottom: '10px' }}>🔔</div>
+                        <h1 style={{ color: '#1a1a1a', fontSize: '24px', margin: 0 }}>Event Reminder</h1>
+                        <p style={{ color: '#6b7280', marginTop: '5px' }}>Your AMA Session is Coming Up!</p>
                       </div>
-                    )}
-                    
-                    {reminderZoomLink && (
-                      <div className="text-center my-4">
-                        <span className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">
-                          Join Zoom Meeting →
-                        </span>
+                      
+                      <p style={{ fontSize: '16px' }}>Hi [Name],</p>
+                      
+                      <p style={{ fontSize: '16px' }}>This is a friendly reminder about the upcoming <strong>Monthly Career Acceleration AMA</strong> session!</p>
+                      
+                      <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '12px', padding: '25px', margin: '25px 0', color: 'white', textAlign: 'center' }}>
+                        <h2 style={{ margin: '0 0 15px 0', fontSize: '20px' }}>📅 Event Details</h2>
+                        <p style={{ margin: '5px 0', fontSize: '18px' }}><strong>{reminderEventDate || "Wednesday, January 21, 2026 at 7-9pm CST"}</strong></p>
                       </div>
-                    )}
-                    
-                    <div className="bg-green-50 rounded-lg p-4 my-4">
-                      <h3 className="font-bold text-green-800 mb-2">💡 Quick Reminders:</h3>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-green-700">
-                        <li>Join 5 minutes early to test your audio/video</li>
-                        <li>Have your questions ready</li>
-                        <li>Bring a notepad to capture insights</li>
-                        <li>Engage with other attendees' questions for bonus value</li>
-                      </ul>
+                      
+                      {reminderMessage && (
+                        <div style={{ background: '#fef3c7', borderLeft: '4px solid #f59e0b', borderRadius: '0 8px 8px 0', padding: '15px', margin: '20px 0' }}>
+                          <p style={{ margin: 0, color: '#92400e' }}>{reminderMessage}</p>
+                        </div>
+                      )}
+                      
+                      {reminderZoomLink && (
+                        <div style={{ textAlign: 'center', margin: '30px 0' }}>
+                          <span style={{ display: 'inline-block', background: '#2563eb', color: 'white', padding: '16px 40px', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px' }}>Join Zoom Meeting</span>
+                        </div>
+                      )}
+                      
+                      <div style={{ background: '#f0fdf4', borderRadius: '8px', padding: '20px', margin: '20px 0' }}>
+                        <h3 style={{ margin: '0 0 15px 0', color: '#166534', fontSize: '16px' }}>💡 Quick Reminders:</h3>
+                        <ul style={{ margin: 0, paddingLeft: '20px', color: '#15803d' }}>
+                          <li style={{ marginBottom: '8px' }}>Join 5 minutes early to test your audio/video</li>
+                          <li style={{ marginBottom: '8px' }}>Have your questions ready</li>
+                          <li style={{ marginBottom: '8px' }}>Bring a notepad to capture insights</li>
+                          <li>Engage with other attendees' questions for bonus value</li>
+                        </ul>
+                      </div>
+                      
+                      <p style={{ fontSize: '16px' }}>We're excited to see you there!</p>
+                      
+                      <p style={{ marginTop: '30px', fontSize: '16px' }}>
+                        Best regards,<br/>
+                        <strong>The Leaders Row Team</strong>
+                      </p>
                     </div>
                     
-                    <p className="mt-6">We're excited to see you there!</p>
-                    <p className="mt-4">Best regards,<br/><strong>The RIMO Team</strong></p>
+                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                      <p style={{ fontSize: '12px', color: '#6b7280' }}>
+                        You're receiving this because you registered for the Leaders Row Monthly AMA.<br/>
+                        <span style={{ color: '#6b7280' }}>Contact Support</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
