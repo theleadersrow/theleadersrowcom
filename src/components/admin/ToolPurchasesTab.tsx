@@ -28,9 +28,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { RefreshCw, FileText, Linkedin, Clock, CheckCircle, Mail, CalendarClock, Send, MoreHorizontal, Pencil, RotateCcw, XCircle, CalendarPlus } from "lucide-react";
-import { format, formatDistanceToNow, isPast, differenceInDays, addMonths } from "date-fns";
+import { RefreshCw, FileText, Linkedin, Clock, CheckCircle, Mail, CalendarClock, Send, MoreHorizontal, Pencil, RotateCcw, XCircle, CalendarPlus, Search, X } from "lucide-react";
+import { format, formatDistanceToNow, isPast, differenceInDays, addMonths, isAfter, isBefore, parseISO, startOfDay, endOfDay } from "date-fns";
+import { useMemo } from "react";
 
 interface ToolPurchase {
   id: string;
@@ -51,6 +59,12 @@ export function ToolPurchasesTab() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "resume_suite" | "linkedin_signal">("all");
   const [view, setView] = useState<"all" | "expiring" | "reminders">("all");
+  
+  // Additional filters
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "expired" | "cancelled">("all");
+  const [emailSearch, setEmailSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -262,19 +276,59 @@ export function ToolPurchasesTab() {
   // Purchases with reminders sent
   const remindersSent = purchases.filter(p => p.reminder_sent_at !== null);
 
-  // Get filtered data based on view
-  const getDisplayPurchases = () => {
+  // Get filtered data based on view and additional filters
+  const displayPurchases = useMemo(() => {
+    let result: ToolPurchase[];
+    
     switch (view) {
       case "expiring":
-        return expiringSoon;
+        result = expiringSoon;
+        break;
       case "reminders":
-        return remindersSent;
+        result = remindersSent;
+        break;
       default:
-        return purchases;
+        result = purchases;
     }
-  };
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      result = result.filter(p => {
+        const isExpired = isPast(new Date(p.expires_at));
+        if (statusFilter === "active") return p.status === "active" && !isExpired;
+        if (statusFilter === "expired") return p.status === "expired" || isExpired;
+        if (statusFilter === "cancelled") return p.status === "cancelled";
+        return true;
+      });
+    }
+    
+    // Apply email search
+    if (emailSearch.trim()) {
+      const searchLower = emailSearch.toLowerCase().trim();
+      result = result.filter(p => p.email.toLowerCase().includes(searchLower));
+    }
+    
+    // Apply date range filter (on purchased_at)
+    if (dateFrom) {
+      const fromDate = startOfDay(parseISO(dateFrom));
+      result = result.filter(p => isAfter(new Date(p.purchased_at), fromDate) || format(new Date(p.purchased_at), 'yyyy-MM-dd') === dateFrom);
+    }
+    if (dateTo) {
+      const toDate = endOfDay(parseISO(dateTo));
+      result = result.filter(p => isBefore(new Date(p.purchased_at), toDate) || format(new Date(p.purchased_at), 'yyyy-MM-dd') === dateTo);
+    }
+    
+    return result;
+  }, [view, expiringSoon, remindersSent, purchases, statusFilter, emailSearch, dateFrom, dateTo]);
 
-  const displayPurchases = getDisplayPurchases();
+  const hasActiveFilters = statusFilter !== "all" || emailSearch || dateFrom || dateTo;
+  
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setEmailSearch("");
+    setDateFrom("");
+    setDateTo("");
+  };
 
   return (
     <div className="space-y-6">
@@ -372,6 +426,61 @@ export function ToolPurchasesTab() {
             Refresh
           </Button>
         </div>
+      </div>
+
+      {/* Additional Filters */}
+      <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg">
+        {/* Email Search */}
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by email..."
+            value={emailSearch}
+            onChange={(e) => setEmailSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Status Filter */}
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="expired">Expired</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Date Range */}
+        <div className="flex items-center gap-2">
+          <Label className="text-sm text-muted-foreground whitespace-nowrap">From:</Label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-[140px]"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-sm text-muted-foreground whitespace-nowrap">To:</Label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-[140px]"
+          />
+        </div>
+
+        {/* Clear Filters */}
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="w-4 h-4 mr-1" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Purchases Table */}
