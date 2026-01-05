@@ -83,7 +83,7 @@ const Guide = () => {
                   FREE RESOURCE
                 </span>
                 <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
-                  200K Method Quick Start Guide
+                  The 200K Method Quick Start Guide
                 </h1>
                 <p className="text-lg text-cream/80 mb-8 leading-relaxed">
                   Discover the 3 key strategies that separate $200K+ Product Leaders from everyone else. 

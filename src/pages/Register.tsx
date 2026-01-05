@@ -374,7 +374,7 @@ const Register = () => {
                       <SelectValue placeholder="Choose a program" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="200k-method">200K Method ($2,000)</SelectItem>
+                      <SelectItem value="200k-method">The 200K Method ($2,000)</SelectItem>
                       <SelectItem value="weekly-edge">Weekly Edge ($100/month)</SelectItem>
                     </SelectContent>
                   </Select>

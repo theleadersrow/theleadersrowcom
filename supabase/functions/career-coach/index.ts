@@ -210,7 +210,7 @@ Based on your assessment and goal of [their goal], here is what I recommend:
 
 **If they need comprehensive career transformation (new role, big tech, major level jump):**
 
-🎯 **The 200K Method** - 8-Week Career Acceleration Program
+🎯 **The 200K Method** - Career Recalibration for Product Leaders
 
 This program is ideal for you because:
 - [Specific reason tied to their Gap 1]
