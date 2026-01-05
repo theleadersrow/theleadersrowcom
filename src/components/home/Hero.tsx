@@ -68,7 +68,7 @@ const Hero = () => {
           
           {/* Headline */}
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-4 sm:mb-6 opacity-0 animate-fade-up delay-100 leading-tight px-2">
-            Enabling Ambitious Professionals Break Into <span className="text-gradient-gold">Top 10% Leadership Roles</span>
+            Helping Ambitious Professionals Reach the <span className="text-gradient-gold">Top 10% of Leadership Roles</span>
           </h1>
           
           {/* Subheadline */}
@@ -76,7 +76,7 @@ const Hero = () => {
             Clarity. Confidence. A proven system.
           </p>
           <div className="text-sm sm:text-base lg:text-lg text-cream/70 max-w-2xl mx-auto mb-6 sm:mb-8 space-y-1.5 sm:space-y-2 opacity-0 animate-fade-up delay-250 px-4">
-            <p>Stop guessing your worth.</p>
+            <p>Stop guessing what's holding you back.</p>
             <p>Master the skills that drive promotions and higher pay.</p>
             <p>Live coaching. Ambitious community. Real results.</p>
           </div>
