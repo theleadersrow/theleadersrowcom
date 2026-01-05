@@ -191,12 +191,13 @@ export function AMARegistrationsTab() {
 
     try {
       for (const reg of pendingSelected) {
-        await supabase.functions.invoke("send-beta-invite-email", {
+        await supabase.functions.invoke("send-ama-invite-email", {
           body: {
             name: reg.full_name,
             email: reg.email,
             zoomLink: eventLink.trim(),
-            customMessage: `${eventDate ? `Event Date: ${eventDate}\n\n` : ''}${customMessage.trim()}`,
+            eventDateTime: eventDate.trim(),
+            customMessage: customMessage.trim() || undefined,
           },
         });
 
