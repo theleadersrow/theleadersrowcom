@@ -66,50 +66,37 @@ const modules = [
 
 const whoIsFor = [
   {
-    label: "Experienced PMs",
-    description: "You have 3+ years in Product and have mastered the fundamentals.",
+    label: "Strong Executors",
+    description: "PMs who are strong executors but under-leveled for their actual impact.",
   },
   {
-    label: "The Strategically Stuck",
-    description: "You are a Senior PM (or equivalent) aiming for GPM, Principal, or Director roles.",
+    label: "Title-Stuck Leaders",
+    description: "Leaders stuck at the same title despite growing scope and responsibility.",
   },
   {
-    label: "The Undervalued",
-    description: "You need to bridge the gap between your impact and your current compensation/title.",
-  },
-  {
-    label: "The Brand Builder",
-    description: "You want to define and broadcast an Executive-Ready personal brand and narrative.",
-  },
-  {
-    label: "The System Seeker",
-    description: "You require a proven, repeatable framework for interviewing, negotiating, and strategic career growth.",
+    label: "Step-Change Seekers",
+    description: "Professionals targeting step-change roles, not lateral moves.",
   },
 ];
 
 const whoIsNotFor = [
   {
-    label: "Entry-Level Professionals",
-    description: "The content is too advanced for first-time PMs.",
+    label: "Surface-Level Seekers",
+    description: "If you're looking for motivation or surface-level advice, this isn't it.",
   },
   {
     label: "Passive Learners",
-    description: "This is an active, hands-on coaching and role-playing environment.",
-  },
-  {
-    label: "The \"Hack\" Seekers",
-    description: "If you are looking for a magic trick to double your salary without improving your skills, communication, or strategic value, this is not the right fit.",
+    description: "This is an active, hands-on coaching and execution environment.",
   },
 ];
 
 const programFormat = [
-  "8 Weeks of Structured Growth",
-  "Weekly Live Coaching Sessions",
-  "Hands-On Skill Workshops",
-  "Personalized Career Feedback",
-  "Real-World Practice",
-  "End-to-End Career Support",
-  "Private Community Support",
+  "8 weeks, live cohort-based",
+  "Weekly high-impact coaching sessions",
+  "Personalized career strategy & positioning",
+  "Interview + leveling preparation",
+  "Salary & negotiation strategy",
+  "Private, high-caliber community",
 ];
 
 const faqs = [
@@ -153,19 +140,26 @@ const The200KMethod = () => {
         </div>
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl">
-            <p className="text-secondary font-medium mb-4">8-Week Accelerator</p>
+            <p className="text-secondary font-medium mb-4">
+              <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm mr-2">Most Popular Program</span>
+              8-Week Cohort-Based
+            </p>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-4">
-              The 200K Method: Career Recalibration for Product Leaders
+              The 200K Method™
             </h1>
+            <p className="text-xl md:text-2xl text-secondary font-medium mb-4">
+              Career Recalibration for Product Leaders
+            </p>
             <p className="text-xl md:text-2xl text-cream font-medium mb-6">
-              Stop guessing your worth. Start commanding it.
+              Stop guessing your value. Start commanding it.
             </p>
             <p className="text-lg text-cream/80 mb-4 leading-relaxed max-w-3xl">
-              This 8-week accelerator is the definitive strategic playbook for experienced Product Managers aiming to execute a calculated career leap into high-impact, $200K+ roles (GPM, Principal, Director).
+              An intensive 8-week, cohort-based program designed for experienced Product Managers ready to make a calculated leap into high-impact, $200K+ roles (Senior PM, Principal, GPM, Director).
             </p>
-            <p className="text-lg text-cream/80 mb-6 leading-relaxed max-w-3xl">
-              We provide the precise framework to: define your next level, engineer an executive-ready personal brand, master advanced product judgment, and negotiate like a CEO. This is high-stakes career strategy, built for maximum ROI.
-            </p>
+            <div className="bg-cream/5 border border-cream/20 rounded-xl p-4 mb-6 max-w-xl">
+              <p className="text-cream font-semibold">This is not interview prep.</p>
+              <p className="text-secondary font-medium">This is career strategy at the leadership level.</p>
+            </div>
             
             {/* Next Cohort Info */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
@@ -223,7 +217,7 @@ const The200KMethod = () => {
               <h3 className="font-serif text-2xl font-semibold text-foreground mb-6 text-center">
                 ⛔ Who This Is NOT For
               </h3>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                 {whoIsNotFor.map((item, index) => (
                   <div 
                     key={index} 
@@ -244,7 +238,7 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* What You'll Learn */}
+      {/* What You'll Work On */}
       <section className="section-padding bg-navy relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-10 left-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
@@ -253,9 +247,76 @@ const The200KMethod = () => {
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
-              What You'll Learn
+              What You'll Work On
             </h2>
             <p className="text-cream/70 text-lg">
+              Over 8 weeks, we help you:
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto mb-16">
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4">
+                <Target className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-cream mb-2">Clarity on Levels</h3>
+              <p className="text-cream/60 text-sm">Get precise clarity on your current level vs. your next level.</p>
+            </div>
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4">
+                <Award className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-cream mb-2">Executive Brand</h3>
+              <p className="text-cream/60 text-sm">Build an executive-ready personal brand that hiring committees trust.</p>
+            </div>
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4">
+                <Briefcase className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-cream mb-2">Product Judgment</h3>
+              <p className="text-cream/60 text-sm">Sharpen advanced product judgment and decision-making.</p>
+            </div>
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-cream mb-2">Interview Performance</h3>
+              <p className="text-cream/60 text-sm">Master interview performance at the Senior / Principal / Director bar.</p>
+            </div>
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="font-semibold text-cream mb-2">Negotiation Mastery</h3>
+              <p className="text-cream/60 text-sm">Negotiate compensation, scope, and leveling with confidence.</p>
+            </div>
+          </div>
+
+          {/* Program Structure */}
+          <div className="max-w-4xl mx-auto">
+            <h3 className="font-serif text-2xl font-semibold text-cream mb-6 text-center">
+              Program Structure
+            </h3>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {programFormat.map((item, index) => (
+                <div key={index} className="flex items-center gap-3 bg-cream/5 rounded-xl p-4 border border-cream/10">
+                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
+                  <span className="text-cream">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8 Modules - What You'll Learn */}
+      <section className="section-padding bg-muted/30">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+              The 8 Modules
+            </h2>
+            <p className="text-muted-foreground text-lg">
               Eight powerful modules designed to transform every aspect of your professional presence.
             </p>
           </div>
@@ -264,18 +325,18 @@ const The200KMethod = () => {
             {modules.map((module, index) => (
               <div
                 key={index}
-                className="group bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10 hover:bg-cream/10 hover:border-secondary/30 transition-all duration-300 hover:-translate-y-1"
+                className="group bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 group-hover:bg-secondary/30 transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
                   <module.icon className="w-6 h-6 text-secondary" />
                 </div>
                 <div className="text-secondary/60 text-sm font-medium mb-2">
                   Module {index + 1}
                 </div>
-                <h3 className="font-semibold text-cream leading-snug mb-2">
+                <h3 className="font-semibold text-foreground leading-snug mb-2">
                   {module.title}
                 </h3>
-                <p className="text-cream/60 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {module.description}
                 </p>
               </div>
@@ -284,66 +345,58 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* What You Will Achieve */}
-      <section className="section-padding bg-muted/30">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+      {/* The Outcome */}
+      <section className="section-padding bg-navy relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 right-20 w-96 h-96 bg-secondary rounded-full blur-3xl" />
+        </div>
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-              What You Will Achieve
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
+              The Outcome
             </h2>
-            <p className="text-muted-foreground text-lg">
-              A strategic masterclass on how a PM achieves their next-level career destiny.
+            <p className="text-cream/70 text-lg">
+              You leave with:
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto mb-12">
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10 text-center">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 mx-auto">
                 <Target className="w-6 h-6 text-secondary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Strategic Leveling</h3>
-              <p className="text-muted-foreground text-sm">Pinpoint your exact PM level and target companies for maximum potential.</p>
+              <h3 className="font-semibold text-cream mb-2">Absolute Clarity</h3>
+              <p className="text-cream/60 text-sm">Absolute clarity on your positioning.</p>
             </div>
 
-            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10 text-center">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 mx-auto">
                 <Award className="w-6 h-6 text-secondary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Brand & Perception</h3>
-              <p className="text-muted-foreground text-sm">Define your Product Leader identity with optimized resume and LinkedIn.</p>
+              <h3 className="font-semibold text-cream mb-2">Leadership Narrative</h3>
+              <p className="text-cream/60 text-sm">A leadership-caliber narrative.</p>
             </div>
 
-            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10 text-center">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 mx-auto">
                 <CheckCircle2 className="w-6 h-6 text-secondary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Interview Mastery</h3>
-              <p className="text-muted-foreground text-sm">Master advanced frameworks and executive-level tactics for Director roles.</p>
+              <h3 className="font-semibold text-cream mb-2">Interview Readiness</h3>
+              <p className="text-cream/60 text-sm">Strong hire-level interview readiness.</p>
             </div>
 
-            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                <MessageSquare className="w-6 h-6 text-secondary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Executive Presence</h3>
-              <p className="text-muted-foreground text-sm">Develop senior executive communication and stakeholder management.</p>
-            </div>
-
-            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
+            <div className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10 text-center">
+              <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 mx-auto">
                 <TrendingUp className="w-6 h-6 text-secondary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Visibility & Influence</h3>
-              <p className="text-muted-foreground text-sm">Build an Influence Portfolio that leads to promotion and recognition.</p>
+              <h3 className="font-semibold text-cream mb-2">Negotiation Strategy</h3>
+              <p className="text-cream/60 text-sm">A negotiation strategy aligned to your value.</p>
             </div>
+          </div>
 
-            <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                <Rocket className="w-6 h-6 text-secondary" />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">Future-Proofing</h3>
-              <p className="text-muted-foreground text-sm">Create a repeatable system for continuous career evolution.</p>
-            </div>
+          <div className="text-center">
+            <p className="text-xl md:text-2xl text-cream font-medium mb-2">High-stakes career moves.</p>
+            <p className="text-xl md:text-2xl text-secondary font-semibold">Built for maximum ROI.</p>
           </div>
         </div>
       </section>
