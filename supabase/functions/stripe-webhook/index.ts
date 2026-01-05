@@ -38,11 +38,8 @@ serve(async (req) => {
 
       const metadata = session.metadata || {};
       const customerEmail = session.customer_email || metadata.customer_email;
-      const customerName = metadata.customer_name || "Valued Customer";
-      const productName = metadata.product_name || "200K Method";
-      const program = metadata.program || "200k-method";
-
-      logStep("Customer data extracted", { customerEmail, customerName, productName });
+      const customerName = metadata.fullName || metadata.customer_name || "Valued Customer";
+      const eventType = metadata.eventType;
 
       // Create Supabase client with service role for admin operations
       const supabaseAdmin = createClient(
@@ -50,6 +47,140 @@ serve(async (req) => {
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
         { auth: { persistSession: false } }
       );
+
+      // Handle AMA Event registrations
+      if (eventType === "ama_event") {
+        logStep("Processing AMA event registration", { customerEmail, customerName });
+
+        // Store AMA registration in database
+        const { data: registration, error: regError } = await supabaseAdmin
+          .from('beta_event_registrations')
+          .insert({
+            full_name: customerName,
+            email: customerEmail,
+            current_position: metadata.currentRole || "Not specified",
+            target_roles: metadata.question || "AMA Event Registration",
+            phone: "N/A",
+            job_search_status: "AMA Event",
+            tool_type: "ama_event",
+            agrees_to_communication: true,
+            understands_beta_terms: true,
+            status: "paid",
+          })
+          .select()
+          .single();
+
+        if (regError) {
+          logStep("Error creating AMA registration", { error: regError.message });
+        } else {
+          logStep("AMA registration created", { registrationId: registration.id });
+        }
+
+        // Send AMA confirmation email
+        const amaEmailHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #1a1f2e 0%, #2d3548 100%); color: #fff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .header h1 { margin: 0; font-size: 28px; color: #d4a853; }
+              .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; }
+              .highlight-box { background: #f8f9fa; border-left: 4px solid #d4a853; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+              .event-details { background: #1a1f2e; color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; }
+              .event-details h3 { color: #d4a853; margin-top: 0; }
+              .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🎤 You're Registered!</h1>
+                <p style="margin: 10px 0 0 0; font-size: 16px;">Monthly AMA: Career Acceleration</p>
+              </div>
+              <div class="content">
+                <p>Hi ${customerName.split(' ')[0] || "there"},</p>
+                
+                <p>Thank you for registering for our <strong>Monthly AMA: Career Acceleration</strong> session! Your payment has been confirmed.</p>
+                
+                <div class="event-details">
+                  <h3>📅 Event Details</h3>
+                  <p style="margin: 5px 0;"><strong>Date:</strong> Third Wednesday of the month</p>
+                  <p style="margin: 5px 0;"><strong>Time:</strong> 6-7pm CST</p>
+                  <p style="margin: 5px 0;"><strong>Format:</strong> Live Zoom Q&A</p>
+                </div>
+                
+                <div class="highlight-box">
+                  <h3 style="margin-top: 0; color: #1a1f2e;">📧 What's Next?</h3>
+                  <ul style="margin: 0; padding-left: 20px;">
+                    <li>You'll receive the Zoom link 24 hours before the event</li>
+                    <li>Come prepared with your career questions</li>
+                    <li>Add the event to your calendar</li>
+                  </ul>
+                </div>
+                
+                ${metadata.question ? `
+                <div class="highlight-box" style="background: #fff9e6;">
+                  <h3 style="margin-top: 0; color: #1a1f2e;">📝 Your Pre-Submitted Question</h3>
+                  <p style="margin: 0; font-style: italic;">"${metadata.question}"</p>
+                </div>
+                ` : ''}
+                
+                <p>If you have any questions before the event, reach out to us at <a href="mailto:theleadersrow@gmail.com">theleadersrow@gmail.com</a>.</p>
+                
+                <p>See you there!</p>
+                
+                <p>Best regards,<br><strong>The Leader's Row Team</strong></p>
+              </div>
+              <div class="footer">
+                <p>© ${new Date().getFullYear()} The Leader's Row. All rights reserved.</p>
+                <p><a href="https://theleadersrow.com" style="color: #d4a853;">theleadersrow.com</a></p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
+
+        await resend.emails.send({
+          from: "The Leader's Row <hello@theleadersrow.com>",
+          to: [customerEmail],
+          subject: `🎤 You're Registered for the Monthly AMA!`,
+          html: amaEmailHtml,
+        });
+
+        logStep("AMA confirmation email sent");
+
+        // Send admin notification
+        await resend.emails.send({
+          from: "The Leader's Row <hello@theleadersrow.com>",
+          to: ["theleadersrow@gmail.com"],
+          subject: `🎤 New AMA Registration: ${customerName}`,
+          html: `
+            <h2>New AMA Event Registration</h2>
+            <table style="border-collapse: collapse; width: 100%;">
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerName}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerEmail}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Current Role:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.currentRole || "Not specified"}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Pre-submitted Question:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.question || "None"}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Payment:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; color: green;">✓ $20 Paid</td></tr>
+            </table>
+          `,
+        });
+
+        logStep("Admin notification sent for AMA");
+
+        return new Response(JSON.stringify({ received: true, type: "ama_event" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Handle regular program enrollments
+      const productName = metadata.product_name || "200K Method";
+      const program = metadata.program || "200k-method";
+
+      logStep("Customer data extracted", { customerEmail, customerName, productName });
 
       // Find the program in the database
       const { data: programData, error: programError } = await supabaseAdmin
