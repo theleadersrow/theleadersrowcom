@@ -1,15 +1,31 @@
-import { CheckCircle2 } from "lucide-react";
+import { 
+  Compass, 
+  Award, 
+  MessageSquare, 
+  Rocket, 
+  TrendingUp, 
+  Calendar, 
+  Target, 
+  Users, 
+  Shield,
+  LucideIcon
+} from "lucide-react";
 
-const offerings = [
-  "Clarity on where you stand and where you're going — including your level, positioning, and next career move",
-  "A clear, confident professional brand that reflects your impact and leadership potential",
-  "Practical tools to influence, inspire, and lead in high-stakes conversations",
-  "Accelerated path into higher-visibility, higher-impact roles",
-  "A mindset shift from \"performing well\" to operating at the next level",
-  "Weekly skill development that strengthens decision-making, judgment, and leadership presence",
-  "Personalized coaching that targets your specific gaps — not generic advice",
-  "Access to a focused community of ambitious, high-caliber professionals",
-  "The confidence to speak, act, and negotiate as a trusted, high-impact leader",
+interface Offering {
+  icon: LucideIcon;
+  text: string;
+}
+
+const offerings: Offering[] = [
+  { icon: Compass, text: "Clarity on where you stand and where you're going — including your level, positioning, and next career move" },
+  { icon: Award, text: "A clear, confident professional brand that reflects your impact and leadership potential" },
+  { icon: MessageSquare, text: "Practical tools to influence, inspire, and lead in high-stakes conversations" },
+  { icon: Rocket, text: "Accelerated path into higher-visibility, higher-impact roles" },
+  { icon: TrendingUp, text: "A mindset shift from \"performing well\" to operating at the next level" },
+  { icon: Calendar, text: "Weekly skill development that strengthens decision-making, judgment, and leadership presence" },
+  { icon: Target, text: "Personalized coaching that targets your specific gaps — not generic advice" },
+  { icon: Users, text: "Access to a focused community of ambitious, high-caliber professionals" },
+  { icon: Shield, text: "The confidence to speak, act, and negotiate as a trusted, high-impact leader" },
 ];
 
 const WhatWeDo = () => {
@@ -28,15 +44,20 @@ const WhatWeDo = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-12">
-            {offerings.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-start sm:items-center gap-3 bg-card rounded-lg sm:rounded-xl p-4 sm:p-5 shadow-soft"
-              >
-                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0 mt-0.5 sm:mt-0" />
-                <span className="text-sm sm:text-base text-foreground font-medium">{item}</span>
-              </div>
-            ))}
+            {offerings.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 bg-card rounded-lg sm:rounded-xl p-4 sm:p-5 shadow-soft"
+                >
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+                  </div>
+                  <span className="text-sm sm:text-base text-foreground font-medium">{item.text}</span>
+                </div>
+              );
+            })}
           </div>
 
           <div className="text-center px-2">
