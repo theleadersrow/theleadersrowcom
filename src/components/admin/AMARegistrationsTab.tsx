@@ -57,6 +57,7 @@ interface AMARegistration {
   zoom_link_sent: boolean;
   tool_type: string;
   subscribe_to_newsletter: boolean;
+  event_date: string | null;
 }
 
 export function AMARegistrationsTab() {
@@ -356,11 +357,12 @@ export function AMARegistrationsTab() {
   };
 
   const exportToCSV = () => {
-    const headers = ["Name", "Email", "Role", "Question", "Status", "Registered At"];
+    const headers = ["Name", "Email", "Role", "Event Date", "Question", "Status", "Registered At"];
     const rows = filteredRegistrations.map(r => [
       r.full_name,
       r.email,
       r.current_position,
+      r.event_date ? format(new Date(r.event_date), "yyyy-MM-dd") : "",
       r.target_roles,
       r.status,
       format(new Date(r.created_at), "yyyy-MM-dd HH:mm"),
@@ -549,6 +551,7 @@ export function AMARegistrationsTab() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Event Date</TableHead>
                     <TableHead>Question</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Registered</TableHead>
@@ -567,6 +570,9 @@ export function AMARegistrationsTab() {
                       <TableCell className="font-medium">{reg.full_name}</TableCell>
                       <TableCell>{reg.email}</TableCell>
                       <TableCell>{reg.current_position}</TableCell>
+                      <TableCell className="text-sm">
+                        {reg.event_date ? format(new Date(reg.event_date), "MMM d, yyyy") : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
                       <TableCell className="max-w-[200px] truncate" title={reg.target_roles}>
                         {reg.target_roles || "—"}
                       </TableCell>
