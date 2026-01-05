@@ -626,7 +626,8 @@ export default function InterviewPrep() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-foreground">Pro Access</h3>
-                  <p className="text-2xl font-bold text-foreground">$249 <span className="text-sm font-normal text-muted-foreground">/ quarter</span></p>
+                  <p className="text-sm text-muted-foreground">Like a coach training you to craft the right answers</p>
+                  <p className="text-2xl font-bold text-foreground mt-1">$249 <span className="text-sm font-normal text-muted-foreground">/ quarter</span></p>
                 </div>
               </div>
               <ul className="space-y-3 mb-6">
