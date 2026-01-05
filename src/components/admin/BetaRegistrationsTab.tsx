@@ -288,6 +288,7 @@ export function BetaRegistrationsTab() {
             email: reg.email,
             zoomLink: zoomLink.trim(),
             customMessage: customMessage.trim(),
+            toolType: reg.tool_type,
           },
         });
 
