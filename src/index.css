@@ -12,8 +12,11 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  /* Cross-browser smooth scrolling with fallback */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   
   :root {
@@ -113,12 +116,18 @@
   * {
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
+    /* Improve text rendering across browsers */
+    text-rendering: optimizeLegibility;
   }
 
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Prevent horizontal scroll on all browsers */
+    overflow-x: hidden;
   }
 
   body {
@@ -126,8 +135,17 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    /* Cross-browser viewport height fix */
     min-height: 100vh;
-    min-height: -webkit-fill-available;
+    min-height: 100dvh; /* Dynamic viewport height for modern browsers */
+    min-height: -webkit-fill-available; /* Safari fallback */
+  }
+
+  /* Fix for 100vh on iOS Safari */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      min-height: -webkit-fill-available;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -137,15 +155,21 @@
   /* Safe area insets for iOS notch */
   .safe-area-inset-top {
     padding-top: env(safe-area-inset-top);
+    padding-top: constant(safe-area-inset-top); /* iOS 11.0-11.2 */
   }
   
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: constant(safe-area-inset-bottom); /* iOS 11.0-11.2 */
   }
 
   /* Fix for iOS input zoom */
   input, textarea, select {
     font-size: 16px !important;
+    /* Prevent iOS input zoom on focus */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
 
   @media screen and (min-width: 768px) {
@@ -157,11 +181,56 @@
   /* Touch-friendly buttons */
   button, a, [role="button"] {
     touch-action: manipulation;
+    /* Prevent double-tap zoom on touch devices */
+    -ms-touch-action: manipulation;
   }
 
   /* Smooth scrolling container for iOS */
   .scroll-container {
     -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  /* Cross-browser backdrop-filter support */
+  .backdrop-blur-fallback {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+  
+  @supports ((-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))) {
+    .backdrop-blur-fallback {
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  /* Fix flexbox gap for older Safari (< 14.1) */
+  @supports not (gap: 1rem) {
+    .flex-gap-fallback > * + * {
+      margin-left: 1rem;
+    }
+    .flex-gap-fallback-y > * + * {
+      margin-top: 1rem;
+    }
+  }
+
+  /* Ensure images work across browsers */
+  img {
+    max-width: 100%;
+    height: auto;
+    /* Fix for IE/Edge image sizing */
+    -ms-interpolation-mode: bicubic;
+  }
+
+  /* Fix for button styling on Safari */
+  button {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+
+  /* Ensure consistent box-sizing */
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
 }
 
