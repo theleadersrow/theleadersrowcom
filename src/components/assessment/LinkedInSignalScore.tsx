@@ -304,6 +304,7 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
           email: recoveryEmail.trim() 
         });
         setShowRecoveryDialog(false);
+        setShowPaymentDialog(false);
         toast.success(`Access restored! ${daysRemaining} days remaining.`);
       } else {
         toast.error("No active access found for this email. Please purchase access or try a different email.");
