@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Lock, 
   TrendingUp, Target, Zap, Eye, Download, Mail,
-  ChevronRight, FileText, Briefcase, Search, Users
+  ChevronRight, FileText, Briefcase, Search, Users, Loader2
 } from "lucide-react";
 import { useState } from "react";
 
@@ -45,13 +45,16 @@ interface FreeResultsProps {
   onUpgrade: () => void;
   onSaveReport: (email: string) => void;
   onActivate?: () => void;
+  onRestoreAccess?: (email: string) => Promise<boolean>;
+  isRestoringAccess?: boolean;
   resumePreviewHtml?: string;
 }
 
-export function FreeResults({ score, onBack, onUpgrade, onSaveReport, onActivate, resumePreviewHtml }: FreeResultsProps) {
+export function FreeResults({ score, onBack, onUpgrade, onSaveReport, onActivate, onRestoreAccess, isRestoringAccess, resumePreviewHtml }: FreeResultsProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveEmail, setSaveEmail] = useState("");
+  const [restoreEmail, setRestoreEmail] = useState("");
 
   const getScoreLabel = (score: number) => {
     if (score >= 80) return { label: "Excellent", color: "text-green-600" };
@@ -510,16 +513,51 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, onActivate
                 Continue free
               </Button>
               
-              {onActivate && (
-                <button
-                  onClick={() => {
-                    setShowUpgradeModal(false);
-                    onActivate();
-                  }}
-                  className="text-sm text-primary hover:underline mt-3 block mx-auto"
-                >
-                  Already purchased? Activate with your email
-                </button>
+              {/* Inline Restore Access Section - Consistent with LinkedIn/Interview */}
+              {(onActivate || onRestoreAccess) && (
+                <div className="border-t pt-4 mt-4">
+                  <p className="text-sm text-center text-muted-foreground mb-3">
+                    Already purchased? Enter your email to restore access:
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={restoreEmail}
+                      onChange={(e) => setRestoreEmail(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (onRestoreAccess) {
+                            onRestoreAccess(restoreEmail);
+                          } else if (onActivate) {
+                            setShowUpgradeModal(false);
+                            onActivate();
+                          }
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        if (onRestoreAccess) {
+                          onRestoreAccess(restoreEmail);
+                        } else if (onActivate) {
+                          setShowUpgradeModal(false);
+                          onActivate();
+                        }
+                      }}
+                      disabled={isRestoringAccess}
+                    >
+                      {isRestoringAccess ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Restore"
+                      )}
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </DialogContent>
