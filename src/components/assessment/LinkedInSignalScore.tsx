@@ -1922,9 +1922,15 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Regenerate
               </Button>
-              <Button onClick={() => setStep("checklist")} className="flex-1">
-                Continue to Checklist
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button 
+                onClick={() => {
+                  updateChecklistItem("about", true);
+                  setStep("checklist");
+                }} 
+                className="flex-1"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Mark as Done
               </Button>
             </div>
           </div>
