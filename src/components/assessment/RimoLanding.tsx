@@ -299,11 +299,8 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
   };
 
   const handleLinkedInClick = () => {
-    if (linkedInAccess.hasAccess) {
-      onStartLinkedIn();
-    } else {
-      setShowLinkedInPaymentDialog(true);
-    }
+    // Allow free entry - payment is handled inside the tool after free scan
+    onStartLinkedIn();
   };
 
   const handleCheckout = async () => {
