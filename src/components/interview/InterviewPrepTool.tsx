@@ -1174,7 +1174,7 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
         <div className="flex items-center gap-3">
           {accessInfo.hasAccess ? (
             <span className="text-sm bg-green-500/20 text-green-600 px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium">
-              <Crown className="w-4 h-4" /> Pro Access
+              <Crown className="w-4 h-4" /> Pro Access ({accessInfo.daysRemaining}d left)
             </span>
           ) : (
             <div className="flex items-center gap-2">
@@ -1421,15 +1421,38 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
               Secure payment via Stripe. Your data is protected.
             </p>
             
-            <button
-              onClick={() => {
-                setShowPaywallDialog(false);
-                setShowRecoveryDialog(true);
-              }}
-              className="text-sm text-primary hover:underline w-full text-center"
-            >
-              Already purchased? Restore your access
-            </button>
+            {/* Inline Restore Access Section - Consistent with LinkedIn */}
+            <div className="border-t pt-4 mt-2">
+              <p className="text-sm text-center text-muted-foreground mb-3">
+                Already purchased? Enter your email to restore access:
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={recoveryEmail}
+                  onChange={(e) => setRecoveryEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleRecoveryCheck();
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={handleRecoveryCheck}
+                  disabled={isCheckingAccess}
+                >
+                  {isCheckingAccess ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Restore"
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

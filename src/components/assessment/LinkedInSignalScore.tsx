@@ -1782,7 +1782,11 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
               <Card 
                 key={i} 
                 className={`cursor-pointer transition-all ${selectedHeadline === option.headline ? 'border-blue-500 bg-blue-500/5' : 'hover:border-blue-500/50'}`}
-                onClick={() => setSelectedHeadline(option.headline)}
+                onClick={() => {
+                  setSelectedHeadline(option.headline);
+                  // Mark headline as completed when user selects one
+                  updateChecklistItem("headline", true);
+                }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">

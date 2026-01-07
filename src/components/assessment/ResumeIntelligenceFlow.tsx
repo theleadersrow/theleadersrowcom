@@ -80,6 +80,7 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
   const [activationEmail, setActivationEmail] = useState("");
   const [isActivating, setIsActivating] = useState(false);
   const [activationSuccess, setActivationSuccess] = useState(false);
+  const [isRestoringAccess, setIsRestoringAccess] = useState(false);
   
   const { toast } = useToast();
 
@@ -290,6 +291,81 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
       setIsActivating(false);
     }
   };
+
+  // Handle restore access from FreeResults inline form - consistent with LinkedIn/Interview
+  const handleRestoreAccess = async (email: string): Promise<boolean> => {
+    const emailToCheck = email.toLowerCase().trim();
+    
+    if (!emailToCheck || !emailToCheck.includes("@")) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    setIsRestoringAccess(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-tool-access", {
+        body: { 
+          action: "check",
+          email: emailToCheck, 
+          toolType: "resume_suite" 
+        },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.hasAccess) {
+        // Store access in localStorage
+        localStorage.setItem("resume_suite_access", JSON.stringify({
+          email: emailToCheck,
+          accessToken: data.accessToken,
+          expiresAt: data.expiresAt,
+        }));
+        
+        setHasPaidAccess(true);
+        setAccessExpiresAt(data.expiresAt);
+        setRegenerationsRemaining(data.regenerationsRemaining || 5);
+        
+        const daysRemaining = Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        
+        toast({
+          title: "Access restored!",
+          description: `You have ${daysRemaining} days remaining.`,
+        });
+        
+        // Check if we have session data to skip to clarification
+        const hasSessionData = restoreSessionData();
+        if (hasSessionData) {
+          setStep("clarification");
+        } else {
+          setStep("welcome");
+        }
+        return true;
+      } else {
+        toast({
+          title: "Access not found",
+          description: "No active purchase found for this email. Please check your email or contact support.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error: any) {
+      console.error("Restore access error:", error);
+      toast({
+        title: "Restore failed",
+        description: error.message || "Please try again or contact support.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsRestoringAccess(false);
+    }
+  };
+
   const handleStartScan = async (
     resume: string, 
     jd: string, 
@@ -952,6 +1028,8 @@ export function ResumeIntelligenceFlow({ onBack, onComplete }: ResumeIntelligenc
             onUpgrade={handleUpgrade}
             onSaveReport={handleSaveReport}
             onActivate={() => setShowActivationDialog(true)}
+            onRestoreAccess={handleRestoreAccess}
+            isRestoringAccess={isRestoringAccess}
           />
         ) : null;
         

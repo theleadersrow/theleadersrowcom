@@ -194,6 +194,19 @@ export function PaidOutput({
   return (
     <div className="min-h-[80vh] animate-fade-up px-4">
       <div className="max-w-5xl mx-auto">
+        {/* Access Status Banner - Consistent with LinkedIn */}
+        {daysRemaining > 0 && (
+          <div className="mb-4 flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-2">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+            <span className="text-sm text-green-700 dark:text-green-400 font-medium">
+              Pro Access Active
+            </span>
+            <span className="text-xs text-green-600 dark:text-green-500">
+              ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
+            </span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -205,9 +218,6 @@ export function PaidOutput({
                 <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0" />
                 <span className="truncate">AI-Optimized Resume</span>
               </h1>
-              <p className="text-muted-foreground text-xs sm:text-sm">
-                {daysRemaining} days remaining
-              </p>
             </div>
           </div>
         </div>
