@@ -159,6 +159,23 @@ interface AccessInfo {
   email?: string;
 }
 
+// Persistent Access Banner Component
+const AccessStatusBanner = ({ accessInfo }: { accessInfo: AccessInfo }) => {
+  if (!accessInfo.hasAccess) return null;
+  
+  return (
+    <div className="mb-4 flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-2">
+      <CheckCircle className="w-4 h-4 text-green-600" />
+      <span className="text-sm text-green-700 dark:text-green-400 font-medium">
+        Pro Access Active
+      </span>
+      <span className="text-xs text-green-600 dark:text-green-500">
+        ({accessInfo.daysRemaining} {accessInfo.daysRemaining === 1 ? 'day' : 'days'} remaining)
+      </span>
+    </div>
+  );
+};
+
 export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [step, setStep] = useState<Step>("input");
   const [linkedinUrl, setLinkedinUrl] = useState("");
@@ -1068,6 +1085,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
     
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -1304,6 +1324,33 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
                   <>Continue to Payment</>
                 )}
               </Button>
+              
+              {/* Already Purchased Section */}
+              <div className="border-t pt-4 mt-2">
+                <p className="text-sm text-center text-muted-foreground mb-3">
+                  Already purchased? Enter your email to restore access:
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={recoveryEmail}
+                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={handleRecoveryCheck}
+                    disabled={isCheckingAccess}
+                  >
+                    {isCheckingAccess ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Restore"
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -1315,6 +1362,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   if (step === "checklist" && suggestions && analysis) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={() => setStep("score")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -1700,6 +1750,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   if (step === "headlines") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={() => setStep("checklist")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -1794,6 +1847,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   if (step === "about") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={() => setStep("checklist")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -1891,6 +1947,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   if (step === "recruiter-sim") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={() => setStep("checklist")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -2097,6 +2156,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   if (step === "outreach") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={() => setStep("checklist")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -2329,6 +2391,9 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   if (step === "rescore-input") {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-up">
+        {/* Persistent Access Banner */}
+        <AccessStatusBanner accessInfo={accessInfo} />
+        
         <button
           onClick={() => setStep("checklist")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
