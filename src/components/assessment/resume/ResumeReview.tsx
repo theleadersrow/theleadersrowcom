@@ -468,6 +468,8 @@ function parseResumeIntoSections(resumeText: string, splitExperience: boolean = 
     { pattern: /^(EDUCATION|ACADEMIC BACKGROUND|EDUCATIONAL BACKGROUND)\s*$/im, name: "EDUCATION" },
     { pattern: /^(SKILLS|TECHNICAL SKILLS|CORE COMPETENCIES|KEY SKILLS)\s*$/im, name: "SKILLS" },
     { pattern: /^(INDUSTRY EXPERTISE|AREAS OF EXPERTISE|EXPERTISE)\s*$/im, name: "INDUSTRY EXPERTISE" },
+    { pattern: /^(CERTIFICATIONS?|LICENSES?|CREDENTIALS?|CERTIFICATES?|PROFESSIONAL CERTIFICATIONS?)\s*$/im, name: "CERTIFICATIONS" },
+    { pattern: /^(COURSES?|TRAINING|PROFESSIONAL DEVELOPMENT|CONTINUING EDUCATION)\s*$/im, name: "COURSES" },
     { pattern: /^(CERTIFICATIONS|LICENSES|CREDENTIALS|CERTIFICATES)\s*$/im, name: "CERTIFICATIONS" },
     { pattern: /^(PROJECTS|KEY PROJECTS|NOTABLE PROJECTS)\s*$/im, name: "PROJECTS" },
     { pattern: /^(LANGUAGES)\s*$/im, name: "LANGUAGES" },
@@ -883,17 +885,34 @@ export function ResumeReview({
 
   const handleFinalize = () => {
     // Build final resume from accepted/edited sections
+    // Per user feedback: If user doesn't optimize something (declines it), leave it out of the final AI optimized resume
     const finalParts: string[] = [];
     const acceptedSectionTitles: string[] = [];
     
     // Track if we're inside an experience section to group roles properly
     let inExperienceSection = false;
+    let hasAnyExperienceRoles = false;
+    
+    // First pass: check if any experience roles are included
+    sections.forEach(section => {
+      if (section.isRole && section.status !== "declined") {
+        hasAnyExperienceRoles = true;
+      }
+    });
     
     sections.forEach(section => {
-      // Skip the EXPERIENCE group header (it has no content, just groups roles)
+      // Skip declined sections entirely - user chose to keep original by declining optimization
+      // which means they don't want this section included in the AI-optimized version
+      if (section.status === "declined") {
+        return;
+      }
+      
+      // Skip the EXPERIENCE group header if there are no accepted roles
       if (section.title === "EXPERIENCE" && !section.isRole) {
-        finalParts.push("EXPERIENCE");
-        inExperienceSection = true;
+        if (hasAnyExperienceRoles) {
+          finalParts.push("EXPERIENCE");
+          inExperienceSection = true;
+        }
         return;
       }
       
@@ -904,8 +923,6 @@ export function ResumeReview({
       } else if (section.status === "edited") {
         content = section.editedContent || section.improvedContent;
         acceptedSectionTitles.push(section.title + " (edited)");
-      } else if (section.status === "declined") {
-        content = section.originalContent;
       } else {
         // Pending - use improved version
         content = section.improvedContent;
