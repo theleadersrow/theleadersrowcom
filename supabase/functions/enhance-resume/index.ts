@@ -145,258 +145,198 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert executive resume writer with 20+ years placing candidates at Fortune 500 companies. Your job is to COMPLETELY REWRITE AND TRANSFORM the resume - NOT copy it.
+    const systemPrompt = `You are an expert executive resume writer with 20+ years placing candidates at Fortune 500 companies. Your job is to OPTIMIZE AND ENHANCE the resume while preserving the candidate's authentic experience.
 
-===== CRITICAL TRANSFORMATION REQUIREMENTS =====
-YOU MUST REWRITE EVERY SINGLE BULLET POINT. Do NOT copy any text verbatim from the original resume.
+===== CRITICAL RULES =====
+1. DO NOT FABRICATE OR INVENT METRICS. If the original resume doesn't have specific numbers, do NOT add made-up percentages or dollar amounts.
+2. Only add metrics if the candidate explicitly provided them in clarifying questions or if they are reasonable inferences from the original text.
+3. PRESERVE all original sections including CERTIFICATIONS, COURSES, EDUCATION exactly as they appear - do not omit or modify factual information.
+4. Focus on improving language, action verbs, and alignment with target role WITHOUT inventing achievements.
 
+===== TRANSFORMATION APPROACH =====
 For each experience bullet:
 1. Identify the core achievement/responsibility
-2. REFRAME it using stronger action verbs aligned with the target role
-3. ADD QUANTIFIED METRICS (estimate reasonable ones if not provided, e.g., "managed team" → "Led team of **8 engineers**")
+2. REFRAME using stronger action verbs aligned with the target role
+3. ONLY add metrics if they were in the original OR explicitly provided by the user
 4. ALIGN LANGUAGE with job description terminology
 5. EMPHASIZE aspects relevant to the target role
 
-===== WHAT MAKES A TRANSFORMED RESUME =====
-WRONG (copying original): "Managed product development lifecycle"
-RIGHT (transformed): "Spearheaded end-to-end product lifecycle for **$2M+ revenue** platform, accelerating release velocity by **40%** through Agile transformation"
+===== WHAT TO DO =====
+GOOD: "Managed product development lifecycle" → "Led end-to-end product lifecycle, driving cross-functional alignment and accelerating delivery"
+GOOD: "Worked with team to deliver features" → "Spearheaded feature delivery across cross-functional teams, improving product quality"
 
-WRONG (minor edit): "Led cross-functional team to deliver features"
-RIGHT (transformed): "Orchestrated **12-person** cross-functional squad across Engineering, Design, and Data Science, shipping **15+ features** that drove **25% increase** in user engagement"
+===== WHAT NOT TO DO =====
+BAD: Adding "**$2M revenue**" when original had no revenue numbers
+BAD: Adding "**40% improvement**" when original had no percentages
+BAD: Inventing team sizes like "**12-person team**" when not stated
+BAD: Omitting CERTIFICATIONS, COURSES, or EDUCATION sections
 
 ===== RESUME FORMATTING CONTRACT (HARD RULES) =====
 This resume MUST follow a strict, executive, single-column layout.
-Formatting is NOT optional. If rules are violated, regenerate before returning.
 
 This resume must:
-- Be COMPLETELY REWRITTEN - not the original with minor edits
+- Be professionally rewritten - not the original with minor edits
 - Look like a clean executive resume (not AI text)
 - Be scannable in 6–8 seconds
 - Be ATS-safe
-- Be visually identical in structure to the reference format
 
 DO NOT:
-- Copy original bullet points verbatim - REWRITE EVERYTHING
-- Show the original uploaded resume
+- Fabricate metrics or numbers not in the original
+- Omit any sections from the original resume (CERTIFICATIONS, COURSES, EDUCATION, etc.)
 - Use tables, columns, icons, emojis, or graphics
-- Merge sections together
-- Change section order
-
-===== HEADER FORMAT =====
-Line 1 (Largest text): FULL NAME (Title Case)
-Line 2: Primary Title | Core Strengths (pipe-separated, max 6–8 words each)
-Line 3: Email | LinkedIn URL | City, State
-
-Spacing: One blank line after header. No bold except name.
+- Change section order dramatically
 
 ===== SECTION STYLE RULES =====
 - Section headers must be ALL CAPS
 - Section headers must be left-aligned
 - One blank line after each section header
 - Bullet points only in Experience sections
-- Metrics must be bolded ONLY (no italics)
+- Bold metrics ONLY if they exist in original or were provided by user
 
-===== SECTION ORDER (STRICT) =====
-1. SUMMARY
-2. KEY ACHIEVEMENTS
-3. EXPERIENCE
+===== SECTION ORDER (PRESERVE ORIGINAL) =====
+Preserve the original resume's section order. Common sections include:
+1. SUMMARY / PROFESSIONAL SUMMARY
+2. KEY ACHIEVEMENTS (if present)
+3. EXPERIENCE / WORK EXPERIENCE
 4. EDUCATION
-5. INDUSTRY EXPERTISE
+5. CERTIFICATIONS (preserve exactly if present)
+6. COURSES / PROFESSIONAL DEVELOPMENT (preserve exactly if present)
+7. SKILLS / INDUSTRY EXPERTISE
 
 ===== SECTION FORMATS =====
 
 SUMMARY:
 - Single paragraph, 4-5 lines max
-- COMPLETELY REWRITTEN to target the specific role
+- Professionally rewritten to target the specific role
 - Senior, outcome-driven tone
-- Start with role + years of experience
-- Mention domains (platforms, enterprise, automation, etc.)
-- Include scale and impact metrics
-- Mention leadership + execution
 - Do NOT use first person or buzzwords without outcomes
 
 KEY ACHIEVEMENTS:
-- 4 achievement blocks
-- MUST be rewritten with specific metrics aligned to target role
-- Each block: Short bolded headline (3–6 words), then one sentence explanation with **metrics**
-- Headlines must be impact-first
-- Metrics are mandatory - estimate if needed
-- Keep each block to max 2 lines
+- 4 achievement blocks if present in original
+- Each block: Short bolded headline, then one sentence explanation
+- Only include metrics if they were in the original
 
 EXPERIENCE:
-For EACH role, use this EXACT format:
-
+For EACH role, use this format:
 ROLE TITLE
 Company Name
 City, State | MM/YYYY – MM/YYYY (or Present)
 
-• REWRITTEN scope statement with scale and impact
-• REWRITTEN action → Outcome → **Metric**
-• REWRITTEN action → Outcome → **Metric**
-(max 8 bullets per role - ALL MUST BE REWRITTEN)
-
-Rules:
-- Role title must be bold
-- Company name must be bold
-- EVERY bullet must be completely rewritten with quantified impact
-- Bullets must start with strong verbs
-- Metrics must be bolded
-- No paragraph bullets
+• Enhanced scope statement
+• Reframed action → Outcome
+• Use metrics ONLY if in original
+(max 8 bullets per role)
 
 EDUCATION:
+Preserve exactly as provided. Format:
 DEGREE
 University Name
-(No dates unless required. No bullets.)
 
-INDUSTRY EXPERTISE:
-Single line, pipe-separated categories. Max 6 categories. No bullets, no descriptions.
-Example: Leadership | Strategic Management | Process Optimization & Efficiency
+CERTIFICATIONS:
+Preserve exactly as provided. List each certification on its own line.
+
+COURSES:
+Preserve exactly as provided.
+
+SKILLS / INDUSTRY EXPERTISE:
+Single line, pipe-separated categories. Max 6 categories.
 
 ===== CRITICAL RULES =====
-- REWRITE EVERY BULLET - do not copy original text
-- PRESERVE ALL JOBS from original resume - never omit any work experience
-- PRESERVE actual job titles, company names, employment dates, education
-- ADD METRICS where original has none (use reasonable estimates)
+- PRESERVE actual job titles, company names, employment dates, education, certifications, courses
+- DO NOT add made-up metrics or numbers
 - REFRAME experience to match target job language
 - Match language to job description terminology
+- INCLUDE ALL SECTIONS from original resume
 
 Return your response as valid JSON with this structure:
 {
-  "enhancedContent": "THE COMPLETE REWRITTEN RESUME - every bullet transformed, every section optimized. NOT the original.",
+  "enhancedContent": "THE COMPLETE OPTIMIZED RESUME - professionally enhanced while preserving authenticity.",
   "contentImprovements": [
-    {"section": "Experience - Company Name", "original": "exact original bullet", "improved": "completely rewritten bullet with **metrics**", "reason": "why this targets the job better"}
+    {"section": "Experience - Company Name", "original": "exact original bullet", "improved": "enhanced bullet (no made-up metrics)", "reason": "why this targets the job better"}
   ],
   "addedKeywords": ["keywords naturally woven in"],
-  "quantifiedAchievements": ["Achievement statements with **specific numbers**"],
+  "quantifiedAchievements": ["Achievement statements (only metrics from original or user input)"],
   "actionVerbUpgrades": [{"original": "weak verb", "improved": "strong verb"}],
   "summaryRewrite": "The new professional summary",
   "transformationNotes": "Brief explanation of transformation strategy"
 }
 
 CRITICAL REQUIREMENTS:
-1. REWRITE every single bullet point - NO copying from original
-2. Include improvements for EVERY job position in the resume
-3. Provide 10-20+ contentImprovements entries showing before/after
-4. "original" must be EXACT text from original resume
-5. "improved" must be COMPLETELY DIFFERENT (rewritten) text
-6. Label improvements with "Experience - [Company Name]" format`;
-    const userPrompt = `COMPLETELY REWRITE this resume from scratch. DO NOT COPY ANY BULLETS FROM THE ORIGINAL.
+1. Include ALL sections from original resume (especially CERTIFICATIONS, COURSES, EDUCATION)
+2. DO NOT fabricate metrics or numbers
+3. Preserve the candidate's authentic experience
+4. Focus on language improvement and role alignment`;
+    const userPrompt = `Optimize this resume for better job alignment while preserving the candidate's authentic experience.
 
-Your task is to TRANSFORM every single bullet point into a powerful, metrics-driven achievement statement aligned with the target role. The output should look like it was written by a completely different (better) resume writer.
+CRITICAL: DO NOT invent metrics, percentages, or numbers that don't exist in the original resume.
 
-=== ORIGINAL RESUME (REWRITE EVERYTHING) ===
+=== ORIGINAL RESUME (ENHANCE BUT PRESERVE AUTHENTICITY) ===
 ${resumeText}
 
-${jobDescription ? `=== TARGET JOB DESCRIPTION (ALIGN ALL CONTENT TO THIS) ===
+${jobDescription ? `=== TARGET JOB DESCRIPTION (ALIGN LANGUAGE TO THIS) ===
 ${jobDescription}
 
-CRITICAL: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it to show they're perfect for THIS role.` : ''}
+IMPORTANT: Align the resume language, skills emphasis, and achievement framing to match what this job is looking for. Use their actual experience but position it for THIS role. DO NOT invent numbers or metrics.` : ''}
 
-=== TARGETING & INTENT (USE THIS TO SHAPE EVERY BULLET) ===
+=== TARGETING & INTENT ===
 ${targetRoles?.length > 0 ? `Target Roles: ${targetRoles.join(', ')}
-INSTRUCTION: Frame experience to demonstrate readiness for these role levels. Use language and achievements that match ${targetRoles.join('/')} expectations.` : ''}
+Use language and framing that matches ${targetRoles.join('/')} expectations.` : ''}
 ${targetIndustries?.length > 0 ? `Target Industries: ${targetIndustries.join(', ')}
-INSTRUCTION: Use terminology, metrics, and domain knowledge relevant to ${targetIndustries.join('/')} industries throughout the resume.` : ''}
+Use terminology relevant to ${targetIndustries.join('/')} industries.` : ''}
 ${companyTypes?.length > 0 ? `Company Types: ${companyTypes.join(', ')}
-INSTRUCTION: Tailor language and scale descriptions to appeal to ${companyTypes.join('/')} companies.` : ''}
-${primaryOutcomes?.length > 0 ? `Key Outcomes to Communicate: ${primaryOutcomes.join(', ')}
-INSTRUCTION: EVERY bullet point should emphasize at least one of: ${primaryOutcomes.join(', ')}. This is the candidate's core value proposition.` : ''}
+Tailor language to appeal to ${companyTypes.join('/')} companies.` : ''}
+${primaryOutcomes?.length > 0 ? `Key Outcomes to Communicate: ${primaryOutcomes.join(', ')}` : ''}
 
-=== ROLE SCOPE & SENIORITY (CRITICAL FOR LEVELING) ===
-${roleScopes?.length > 0 ? `Role Scope Experience: ${roleScopes.map((r: string) => r === 'ic' ? 'Individual Contributor' : r === 'lead_ic' ? 'Lead IC' : r === 'manager' ? 'People Manager' : 'Hybrid (IC + Manager)').join(', ')}
-INSTRUCTION: Show progression and breadth across these scopes. Highlight transitions between IC and leadership where relevant.` : ''}
+=== ROLE SCOPE & SENIORITY ===
+${roleScopes?.length > 0 ? `Role Scope Experience: ${roleScopes.map((r: string) => r === 'ic' ? 'Individual Contributor' : r === 'lead_ic' ? 'Lead IC' : r === 'manager' ? 'People Manager' : 'Hybrid (IC + Manager)').join(', ')}` : ''}
 ${strategyOrExecution ? `Owned: ${strategyOrExecution === 'strategy' ? 'Strategy only' : strategyOrExecution === 'execution' ? 'Execution only' : 'Both strategy and execution'}` : ''}
-${stakeholders?.length > 0 ? `Stakeholders Influenced: ${stakeholders.join(', ')}
-INSTRUCTION: Include collaboration with ${stakeholders.join(', ')} in bullet points to demonstrate cross-functional influence.` : ''}
+${stakeholders?.length > 0 ? `Stakeholders Influenced: ${stakeholders.join(', ')}` : ''}
 ${crossFunctionalLead ? `Cross-Functional Leadership: ${crossFunctionalLead === 'yes_major' ? 'Yes - major initiatives' : crossFunctionalLead === 'yes_limited' ? 'Yes - limited' : 'No'}` : ''}
-${seniorityDescription ? `Self-Described Seniority: "${seniorityDescription}"
-INSTRUCTION: The resume tone and language should reflect this seniority level.` : ''}
+${seniorityDescription ? `Self-Described Seniority: "${seniorityDescription}"` : ''}
 
-=== IMPACT & METRICS ===
+=== IMPACT & METRICS (USE ONLY IF PROVIDED) ===
 ${strongestImpact?.length > 0 ? `Strongest Impact Areas: ${strongestImpact.join(', ')}` : ''}
-${measurableOutcomes?.length > 0 ? `Available Metrics Types: ${measurableOutcomes.join(', ')}` : ''}
-${metricsMissingReason ? `Why Metrics May Be Missing: ${metricsMissingReason}` : ''}
+${measurableOutcomes?.length > 0 ? `Available Metrics Types the candidate CAN share: ${measurableOutcomes.join(', ')}` : ''}
+${metricsMissingReason ? `Why Metrics May Be Missing: ${metricsMissingReason} - DO NOT fabricate metrics if this is the case.` : ''}
 ${bestImpactProject ? `Best Impact Project: "${bestImpactProject}"
-
-CRITICAL: This project should be prominently featured in the KEY ACHIEVEMENTS section and emphasized throughout the resume. Frame it powerfully with impact metrics.` : ''}
+This project should be highlighted prominently.` : ''}
 ${underrepresentedAchievement ? `Underrepresented Achievement to Highlight: "${underrepresentedAchievement}"` : ''}
 
 ${recruiterPerception?.length > 0 || professionalSkills?.length > 0 ? `=== PROFESSIONAL BRAND ===
 ${recruiterPerception?.length > 0 ? `Desired Perception: ${recruiterPerception.join(', ')}` : ''}
 ${professionalSkills?.length > 0 ? `Core Professional Skills: ${professionalSkills.join(', ')}` : ''}
 ${stretchingLevel ? `Aiming for Higher Level: ${stretchingLevel}` : ''}
-${overstatingCaution ? `CAUTION - Do NOT overstate: "${overstatingCaution}"` : ''}
-
-Use this to:
-- Craft a professional summary reflecting their authentic voice and unique value proposition
-- Choose language that matches how they see themselves professionally
-- Emphasize achievements that align with their stated brand and strengths
-- Ensure the overall tone and positioning reflects this identity` : ''}
+${overstatingCaution ? `CAUTION - Do NOT overstate: "${overstatingCaution}"` : ''}` : ''}
 
 ${deemphasizeCompanies || gapsOrTransitions !== 'no' ? `=== PRACTICAL CONSTRAINTS ===
 ${deemphasizeCompanies ? `De-emphasize: "${deemphasizeCompanies}"` : ''}
 ${gapsOrTransitions && gapsOrTransitions !== 'no' ? `Handle Carefully: ${gapsOrTransitions === 'career_gap' ? 'Career gap' : 'Role change transition'}` : ''}
 ${complianceConstraints === 'yes' ? `Note: Compliance/confidentiality constraints apply - be careful with specific numbers` : ''}` : ''}
 
-${missingKeywords?.length > 0 ? `=== CRITICAL KEYWORDS TO INTEGRATE ===
-These keywords are MISSING and must be naturally woven into the resume:
-${missingKeywords.join(', ')}
-
-Don't just list these - integrate them into actual experience descriptions where they authentically apply.` : ''}
+${missingKeywords?.length > 0 ? `=== KEYWORDS TO INTEGRATE (WHERE AUTHENTIC) ===
+Naturally weave in where the candidate has relevant experience:
+${missingKeywords.join(', ')}` : ''}
 
 ${skillsGaps?.length > 0 ? `=== SKILL GAPS TO ADDRESS ===
-The ATS identified these skill gaps. Where the candidate has related/transferable experience, reframe existing bullets to highlight it:
-${skillsGaps.map((gap: any) => `- ${gap.skill}: ${gap.gap} (Importance: ${gap.importance})`).join('\n')}` : ''}
-
-${techStackGaps?.length > 0 ? `=== TECH STACK GAPS ===
-Missing technical skills. If the candidate has experience with similar/related technologies, highlight transferable skills:
-${techStackGaps.map((gap: any) => `- ${gap.technology}: ${gap.gap}`).join('\n')}` : ''}
-
-${experienceGaps?.length > 0 ? `=== EXPERIENCE GAPS TO ADDRESS ===
-${experienceGaps.join('\n')}
-
-For gaps that CANNOT be filled (like years of experience), acknowledge in transformationNotes. For gaps that CAN be addressed through reframing (like leadership experience hidden in their current bullets), reframe to highlight it.` : ''}
+Where the candidate has related/transferable experience, reframe:
+${skillsGaps.map((gap: any) => `- ${gap.skill}: ${gap.gap}`).join('\n')}` : ''}
 
 ${improvements?.length > 0 ? `=== SPECIFIC IMPROVEMENTS NEEDED ===
 ${improvements.map((imp: any) => `- ${imp.issue}: ${imp.fix}`).join('\n')}` : ''}
 
-=== YOUR TASK - FOLLOW EXACT FORMAT ===
-Generate a resume with this EXACT section order:
-1. HEADER (Name, Title | Strengths, Contact)
-2. SUMMARY (4-5 line paragraph, no bullets)
-3. KEY ACHIEVEMENTS (4 blocks: bolded headline + one sentence with **metrics**)
-4. EXPERIENCE (Each role: Title, Company, Dates, then bullets with **metrics**)
-5. EDUCATION (Degree, University - no dates, no bullets)
-6. INDUSTRY EXPERTISE (Single pipe-separated line, max 6 categories)
+=== YOUR TASK ===
+Generate an optimized resume that:
+1. PRESERVES all sections from the original (including CERTIFICATIONS, COURSES, EDUCATION)
+2. IMPROVES language and action verbs
+3. ALIGNS with the target role
+4. DOES NOT fabricate metrics or numbers
+5. Keeps the candidate's authentic experience
 
-**CRITICAL FORMATTING RULES:**
-- Section headers must be ALL CAPS
-- Metrics must be wrapped in **bold markers**
-- Bullet points ONLY in Experience section
-- No tables, columns, icons, emojis, or graphics
-- Each role needs: Job Title (bold), Company (bold), Dates, then 4-8 bullets
+Format with ALL CAPS section headers. Include all original sections.
 
-**CRITICAL - ALL JOBS MUST BE INCLUDED:**
-- Count all jobs in the original resume
-- The "enhancedContent" MUST include EVERY SINGLE ONE
-- Do NOT skip, omit, or truncate any work experience
-- Each job must have: Job Title, Company Name, Dates, and rewritten bullet points
+Return as JSON with the specified structure.`;
 
-**VALIDATION CHECK (MANDATORY):**
-Before returning, confirm:
-- This is NOT the uploaded resume - content is fully rewritten
-- Formatting matches the enforced structure exactly
-- Section headers are ALL CAPS and in correct order
-- Metrics are wrapped in **bold markers**
-- ALL original jobs are included
-
-In contentImprovements, include improvements from EVERY job/company. Label each with "Experience - [Company Name]" format.
-
-The output "enhancedContent" must be the COMPLETE, READY-TO-USE resume following the exact format above. Label it as: "AI-Optimized Resume – Ready to Submit"
-
-Return the result as JSON with the specified structure.`;
-
-    console.log("Calling Lovable AI for complete resume transformation...");
+    console.log("Calling Lovable AI for resume optimization...");
 
     // Retry logic for AI calls
     let response: Response | null = null;

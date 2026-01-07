@@ -89,6 +89,8 @@ function parseResumeContent(content: string): ParsedResume {
     { pattern: /^(EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE)$/i, type: "experience" as const },
     { pattern: /^(EDUCATION|EDUCATION & CREDENTIALS|ACADEMIC)$/i, type: "education" as const },
     { pattern: /^(SKILLS|SKILLS & COMPETENCIES|CORE COMPETENCIES|INDUSTRY EXPERTISE|TECHNICAL SKILLS|KEY SKILLS)$/i, type: "skills" as const },
+    { pattern: /^(CERTIFICATIONS?|LICENSES?|CREDENTIALS?|CERTIFICATES?|PROFESSIONAL CERTIFICATIONS?)$/i, type: "other" as const },
+    { pattern: /^(COURSES?|TRAINING|PROFESSIONAL DEVELOPMENT|CONTINUING EDUCATION)$/i, type: "other" as const },
   ];
 
   let currentSection: { type: string; title: string; lines: string[] } | null = null;
