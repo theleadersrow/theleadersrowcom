@@ -983,7 +983,6 @@ export function BetaRegistrationsTab() {
                   <TableHead>Target Roles</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Applied</TableHead>
-                  <TableHead>Event Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1056,15 +1055,6 @@ export function BetaRegistrationsTab() {
                         <div className="font-medium">{format(new Date(reg.created_at), "MMM d, yyyy")}</div>
                         <div className="text-xs text-muted-foreground">{format(new Date(reg.created_at), "h:mm a")}</div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {reg.event_date ? (
-                        <div className="text-sm font-medium">
-                          {format(new Date(reg.event_date), "MMM d, yyyy")}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
