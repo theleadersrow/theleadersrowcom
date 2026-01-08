@@ -25,7 +25,7 @@ const getToolConfig = (toolType: string) => {
         emoji: "🔗",
         color: "#0077b5",
         gradientEnd: "#005582",
-        date: "Wednesday, January 7, 2026",
+        date: "Wednesday, January 15, 2026",
         prepareInstructions: `
           <ul style="font-size: 14px; padding-left: 20px;">
             <li>Have your LinkedIn profile URL ready</li>

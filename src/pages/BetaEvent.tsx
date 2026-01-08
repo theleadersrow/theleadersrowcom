@@ -306,11 +306,11 @@ const BetaEvent = () => {
                 <div className="flex flex-wrap gap-2 mb-4">
                   <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span className="font-medium">Jan 7, 2026</span>
+                    <span className="font-medium">Jan 15, 2026</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="font-medium">6–8 PM CT</span>
+                    <span className="font-medium">6–7:30 PM CT</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
                     <Users className="w-3.5 h-3.5" />

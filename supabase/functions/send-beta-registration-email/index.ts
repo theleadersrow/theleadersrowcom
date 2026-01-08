@@ -21,7 +21,7 @@ const getToolConfig = (toolType: string) => {
     case "linkedin_signal":
       return {
         name: "LinkedIn Signal Score",
-        date: "Wednesday, January 7, 2026",
+        date: "Wednesday, January 15, 2026",
         color: "#0077b5",
       };
     case "interview_prep":

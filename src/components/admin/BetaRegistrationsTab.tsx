@@ -63,6 +63,7 @@ interface BetaRegistration {
   zoom_link_sent: boolean;
   tool_type: string;
   subscribe_to_newsletter: boolean;
+  event_date: string | null;
 }
 
 interface ColumnFilters {
@@ -73,6 +74,7 @@ interface ColumnFilters {
   position: string;
   company: string;
   target_roles: string;
+  registered_after: string;
 }
 
 export function BetaRegistrationsTab() {
@@ -91,7 +93,13 @@ export function BetaRegistrationsTab() {
     position: "",
     company: "",
     target_roles: "",
+    registered_after: "",
   });
+  
+  // Update event date dialog
+  const [updateDateDialogOpen, setUpdateDateDialogOpen] = useState(false);
+  const [newEventDate, setNewEventDate] = useState("");
+  const [updatingDates, setUpdatingDates] = useState(false);
   
   // Invite dialog
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -194,6 +202,14 @@ export function BetaRegistrationsTab() {
       if (columnFilters.target_roles && !reg.target_roles.toLowerCase().includes(columnFilters.target_roles.toLowerCase())) {
         return false;
       }
+      // Registered after filter
+      if (columnFilters.registered_after) {
+        const filterDate = new Date(columnFilters.registered_after);
+        const regDate = new Date(reg.created_at);
+        if (regDate < filterDate) {
+          return false;
+        }
+      }
       return true;
     });
   }, [registrations, columnFilters]);
@@ -207,6 +223,7 @@ export function BetaRegistrationsTab() {
       position: "",
       company: "",
       target_roles: "",
+      registered_after: "",
     });
   };
 
@@ -217,8 +234,41 @@ export function BetaRegistrationsTab() {
       columnFilters.job_search_status !== "all" ||
       columnFilters.position !== "" ||
       columnFilters.company !== "" ||
-      columnFilters.target_roles !== "";
+      columnFilters.target_roles !== "" ||
+      columnFilters.registered_after !== "";
   }, [columnFilters]);
+
+  // Bulk update event dates
+  const updateEventDates = async () => {
+    if (!newEventDate) {
+      toast.error("Please enter a date");
+      return;
+    }
+    if (selectedIds.length === 0) {
+      toast.error("Please select registrations to update");
+      return;
+    }
+
+    setUpdatingDates(true);
+    try {
+      const { error } = await supabase
+        .from("beta_event_registrations")
+        .update({ event_date: newEventDate })
+        .in("id", selectedIds);
+
+      if (error) throw error;
+      toast.success(`Updated event date for ${selectedIds.length} registration(s)`);
+      setUpdateDateDialogOpen(false);
+      setNewEventDate("");
+      setSelectedIds([]);
+      fetchRegistrations();
+    } catch (error) {
+      console.error("Error updating event dates:", error);
+      toast.error("Failed to update event dates");
+    } finally {
+      setUpdatingDates(false);
+    }
+  };
 
   const updateStatus = async (id: string, status: string) => {
     try {
@@ -839,6 +889,15 @@ export function BetaRegistrationsTab() {
                   />
                 </div>
               </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Registered After</Label>
+                <Input
+                  type="date"
+                  value={columnFilters.registered_after}
+                  onChange={(e) => setColumnFilters(prev => ({ ...prev, registered_after: e.target.value }))}
+                  className="h-9"
+                />
+              </div>
             </div>
             {hasActiveFilters && (
               <div className="mt-3 text-sm text-muted-foreground">
@@ -867,6 +926,10 @@ export function BetaRegistrationsTab() {
               <Button size="sm" variant="outline" onClick={openBulkEmailDialog}>
                 <Mail className="w-4 h-4 mr-2" />
                 Bulk Email ({selectedIds.length})
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setUpdateDateDialogOpen(true)}>
+                <Calendar className="w-4 h-4 mr-2" />
+                Update Event Date
               </Button>
               <Button size="sm" variant="secondary" onClick={waitlistSelected} disabled={selectedPendingCount === 0}>
                 <UserX className="w-4 h-4 mr-2" />
@@ -1360,6 +1423,65 @@ export function BetaRegistrationsTab() {
             </Button>
             <Button variant="destructive" onClick={deleteRegistration} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Event Date Dialog */}
+      <Dialog open={updateDateDialogOpen} onOpenChange={setUpdateDateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Event Date</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>New Event Date</Label>
+              <Input
+                type="date"
+                value={newEventDate}
+                onChange={(e) => setNewEventDate(e.target.value)}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              This will update the event date for {selectedIds.length} selected registration(s).
+            </div>
+            <div className="text-sm bg-muted/50 p-3 rounded-lg">
+              <strong>Quick dates:</strong>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setNewEventDate("2026-01-14")}
+                >
+                  Jan 14 (Resume)
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setNewEventDate("2026-01-15")}
+                >
+                  Jan 15 (LinkedIn)
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setNewEventDate("2026-01-09")}
+                >
+                  Jan 9 (Interview)
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUpdateDateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateEventDates} disabled={updatingDates || !newEventDate}>
+              {updatingDates ? "Updating..." : "Update Dates"}
             </Button>
           </DialogFooter>
         </DialogContent>
