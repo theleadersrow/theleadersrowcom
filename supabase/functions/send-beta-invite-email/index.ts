@@ -96,7 +96,7 @@ const getToolConfig = (toolType: string) => {
         emoji: "📄",
         color: "#4f46e5",
         gradientEnd: "#7c3aed",
-        date: "Tuesday, January 6, 2026",
+        date: "Wednesday, January 14, 2026",
         prepareInstructions: `
           <ul style="font-size: 14px; padding-left: 20px;">
             <li>Have your current resume ready (PDF or Word)</li>
@@ -155,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
               <p style="margin: 0 0 10px 0; font-weight: 600; font-size: 18px;">Event Details</p>
               <p style="margin: 5px 0;">📅 <strong>Date:</strong> ${config.date}</p>
-              <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–8:00 PM Central (CT)</p>
+              <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–7:30 PM Central (CT)</p>
               <p style="margin: 5px 0;">💻 <strong>Format:</strong> Live Zoom Session</p>
             </div>
             
