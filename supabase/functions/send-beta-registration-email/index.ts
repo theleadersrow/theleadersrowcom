@@ -39,7 +39,7 @@ const getToolConfig = (toolType: string) => {
     default: // resume_suite
       return {
         name: "Resume Intelligence Suite",
-        date: "Tuesday, January 6, 2026",
+        date: "Wednesday, January 14, 2026",
         color: "#4f46e5",
       };
   }
@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
               <p style="margin: 0 0 10px 0; font-weight: 600;">Event Details:</p>
               <p style="margin: 5px 0;">📅 <strong>Date:</strong> ${config.date}</p>
-              <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–8:00 PM Central (CT)</p>
+              <p style="margin: 5px 0;">🕕 <strong>Time:</strong> 6:00–7:30 PM Central (CT)</p>
               <p style="margin: 5px 0;">👥 <strong>Spots:</strong> 20 invited beta users</p>
             </div>
             

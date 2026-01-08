@@ -251,11 +251,11 @@ const BetaEvent = () => {
                 <div className="flex flex-wrap gap-2 mb-4">
                   <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span className="font-medium">Jan 6, 2026</span>
+                    <span className="font-medium">Jan 14, 2026</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="font-medium">6–8 PM CT</span>
+                    <span className="font-medium">6–7:30 PM CT</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
                     <Users className="w-3.5 h-3.5" />
