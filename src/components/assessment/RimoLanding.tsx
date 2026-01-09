@@ -823,7 +823,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
                       <CheckCircle className="w-3 h-3" /> Active
                     </span>
                   ) : (
-                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$99/qtr</span>
+                    <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">$129/qtr</span>
                   )}
                 </div>
                 <p className="text-muted-foreground text-sm mb-3">
@@ -1008,7 +1008,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="text-center">
-              <span className="text-4xl font-bold text-foreground">$99</span>
+              <span className="text-4xl font-bold text-foreground">$129</span>
               <span className="text-muted-foreground ml-2">/ quarter</span>
               <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
             </div>
@@ -1188,7 +1188,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             <div className="space-y-2 text-sm">
               <p className="font-medium text-foreground">Includes:</p>
               <ul className="text-muted-foreground space-y-1">
-                <li className="flex items-center gap-2"><FileText className="w-4 h-4 text-amber-500" /> Resume Intelligence Suite ($99 value)</li>
+                <li className="flex items-center gap-2"><FileText className="w-4 h-4 text-amber-500" /> Resume Intelligence Suite ($129 value)</li>
                 <li className="flex items-center gap-2"><Linkedin className="w-4 h-4 text-blue-500" /> LinkedIn Signal Score ($99 value)</li>
                 <li className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-emerald-500" /> Interview Prep Pro ($249 value)</li>
               </ul>

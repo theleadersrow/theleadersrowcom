@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Quarterly subscription price IDs
 const PRICE_IDS = {
-  resume_suite: "price_1SjAkxCD119gx37UThRkixBJ", // $99/quarter
+  resume_suite: "price_1SjAkxCD119gx37UThRkixBJ", // $129/quarter
   linkedin_signal: "price_1SjAlCCD119gx37UHRTK3O1L", // $99/quarter
   interview_prep: "price_1SjAlMCD119gx37UVMQYGyJo", // $249/quarter
   bundle: "price_1SjAn0CD119gx37U5A4XyIiI", // $399/quarter for all 3

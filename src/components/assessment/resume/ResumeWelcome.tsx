@@ -330,7 +330,7 @@ export function ResumeWelcome({ onBack, onStartScan, isAnalyzing, hasPaidAccess 
             </div>
             <div className="pt-4 border-t">
               <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">$99</p>
+                <p className="text-2xl font-bold text-foreground">$129</p>
                 <p className="text-sm text-muted-foreground">per quarter • Auto-renews</p>
               </div>
             </div>
