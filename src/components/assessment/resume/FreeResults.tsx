@@ -491,7 +491,7 @@ export function FreeResults({ score, onBack, onUpgrade, onSaveReport, onActivate
             </div>
             
             <div className="pt-4 border-t text-center">
-              <div className="text-3xl font-bold text-foreground">$99</div>
+              <div className="text-3xl font-bold text-foreground">$129</div>
               <p className="text-sm text-muted-foreground mb-4">per quarter • Auto-renews</p>
               
               <Button 

@@ -145,7 +145,7 @@ export function ResumeLanding({ onBack, onProceed, onActivate }: ResumeLandingPr
               <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
               <h4 className="font-semibold text-foreground text-sm sm:text-base">Unlock Full Suite</h4>
               <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-medium">
-                $99 / quarter
+                $129 / quarter
               </span>
             </div>
             <ul className="space-y-2 sm:space-y-3">
