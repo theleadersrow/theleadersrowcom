@@ -225,32 +225,75 @@ const outcomes = [
 
 const faqs = [
   {
-    question: "When does the next cohort start?",
-    answer: "The next cohort runs from January 22nd to March 12th, 2026. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
+    question: "Is this program just interview prep?",
+    answer: "No. Interview performance is one expression of seniority — not the source of it. The 200K Method™ focuses on how you think, decide, and position yourself so interviews, leveling conversations, and negotiations become a natural extension of your operating level.",
   },
   {
-    question: "What if I can't attend a live session?",
-    answer: "All sessions are recorded and available to cohort members. You'll have access to the replay, along with all worksheets and materials, so you can catch up at your own pace.",
+    question: "Who is this program best suited for?",
+    answer: "This program is designed for experienced Product Managers and Product Leaders who are delivering at a higher level than their current title, feel mis-positioned or under-leveled, are targeting Senior PM, Principal, GPM, or Director roles, and want clarity and execution — not motivation. If you already have strong fundamentals and real-world experience, this program will resonate.",
+  },
+  {
+    question: "I'm busy. How much time does this realistically take?",
+    answer: "You should expect 2 hours/week for live sessions and 1–2 hours/week for reflection, preparation, and application. This is intentionally designed to integrate into a demanding role. The work is focused — not time-consuming.",
+  },
+  {
+    question: "Will this help if I'm not actively interviewing?",
+    answer: "Yes. Many participants join before they are interviewing to recalibrate positioning, build leadership narrative, increase leverage inside their current role, and prepare intentionally rather than reactively. You don't need urgency — you need clarity.",
+  },
+  {
+    question: "How is this different from other PM career programs?",
+    answer: "Most PM programs focus on tools, tactics, and templates. The 200K Method™ focuses on decision-making clarity, leadership identity, signal over effort, and repeatable career leverage. This is a thinking and execution system, not a checklist.",
   },
   {
     question: "How is this different from Weekly Edge?",
     answer: "The 200K Method is an intensive 8-week accelerator focused on career repositioning, personal branding, interview mastery, and landing $200K+ roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of 200K Method continue with Weekly Edge to maintain momentum.",
   },
   {
-    question: "What is the refund policy?",
-    answer: "Due to the intensive nature of the program and limited cohort sizes, all payments are final and non-refundable. We recommend reviewing all program details and reaching out with questions before enrolling to ensure it's the right fit for you.",
+    question: "Is this suitable if I'm already at a $200K+ compensation level?",
+    answer: "Yes — if you are targeting step-change scope or influence, preparing for Principal, GPM, or Director roles, or seeking long-term career leverage, not just comp optimization. This is about operating level, not just salary.",
   },
   {
-    question: "Who is this program for?",
-    answer: "This program is designed for experienced Product Managers (3+ years) who are aiming for Senior PM, Principal, GPM, or Director-level roles. It's ideal for those who feel strategically stuck, undervalued, or need a proven framework for career advancement.",
+    question: "Is this a group program or 1:1 coaching?",
+    answer: "This is a small, curated cohort experience. The group format allows you to learn from peers at a similar level, pressure-test your thinking, and receive live coaching and feedback. The cohort size is intentionally limited to preserve depth.",
   },
   {
-    question: "What will I achieve by the end of the program?",
-    answer: "You'll have internal clarity and self-trust, a leadership-caliber positioning narrative, hire-level readiness across interviews and visibility, a negotiation strategy anchored to impact, and a repeatable career system for continuous growth.",
+    question: "What results can I expect?",
+    answer: "Outcomes vary by individual, but participants consistently leave with a clear understanding of their true operating level, leadership-caliber narrative and positioning, stronger judgment and confidence in decisions, readiness for high-stakes interviews and negotiations, and a repeatable framework for future career moves. This is not a promise of a job — it's a promise of clarity and leverage.",
+  },
+  {
+    question: "What if I miss a session?",
+    answer: "Live participation is strongly encouraged. If you miss a session, recordings may be available and you are still expected to complete the work. This program rewards engagement.",
+  },
+  {
+    question: "What if I'm unsure this is the right fit?",
+    answer: "That's exactly why there is an application. This is not a program you should join impulsively. If there's mutual alignment, we'll move forward.",
+  },
+  {
+    question: "When does the next cohort start?",
+    answer: "The next cohort runs from January 22nd to March 12th, 2026. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
+  },
+  {
+    question: "Do you offer refunds?",
+    answer: "Because of the live, high-touch nature of this program, refunds are not offered once the cohort begins. This ensures commitment on both sides.",
   },
   {
     question: "Is there ongoing support after the 8 weeks?",
     answer: "Yes! You'll have access to our private community where you can continue to connect with your cohort, ask questions, and receive support even after the program ends.",
+  },
+];
+
+const commonObjections = [
+  {
+    objection: "I've done programs like this before.",
+    response: "This program is not about content — it's about calibration and execution. If you're open to examining how you think and show up, it will feel different.",
+  },
+  {
+    objection: "I don't want fluff or motivation.",
+    response: "Neither do we. This is structured, practical, and grounded.",
+  },
+  {
+    objection: "I'm not sure I'm 'ready' yet.",
+    response: "Readiness is clarity — not confidence. That's what this work creates.",
   },
 ];
 
@@ -648,6 +691,37 @@ const The200KMethod = () => {
                 </AccordionItem>
               ))}
             </Accordion>
+          </div>
+        </div>
+      </section>
+
+      {/* Common Objections */}
+      <section className="section-padding bg-background">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
+                Common Objections
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {commonObjections.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="bg-card rounded-xl border border-border/50 p-6 shadow-soft"
+                >
+                  <p className="text-foreground font-semibold mb-2 flex items-start gap-2">
+                    <span className="text-secondary">"</span>
+                    {item.objection}
+                    <span className="text-secondary">"</span>
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed pl-4 border-l-2 border-secondary/30">
+                    {item.response}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
