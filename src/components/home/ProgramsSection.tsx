@@ -22,17 +22,17 @@ const ProgramsSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
           <ProgramCard
             title="The 200K Method"
-            subtitle="Career Recalibration for Product Leaders"
-            description="The definitive strategic playbook for experienced Product Managers aiming for high-impact, $200K+ roles. You get the precise framework to define your next level, engineer an executive-ready personal brand, and negotiate like a CEO."
+            subtitle="Career Recalibration for Senior Product Leaders"
+            description="An intensive 8-week, cohort-based coaching program for experienced Product Leaders ready to make a step-change leap into Senior PM, Principal, GPM, or Director roles. Stop guessing your value — start operating at the level you're already capable of."
             features={[
-              "The Strategic Benchmark",
+              "Decision & Identity Calibration",
               "Narrative Control: Engineering Your PM Brand",
-              "High-Value Profile and Network Activation",
-              "Interview Mastery: Advanced Framework Toolkit",
-              "Product Judgment: High-Stakes Decisions",
-              "Executive Presence: Communication for Impact",
-              "The Influence Engine: Managing Power Dynamics",
-              "Future-Proofing and The Leader's Playbook",
+              "High-Value Profile & Network Activation",
+              "Interview Mastery: Executive-Level Performance",
+              "Product Judgment: High-Stakes Decision Making",
+              "Executive Presence & Influence",
+              "Value Capture & Negotiation Strategy",
+              "Future-Proofing: The Leader's Playbook",
             ]}
             price="$2,000"
             href="/200k-method"
