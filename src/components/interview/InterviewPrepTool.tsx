@@ -640,7 +640,12 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
 
     const userMessage = input.trim();
     setInput("");
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    
+    // Build the new messages array with the user message BEFORE state update
+    // to ensure we send the complete conversation history
+    const updatedMessages = [...messages, { role: "user" as const, content: userMessage }];
+    
+    setMessages(updatedMessages);
     setIsLoading(true);
 
     // Increment usage for free users
@@ -658,7 +663,7 @@ export function InterviewPrepTool({ onBack, onUpgrade }: InterviewPrepToolProps)
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
-            messages: [...messages, { role: "user", content: userMessage }],
+            messages: updatedMessages,
             context,
           }),
         }
