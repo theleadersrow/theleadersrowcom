@@ -961,14 +961,14 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h3 className="font-semibold text-foreground">Complete Career Bundle</h3>
-                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">SAVE $47</span>
+                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">SAVE $78</span>
               </div>
               <p className="text-muted-foreground text-sm mb-3">
                 All 3 tools: Resume Intelligence + LinkedIn Signal + Interview Prep
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-2xl font-bold text-foreground">$399</span>
-                <span className="text-sm text-muted-foreground line-through">$447</span>
+                <span className="text-sm text-muted-foreground line-through">$477</span>
                 <span className="text-xs text-muted-foreground">/ quarter</span>
               </div>
             </div>
@@ -1164,7 +1164,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
             <div className="text-center">
               <div className="flex items-center justify-center gap-2">
                 <span className="text-4xl font-bold text-foreground">$399</span>
-                <span className="text-lg text-muted-foreground line-through">$447</span>
+                <span className="text-lg text-muted-foreground line-through">$477</span>
               </div>
               <span className="text-muted-foreground">/ quarter</span>
               <p className="text-xs text-muted-foreground mt-1">Auto-renews every 3 months. Cancel anytime.</p>
@@ -1197,7 +1197,7 @@ export function RimoLanding({ onStartAssessment, onStartResumeSuite, onStartLink
               {isProcessing ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
               ) : (
-                <>Get the Bundle – Save $47</>
+                <>Get the Bundle – Save $78</>
               )}
             </Button>
           </div>
