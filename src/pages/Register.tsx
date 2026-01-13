@@ -192,24 +192,60 @@ const Register = () => {
 
   if (isSubmitted) {
     const hasPaidProgram = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
+    const programDetails = PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS];
     
     return (
       <Layout>
         <section className="pt-32 pb-20 min-h-screen bg-background">
           <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
-              <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-8">
-                <CheckCircle2 className="w-10 h-10 text-secondary" />
-              </div>
-              <h1 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
-                Thank You!
-              </h1>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                {hasPaidProgram 
-                  ? "Your registration has been received and a payment window has opened. Please complete your payment to secure your spot. If the window didn't open, please contact us."
-                  : "Thank you for your interest! A member of our team will contact you within 24–48 hours to complete your registration and guide you through next steps."
-                }
-              </p>
+              {hasPaidProgram ? (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-8">
+                    <CreditCard className="w-10 h-10 text-amber-600" />
+                  </div>
+                  <h1 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
+                    Almost There!
+                  </h1>
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-8">
+                    <h2 className="text-lg font-semibold text-amber-800 mb-2">
+                      ⚠️ Action Required: Complete Your Payment
+                    </h2>
+                    <p className="text-amber-700 mb-4">
+                      A Stripe payment window has opened in a new tab. Please complete your payment there to confirm your registration for <strong>{programDetails?.name}</strong>.
+                    </p>
+                    <div className="bg-white rounded-lg p-4 border border-amber-100">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        <strong>Didn't see the payment window?</strong> It may have been blocked by your browser.
+                      </p>
+                      <Button
+                        variant="gold"
+                        size="lg"
+                        onClick={() => window.open(PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS], '_blank')}
+                        className="w-full"
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Open Payment Page
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Your registration is <strong>not complete</strong> until payment is processed. Once payment is successful, you'll receive a confirmation email with your enrollment details.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-8">
+                    <CheckCircle2 className="w-10 h-10 text-secondary" />
+                  </div>
+                  <h1 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
+                    Thank You!
+                  </h1>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    Thank you for your interest! A member of our team will contact you within 24–48 hours to complete your registration and guide you through next steps.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -462,10 +498,6 @@ const Register = () => {
                       </ul>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-secondary/10">
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="text-sm text-green-700 font-medium">30-day money-back guarantee</span>
-                    </div>
                   </div>
                 )}
 
