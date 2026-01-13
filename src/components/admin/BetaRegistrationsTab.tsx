@@ -432,32 +432,55 @@ export function BetaRegistrationsTab() {
       r => selectedIds.includes(r.id)
     );
 
-    // Determine the tool type from the first selected registration
-    const firstReg = selectedRegistrations[0];
-    const toolType = firstReg?.tool_type || "resume_suite";
-    const eventDate = firstReg?.event_date || "";
+    let successCount = 0;
+    let failCount = 0;
 
     try {
-      for (const reg of selectedRegistrations) {
-        await supabase.functions.invoke("send-beta-bulk-email", {
-          body: {
-            name: reg.full_name,
-            email: reg.email,
-            toolType: reg.tool_type,
-            eventDate: reg.event_date,
-            zoomLink: bulkEmailZoomLink.trim(),
-            message: bulkEmailMessage.trim(),
-          },
-        });
+      // Send emails with a delay to avoid rate limiting (Resend allows 2 req/sec)
+      for (let i = 0; i < selectedRegistrations.length; i++) {
+        const reg = selectedRegistrations[i];
+        
+        try {
+          const { error } = await supabase.functions.invoke("send-beta-bulk-email", {
+            body: {
+              name: reg.full_name,
+              email: reg.email,
+              toolType: reg.tool_type,
+              eventDate: reg.event_date,
+              zoomLink: bulkEmailZoomLink.trim(),
+              message: bulkEmailMessage.trim(),
+            },
+          });
+          
+          if (error) {
+            console.error(`Failed to send to ${reg.email}:`, error);
+            failCount++;
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Error sending to ${reg.email}:`, err);
+          failCount++;
+        }
+        
+        // Add delay between emails to respect rate limit (600ms = ~1.6 req/sec, safe margin)
+        if (i < selectedRegistrations.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 600));
+        }
       }
 
-      toast.success(`Sent ${selectedRegistrations.length} email(s)`);
+      if (failCount === 0) {
+        toast.success(`Successfully sent ${successCount} email(s)`);
+      } else {
+        toast.warning(`Sent ${successCount} email(s), ${failCount} failed`);
+      }
+      
       setBulkEmailDialogOpen(false);
       setBulkEmailZoomLink("");
       setSelectedIds([]);
     } catch (error) {
       console.error("Error sending bulk emails:", error);
-      toast.error("Failed to send some emails");
+      toast.error("Failed to send emails");
     } finally {
       setSendingBulkEmail(false);
     }
