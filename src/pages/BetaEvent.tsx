@@ -365,7 +365,7 @@ const BetaEvent = () => {
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-emerald-500/10 rounded-lg px-2.5 py-1.5 text-emerald-700">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="font-medium">6–8 PM CT</span>
+                    <span className="font-medium">6–7:30 PM CT</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-emerald-500/10 rounded-lg px-2.5 py-1.5 text-emerald-700">
                     <Users className="w-3.5 h-3.5" />
@@ -493,7 +493,7 @@ const BetaEvent = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-sm">
-              Live session on <strong>{selectedToolType === "linkedin_signal" ? "January 7, 2026" : selectedToolType === "interview_prep" ? "January 19, 2026" : "January 6, 2026"} at 6:00–8:00 PM CT</strong>. Limited to 20 participants.
+              Live session on <strong>{selectedToolType === "linkedin_signal" ? "January 7, 2026" : selectedToolType === "interview_prep" ? "January 19, 2026" : "January 6, 2026"} at {selectedToolType === "interview_prep" ? "6:00–7:30 PM CT" : "6:00–8:00 PM CT"}</strong>. Limited to 20 participants.
             </p>
           </DialogHeader>
 
