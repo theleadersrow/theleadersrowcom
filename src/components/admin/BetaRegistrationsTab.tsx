@@ -434,6 +434,7 @@ export function BetaRegistrationsTab() {
 
     let successCount = 0;
     let failCount = 0;
+    const successfulIds: string[] = [];
 
     try {
       // Send emails with a delay to avoid rate limiting (Resend allows 2 req/sec)
@@ -457,6 +458,7 @@ export function BetaRegistrationsTab() {
             failCount++;
           } else {
             successCount++;
+            successfulIds.push(reg.id);
           }
         } catch (err) {
           console.error(`Error sending to ${reg.email}:`, err);
@@ -469,8 +471,25 @@ export function BetaRegistrationsTab() {
         }
       }
 
+      // Update status to 'invited' for successfully sent emails
+      if (successfulIds.length > 0) {
+        const { error: updateError } = await supabase
+          .from("beta_event_registrations")
+          .update({ 
+            status: "invited", 
+            invited_at: new Date().toISOString(),
+            zoom_link_sent: true
+          })
+          .in("id", successfulIds);
+        
+        if (updateError) {
+          console.error("Error updating status:", updateError);
+          toast.error("Emails sent but failed to update status");
+        }
+      }
+
       if (failCount === 0) {
-        toast.success(`Successfully sent ${successCount} email(s)`);
+        toast.success(`Successfully sent ${successCount} email(s) and updated status`);
       } else {
         toast.warning(`Sent ${successCount} email(s), ${failCount} failed`);
       }
@@ -478,6 +497,7 @@ export function BetaRegistrationsTab() {
       setBulkEmailDialogOpen(false);
       setBulkEmailZoomLink("");
       setSelectedIds([]);
+      fetchRegistrations(); // Refresh the list
     } catch (error) {
       console.error("Error sending bulk emails:", error);
       toast.error("Failed to send emails");
