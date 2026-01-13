@@ -37,7 +37,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck, MessageSquare, Mic, GraduationCap } from "lucide-react";
+import { LogOut, Users, RefreshCw, Plus, Copy, Check, Edit, FileText, ChevronDown, ChevronRight, User, Mail, Brain, Quote, Receipt, UserCheck, Clock, Wrench, CalendarCheck, MessageSquare, Mic, GraduationCap, Video } from "lucide-react";
 import { countries, getStatesForCountry, getCountryName, getStateName } from "@/lib/locationData";
 import { LeadsTab } from "@/components/admin/LeadsTab";
 import { AssessmentsTab } from "@/components/admin/AssessmentsTab";
@@ -46,6 +46,7 @@ import { ToolPurchasesTab } from "@/components/admin/ToolPurchasesTab";
 import { BetaRegistrationsTab } from "@/components/admin/BetaRegistrationsTab";
 import { CareerAdvisorTab } from "@/components/admin/CareerAdvisorTab";
 import { AMARegistrationsTab } from "@/components/admin/AMARegistrationsTab";
+import { WebinarRegistrationsTab } from "@/components/admin/WebinarRegistrationsTab";
 import InvoiceList from "@/components/InvoiceList";
 import MembersTab from "@/components/admin/MembersTab";
 
@@ -462,7 +463,7 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-6">
         <Tabs defaultValue="enrollments" className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-6">
+          <TabsList className="grid w-full grid-cols-10 mb-6">
             <TabsTrigger value="enrollments" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Enrollments</span>
@@ -485,7 +486,11 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="ama" className="flex items-center gap-2">
               <Mic className="h-4 w-4" />
-              <span className="hidden sm:inline">AMA Events</span>
+              <span className="hidden sm:inline">AMA</span>
+            </TabsTrigger>
+            <TabsTrigger value="webinar" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Webinar</span>
             </TabsTrigger>
             <TabsTrigger value="leads" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
@@ -519,6 +524,10 @@ const Admin = () => {
 
           <TabsContent value="ama">
             <AMARegistrationsTab />
+          </TabsContent>
+
+          <TabsContent value="webinar">
+            <WebinarRegistrationsTab />
           </TabsContent>
 
           <TabsContent value="enrollments" className="space-y-6">

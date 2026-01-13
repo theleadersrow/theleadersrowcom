@@ -1895,6 +1895,39 @@ export type Database = {
         }
         Relationships: []
       }
+      webinar_registrations: {
+        Row: {
+          confirmation_sent: boolean | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          status: string
+          webinar_date: string
+          webinar_title: string
+        }
+        Insert: {
+          confirmation_sent?: boolean | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          status?: string
+          webinar_date?: string
+          webinar_title?: string
+        }
+        Update: {
+          confirmation_sent?: boolean | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          status?: string
+          webinar_date?: string
+          webinar_title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
