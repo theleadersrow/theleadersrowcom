@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Check, Sparkles, Calendar, Users, BookOpen, Video, MessageSquare, Trophy } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,6 +22,40 @@ import { supabase } from "@/integrations/supabase/client";
 const PAYMENT_LINKS = {
   "200k-method": "https://buy.stripe.com/28EaEWdKxduW24n2gr9sk09",
   "weekly-edge": "https://buy.stripe.com/28E8wO6i562u7oH5sD9sk08",
+};
+
+// Program details for pricing breakdown
+const PROGRAM_DETAILS = {
+  "200k-method": {
+    name: "The 200K Method",
+    price: "$2,000",
+    priceSubtext: "One-time payment",
+    description: "A comprehensive 8-week intensive program designed to help you land a $200K+ role",
+    features: [
+      { icon: Video, text: "8 live weekly group coaching sessions (90 min each)" },
+      { icon: BookOpen, text: "Complete career transformation curriculum" },
+      { icon: MessageSquare, text: "1-on-1 resume & LinkedIn review" },
+      { icon: Users, text: "Private community access for 6 months" },
+      { icon: Trophy, text: "Interview preparation & mock interviews" },
+      { icon: Calendar, text: "Salary negotiation masterclass" },
+      { icon: Sparkles, text: "Lifetime access to course materials" },
+    ],
+    highlight: "Most Popular",
+  },
+  "weekly-edge": {
+    name: "Weekly Edge",
+    price: "$100",
+    priceSubtext: "per month",
+    description: "Stay sharp with weekly insights and community support for ongoing career growth",
+    features: [
+      { icon: Calendar, text: "Weekly live Q&A sessions" },
+      { icon: BookOpen, text: "Curated career resources & templates" },
+      { icon: Users, text: "Access to private community" },
+      { icon: MessageSquare, text: "Monthly 1-on-1 check-in" },
+      { icon: Sparkles, text: "Cancel anytime" },
+    ],
+    highlight: null,
+  },
 };
 
 const registerSchema = z.object({
@@ -384,6 +418,56 @@ const Register = () => {
                     <p className="text-destructive text-sm mt-1">{errors.program}</p>
                   )}
                 </div>
+
+                {/* Pricing Breakdown */}
+                {formData.program && PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] && (
+                  <div className="rounded-2xl border border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent p-6 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-serif text-xl font-semibold text-foreground">
+                            {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].name}
+                          </h3>
+                          {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].highlight && (
+                            <span className="bg-secondary text-secondary-foreground text-xs font-medium px-2 py-0.5 rounded-full">
+                              {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].highlight}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground text-sm mt-1">
+                          {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].description}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-serif text-2xl font-bold text-secondary">
+                          {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].price}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].priceSubtext}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-secondary/10 pt-4">
+                      <h4 className="text-sm font-medium text-foreground mb-3">What's included:</h4>
+                      <ul className="space-y-2.5">
+                        {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].features.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-3 text-sm">
+                            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-secondary/10 flex items-center justify-center mt-0.5">
+                              <feature.icon className="w-3 h-3 text-secondary" />
+                            </div>
+                            <span className="text-foreground/80">{feature.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-secondary/10">
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 font-medium">30-day money-back guarantee</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Payment Notice */}
                 <Alert className="bg-secondary/5 border-secondary/20">
