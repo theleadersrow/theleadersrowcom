@@ -114,8 +114,10 @@ export function BetaRegistrationsTab() {
 
   // Bulk email dialog
   const [bulkEmailDialogOpen, setBulkEmailDialogOpen] = useState(false);
-  const [bulkEmailSubject, setBulkEmailSubject] = useState("");
-  const [bulkEmailMessage, setBulkEmailMessage] = useState("");
+  const [bulkEmailZoomLink, setBulkEmailZoomLink] = useState("");
+  const [bulkEmailMessage, setBulkEmailMessage] = useState(
+    `We're excited to have you join us for this exclusive beta testing session!\n\nDuring this session, you'll get hands-on experience with our tool and provide valuable feedback that will help shape its development.\n\nPlease make sure to:\n• Join 5 minutes early to ensure your setup is working\n• Have your resume ready (if applicable)\n• Come prepared with questions or specific scenarios you'd like to test\n\nWe can't wait to see you there!`
+  );
   const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
 
   // Add/Edit registration dialog
@@ -416,8 +418,8 @@ export function BetaRegistrationsTab() {
   };
 
   const sendBulkEmail = async () => {
-    if (!bulkEmailSubject.trim()) {
-      toast.error("Please enter an email subject");
+    if (!bulkEmailZoomLink.trim()) {
+      toast.error("Please enter the Zoom link");
       return;
     }
     if (!bulkEmailMessage.trim()) {
@@ -430,13 +432,20 @@ export function BetaRegistrationsTab() {
       r => selectedIds.includes(r.id)
     );
 
+    // Determine the tool type from the first selected registration
+    const firstReg = selectedRegistrations[0];
+    const toolType = firstReg?.tool_type || "resume_suite";
+    const eventDate = firstReg?.event_date || "";
+
     try {
       for (const reg of selectedRegistrations) {
         await supabase.functions.invoke("send-beta-bulk-email", {
           body: {
             name: reg.full_name,
             email: reg.email,
-            subject: bulkEmailSubject.trim(),
+            toolType: reg.tool_type,
+            eventDate: reg.event_date,
+            zoomLink: bulkEmailZoomLink.trim(),
             message: bulkEmailMessage.trim(),
           },
         });
@@ -444,8 +453,7 @@ export function BetaRegistrationsTab() {
 
       toast.success(`Sent ${selectedRegistrations.length} email(s)`);
       setBulkEmailDialogOpen(false);
-      setBulkEmailSubject("");
-      setBulkEmailMessage("");
+      setBulkEmailZoomLink("");
       setSelectedIds([]);
     } catch (error) {
       console.error("Error sending bulk emails:", error);
@@ -1205,27 +1213,32 @@ export function BetaRegistrationsTab() {
       <Dialog open={bulkEmailDialogOpen} onOpenChange={setBulkEmailDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Send Bulk Email</DialogTitle>
+            <DialogTitle>Send Beta Session Invite</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="bg-muted/50 p-3 rounded-lg text-sm">
+              <p className="text-muted-foreground">
+                This will send a beta testing session invite to the selected participants. 
+                The email will include the tool name, event date (from registration), and Zoom link.
+              </p>
+            </div>
             <div>
-              <Label>Email Subject *</Label>
+              <Label>Zoom Link *</Label>
               <Input
-                value={bulkEmailSubject}
-                onChange={(e) => setBulkEmailSubject(e.target.value)}
-                placeholder="Enter email subject..."
+                value={bulkEmailZoomLink}
+                onChange={(e) => setBulkEmailZoomLink(e.target.value)}
+                placeholder="https://zoom.us/j/..."
               />
             </div>
             <div>
-              <Label>Email Message *</Label>
+              <Label>Custom Message</Label>
               <Textarea
                 value={bulkEmailMessage}
                 onChange={(e) => setBulkEmailMessage(e.target.value)}
-                placeholder="Enter your message here. Use {name} to personalize with recipient's name..."
-                rows={6}
+                rows={8}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Tip: Use {"{name}"} in your message to include the recipient's name.
+                This message will appear in the email body. The recipient's name will be added automatically.
               </p>
             </div>
             <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
@@ -1234,8 +1247,12 @@ export function BetaRegistrationsTab() {
                 {filteredRegistrations
                   .filter(r => selectedIds.includes(r.id))
                   .map(r => (
-                    <div key={r.id} className="text-xs">
-                      {r.full_name} ({r.email})
+                    <div key={r.id} className="text-xs flex justify-between">
+                      <span>{r.full_name} ({r.email})</span>
+                      <Badge variant="outline" className="text-[10px]">
+                        {r.tool_type === "resume_suite" ? "Resume" : 
+                         r.tool_type === "linkedin_signal" ? "LinkedIn" : "Interview"}
+                      </Badge>
                     </div>
                   ))}
               </div>
