@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CreditCard } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -383,6 +385,14 @@ const Register = () => {
                   )}
                 </div>
 
+                {/* Payment Notice */}
+                <Alert className="bg-secondary/5 border-secondary/20">
+                  <CreditCard className="h-4 w-4 text-secondary" />
+                  <AlertDescription className="text-foreground/80">
+                    <strong>Payment Required:</strong> After submitting this form, you'll be redirected to our secure Stripe payment page to complete your registration. Your enrollment is only confirmed once payment is successfully processed.
+                  </AlertDescription>
+                </Alert>
+
                 {/* Submit */}
                 <Button type="submit" variant="gold" size="xl" className="w-full mt-4" disabled={isSubmitting}>
                   {isSubmitting ? (
@@ -391,9 +401,16 @@ const Register = () => {
                       Processing...
                     </>
                   ) : (
-                    "Submit Registration"
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Continue to Payment
+                    </>
                   )}
                 </Button>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  🔒 Secure payment powered by Stripe
+                </p>
               </div>
             </form>
           </div>
