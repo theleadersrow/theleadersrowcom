@@ -27,7 +27,7 @@ const getToolConfig = (toolType: string) => {
     case "interview_prep":
       return {
         name: "Interview Prep",
-        date: "Friday, January 9, 2026",
+        date: "Monday, January 19, 2026",
         color: "#10b981",
       };
     case "advisor":
