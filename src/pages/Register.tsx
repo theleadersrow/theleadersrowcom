@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CreditCard, Check, Sparkles, Calendar, Users, BookOpen, Video, MessageSquare, Trophy } from "lucide-react";
+import { CreditCard, Check, Sparkles, Calendar, Users, BookOpen, Video, MessageSquare, Trophy, RefreshCw } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -108,6 +108,9 @@ const Register = () => {
   
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const [pollCount, setPollCount] = useState(0);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -121,6 +124,60 @@ const Register = () => {
     occupation: "",
     program: preselectedProgram,
   });
+
+  const checkPaymentStatus = useCallback(async () => {
+    if (!formData.email || isPaymentConfirmed) return;
+    
+    setIsCheckingPayment(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("check-payment-status", {
+        body: { email: formData.email },
+      });
+
+      if (error) {
+        console.error("Error checking payment status:", error);
+        return;
+      }
+
+      if (data?.paid) {
+        setIsPaymentConfirmed(true);
+        toast({
+          title: "Payment Confirmed! 🎉",
+          description: "Your registration is now complete. Welcome aboard!",
+        });
+      }
+    } catch (error) {
+      console.error("Error checking payment:", error);
+    } finally {
+      setIsCheckingPayment(false);
+      setPollCount(prev => prev + 1);
+    }
+  }, [formData.email, isPaymentConfirmed, toast]);
+
+  // Poll for payment status every 5 seconds after form submission
+  useEffect(() => {
+    if (!isSubmitted || isPaymentConfirmed) return;
+    
+    const hasPaidProgram = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
+    if (!hasPaidProgram) return;
+
+    // Initial check after 3 seconds
+    const initialTimeout = setTimeout(() => {
+      checkPaymentStatus();
+    }, 3000);
+
+    // Then poll every 5 seconds for up to 10 minutes
+    const pollInterval = setInterval(() => {
+      if (pollCount < 120) { // 120 * 5 seconds = 10 minutes
+        checkPaymentStatus();
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(pollInterval);
+    };
+  }, [isSubmitted, isPaymentConfirmed, formData.program, checkPaymentStatus, pollCount]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -199,7 +256,27 @@ const Register = () => {
         <section className="pt-32 pb-20 min-h-screen bg-background">
           <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
-              {hasPaidProgram ? (
+              {isPaymentConfirmed ? (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-8">
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                  </div>
+                  <h1 className="font-serif text-4xl md:text-5xl font-semibold text-foreground mb-6">
+                    Payment Confirmed! 🎉
+                  </h1>
+                  <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8">
+                    <h2 className="text-lg font-semibold text-green-800 mb-2">
+                      ✅ Your Registration is Complete
+                    </h2>
+                    <p className="text-green-700">
+                      Welcome to <strong>{programDetails?.name}</strong>! You'll receive a confirmation email shortly with all the details to get started.
+                    </p>
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Check your inbox at <strong>{formData.email}</strong> for next steps and access instructions.
+                  </p>
+                </>
+              ) : hasPaidProgram ? (
                 <>
                   <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-8">
                     <CreditCard className="w-10 h-10 text-amber-600" />
@@ -229,8 +306,39 @@ const Register = () => {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Payment status indicator */}
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm mb-4">
+                    {isCheckingPayment ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Checking payment status...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Waiting for payment confirmation...</span>
+                      </>
+                    )}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={checkPaymentStatus}
+                    disabled={isCheckingPayment}
+                    className="mb-4"
+                  >
+                    {isCheckingPayment ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Check Payment Status
+                  </Button>
+                  
                   <p className="text-muted-foreground text-sm">
-                    Your registration is <strong>not complete</strong> until payment is processed. Once payment is successful, you'll receive a confirmation email with your enrollment details.
+                    Your registration is <strong>not complete</strong> until payment is processed. This page will automatically update when we detect your payment.
                   </p>
                 </>
               ) : (
