@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -22,6 +23,11 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Initialize Supabase client with service role
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
     const { name, email }: WebinarRegistrationRequest = await req.json();
 
@@ -33,6 +39,25 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
+    }
+
+    console.log(`Processing webinar registration for ${email}`);
+
+    // Save registration to database
+    const { error: dbError } = await supabase
+      .from("webinar_registrations")
+      .insert({
+        full_name: name,
+        email: email,
+        webinar_title: "The 200K Method",
+        webinar_date: "2025-01-15T19:30:00-06:00",
+        status: "registered",
+        confirmation_sent: true,
+      });
+
+    if (dbError) {
+      console.error("Error saving registration:", dbError);
+      // Continue to send email even if DB save fails
     }
 
     console.log(`Sending webinar confirmation to ${email}`);
