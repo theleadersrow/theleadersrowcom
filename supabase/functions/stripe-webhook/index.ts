@@ -8,6 +8,35 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Retry helper function with exponential backoff
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: { maxAttempts?: number; delayMs?: number; operation?: string } = {}
+): Promise<T> {
+  const { maxAttempts = 3, delayMs = 1000, operation = 'operation' } = options;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      logStep(`${operation} attempt ${attempt}/${maxAttempts} failed`, { 
+        error: lastError.message,
+        willRetry: attempt < maxAttempts 
+      });
+
+      if (attempt < maxAttempts) {
+        const backoffDelay = delayMs * Math.pow(2, attempt - 1);
+        logStep(`Waiting ${backoffDelay}ms before retry`);
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 serve(async (req) => {
   try {
     logStep("Webhook received");
@@ -52,30 +81,31 @@ serve(async (req) => {
       if (eventType === "ama_event") {
         logStep("Processing AMA event registration", { customerEmail, customerName });
 
-        // Store AMA registration in database
-        const { data: registration, error: regError } = await supabaseAdmin
-          .from('beta_event_registrations')
-          .insert({
-            full_name: customerName,
-            email: customerEmail,
-            current_position: metadata.currentRole || "Not specified",
-            target_roles: metadata.question || "AMA Event Registration",
-            phone: "N/A",
-            job_search_status: "AMA Event",
-            tool_type: "ama_event",
-            agrees_to_communication: true,
-            understands_beta_terms: true,
-            status: "paid",
-            event_date: metadata.eventDate || null,
-          })
-          .select()
-          .single();
+        // Store AMA registration in database with retry
+        const registration = await withRetry(async () => {
+          const { data, error } = await supabaseAdmin
+            .from('beta_event_registrations')
+            .insert({
+              full_name: customerName,
+              email: customerEmail,
+              current_position: metadata.currentRole || "Not specified",
+              target_roles: metadata.question || "AMA Event Registration",
+              phone: "N/A",
+              job_search_status: "AMA Event",
+              tool_type: "ama_event",
+              agrees_to_communication: true,
+              understands_beta_terms: true,
+              status: "paid",
+              event_date: metadata.eventDate || null,
+            })
+            .select()
+            .single();
 
-        if (regError) {
-          logStep("Error creating AMA registration", { error: regError.message });
-        } else {
-          logStep("AMA registration created", { registrationId: registration.id });
-        }
+          if (error) throw error;
+          return data;
+        }, { operation: 'AMA registration insert' });
+
+        logStep("AMA registration created", { registrationId: registration.id });
 
         // Send AMA confirmation email
         const amaEmailHtml = `
@@ -165,6 +195,7 @@ serve(async (req) => {
               <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Current Role:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.currentRole || "Not specified"}</td></tr>
               <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Pre-submitted Question:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.question || "None"}</td></tr>
               <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Payment:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; color: green;">✓ $20 Paid</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>DB Record:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; color: green;">✓ Created (ID: ${registration.id})</td></tr>
             </table>
           `,
         });
@@ -183,33 +214,47 @@ serve(async (req) => {
 
       logStep("Customer data extracted", { customerEmail, customerName, productName });
 
-      // Find the program in the database
-      const { data: programData, error: programError } = await supabaseAdmin
-        .from("programs")
-        .select("id")
-        .eq("slug", program)
-        .single();
+      // Find the program in the database with retry
+      let programId: string | null = null;
+      
+      try {
+        const programData = await withRetry(async () => {
+          const { data, error } = await supabaseAdmin
+            .from("programs")
+            .select("id")
+            .eq("slug", program)
+            .single();
 
-      let programId = programData?.id;
+          // PGRST116 means no rows found, which is not an error for this case
+          if (error && error.code !== 'PGRST116') throw error;
+          return data;
+        }, { operation: 'Program lookup' });
 
-      // If program doesn't exist, create it
+        programId = programData?.id || null;
+      } catch (error) {
+        logStep("Program lookup failed after retries", { error: error instanceof Error ? error.message : String(error) });
+      }
+
+      // If program doesn't exist, create it with retry
       if (!programId) {
         logStep("Program not found, creating...", { program });
-        const { data: newProgram, error: createError } = await supabaseAdmin
-          .from("programs")
-          .insert({
-            name: productName,
-            slug: program,
-            description: `${productName} program`,
-            price: session.amount_total ? session.amount_total / 100 : 2000,
-          })
-          .select("id")
-          .single();
+        
+        const newProgram = await withRetry(async () => {
+          const { data, error } = await supabaseAdmin
+            .from("programs")
+            .insert({
+              name: productName,
+              slug: program,
+              description: `${productName} program`,
+              price: session.amount_total ? session.amount_total / 100 : 2000,
+            })
+            .select("id")
+            .single();
 
-        if (createError) {
-          logStep("Error creating program", { error: createError.message });
-          throw createError;
-        }
+          if (error) throw error;
+          return data;
+        }, { operation: 'Program creation' });
+
         programId = newProgram.id;
         logStep("Program created", { programId });
       }
@@ -219,32 +264,87 @@ serve(async (req) => {
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
 
-      // Create enrollment record
-      const { data: enrollment, error: enrollmentError } = await supabaseAdmin
-        .from("enrollments")
-        .insert({
-          program_id: programId,
-          email: customerEmail,
-          first_name: firstName,
-          last_name: lastName,
-          phone: metadata.customer_phone || null,
-          city: metadata.customer_city || null,
-          state: metadata.customer_state || null,
-          country: metadata.customer_country || null,
-          zip_code: metadata.customer_zipcode || null,
-          occupation: metadata.customer_occupation || null,
-          payment_status: "paid",
-          notes: `Stripe Session ID: ${session.id}, Payment Intent: ${session.payment_intent}`,
-        })
-        .select()
-        .single();
+      // Create enrollment record with retry
+      let enrollment;
+      try {
+        enrollment = await withRetry(async () => {
+          const { data, error } = await supabaseAdmin
+            .from("enrollments")
+            .insert({
+              program_id: programId,
+              email: customerEmail,
+              first_name: firstName,
+              last_name: lastName,
+              phone: metadata.customer_phone || null,
+              city: metadata.customer_city || null,
+              state: metadata.customer_state || null,
+              country: metadata.customer_country || null,
+              zip_code: metadata.customer_zipcode || null,
+              occupation: metadata.customer_occupation || null,
+              payment_status: "paid",
+              notes: `Stripe Session ID: ${session.id}, Payment Intent: ${session.payment_intent}`,
+            })
+            .select()
+            .single();
 
-      if (enrollmentError) {
-        logStep("Error creating enrollment", { error: enrollmentError.message });
-        throw enrollmentError;
+          if (error) throw error;
+          return data;
+        }, { operation: 'Enrollment creation', maxAttempts: 5, delayMs: 2000 });
+
+        logStep("Enrollment created successfully", { 
+          enrollmentId: enrollment.id, 
+          enrollmentCode: enrollment.enrollment_code 
+        });
+      } catch (enrollmentError) {
+        // CRITICAL: Enrollment failed after all retries
+        const errorMessage = enrollmentError instanceof Error ? enrollmentError.message : String(enrollmentError);
+        logStep("CRITICAL: Enrollment creation FAILED after all retries", { 
+          error: errorMessage,
+          customerEmail,
+          customerName,
+          sessionId: session.id
+        });
+
+        // Send failure notification to admin
+        await resend.emails.send({
+          from: "The Leader's Row <hello@theleadersrow.com>",
+          to: ["theleadersrow@gmail.com"],
+          subject: `🚨 URGENT: Enrollment Failed - ${customerName} - ${productName}`,
+          html: `
+            <h2 style="color: red;">🚨 ENROLLMENT CREATION FAILED</h2>
+            <p style="background: #fee; padding: 15px; border-radius: 8px; border-left: 4px solid red;">
+              <strong>The enrollment database record could not be created after multiple attempts.</strong><br>
+              Please manually create this enrollment in the admin portal.
+            </p>
+            <table style="border-collapse: collapse; width: 100%; margin-top: 20px;">
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Customer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerName}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${customerEmail}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.customer_phone || "Not provided"}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Location:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.customer_city || ""}, ${metadata.customer_state || ""}, ${metadata.customer_country || ""}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Occupation:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${metadata.customer_occupation || "Not provided"}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Product:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${productName}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Payment Amount:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">$${session.amount_total ? (session.amount_total / 100).toFixed(2) : "N/A"}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Stripe Session:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 12px;">${session.id}</td></tr>
+              <tr style="background: #fee;"><td style="padding: 8px;"><strong>Error:</strong></td><td style="padding: 8px; color: red;">${errorMessage}</td></tr>
+            </table>
+            <p style="margin-top: 20px; color: #666;">
+              <strong>Action Required:</strong> Go to the admin portal and manually create an enrollment for this customer.
+            </p>
+          `,
+        });
+
+        logStep("Failure notification sent to admin");
+
+        // Return success to Stripe (so it doesn't retry) but log the failure
+        return new Response(JSON.stringify({ 
+          received: true, 
+          error: "Enrollment creation failed - admin notified",
+          sessionId: session.id 
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
       }
-
-      logStep("Enrollment created", { enrollmentId: enrollment.id, enrollmentCode: enrollment.enrollment_code });
 
       // Send confirmation email with enrollment code and signup link
       const baseUrl = "https://theleadersrowcom.lovable.app";
@@ -345,7 +445,7 @@ serve(async (req) => {
 
       logStep("Confirmation email sent", { response: emailResponse });
 
-      // Also send notification to admin with account status
+      // Send admin notification ONLY after successful enrollment creation
       const adminEmailHtml = `
         <h2>🎉 New Enrollment - ${productName}</h2>
         <table style="border-collapse: collapse; width: 100%;">
@@ -361,7 +461,7 @@ serve(async (req) => {
           <tr><td style="padding: 8px;"><strong>Stripe Session:</strong></td><td style="padding: 8px; font-size: 12px; color: #666;">${session.id}</td></tr>
         </table>
         <p style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px;">
-          ✅ Enrollment created in admin portal<br>
+          ✅ Enrollment created in database (ID: ${enrollment.id})<br>
           ✅ Confirmation email sent to customer with enrollment code and signup link
         </p>
       `;
@@ -389,7 +489,7 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in stripe-webhook", { message: errorMessage });
+    logStep("ERROR in stripe-webhook", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
