@@ -44,6 +44,7 @@ import JoinCommunity from "./pages/JoinCommunity";
 import Coaching from "./pages/Coaching";
 import PMInterview from "./pages/PMInterview";
 import AMAFeedback from "./pages/AMAFeedback";
+import WebinarRegistration from "./pages/WebinarRegistration";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/coaching" element={<Coaching />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />
             <Route path="/pm-interview" element={<PMInterview />} />
+            <Route path="/webinar" element={<WebinarRegistration />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

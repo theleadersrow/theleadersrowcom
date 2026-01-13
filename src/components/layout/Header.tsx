@@ -60,6 +60,7 @@ const Header = () => {
   const communityLinks = [
     { href: "/community", label: "Leader's Row Community" },
     { href: "/ama-events", label: "Ask Me Anything Events" },
+    { href: "/webinar", label: "Free Webinar: The 200K Method", isNew: true },
   ];
 
   const contactLinks = [
@@ -207,11 +208,16 @@ const Header = () => {
                   <DropdownMenuItem key={link.href + link.label} asChild>
                     <Link
                       to={link.href}
-                      className={`w-full cursor-pointer py-1.5 ${
+                      className={`w-full cursor-pointer py-1.5 flex items-center gap-2 ${
                         isActiveLink(link.href) ? "text-secondary" : "text-foreground hover:text-secondary"
                       }`}
                     >
                       {link.label}
+                      {link.isNew && (
+                        <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                          New
+                        </span>
+                      )}
                     </Link>
                   </DropdownMenuItem>
                 ))}
