@@ -79,13 +79,8 @@ interface AccessGrantedUser {
 
 interface ColumnFilters {
   name: string;
-  email: string;
   tool_type: string;
-  job_search_status: string;
-  position: string;
-  company: string;
-  target_roles: string;
-  registered_after: string;
+  status: string;
 }
 
 export function BetaRegistrationsTab() {
@@ -102,13 +97,8 @@ export function BetaRegistrationsTab() {
   const [showFilters, setShowFilters] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
     name: "",
-    email: "",
     tool_type: "all",
-    job_search_status: "all",
-    position: "",
-    company: "",
-    target_roles: "",
-    registered_after: "",
+    status: "all",
   });
   
   // Update event date dialog
@@ -345,37 +335,13 @@ P.S. Your beta access is valid for 30 days from activation.`;
       if (columnFilters.name && !reg.full_name.toLowerCase().includes(columnFilters.name.toLowerCase())) {
         return false;
       }
-      // Email filter
-      if (columnFilters.email && !reg.email.toLowerCase().includes(columnFilters.email.toLowerCase())) {
-        return false;
-      }
       // Tool type filter (from advanced filters - skip if primary filter is active)
       if (toolTypeFilter === "all" && columnFilters.tool_type !== "all" && reg.tool_type !== columnFilters.tool_type) {
         return false;
       }
-      // Job search status filter
-      if (columnFilters.job_search_status !== "all" && reg.job_search_status !== columnFilters.job_search_status) {
+      // Status filter
+      if (columnFilters.status !== "all" && reg.status !== columnFilters.status) {
         return false;
-      }
-      // Position filter
-      if (columnFilters.position && !reg.current_position.toLowerCase().includes(columnFilters.position.toLowerCase())) {
-        return false;
-      }
-      // Company filter
-      if (columnFilters.company && !(reg.company || "").toLowerCase().includes(columnFilters.company.toLowerCase())) {
-        return false;
-      }
-      // Target roles filter
-      if (columnFilters.target_roles && !reg.target_roles.toLowerCase().includes(columnFilters.target_roles.toLowerCase())) {
-        return false;
-      }
-      // Registered after filter
-      if (columnFilters.registered_after) {
-        const filterDate = new Date(columnFilters.registered_after);
-        const regDate = new Date(reg.created_at);
-        if (regDate < filterDate) {
-          return false;
-        }
       }
       return true;
     });
@@ -384,25 +350,15 @@ P.S. Your beta access is valid for 30 days from activation.`;
   const clearFilters = () => {
     setColumnFilters({
       name: "",
-      email: "",
       tool_type: "all",
-      job_search_status: "all",
-      position: "",
-      company: "",
-      target_roles: "",
-      registered_after: "",
+      status: "all",
     });
   };
 
   const hasActiveFilters = useMemo(() => {
     return columnFilters.name !== "" ||
-      columnFilters.email !== "" ||
       columnFilters.tool_type !== "all" ||
-      columnFilters.job_search_status !== "all" ||
-      columnFilters.position !== "" ||
-      columnFilters.company !== "" ||
-      columnFilters.target_roles !== "" ||
-      columnFilters.registered_after !== "";
+      columnFilters.status !== "all";
   }, [columnFilters]);
 
   // Bulk update event dates
@@ -1061,7 +1017,7 @@ P.S. Your beta access is valid for 30 days from activation.`;
         {/* Column Filters */}
         {showFilters && (
           <Card className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label className="text-xs mb-1.5 block">Name</Label>
                 <div className="relative">
@@ -1070,18 +1026,6 @@ P.S. Your beta access is valid for 30 days from activation.`;
                     placeholder="Filter name..."
                     value={columnFilters.name}
                     onChange={(e) => setColumnFilters(prev => ({ ...prev, name: e.target.value }))}
-                    className="pl-8 h-9"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs mb-1.5 block">Email</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Filter email..."
-                    value={columnFilters.email}
-                    onChange={(e) => setColumnFilters(prev => ({ ...prev, email: e.target.value }))}
                     className="pl-8 h-9"
                   />
                 </div>
@@ -1104,66 +1048,23 @@ P.S. Your beta access is valid for 30 days from activation.`;
                 </Select>
               </div>
               <div>
-                <Label className="text-xs mb-1.5 block">Job Search Status</Label>
+                <Label className="text-xs mb-1.5 block">Status</Label>
                 <Select
-                  value={columnFilters.job_search_status}
-                  onValueChange={(value) => setColumnFilters(prev => ({ ...prev, job_search_status: value }))}
+                  value={columnFilters.status}
+                  onValueChange={(value) => setColumnFilters(prev => ({ ...prev, status: value }))}
                 >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="actively_interviewing">Actively Interviewing</SelectItem>
-                    <SelectItem value="preparing_soon">Preparing (1-2 months)</SelectItem>
-                    <SelectItem value="exploring">Exploring (3+ months)</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="invited">Invited</SelectItem>
+                    <SelectItem value="attended">Attended</SelectItem>
+                    <SelectItem value="no_show">No Show</SelectItem>
+                    <SelectItem value="waitlisted">Waitlisted</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label className="text-xs mb-1.5 block">Position</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Filter position..."
-                    value={columnFilters.position}
-                    onChange={(e) => setColumnFilters(prev => ({ ...prev, position: e.target.value }))}
-                    className="pl-8 h-9"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs mb-1.5 block">Company</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Filter company..."
-                    value={columnFilters.company}
-                    onChange={(e) => setColumnFilters(prev => ({ ...prev, company: e.target.value }))}
-                    className="pl-8 h-9"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs mb-1.5 block">Target Roles</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Filter roles..."
-                    value={columnFilters.target_roles}
-                    onChange={(e) => setColumnFilters(prev => ({ ...prev, target_roles: e.target.value }))}
-                    className="pl-8 h-9"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs mb-1.5 block">Registered After</Label>
-                <Input
-                  type="date"
-                  value={columnFilters.registered_after}
-                  onChange={(e) => setColumnFilters(prev => ({ ...prev, registered_after: e.target.value }))}
-                  className="h-9"
-                />
               </div>
             </div>
             {hasActiveFilters && (
