@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -21,17 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RefreshCw, Users, Download, Search, Calendar, Mail, CheckCircle, Send, MailCheck } from "lucide-react";
+import { RefreshCw, Users, Download, Search, Calendar, Mail, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface WebinarRegistration {
@@ -45,42 +35,11 @@ interface WebinarRegistration {
   created_at: string;
 }
 
-const DEFAULT_ZOOM_LINK = "https://zoom.us/j/97216217059?pwd=OMqa5Bi6L4BBeoDfnO9tCdGK6AAShn.1";
-const DEFAULT_EMAIL_SUBJECT = "Reminder: The 200K Method Webinar - Thursday, January 15th";
-const DEFAULT_EMAIL_BODY = `Hi there,
-
-This is a reminder that The 200K Method webinar is happening soon!
-
-📅 Date: Thursday, January 15th, 2026
-⏰ Time: 7:30 PM Central (1 hour)
-📍 Where: Zoom
-
-🔗 Join Zoom Meeting:
-{zoom_link}
-
-What You'll Learn:
-• The exact framework used to land $200K+ offers
-• How to position yourself for senior roles
-• Negotiation strategies that maximize compensation
-• Live Q&A with real examples
-
-See you there!
-The Leader's Row Team`;
-
 export function WebinarRegistrationsTab() {
   const [registrations, setRegistrations] = useState<WebinarRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  
-  // Email dialog state
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-  const [bulkEmailDialogOpen, setBulkEmailDialogOpen] = useState(false);
-  const [selectedRegistration, setSelectedRegistration] = useState<WebinarRegistration | null>(null);
-  const [emailSubject, setEmailSubject] = useState(DEFAULT_EMAIL_SUBJECT);
-  const [emailBody, setEmailBody] = useState(DEFAULT_EMAIL_BODY);
-  const [zoomLink, setZoomLink] = useState(DEFAULT_ZOOM_LINK);
-  const [isSending, setIsSending] = useState(false);
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -126,126 +85,6 @@ export function WebinarRegistrationsTab() {
       setSelectedIds(prev => [...prev, id]);
     } else {
       setSelectedIds(prev => prev.filter(i => i !== id));
-    }
-  };
-
-  const openSingleEmailDialog = (registration: WebinarRegistration) => {
-    setSelectedRegistration(registration);
-    setEmailSubject(DEFAULT_EMAIL_SUBJECT);
-    setEmailBody(DEFAULT_EMAIL_BODY);
-    setZoomLink(DEFAULT_ZOOM_LINK);
-    setEmailDialogOpen(true);
-  };
-
-  const openBulkEmailDialog = () => {
-    if (selectedIds.length === 0) {
-      toast.error("Please select at least one registrant");
-      return;
-    }
-    setEmailSubject(DEFAULT_EMAIL_SUBJECT);
-    setEmailBody(DEFAULT_EMAIL_BODY);
-    setZoomLink(DEFAULT_ZOOM_LINK);
-    setBulkEmailDialogOpen(true);
-  };
-
-  const getFormattedEmail = (name: string, zoom: string) => {
-    return emailBody
-      .replace(/{name}/g, name.split(" ")[0])
-      .replace(/{zoom_link}/g, zoom || "[ZOOM LINK]");
-  };
-
-  const sendSingleEmail = async () => {
-    if (!selectedRegistration || !zoomLink.trim()) {
-      toast.error("Please enter the Zoom link");
-      return;
-    }
-
-    setIsSending(true);
-    try {
-      const formattedBody = getFormattedEmail(selectedRegistration.full_name, zoomLink);
-      
-      const { error } = await supabase.functions.invoke("send-webinar-email", {
-        body: {
-          to: selectedRegistration.email,
-          name: selectedRegistration.full_name,
-          subject: emailSubject,
-          body: formattedBody,
-          zoomLink: zoomLink,
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success(`Email sent to ${selectedRegistration.email}`);
-      setEmailDialogOpen(false);
-      setSelectedRegistration(null);
-    } catch (error) {
-      console.error("Error sending email:", error);
-      toast.error("Failed to send email");
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const sendBulkEmails = async () => {
-    if (!zoomLink.trim()) {
-      toast.error("Please enter the Zoom link");
-      return;
-    }
-
-    const selectedRegistrations = registrations.filter(r => selectedIds.includes(r.id));
-    if (selectedRegistrations.length === 0) {
-      toast.error("No registrants selected");
-      return;
-    }
-
-    setIsSending(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    try {
-      for (const reg of selectedRegistrations) {
-        const formattedBody = getFormattedEmail(reg.full_name, zoomLink);
-        
-        try {
-          const { error } = await supabase.functions.invoke("send-webinar-email", {
-            body: {
-              to: reg.email,
-              name: reg.full_name,
-              subject: emailSubject,
-              body: formattedBody,
-              zoomLink: zoomLink,
-            },
-          });
-
-          if (error) {
-            console.error(`Error sending to ${reg.email}:`, error);
-            failCount++;
-          } else {
-            successCount++;
-          }
-        } catch (err) {
-          console.error(`Error sending to ${reg.email}:`, err);
-          failCount++;
-        }
-
-        // Add delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-
-      if (failCount === 0) {
-        toast.success(`Successfully sent ${successCount} email(s)`);
-      } else {
-        toast.warning(`Sent ${successCount} email(s), ${failCount} failed`);
-      }
-
-      setBulkEmailDialogOpen(false);
-      setSelectedIds([]);
-    } catch (error) {
-      console.error("Error sending bulk emails:", error);
-      toast.error("Failed to send emails");
-    } finally {
-      setIsSending(false);
     }
   };
 
@@ -392,16 +231,10 @@ export function WebinarRegistrationsTab() {
             </CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
               {selectedIds.length > 0 && (
-                <>
-                  <Button variant="secondary" size="sm" onClick={markSelectedAsEmailSent}>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Mark as Email Sent ({selectedIds.length})
-                  </Button>
-                  <Button variant="default" size="sm" onClick={openBulkEmailDialog}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send to {selectedIds.length} Selected
-                  </Button>
-                </>
+                <Button variant="secondary" size="sm" onClick={markSelectedAsEmailSent}>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Mark as Email Sent ({selectedIds.length})
+                </Button>
               )}
               <Button variant="outline" size="sm" onClick={fetchRegistrations} disabled={loading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -451,7 +284,6 @@ export function WebinarRegistrationsTab() {
                     <TableHead>Email</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Registered</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -492,28 +324,6 @@ export function WebinarRegistrationsTab() {
                       <TableCell className="text-muted-foreground text-sm">
                         {format(new Date(reg.created_at), "MMM d, yyyy 'at' h:mm a")}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {reg.status === "pending" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateRegistrationStatus(reg.id, "email_sent")}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Mark Sent
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openSingleEmailDialog(reg)}
-                          >
-                            <MailCheck className="w-4 h-4 mr-1" />
-                            Send Email
-                          </Button>
-                        </div>
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -522,182 +332,6 @@ export function WebinarRegistrationsTab() {
           )}
         </CardContent>
       </Card>
-
-      {/* Single Email Dialog */}
-      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5" />
-              Send Email to {selectedRegistration?.full_name}
-            </DialogTitle>
-            <DialogDescription>
-              Customize and send an email to this registrant
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="zoom-link">Zoom Link (Required)</Label>
-              <Input
-                id="zoom-link"
-                placeholder="https://zoom.us/j/..."
-                value={zoomLink}
-                onChange={(e) => setZoomLink(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email-subject">Subject</Label>
-              <Input
-                id="email-subject"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email-body">
-                Email Body <span className="text-muted-foreground text-xs">(Use {"{name}"} and {"{zoom_link}"} as placeholders)</span>
-              </Label>
-              <Textarea
-                id="email-body"
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                rows={12}
-                className="font-mono text-sm"
-              />
-            </div>
-
-            {zoomLink && selectedRegistration && (
-              <div className="space-y-2">
-                <Label>Preview</Label>
-                <div className="bg-muted/50 p-4 rounded-lg text-sm whitespace-pre-wrap border">
-                  {getFormattedEmail(selectedRegistration.full_name, zoomLink)}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={sendSingleEmail} disabled={isSending || !zoomLink.trim()}>
-              {isSending ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Email
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Email Dialog */}
-      <Dialog open={bulkEmailDialogOpen} onOpenChange={setBulkEmailDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5" />
-              Send Bulk Email ({selectedIds.length} recipients)
-            </DialogTitle>
-            <DialogDescription>
-              This email will be sent to all selected registrants
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <p className="text-sm font-medium mb-2">Recipients:</p>
-              <div className="flex flex-wrap gap-1">
-                {registrations
-                  .filter(r => selectedIds.includes(r.id))
-                  .slice(0, 10)
-                  .map(r => (
-                    <Badge key={r.id} variant="secondary" className="text-xs">
-                      {r.full_name}
-                    </Badge>
-                  ))}
-                {selectedIds.length > 10 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{selectedIds.length - 10} more
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bulk-zoom-link">Zoom Link (Required)</Label>
-              <Input
-                id="bulk-zoom-link"
-                placeholder="https://zoom.us/j/..."
-                value={zoomLink}
-                onChange={(e) => setZoomLink(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bulk-email-subject">Subject</Label>
-              <Input
-                id="bulk-email-subject"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bulk-email-body">
-                Email Body <span className="text-muted-foreground text-xs">(Use {"{name}"} and {"{zoom_link}"} as placeholders)</span>
-              </Label>
-              <Textarea
-                id="bulk-email-body"
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                rows={12}
-                className="font-mono text-sm"
-              />
-            </div>
-
-            {zoomLink && (
-              <div className="space-y-2">
-                <Label>Preview (for first recipient)</Label>
-                <div className="bg-muted/50 p-4 rounded-lg text-sm whitespace-pre-wrap border">
-                  {getFormattedEmail(
-                    registrations.find(r => selectedIds.includes(r.id))?.full_name || "User",
-                    zoomLink
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkEmailDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={sendBulkEmails} disabled={isSending || !zoomLink.trim()}>
-              {isSending ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send to {selectedIds.length} Recipients
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
