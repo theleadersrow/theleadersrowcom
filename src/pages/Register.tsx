@@ -18,10 +18,8 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
-// Direct Stripe Payment Links
-const PAYMENT_LINKS = {
-  "200k-method": "https://buy.stripe.com/28EbJ0bCpcqS5gz9IT9sk0i",
-};
+// Programs that use checkout sessions (not direct payment links)
+const CHECKOUT_PROGRAMS = ["200k-method"];
 
 // Program details for pricing breakdown
 const PROGRAM_DETAILS = {
@@ -145,8 +143,8 @@ const Register = () => {
   useEffect(() => {
     if (!isSubmitted || isPaymentConfirmed) return;
     
-    const hasPaidProgram = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
-    if (!hasPaidProgram) return;
+    const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
+    if (!isPaidProgram) return;
 
     // Initial check after 3 seconds
     const initialTimeout = setTimeout(() => {
@@ -206,21 +204,32 @@ const Register = () => {
         throw error;
       }
 
-      // Check if this program has a direct Payment Link (Weekly Edge)
-      const paymentLink = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
+      // Check if this program uses checkout session
+      const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
       
-      if (paymentLink) {
-        // Open Stripe Payment Link in new tab
-        window.open(paymentLink, '_blank');
-        toast({
-          title: "Payment page opened",
-          description: "Complete your subscription in the new tab to finalize registration.",
+      if (isPaidProgram) {
+        // Create checkout session via edge function
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-200k-checkout", {
+          body: formData,
         });
-        setIsSubmitted(true);
-        return;
+
+        if (checkoutError) {
+          throw checkoutError;
+        }
+
+        if (checkoutData?.url) {
+          // Open Stripe Checkout in new tab
+          window.open(checkoutData.url, '_blank');
+          toast({
+            title: "Payment page opened",
+            description: "Complete your payment in the new tab to finalize registration.",
+          });
+          setIsSubmitted(true);
+          return;
+        }
       }
 
-      // For programs without payment links, just show success
+      // For programs without payment, just show success
       setIsSubmitted(true);
     } catch (error: any) {
       console.error("Error sending registration:", error);
@@ -235,7 +244,7 @@ const Register = () => {
   };
 
   if (isSubmitted) {
-    const hasPaidProgram = PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS];
+    const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
     const programDetails = PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS];
     
     return (
@@ -263,7 +272,7 @@ const Register = () => {
                     Check your inbox at <strong>{formData.email}</strong> for next steps and access instructions.
                   </p>
                 </>
-              ) : hasPaidProgram ? (
+              ) : isPaidProgram ? (
                 <>
                   <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-8">
                     <CreditCard className="w-10 h-10 text-amber-600" />
@@ -285,7 +294,14 @@ const Register = () => {
                       <Button
                         variant="gold"
                         size="lg"
-                        onClick={() => window.open(PAYMENT_LINKS[formData.program as keyof typeof PAYMENT_LINKS], '_blank')}
+                        onClick={async () => {
+                          const { data } = await supabase.functions.invoke("create-200k-checkout", {
+                            body: formData,
+                          });
+                          if (data?.url) {
+                            window.open(data.url, '_blank');
+                          }
+                        }}
                         className="w-full"
                       >
                         <CreditCard className="w-4 h-4 mr-2" />
