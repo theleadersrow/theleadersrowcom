@@ -210,15 +210,36 @@ export function BetaRegistrationsTab() {
         ...(activeData || []).map(u => u.email)
       ])];
 
-      const { data: regData } = await supabase
-        .from("beta_event_registrations")
-        .select("email, full_name")
-        .in("email", allEmails);
-
       const emailToName: Record<string, string> = {};
-      (regData || []).forEach(r => {
-        emailToName[r.email] = r.full_name;
-      });
+
+      // First, try to get names from beta_event_registrations
+      if (allEmails.length > 0) {
+        const { data: regData } = await supabase
+          .from("beta_event_registrations")
+          .select("email, full_name")
+          .in("email", allEmails);
+
+        (regData || []).forEach(r => {
+          if (r.full_name) {
+            emailToName[r.email] = r.full_name;
+          }
+        });
+
+        // For emails still without names, try profiles table
+        const emailsWithoutNames = allEmails.filter(email => !emailToName[email]);
+        if (emailsWithoutNames.length > 0) {
+          const { data: profilesData } = await supabase
+            .from("profiles")
+            .select("email, full_name")
+            .in("email", emailsWithoutNames);
+
+          (profilesData || []).forEach(p => {
+            if (p.full_name) {
+              emailToName[p.email] = p.full_name;
+            }
+          });
+        }
+      }
 
       // Add names to users
       const cancelledWithNames = (cancelledData || []).map(u => ({
