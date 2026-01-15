@@ -269,12 +269,64 @@ export function WebinarRegistrationsTab() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "email_sent":
+        return <Badge className="bg-green-500/20 text-green-600">Email Sent</Badge>;
       case "attended":
-        return <Badge className="bg-green-500/20 text-green-600">Attended</Badge>;
+        return <Badge className="bg-blue-500/20 text-blue-600">Attended</Badge>;
       case "no_show":
         return <Badge variant="destructive">No Show</Badge>;
+      case "pending":
+        return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700">Pending</Badge>;
       default:
         return <Badge variant="outline">Registered</Badge>;
+    }
+  };
+
+  const updateRegistrationStatus = async (id: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("webinar_registrations")
+        .update({ 
+          status: newStatus,
+          confirmation_sent: newStatus === "email_sent"
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setRegistrations(prev => prev.map(reg => 
+        reg.id === id 
+          ? { ...reg, status: newStatus, confirmation_sent: newStatus === "email_sent" } 
+          : reg
+      ));
+      toast.success(`Status updated to "${newStatus}"`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const markSelectedAsEmailSent = async () => {
+    if (selectedIds.length === 0) return;
+    
+    try {
+      const { error } = await supabase
+        .from("webinar_registrations")
+        .update({ status: "email_sent", confirmation_sent: true })
+        .in("id", selectedIds);
+
+      if (error) throw error;
+
+      setRegistrations(prev => prev.map(reg => 
+        selectedIds.includes(reg.id) 
+          ? { ...reg, status: "email_sent", confirmation_sent: true } 
+          : reg
+      ));
+      setSelectedIds([]);
+      toast.success(`Marked ${selectedIds.length} registration(s) as email sent`);
+    } catch (error) {
+      console.error("Error updating statuses:", error);
+      toast.error("Failed to update statuses");
     }
   };
 
@@ -301,7 +353,7 @@ export function WebinarRegistrationsTab() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-semibold">Jan 15, 2025</div>
+            <div className="text-lg font-semibold">Jan 15, 2026</div>
             <div className="text-sm text-muted-foreground">7:30 PM Central</div>
           </CardContent>
         </Card>
@@ -309,12 +361,15 @@ export function WebinarRegistrationsTab() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
-              Confirmations Sent
+              Emails Sent
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {registrations.filter(r => r.confirmation_sent).length}
+              {registrations.filter(r => r.status === "email_sent" || r.confirmation_sent).length}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {registrations.filter(r => r.status === "pending").length} pending
             </div>
           </CardContent>
         </Card>
@@ -330,10 +385,16 @@ export function WebinarRegistrationsTab() {
             </CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
               {selectedIds.length > 0 && (
-                <Button variant="default" size="sm" onClick={openBulkEmailDialog}>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send to {selectedIds.length} Selected
-                </Button>
+                <>
+                  <Button variant="secondary" size="sm" onClick={markSelectedAsEmailSent}>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Email Sent ({selectedIds.length})
+                  </Button>
+                  <Button variant="default" size="sm" onClick={openBulkEmailDialog}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send to {selectedIds.length} Selected
+                  </Button>
+                </>
               )}
               <Button variant="outline" size="sm" onClick={fetchRegistrations} disabled={loading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -421,14 +482,26 @@ export function WebinarRegistrationsTab() {
                         {format(new Date(reg.created_at), "MMM d, yyyy 'at' h:mm a")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openSingleEmailDialog(reg)}
-                        >
-                          <MailCheck className="w-4 h-4 mr-1" />
-                          Send Email
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          {reg.status === "pending" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateRegistrationStatus(reg.id, "email_sent")}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Mark Sent
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openSingleEmailDialog(reg)}
+                          >
+                            <MailCheck className="w-4 h-4 mr-1" />
+                            Send Email
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
