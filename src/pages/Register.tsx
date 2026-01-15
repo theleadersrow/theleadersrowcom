@@ -18,10 +18,9 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
-// Direct Stripe Payment Links for both programs
+// Direct Stripe Payment Links
 const PAYMENT_LINKS = {
-  "200k-method": "https://buy.stripe.com/28EaEWdKxduW24n2gr9sk09",
-  "weekly-edge": "https://buy.stripe.com/28E8wO6i562u7oH5sD9sk08",
+  "200k-method": "https://buy.stripe.com/28EbJ0bCpcqS5gz9IT9sk0i",
 };
 
 // Program details for pricing breakdown
@@ -542,7 +541,7 @@ const Register = () => {
                       <SelectValue placeholder="Choose a program" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="200k-method">The 200K Method ($1,800 — 10% off)</SelectItem>
+                      <SelectItem value="200k-method">The 200K Method</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.program && (
