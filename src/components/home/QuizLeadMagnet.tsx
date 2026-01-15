@@ -242,16 +242,16 @@ const QuizLeadMagnet = () => {
       };
     }
     
-    // Wants steady growth or coaching/community
+    // Wants steady growth or coaching/community - redirect to 200K Method for now
     if (growthType === "Steady weekly skill-building" || 
         helpType.includes("Live coaching & feedback") ||
         helpType.includes("Community & accountability") ||
         commitment === "Ready to invest time weekly") {
       return {
-        title: "Weekly Edge is Your Path Forward",
-        message: "Build your leadership skills week by week. Our ongoing program will help you grow consistently and confidently.",
-        cta: "Join Weekly Edge",
-        link: "/weekly-edge",
+        title: "The 200K Method is Your Path Forward",
+        message: "Build your leadership skills with our comprehensive 8-week program. Transform your career with expert guidance and community support.",
+        cta: "Explore The 200K Method",
+        link: "/200k-method",
       };
     }
     

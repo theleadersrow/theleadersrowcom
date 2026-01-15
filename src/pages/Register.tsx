@@ -28,8 +28,10 @@ const PAYMENT_LINKS = {
 const PROGRAM_DETAILS = {
   "200k-method": {
     name: "The 200K Method",
-    price: "$2,000",
+    price: "$1,800",
+    originalPrice: "$2,000",
     priceSubtext: "One-time payment",
+    promoNote: "10% off — valid till Jan 16th, 2026",
     description: "A comprehensive 8-week intensive program designed to help you land a $200K+ role",
     features: [
       { icon: Video, text: "8 live weekly group coaching sessions (90 min each)" },
@@ -40,21 +42,7 @@ const PROGRAM_DETAILS = {
       { icon: Calendar, text: "Salary negotiation masterclass" },
       { icon: Sparkles, text: "Lifetime access to course materials" },
     ],
-    highlight: "Most Popular",
-  },
-  "weekly-edge": {
-    name: "Weekly Edge",
-    price: "$100",
-    priceSubtext: "per month",
-    description: "Stay sharp with weekly insights and community support for ongoing career growth",
-    features: [
-      { icon: Calendar, text: "Weekly live Q&A sessions" },
-      { icon: BookOpen, text: "Curated career resources & templates" },
-      { icon: Users, text: "Access to private community" },
-      { icon: MessageSquare, text: "Monthly 1-on-1 check-in" },
-      { icon: Sparkles, text: "Cancel anytime" },
-    ],
-    highlight: null,
+    highlight: "10% Off",
   },
 };
 
@@ -554,8 +542,7 @@ const Register = () => {
                       <SelectValue placeholder="Choose a program" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="200k-method">The 200K Method ($2,000)</SelectItem>
-                      <SelectItem value="weekly-edge">Weekly Edge ($100/month)</SelectItem>
+                      <SelectItem value="200k-method">The 200K Method ($1,800 — 10% off)</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.program && (
@@ -583,12 +570,22 @@ const Register = () => {
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
+                        {'originalPrice' in PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] && (
+                          <div className="font-serif text-lg text-muted-foreground/50 line-through">
+                            {(PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] as any).originalPrice}
+                          </div>
+                        )}
                         <div className="font-serif text-2xl font-bold text-secondary">
                           {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].price}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].priceSubtext}
                         </div>
+                        {'promoNote' in PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] && (
+                          <div className="text-xs text-secondary font-medium mt-1">
+                            {(PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] as any).promoNote}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
