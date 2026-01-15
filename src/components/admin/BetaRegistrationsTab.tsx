@@ -1400,7 +1400,7 @@ export function BetaRegistrationsTab() {
                     .filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter)
                     .map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.full_name || "-"}</TableCell>
+                        <TableCell className="font-medium">{user.full_name || user.email.split('@')[0]}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <Badge 
@@ -1481,7 +1481,7 @@ export function BetaRegistrationsTab() {
                     .filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter)
                     .map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.full_name || "-"}</TableCell>
+                        <TableCell className="font-medium">{user.full_name || user.email.split('@')[0]}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <Badge 
