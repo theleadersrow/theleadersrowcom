@@ -74,6 +74,7 @@ interface AccessGrantedUser {
   status: string;
   purchased_at: string;
   expires_at: string;
+  full_name?: string; // Joined from beta_event_registrations
 }
 
 interface ColumnFilters {
@@ -90,6 +91,7 @@ interface ColumnFilters {
 export function BetaRegistrationsTab() {
   const [registrations, setRegistrations] = useState<BetaRegistration[]>([]);
   const [accessUsers, setAccessUsers] = useState<AccessGrantedUser[]>([]);
+  const [activeAccessUsers, setActiveAccessUsers] = useState<AccessGrantedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "invited" | "waitlisted">("all");
   const [toolTypeFilter, setToolTypeFilter] = useState<"all" | "resume_suite" | "linkedin_signal" | "interview_prep">("all");
@@ -184,16 +186,74 @@ export function BetaRegistrationsTab() {
 
   const fetchAccessUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch cancelled users
+      const { data: cancelledData, error: cancelledError } = await supabase
         .from("tool_purchases")
         .select("id, email, tool_type, status, purchased_at, expires_at")
-        .in("status", ["cancelled"])
+        .eq("status", "cancelled")
         .order("purchased_at", { ascending: false });
 
-      if (error) throw error;
-      setAccessUsers(data || []);
+      if (cancelledError) throw cancelledError;
+
+      // Fetch active users (for access granted view)
+      const { data: activeData, error: activeError } = await supabase
+        .from("tool_purchases")
+        .select("id, email, tool_type, status, purchased_at, expires_at")
+        .eq("status", "active")
+        .order("purchased_at", { ascending: false });
+
+      if (activeError) throw activeError;
+
+      // Get names from beta_event_registrations by matching emails
+      const allEmails = [...new Set([
+        ...(cancelledData || []).map(u => u.email),
+        ...(activeData || []).map(u => u.email)
+      ])];
+
+      const { data: regData } = await supabase
+        .from("beta_event_registrations")
+        .select("email, full_name")
+        .in("email", allEmails);
+
+      const emailToName: Record<string, string> = {};
+      (regData || []).forEach(r => {
+        emailToName[r.email] = r.full_name;
+      });
+
+      // Add names to users
+      const cancelledWithNames = (cancelledData || []).map(u => ({
+        ...u,
+        full_name: emailToName[u.email] || undefined
+      }));
+
+      const activeWithNames = (activeData || []).map(u => ({
+        ...u,
+        full_name: emailToName[u.email] || undefined
+      }));
+
+      setAccessUsers(cancelledWithNames);
+      setActiveAccessUsers(activeWithNames);
     } catch (error) {
       console.error("Error fetching access users:", error);
+    }
+  };
+
+  const activateAccess = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("tool_purchases")
+        .update({ 
+          status: "active",
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+      toast.success("Access activated successfully");
+      fetchAccessUsers();
+    } catch (error) {
+      console.error("Error activating access:", error);
+      toast.error("Failed to activate access");
     }
   };
 
@@ -848,6 +908,7 @@ export function BetaRegistrationsTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="beta_registrations">Beta Registrations ({registrations.length})</SelectItem>
+            <SelectItem value="access_granted">Access Granted ({activeAccessUsers.length})</SelectItem>
             <SelectItem value="access_cancelled">Access Cancelled ({accessUsers.length})</SelectItem>
           </SelectContent>
         </Select>
@@ -1271,6 +1332,86 @@ export function BetaRegistrationsTab() {
         </CardContent>
       </Card>
         </>
+      ) : accessStatusView === "access_granted" ? (
+        /* Access Granted View */
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              Active Access ({activeAccessUsers.filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter).length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <Tabs value={toolTypeFilter} onValueChange={(v) => setToolTypeFilter(v as any)} className="w-full">
+                <TabsList className="grid w-full max-w-lg grid-cols-4">
+                  <TabsTrigger value="all">All Tools</TabsTrigger>
+                  <TabsTrigger value="resume_suite" className="flex items-center gap-1">
+                    <FileText className="w-3 h-3" /> Resume
+                  </TabsTrigger>
+                  <TabsTrigger value="linkedin_signal" className="flex items-center gap-1">
+                    <Linkedin className="w-3 h-3" /> LinkedIn
+                  </TabsTrigger>
+                  <TabsTrigger value="interview_prep" className="flex items-center gap-1">
+                    <Mic className="w-3 h-3" /> Interview
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            {activeAccessUsers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No active access records found
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tool</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Purchased</TableHead>
+                    <TableHead>Expires</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeAccessUsers
+                    .filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter)
+                    .map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.full_name || "-"}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              user.tool_type === "resume_suite" 
+                                ? "border-amber-500/50 text-amber-700 bg-amber-500/10" 
+                                : user.tool_type === "linkedin_signal"
+                                ? "border-blue-500/50 text-blue-700 bg-blue-500/10"
+                                : user.tool_type === "interview_prep"
+                                ? "border-emerald-500/50 text-emerald-700 bg-emerald-500/10"
+                                : "border-purple-500/50 text-purple-700 bg-purple-500/10"
+                            }
+                          >
+                            {user.tool_type === "resume_suite" ? "Resume" 
+                              : user.tool_type === "linkedin_signal" ? "LinkedIn" 
+                              : user.tool_type === "interview_prep" ? "Interview"
+                              : user.tool_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-500/20 text-green-600">Active</Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(user.purchased_at), "MMM d, yyyy")}</TableCell>
+                        <TableCell>{format(new Date(user.expires_at), "MMM d, yyyy")}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       ) : (
         /* Access Cancelled View */
         <Card>
@@ -1305,11 +1446,13 @@ export function BetaRegistrationsTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Tool</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Purchased</TableHead>
                     <TableHead>Expired</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1317,7 +1460,8 @@ export function BetaRegistrationsTab() {
                     .filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter)
                     .map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell className="font-medium">{user.full_name || "-"}</TableCell>
+                        <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <Badge 
                             variant="outline" 
@@ -1342,6 +1486,17 @@ export function BetaRegistrationsTab() {
                         </TableCell>
                         <TableCell>{format(new Date(user.purchased_at), "MMM d, yyyy")}</TableCell>
                         <TableCell>{format(new Date(user.expires_at), "MMM d, yyyy")}</TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => activateAccess(user.id)}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Activate
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
