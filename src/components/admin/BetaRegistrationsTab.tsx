@@ -93,7 +93,7 @@ export function BetaRegistrationsTab() {
   const [accessUsers, setAccessUsers] = useState<AccessGrantedUser[]>([]);
   const [activeAccessUsers, setActiveAccessUsers] = useState<AccessGrantedUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "invited" | "waitlisted">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "invited" | "attended" | "no_show" | "waitlisted">("all");
   const [toolTypeFilter, setToolTypeFilter] = useState<"all" | "resume_suite" | "linkedin_signal" | "interview_prep">("all");
   const [accessStatusView, setAccessStatusView] = useState<"beta_registrations" | "access_granted" | "access_cancelled">("beta_registrations");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -962,6 +962,8 @@ export function BetaRegistrationsTab() {
               <TabsTrigger value="all">All Status</TabsTrigger>
               <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
               <TabsTrigger value="invited">Invited ({invitedCount})</TabsTrigger>
+              <TabsTrigger value="attended">Attended ({attendedCount})</TabsTrigger>
+              <TabsTrigger value="no_show">No Show ({noShowCount})</TabsTrigger>
               <TabsTrigger value="waitlisted">Waitlisted ({waitlistedCount})</TabsTrigger>
             </TabsList>
           </Tabs>
