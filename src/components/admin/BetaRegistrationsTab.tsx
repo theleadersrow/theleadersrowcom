@@ -41,7 +41,8 @@ import { toast } from "sonner";
 import { 
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Video, Calendar,
-  Download, Bell, Filter, X, Search, Plus, Pencil, Trash2
+  Download, Bell, Filter, X, Search, Plus, Pencil, Trash2,
+  FileText, Linkedin, Mic
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -81,6 +82,7 @@ export function BetaRegistrationsTab() {
   const [registrations, setRegistrations] = useState<BetaRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "invited" | "waitlisted">("all");
+  const [toolTypeFilter, setToolTypeFilter] = useState<"all" | "resume_suite" | "linkedin_signal" | "interview_prep">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   // Column filters
@@ -176,6 +178,10 @@ export function BetaRegistrationsTab() {
   // Apply column filters client-side
   const filteredRegistrations = useMemo(() => {
     return registrations.filter(reg => {
+      // Primary tool type filter (from tabs)
+      if (toolTypeFilter !== "all" && reg.tool_type !== toolTypeFilter) {
+        return false;
+      }
       // Name filter
       if (columnFilters.name && !reg.full_name.toLowerCase().includes(columnFilters.name.toLowerCase())) {
         return false;
@@ -184,8 +190,8 @@ export function BetaRegistrationsTab() {
       if (columnFilters.email && !reg.email.toLowerCase().includes(columnFilters.email.toLowerCase())) {
         return false;
       }
-      // Tool type filter
-      if (columnFilters.tool_type !== "all" && reg.tool_type !== columnFilters.tool_type) {
+      // Tool type filter (from advanced filters - skip if primary filter is active)
+      if (toolTypeFilter === "all" && columnFilters.tool_type !== "all" && reg.tool_type !== columnFilters.tool_type) {
         return false;
       }
       // Job search status filter
@@ -214,7 +220,7 @@ export function BetaRegistrationsTab() {
       }
       return true;
     });
-  }, [registrations, columnFilters]);
+  }, [registrations, columnFilters, toolTypeFilter]);
 
   const clearFilters = () => {
     setColumnFilters({
@@ -745,6 +751,11 @@ export function BetaRegistrationsTab() {
   const attendedCount = registrations.filter(r => r.status === "attended").length;
   const noShowCount = registrations.filter(r => r.status === "no_show").length;
 
+  // Tool type counts
+  const resumeCount = registrations.filter(r => r.tool_type === "resume_suite").length;
+  const linkedinCount = registrations.filter(r => r.tool_type === "linkedin_signal").length;
+  const interviewCount = registrations.filter(r => r.tool_type === "interview_prep").length;
+
   const selectedPendingCount = selectedIds.filter(id => 
     filteredRegistrations.find(r => r.id === id)?.status === "pending"
   ).length;
@@ -801,12 +812,28 @@ export function BetaRegistrationsTab() {
         </Card>
       </div>
 
+      {/* Tool Type Tabs */}
+      <Tabs value={toolTypeFilter} onValueChange={(v) => setToolTypeFilter(v as any)} className="w-full">
+        <TabsList className="grid w-full max-w-lg grid-cols-4">
+          <TabsTrigger value="all">All Tools ({registrations.length})</TabsTrigger>
+          <TabsTrigger value="resume_suite" className="flex items-center gap-1">
+            <FileText className="w-3 h-3" /> Resume ({resumeCount})
+          </TabsTrigger>
+          <TabsTrigger value="linkedin_signal" className="flex items-center gap-1">
+            <Linkedin className="w-3 h-3" /> LinkedIn ({linkedinCount})
+          </TabsTrigger>
+          <TabsTrigger value="interview_prep" className="flex items-center gap-1">
+            <Mic className="w-3 h-3" /> Interview ({interviewCount})
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {/* Filters & Actions */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
             <TabsList>
-              <TabsTrigger value="all">All ({registrations.length})</TabsTrigger>
+              <TabsTrigger value="all">All Status</TabsTrigger>
               <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
               <TabsTrigger value="invited">Invited ({invitedCount})</TabsTrigger>
               <TabsTrigger value="waitlisted">Waitlisted ({waitlistedCount})</TabsTrigger>
