@@ -119,13 +119,79 @@ export function BetaRegistrationsTab() {
 
   // Bulk email dialog
   const [bulkEmailDialogOpen, setBulkEmailDialogOpen] = useState(false);
-  const [bulkEmailSubject, setBulkEmailSubject] = useState("You're Invited: Beta Testing Session");
+  const [bulkEmailSubject, setBulkEmailSubject] = useState("");
   const [bulkEmailZoomLink, setBulkEmailZoomLink] = useState("");
-  const [bulkEmailMessage, setBulkEmailMessage] = useState(
-    `We're excited to have you join us for this exclusive beta testing session!\n\nDuring this session, you'll get hands-on experience with our tool and provide valuable feedback that will help shape its development.\n\nPlease make sure to:\n• Join 5 minutes early to ensure your setup is working\n• Have your resume ready (if applicable)\n• Come prepared with questions or specific scenarios you'd like to test\n\nWe can't wait to see you there!`
-  );
+  const [bulkEmailMessage, setBulkEmailMessage] = useState("");
   const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
+
+  // Dynamic email templates based on tool type
+  const getToolEmailTemplate = (toolType: string) => {
+    const templates: Record<string, { subject: string; message: string; zoomLink: string }> = {
+      linkedin_signal: {
+        subject: "🎉 You're Invited: LinkedIn Signal Score Beta Testing Session",
+        zoomLink: "https://zoom.us/j/96150403430?pwd=l1Pg8m3HeHQHSJQqw1ybs9yOkEJHHl.1",
+        message: `We're thrilled to invite you to our exclusive LinkedIn Signal Score beta testing session!
+
+During this session, you'll get hands-on experience with our LinkedIn Signal Score tool - designed to help you optimize your LinkedIn profile for maximum visibility and impact with recruiters and hiring managers.
+
+What to expect:
+• Live walkthrough of the LinkedIn Signal Score analysis
+• Personalized feedback on your LinkedIn profile optimization
+• Q&A session with our career experts
+• Exclusive early access to new features
+
+Please join us at the scheduled time using the Zoom link provided. Come prepared with your LinkedIn profile URL ready to analyze!
+
+We can't wait to help you level up your LinkedIn presence!`
+      },
+      resume_suite: {
+        subject: "🎉 You're Invited: Resume Intelligence Suite Beta Testing Session",
+        zoomLink: "",
+        message: `We're thrilled to invite you to our exclusive Resume Intelligence Suite beta testing session!
+
+During this session, you'll get hands-on experience with our Resume Intelligence Suite - an AI-powered tool designed to optimize your resume for ATS systems and make it stand out to recruiters.
+
+What to expect:
+• Live walkthrough of the ATS scoring and optimization features
+• Real-time resume analysis and improvement suggestions
+• Cover letter generation demonstration
+• Q&A session with our career experts
+
+Please join us at the scheduled time using the Zoom link provided. Come prepared with your current resume ready to upload!
+
+We can't wait to help you create a resume that opens doors!`
+      },
+      interview_prep: {
+        subject: "🎉 You're Invited: PM Interview Prep Beta Testing Session",
+        zoomLink: "",
+        message: `We're thrilled to invite you to our exclusive PM Interview Prep beta testing session!
+
+During this session, you'll get hands-on experience with our PM Interview Prep tool - designed to help you ace your product management interviews at top tech companies.
+
+What to expect:
+• Live mock interview practice sessions
+• AI-powered feedback on your responses
+• STAR story building and optimization
+• Hiring committee simulation walkthrough
+• Q&A session with our career experts
+
+Please join us at the scheduled time using the Zoom link provided. Come prepared to practice your PM interview skills!
+
+We can't wait to help you land your dream PM role!`
+      }
+    };
+    
+    return templates[toolType] || {
+      subject: "🎉 You're Invited: Beta Testing Session",
+      zoomLink: "",
+      message: `We're excited to invite you to our exclusive beta testing session!
+
+During this session, you'll get hands-on experience with our tool and have the opportunity to provide valuable feedback that will help shape its future.
+
+Please join us at the scheduled time using the Zoom link provided. We can't wait to see you there!`
+    };
+  };
 
   // Add/Edit registration dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -531,12 +597,25 @@ P.S. Your beta access is valid for 30 days from activation.`;
     }
   };
 
-  // Bulk email function (for custom emails to any selected candidates)
+  // Open bulk email dialog with dynamic template based on selected users' tool type
   const openBulkEmailDialog = () => {
     if (selectedIds.length === 0) {
       toast.error("Please select at least one registration to email");
       return;
     }
+    
+    // Get the tool types of selected registrations
+    const selectedRegs = registrations.filter(r => selectedIds.includes(r.id));
+    const toolTypes = [...new Set(selectedRegs.map(r => r.tool_type))];
+    
+    // Use the first tool type if all selected users have the same tool, otherwise use default
+    const toolType = toolTypes.length === 1 ? toolTypes[0] : "";
+    const template = getToolEmailTemplate(toolType);
+    
+    setBulkEmailSubject(template.subject);
+    setBulkEmailZoomLink(template.zoomLink);
+    setBulkEmailMessage(template.message);
+    setShowEmailPreview(false);
     setBulkEmailDialogOpen(true);
   };
 
