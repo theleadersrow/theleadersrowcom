@@ -42,7 +42,7 @@ import {
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Video, Calendar,
   Download, Bell, Filter, X, Search, Plus, Pencil, Trash2,
-  FileText, Linkedin, Mic, XCircle
+  FileText, Linkedin, Mic, XCircle, Copy, ClipboardCheck
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -159,6 +159,57 @@ export function BetaRegistrationsTab() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Draft email dialog
+  const [draftEmailDialogOpen, setDraftEmailDialogOpen] = useState(false);
+  const [selectedToolForDraft, setSelectedToolForDraft] = useState<"resume_suite" | "linkedin_signal" | "interview_prep">("resume_suite");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const getToolName = (toolType: string) => {
+    switch (toolType) {
+      case "resume_suite": return "Resume Intelligence Suite";
+      case "linkedin_signal": return "LinkedIn Signal Score";
+      case "interview_prep": return "Interview Prep Tool";
+      default: return "Career Tool";
+    }
+  };
+
+  const getDraftEmailSubject = (toolType: string) => {
+    return `You're Invited: Beta Test Our ${getToolName(toolType)}`;
+  };
+
+  const getDraftEmailBody = (toolType: string, name: string = "[Name]") => {
+    const toolName = getToolName(toolType);
+    return `Hi ${name},
+
+Thank you for your interest in The Leader's Row career tools! We're excited to invite you to beta test our ${toolName}.
+
+As a beta tester, you'll get:
+• Early access to our ${toolName}
+• The opportunity to shape the tool with your feedback
+• Free access during the beta period
+
+To get started:
+1. Visit [TOOL_URL]
+2. Use your email (${name !== "[Name]" ? "the one this was sent to" : "your registered email"}) to access
+3. Explore the tool and share your feedback
+
+Your feedback is invaluable in helping us create the best possible experience for professionals like you.
+
+If you have any questions, feel free to reply to this email.
+
+Best regards,
+The Leader's Row Team
+
+P.S. Your beta access is valid for 30 days from activation.`;
+  };
+
+  const copyToClipboard = async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast.success("Copied to clipboard!");
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -988,6 +1039,10 @@ export function BetaRegistrationsTab() {
                 Clear Filters
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => setDraftEmailDialogOpen(true)}>
+              <Mail className="w-4 h-4 mr-2" />
+              Draft Email
+            </Button>
             <Button variant="outline" size="sm" onClick={exportToCSV}>
               <Download className="w-4 h-4 mr-2" />
               Export CSV
@@ -1889,6 +1944,102 @@ export function BetaRegistrationsTab() {
             </Button>
             <Button onClick={updateEventDates} disabled={updatingDates || !newEventDate}>
               {updatingDates ? "Updating..." : "Update Dates"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Draft Email Dialog */}
+      <Dialog open={draftEmailDialogOpen} onOpenChange={setDraftEmailDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Draft Invitation Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Select Tool</Label>
+              <Select value={selectedToolForDraft} onValueChange={(v) => setSelectedToolForDraft(v as any)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="resume_suite">Resume Intelligence Suite</SelectItem>
+                  <SelectItem value="linkedin_signal">LinkedIn Signal Score</SelectItem>
+                  <SelectItem value="interview_prep">Interview Prep Tool</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Email Subject</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(getDraftEmailSubject(selectedToolForDraft), "subject")}
+                >
+                  {copiedField === "subject" ? (
+                    <ClipboardCheck className="w-4 h-4 mr-1 text-green-600" />
+                  ) : (
+                    <Copy className="w-4 h-4 mr-1" />
+                  )}
+                  Copy
+                </Button>
+              </div>
+              <div className="bg-muted p-3 rounded-lg font-medium">
+                {getDraftEmailSubject(selectedToolForDraft)}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Email Body</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(getDraftEmailBody(selectedToolForDraft), "body")}
+                >
+                  {copiedField === "body" ? (
+                    <ClipboardCheck className="w-4 h-4 mr-1 text-green-600" />
+                  ) : (
+                    <Copy className="w-4 h-4 mr-1" />
+                  )}
+                  Copy
+                </Button>
+              </div>
+              <div className="bg-muted p-4 rounded-lg whitespace-pre-wrap text-sm font-mono">
+                {getDraftEmailBody(selectedToolForDraft)}
+              </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-lg">
+              <strong>Remember to:</strong>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>Replace [Name] with the recipient's actual name</li>
+                <li>Replace [TOOL_URL] with the actual tool URL</li>
+                <li>Ensure their access has been granted in the system</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDraftEmailDialogOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              copyToClipboard(
+                `Subject: ${getDraftEmailSubject(selectedToolForDraft)}\n\n${getDraftEmailBody(selectedToolForDraft)}`,
+                "all"
+              );
+            }}>
+              {copiedField === "all" ? (
+                <ClipboardCheck className="w-4 h-4 mr-2 text-green-600" />
+              ) : (
+                <Copy className="w-4 h-4 mr-2" />
+              )}
+              Copy All
             </Button>
           </DialogFooter>
         </DialogContent>
