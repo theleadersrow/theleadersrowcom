@@ -18,8 +18,10 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
-// Programs that use checkout sessions (not direct payment links)
-const CHECKOUT_PROGRAMS = ["200k-method"];
+// Programs that use direct Stripe Payment Links
+const PAYMENT_LINK_PROGRAMS: Record<string, string> = {
+  "200k-method": "https://buy.stripe.com/28EbJ0bCpcqS5gz9IT9sk0i",
+};
 
 // Program details for pricing breakdown
 const PROGRAM_DETAILS = {
@@ -145,7 +147,7 @@ const Register = () => {
   useEffect(() => {
     if (!isSubmitted || isPaymentConfirmed) return;
     
-    const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
+    const isPaidProgram = !!PAYMENT_LINK_PROGRAMS[formData.program];
     if (!isPaidProgram) return;
 
     // Initial check after 3 seconds
@@ -194,10 +196,10 @@ const Register = () => {
       return;
     }
 
-    // Paid programs must open Stripe in a new tab (Stripe Checkout cannot render inside the Lovable preview iframe).
-    // We pre-open the tab synchronously to avoid popup blockers.
-    const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
-    const paymentWindow = isPaidProgram ? window.open("", "_blank", "noopener,noreferrer") : null;
+    // Check if this program uses a direct Stripe Payment Link
+    const paymentLinkUrl = PAYMENT_LINK_PROGRAMS[formData.program];
+    // Pre-open a new tab synchronously to avoid popup blockers
+    const paymentWindow = paymentLinkUrl ? window.open("", "_blank", "noopener,noreferrer") : null;
 
     setIsSubmitting(true);
 
@@ -211,33 +213,17 @@ const Register = () => {
         throw error;
       }
 
-      if (isPaidProgram) {
-        // Create checkout session via edge function
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
-          "create-200k-checkout",
-          {
-            body: formData,
-          }
-        );
+      if (paymentLinkUrl) {
+        // Keep the current tab on a "complete your payment" state while the new tab handles Stripe.
+        setIsSubmitted(true);
 
-        if (checkoutError) {
-          throw checkoutError;
+        if (paymentWindow && !paymentWindow.closed) {
+          paymentWindow.location.href = paymentLinkUrl;
+        } else {
+          // Fallback (e.g. if the browser still blocked the new tab)
+          window.location.href = paymentLinkUrl;
         }
-
-        if (checkoutData?.url) {
-          // Keep the current tab on a "complete your payment" state while the new tab handles Stripe.
-          setIsSubmitted(true);
-
-          if (paymentWindow && !paymentWindow.closed) {
-            paymentWindow.location.href = checkoutData.url;
-          } else {
-            // Fallback (e.g. if the browser still blocked the new tab)
-            window.location.href = checkoutData.url;
-          }
-          return;
-        }
-
-        throw new Error("No checkout URL returned");
+        return;
       }
 
       // For programs without payment, just show success
@@ -259,7 +245,7 @@ const Register = () => {
   };
 
   if (isSubmitted) {
-    const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
+    const isPaidProgram = !!PAYMENT_LINK_PROGRAMS[formData.program];
     const programDetails = PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS];
     
     return (
@@ -309,27 +295,10 @@ const Register = () => {
                       <Button
                         variant="gold"
                         size="lg"
-                        onClick={async () => {
-                          const paymentWindow = window.open("", "_blank", "noopener,noreferrer");
-
-                          const { data, error } = await supabase.functions.invoke("create-200k-checkout", {
-                            body: formData,
-                          });
-
-                          if (error || !data?.url) {
-                            paymentWindow?.close();
-                            toast({
-                              title: "Couldn't open payment page",
-                              description: "Please try again.",
-                              variant: "destructive",
-                            });
-                            return;
-                          }
-
-                          if (paymentWindow && !paymentWindow.closed) {
-                            paymentWindow.location.href = data.url;
-                          } else {
-                            window.location.href = data.url;
+                        onClick={() => {
+                          const paymentLinkUrl = PAYMENT_LINK_PROGRAMS[formData.program];
+                          if (paymentLinkUrl) {
+                            window.open(paymentLinkUrl, "_blank", "noopener,noreferrer");
                           }
                         }}
                         className="w-full"
