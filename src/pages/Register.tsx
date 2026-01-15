@@ -200,11 +200,11 @@ const Register = () => {
     const paymentLinkUrl = PAYMENT_LINK_PROGRAMS[formData.program];
 
     // Open Stripe in a new tab immediately (must be synchronous to avoid popup blockers)
-    const paymentWindow = paymentLinkUrl
-      ? window.open(paymentLinkUrl, "_blank", "noopener,noreferrer")
-      : null;
-
+    // NOTE: Some embedded preview environments allow popups but keep them on about:blank unless we navigate explicitly.
+    let paymentWindow: Window | null = null;
     if (paymentLinkUrl) {
+      paymentWindow = window.open("", "_blank", "noopener,noreferrer");
+
       // Keep the current tab on a "complete your payment" state while the new tab handles Stripe.
       setIsSubmitted(true);
 
@@ -214,6 +214,27 @@ const Register = () => {
           description:
             "Your browser blocked the payment window. Please allow pop-ups, then click 'Open Payment Page'.",
         });
+      } else {
+        try {
+          paymentWindow.location.replace(paymentLinkUrl);
+        } catch {
+          // ignore cross-origin assignment issues
+        }
+
+        // Detect the "blank tab" scenario and prompt user to use the manual button.
+        window.setTimeout(() => {
+          try {
+            if (paymentWindow && !paymentWindow.closed && paymentWindow.location.href === "about:blank") {
+              toast({
+                title: "Payment tab blocked",
+                description:
+                  "Your browser opened a blank tab instead of Stripe. Please click 'Open Payment Page' or disable strict pop-up blockers.",
+              });
+            }
+          } catch {
+            // If cross-origin throws, it likely navigated successfully.
+          }
+        }, 800);
       }
     }
 
