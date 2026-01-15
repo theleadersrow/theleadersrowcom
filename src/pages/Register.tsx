@@ -198,13 +198,29 @@ const Register = () => {
 
     // Check if this program uses a direct Stripe Payment Link
     const paymentLinkUrl = PAYMENT_LINK_PROGRAMS[formData.program];
-    // Pre-open a new tab synchronously to avoid popup blockers
-    const paymentWindow = paymentLinkUrl ? window.open("", "_blank", "noopener,noreferrer") : null;
+
+    // Open Stripe in a new tab immediately (must be synchronous to avoid popup blockers)
+    const paymentWindow = paymentLinkUrl
+      ? window.open(paymentLinkUrl, "_blank", "noopener,noreferrer")
+      : null;
+
+    if (paymentLinkUrl) {
+      // Keep the current tab on a "complete your payment" state while the new tab handles Stripe.
+      setIsSubmitted(true);
+
+      if (!paymentWindow) {
+        toast({
+          title: "Popup blocked",
+          description:
+            "Your browser blocked the payment window. Please allow pop-ups, then click 'Open Payment Page'.",
+        });
+      }
+    }
 
     setIsSubmitting(true);
 
     try {
-      // Send registration email first
+      // Send registration email
       const { error } = await supabase.functions.invoke("send-registration-email", {
         body: formData,
       });
@@ -213,32 +229,22 @@ const Register = () => {
         throw error;
       }
 
-      if (paymentLinkUrl) {
-        // Keep the current tab on a "complete your payment" state while the new tab handles Stripe.
-        setIsSubmitted(true);
-
-        if (paymentWindow && !paymentWindow.closed) {
-          paymentWindow.location.href = paymentLinkUrl;
-        } else {
-          // Fallback (e.g. if the browser still blocked the new tab)
-          window.location.href = paymentLinkUrl;
-        }
-        return;
-      }
-
       // For programs without payment, just show success
-      setIsSubmitted(true);
-    } catch (error: any) {
-      if (paymentWindow && !paymentWindow.closed) {
-        paymentWindow.close();
+      if (!paymentLinkUrl) {
+        setIsSubmitted(true);
       }
-
+    } catch (error: any) {
       console.error("Error sending registration:", error);
       toast({
         title: "Something went wrong",
         description: "Please try again or contact us directly at connect@theleadersrow.com",
         variant: "destructive",
       });
+
+      // If this is a paid program, keep the user in the payment flow even if email fails.
+      if (!paymentLinkUrl) {
+        setIsSubmitted(false);
+      }
     } finally {
       setIsSubmitting(false);
     }
