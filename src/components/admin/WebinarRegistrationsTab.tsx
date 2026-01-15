@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -21,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { RefreshCw, Users, Download, Search, Calendar, Mail, CheckCircle } from "lucide-react";
+import { RefreshCw, Users, Download, Search, Calendar, Mail, CheckCircle, Filter, X } from "lucide-react";
 import { format } from "date-fns";
 
 interface WebinarRegistration {
@@ -35,11 +36,26 @@ interface WebinarRegistration {
   created_at: string;
 }
 
+interface ColumnFilters {
+  name: string;
+  email: string;
+  status: string;
+  registered_after: string;
+}
+
 export function WebinarRegistrationsTab() {
   const [registrations, setRegistrations] = useState<WebinarRegistration[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  // Column filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
+    name: "",
+    email: "",
+    status: "all",
+    registered_after: "",
+  });
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -63,14 +79,48 @@ export function WebinarRegistrationsTab() {
     fetchRegistrations();
   }, []);
 
-  const filteredRegistrations = registrations.filter(reg => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      reg.full_name.toLowerCase().includes(term) ||
-      reg.email.toLowerCase().includes(term)
-    );
-  });
+  // Apply column filters
+  const filteredRegistrations = useMemo(() => {
+    return registrations.filter(reg => {
+      // Name filter
+      if (columnFilters.name && !reg.full_name.toLowerCase().includes(columnFilters.name.toLowerCase())) {
+        return false;
+      }
+      // Email filter
+      if (columnFilters.email && !reg.email.toLowerCase().includes(columnFilters.email.toLowerCase())) {
+        return false;
+      }
+      // Status filter
+      if (columnFilters.status !== "all" && reg.status !== columnFilters.status) {
+        return false;
+      }
+      // Registered after filter
+      if (columnFilters.registered_after) {
+        const filterDate = new Date(columnFilters.registered_after);
+        const regDate = new Date(reg.created_at);
+        if (regDate < filterDate) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [registrations, columnFilters]);
+
+  const clearFilters = () => {
+    setColumnFilters({
+      name: "",
+      email: "",
+      status: "all",
+      registered_after: "",
+    });
+  };
+
+  const hasActiveFilters = useMemo(() => {
+    return columnFilters.name !== "" ||
+      columnFilters.email !== "" ||
+      columnFilters.status !== "all" ||
+      columnFilters.registered_after !== "";
+  }, [columnFilters]);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -110,7 +160,7 @@ export function WebinarRegistrationsTab() {
     a.download = `webinar-registrations-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Exported to CSV");
+    toast.success(`Exported ${filteredRegistrations.length} registration(s) to CSV`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -176,15 +226,20 @@ export function WebinarRegistrationsTab() {
     }
   };
 
+  const pendingCount = registrations.filter(r => r.status === "pending").length;
+  const emailSentCount = registrations.filter(r => r.status === "email_sent" || r.confirmation_sent).length;
+  const attendedCount = registrations.filter(r => r.status === "attended").length;
+  const noShowCount = registrations.filter(r => r.status === "no_show").length;
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Total Registrations
+              Total
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -211,63 +266,152 @@ export function WebinarRegistrationsTab() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {registrations.filter(r => r.status === "email_sent" || r.confirmation_sent).length}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {registrations.filter(r => r.status === "pending").length} pending
-            </div>
+            <div className="text-2xl font-bold text-green-600">{emailSentCount}</div>
+            <div className="text-sm text-muted-foreground">{pendingCount} pending</div>
+          </CardContent>
+        </Card>
+        <Card className="border-blue-500/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-blue-600 flex items-center gap-2">
+              Attended
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{attendedCount}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-red-500/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-red-600 flex items-center gap-2">
+              No Show
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{noShowCount}</div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Filters & Actions */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            The 200K Method Webinar
+          </CardTitle>
+          
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={showFilters ? "default" : "outline"} 
+              size="sm" 
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+              {hasActiveFilters && (
+                <Badge className="ml-2 bg-primary-foreground text-primary h-5 px-1.5">
+                  Active
+                </Badge>
+              )}
+            </Button>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            )}
+            {selectedIds.length > 0 && (
+              <Button variant="secondary" size="sm" onClick={markSelectedAsEmailSent}>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Mark as Email Sent ({selectedIds.length})
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={fetchRegistrations} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportToCSV} disabled={filteredRegistrations.length === 0}>
+              <Download className="w-4 h-4 mr-2" />
+              Export {hasActiveFilters ? `(${filteredRegistrations.length})` : ""}
+            </Button>
+          </div>
+        </div>
+
+        {/* Column Filters */}
+        {showFilters && (
+          <Card className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <Label className="text-xs mb-1.5 block">Name</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter name..."
+                    value={columnFilters.name}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, name: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Email</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter email..."
+                    value={columnFilters.email}
+                    onChange={(e) => setColumnFilters(prev => ({ ...prev, email: e.target.value }))}
+                    className="pl-8 h-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Status</Label>
+                <Select
+                  value={columnFilters.status}
+                  onValueChange={(value) => setColumnFilters(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="email_sent">Email Sent</SelectItem>
+                    <SelectItem value="attended">Attended</SelectItem>
+                    <SelectItem value="no_show">No Show</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Registered After</Label>
+                <Input
+                  type="date"
+                  value={columnFilters.registered_after}
+                  onChange={(e) => setColumnFilters(prev => ({ ...prev, registered_after: e.target.value }))}
+                  className="h-9"
+                />
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <div className="mt-3 text-sm text-muted-foreground">
+                Showing {filteredRegistrations.length} of {registrations.length} registrations
+              </div>
+            )}
+          </Card>
+        )}
+      </div>
+
       {/* Registrations Table */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              The 200K Method Webinar
-            </CardTitle>
-            <div className="flex items-center gap-2 flex-wrap">
-              {selectedIds.length > 0 && (
-                <Button variant="secondary" size="sm" onClick={markSelectedAsEmailSent}>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Mark as Email Sent ({selectedIds.length})
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={fetchRegistrations} disabled={loading}>
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button variant="outline" size="sm" onClick={exportToCSV} disabled={registrations.length === 0}>
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Search */}
-          <div className="mb-4">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-
+        <CardContent className="pt-6">
           {loading ? (
             <div className="flex justify-center py-8">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : filteredRegistrations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "No registrations match your search." : "No registrations yet."}
+              {hasActiveFilters ? "No registrations match your filters." : "No registrations yet."}
             </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">
