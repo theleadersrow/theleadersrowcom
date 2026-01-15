@@ -450,7 +450,6 @@ export function WebinarRegistrationsTab() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Confirmation</TableHead>
                     <TableHead>Registered</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -489,16 +488,6 @@ export function WebinarRegistrationsTab() {
                             <SelectItem value="no_show">No Show</SelectItem>
                           </SelectContent>
                         </Select>
-                      </TableCell>
-                      <TableCell>
-                        {reg.confirmation_sent ? (
-                          <Badge variant="outline" className="text-green-600 border-green-600/30">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Sent
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">Pending</Badge>
-                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {format(new Date(reg.created_at), "MMM d, yyyy 'at' h:mm a")}
