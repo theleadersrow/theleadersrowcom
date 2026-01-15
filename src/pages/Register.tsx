@@ -218,13 +218,8 @@ const Register = () => {
         }
 
         if (checkoutData?.url) {
-          // Open Stripe Checkout in new tab
-          window.open(checkoutData.url, '_blank');
-          toast({
-            title: "Payment page opened",
-            description: "Complete your payment in the new tab to finalize registration.",
-          });
-          setIsSubmitted(true);
+          // Redirect to Stripe Checkout (avoids popup blockers)
+          window.location.href = checkoutData.url;
           return;
         }
       }
