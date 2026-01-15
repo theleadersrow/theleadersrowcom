@@ -8,6 +8,7 @@ interface ProgramCardProps {
   description: string;
   features: string[];
   price: string;
+  originalPrice?: string;
   priceNote?: string;
   href: string;
   ctaText: string;
@@ -21,6 +22,7 @@ const ProgramCard = ({
   description,
   features,
   price,
+  originalPrice,
   priceNote,
   href,
   ctaText,
@@ -70,7 +72,12 @@ const ProgramCard = ({
       </ul>
 
       <div className="mb-5 sm:mb-6">
-        <div className="flex items-baseline gap-1.5 sm:gap-2">
+        <div className="flex items-baseline gap-2 sm:gap-3">
+          {originalPrice && (
+            <span className={`font-serif text-xl sm:text-2xl font-semibold line-through ${featured ? "text-cream/40" : "text-muted-foreground/50"}`}>
+              {originalPrice}
+            </span>
+          )}
           <span className="font-serif text-3xl sm:text-4xl font-semibold">{price}</span>
           {priceNote && (
             <span className={`text-xs sm:text-sm ${featured ? "text-cream/60" : "text-muted-foreground"}`}>

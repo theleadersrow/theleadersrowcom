@@ -25,27 +25,6 @@ const livePrograms = [
     featured: true,
     ctaText: "Start Your Application",
   },
-  {
-    title: "Weekly Edge",
-    subtitle: "Ongoing Group Coaching",
-    description: "Stay sharp with continuous learning and accountability. Join weekly sessions focused on real-time career challenges and growth opportunities.",
-    duration: "Ongoing",
-    format: "Weekly live sessions",
-    href: "/weekly-edge",
-    youllWorkOn: [
-      "Real-time Q&A sessions",
-      "Peer networking",
-      "Latest industry insights",
-      "Continuous support",
-    ],
-    includes: [
-      "Weekly group coaching calls",
-      "Community access",
-      "Session recordings",
-    ],
-    featured: false,
-    ctaText: "Learn More",
-  },
 ];
 
 const LivePrograms = () => {

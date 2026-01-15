@@ -25,11 +25,6 @@ const Footer = () => {
                   The 200K Method
                 </Link>
               </li>
-              <li>
-                <Link to="/level-up-weekly" className="text-cream/60 hover:text-secondary transition-colors text-sm">
-                  Weekly Edge
-                </Link>
-              </li>
             </ul>
           </div>
 
