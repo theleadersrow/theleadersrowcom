@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
         full_name: name,
         email: email,
         webinar_title: "The 200K Method",
-        webinar_date: "2025-01-16T19:30:00-06:00",
+        webinar_date: "2025-01-15T19:30:00-06:00",
         status: "registered",
         confirmation_sent: true,
       });
@@ -86,12 +86,12 @@ const handler = async (req: Request): Promise<Response> => {
               
               <p style="margin: 0 0 20px 0; font-size: 16px;">Thank you for registering for <strong>The 200K Method</strong> webinar! We're excited to have you join us.</p>
               
-              <div style="background-color: #f8f9fa; border-radius: 8px; padding: 24px; margin: 24px 0;">
-                <h3 style="margin: 0 0 16px 0; color: #1a1a2e; font-size: 18px;">📅 Event Details</h3>
-                <p style="margin: 0 0 8px 0;"><strong>Date:</strong> Thursday, January 16th, 2025</p>
-                <p style="margin: 0 0 8px 0;"><strong>Time:</strong> 7:30 PM Central (1 hour)</p>
-                <p style="margin: 0;"><strong>Where:</strong> Zoom (link below)</p>
-              </div>
+               <div style="background-color: #f8f9fa; border-radius: 8px; padding: 24px; margin: 24px 0;">
+                 <h3 style="margin: 0 0 16px 0; color: #1a1a2e; font-size: 18px;">📅 Event Details</h3>
+                 <p style="margin: 0 0 8px 0;"><strong>Date:</strong> Thursday, January 15th, 2025</p>
+                 <p style="margin: 0 0 8px 0;"><strong>Time:</strong> 7:30 PM Central (1 hour)</p>
+                 <p style="margin: 0;"><strong>Where:</strong> Zoom (link below)</p>
+               </div>
               
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${ZOOM_LINK}" style="display: inline-block; background-color: #d4af37; color: #1a1a2e; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Join Zoom Webinar</a>
@@ -130,14 +130,14 @@ const handler = async (req: Request): Promise<Response> => {
       from: "The Leader's Row <onboarding@resend.dev>",
       to: ["theleadersrow@gmail.com"],
       subject: `New Webinar Registration: ${name}`,
-      html: `
-        <h2>New Webinar Registration</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Event:</strong> The 200K Method Webinar</p>
-        <p><strong>Date:</strong> Thursday, January 16th, 2025 at 7:30 PM Central</p>
-      `,
-    });
+       html: `
+         <h2>New Webinar Registration</h2>
+         <p><strong>Name:</strong> ${name}</p>
+         <p><strong>Email:</strong> ${email}</p>
+         <p><strong>Event:</strong> The 200K Method Webinar</p>
+         <p><strong>Date:</strong> Thursday, January 15th, 2025 at 7:30 PM Central</p>
+       `,
+     });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
