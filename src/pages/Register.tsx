@@ -90,10 +90,12 @@ const Register = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const preselectedProgram = searchParams.get("program") || "";
+  const paymentStatus = searchParams.get("payment");
   
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  // If returning from successful Stripe checkout, show confirmed state
+  const [isSubmitted, setIsSubmitted] = useState(paymentStatus === "success");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
+  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(paymentStatus === "success");
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [pollCount, setPollCount] = useState(0);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
