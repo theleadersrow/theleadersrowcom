@@ -60,8 +60,7 @@ export function ToolPurchasesTab() {
   const [filter, setFilter] = useState<"all" | "resume_suite" | "linkedin_signal" | "interview_prep">("all");
   const [view, setView] = useState<"all" | "expiring" | "reminders">("all");
   
-  // Additional filters
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "expired" | "cancelled">("all");
+  // Additional filters - removed statusFilter since we only show active now
   const [emailSearch, setEmailSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -81,6 +80,7 @@ export function ToolPurchasesTab() {
       let query = supabase
         .from("tool_purchases")
         .select("*")
+        .eq("status", "active") // Only show active/paid users
         .order("purchased_at", { ascending: false });
 
       if (filter !== "all") {
@@ -302,17 +302,6 @@ export function ToolPurchasesTab() {
         result = purchases;
     }
     
-    // Apply status filter
-    if (statusFilter !== "all") {
-      result = result.filter(p => {
-        const isExpired = isPast(new Date(p.expires_at));
-        if (statusFilter === "active") return p.status === "active" && !isExpired;
-        if (statusFilter === "expired") return p.status === "expired" || isExpired;
-        if (statusFilter === "cancelled") return p.status === "cancelled";
-        return true;
-      });
-    }
-    
     // Apply email search
     if (emailSearch.trim()) {
       const searchLower = emailSearch.toLowerCase().trim();
@@ -330,12 +319,11 @@ export function ToolPurchasesTab() {
     }
     
     return result;
-  }, [view, expiringSoon, remindersSent, purchases, statusFilter, emailSearch, dateFrom, dateTo]);
+  }, [view, expiringSoon, remindersSent, purchases, emailSearch, dateFrom, dateTo]);
 
-  const hasActiveFilters = statusFilter !== "all" || emailSearch || dateFrom || dateTo;
+  const hasActiveFilters = emailSearch || dateFrom || dateTo;
   
   const clearFilters = () => {
-    setStatusFilter("all");
     setEmailSearch("");
     setDateFrom("");
     setDateTo("");
@@ -466,18 +454,6 @@ export function ToolPurchasesTab() {
           />
         </div>
 
-        {/* Status Filter */}
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
 
         {/* Date Range */}
         <div className="flex items-center gap-2">

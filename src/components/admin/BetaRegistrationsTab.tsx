@@ -42,7 +42,7 @@ import {
   RefreshCw, Users, Clock, CheckCircle, Mail, Send, 
   MoreHorizontal, UserCheck, UserX, Video, Calendar,
   Download, Bell, Filter, X, Search, Plus, Pencil, Trash2,
-  FileText, Linkedin, Mic
+  FileText, Linkedin, Mic, XCircle
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -67,6 +67,15 @@ interface BetaRegistration {
   event_date: string | null;
 }
 
+interface AccessGrantedUser {
+  id: string;
+  email: string;
+  tool_type: string;
+  status: string;
+  purchased_at: string;
+  expires_at: string;
+}
+
 interface ColumnFilters {
   name: string;
   email: string;
@@ -80,9 +89,11 @@ interface ColumnFilters {
 
 export function BetaRegistrationsTab() {
   const [registrations, setRegistrations] = useState<BetaRegistration[]>([]);
+  const [accessUsers, setAccessUsers] = useState<AccessGrantedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "invited" | "waitlisted">("all");
   const [toolTypeFilter, setToolTypeFilter] = useState<"all" | "resume_suite" | "linkedin_signal" | "interview_prep">("all");
+  const [accessStatusView, setAccessStatusView] = useState<"beta_registrations" | "access_granted" | "access_cancelled">("beta_registrations");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   // Column filters
@@ -171,8 +182,24 @@ export function BetaRegistrationsTab() {
     }
   };
 
+  const fetchAccessUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("tool_purchases")
+        .select("id, email, tool_type, status, purchased_at, expires_at")
+        .in("status", ["cancelled"])
+        .order("purchased_at", { ascending: false });
+
+      if (error) throw error;
+      setAccessUsers(data || []);
+    } catch (error) {
+      console.error("Error fetching access users:", error);
+    }
+  };
+
   useEffect(() => {
     fetchRegistrations();
+    fetchAccessUsers();
   }, [statusFilter]);
 
   // Apply column filters client-side
@@ -812,21 +839,38 @@ export function BetaRegistrationsTab() {
         </Card>
       </div>
 
-      {/* Tool Type Tabs */}
-      <Tabs value={toolTypeFilter} onValueChange={(v) => setToolTypeFilter(v as any)} className="w-full">
-        <TabsList className="grid w-full max-w-lg grid-cols-4">
-          <TabsTrigger value="all">All Tools ({registrations.length})</TabsTrigger>
-          <TabsTrigger value="resume_suite" className="flex items-center gap-1">
-            <FileText className="w-3 h-3" /> Resume ({resumeCount})
-          </TabsTrigger>
-          <TabsTrigger value="linkedin_signal" className="flex items-center gap-1">
-            <Linkedin className="w-3 h-3" /> LinkedIn ({linkedinCount})
-          </TabsTrigger>
-          <TabsTrigger value="interview_prep" className="flex items-center gap-1">
-            <Mic className="w-3 h-3" /> Interview ({interviewCount})
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* View Type Dropdown - Beta Registrations vs Access Status */}
+      <div className="flex items-center gap-4">
+        <Label className="text-sm font-medium">View:</Label>
+        <Select value={accessStatusView} onValueChange={(v) => setAccessStatusView(v as any)}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Select view" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="beta_registrations">Beta Registrations ({registrations.length})</SelectItem>
+            <SelectItem value="access_cancelled">Access Cancelled ({accessUsers.length})</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Conditional Content based on View */}
+      {accessStatusView === "beta_registrations" ? (
+        <>
+          {/* Tool Type Tabs */}
+          <Tabs value={toolTypeFilter} onValueChange={(v) => setToolTypeFilter(v as any)} className="w-full">
+            <TabsList className="grid w-full max-w-lg grid-cols-4">
+              <TabsTrigger value="all">All Tools ({registrations.length})</TabsTrigger>
+              <TabsTrigger value="resume_suite" className="flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Resume ({resumeCount})
+              </TabsTrigger>
+              <TabsTrigger value="linkedin_signal" className="flex items-center gap-1">
+                <Linkedin className="w-3 h-3" /> LinkedIn ({linkedinCount})
+              </TabsTrigger>
+              <TabsTrigger value="interview_prep" className="flex items-center gap-1">
+                <Mic className="w-3 h-3" /> Interview ({interviewCount})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
       {/* Filters & Actions */}
       <div className="flex flex-col gap-4">
@@ -1226,6 +1270,86 @@ export function BetaRegistrationsTab() {
           )}
         </CardContent>
       </Card>
+        </>
+      ) : (
+        /* Access Cancelled View */
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-destructive" />
+              Cancelled Access ({accessUsers.filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter).length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <Tabs value={toolTypeFilter} onValueChange={(v) => setToolTypeFilter(v as any)} className="w-full">
+                <TabsList className="grid w-full max-w-lg grid-cols-4">
+                  <TabsTrigger value="all">All Tools</TabsTrigger>
+                  <TabsTrigger value="resume_suite" className="flex items-center gap-1">
+                    <FileText className="w-3 h-3" /> Resume
+                  </TabsTrigger>
+                  <TabsTrigger value="linkedin_signal" className="flex items-center gap-1">
+                    <Linkedin className="w-3 h-3" /> LinkedIn
+                  </TabsTrigger>
+                  <TabsTrigger value="interview_prep" className="flex items-center gap-1">
+                    <Mic className="w-3 h-3" /> Interview
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            {accessUsers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No cancelled access records found
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tool</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Purchased</TableHead>
+                    <TableHead>Expired</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {accessUsers
+                    .filter(u => toolTypeFilter === "all" || u.tool_type === toolTypeFilter)
+                    .map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              user.tool_type === "resume_suite" 
+                                ? "border-amber-500/50 text-amber-700 bg-amber-500/10" 
+                                : user.tool_type === "linkedin_signal"
+                                ? "border-blue-500/50 text-blue-700 bg-blue-500/10"
+                                : user.tool_type === "interview_prep"
+                                ? "border-emerald-500/50 text-emerald-700 bg-emerald-500/10"
+                                : "border-purple-500/50 text-purple-700 bg-purple-500/10"
+                            }
+                          >
+                            {user.tool_type === "resume_suite" ? "Resume" 
+                              : user.tool_type === "linkedin_signal" ? "LinkedIn" 
+                              : user.tool_type === "interview_prep" ? "Interview"
+                              : user.tool_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="destructive">Cancelled</Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(user.purchased_at), "MMM d, yyyy")}</TableCell>
+                        <TableCell>{format(new Date(user.expires_at), "MMM d, yyyy")}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Invite Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
