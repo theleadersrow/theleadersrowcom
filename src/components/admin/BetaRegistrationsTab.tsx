@@ -715,6 +715,10 @@ export function BetaRegistrationsTab() {
     switch (status) {
       case "invited":
         return <Badge className="bg-green-500/20 text-green-600">Invited</Badge>;
+      case "attended":
+        return <Badge className="bg-blue-500/20 text-blue-600">Attended</Badge>;
+      case "no_show":
+        return <Badge variant="destructive">No Show</Badge>;
       case "waitlisted":
         return <Badge variant="secondary">Waitlisted</Badge>;
       default:
@@ -738,6 +742,8 @@ export function BetaRegistrationsTab() {
   const pendingCount = registrations.filter(r => r.status === "pending").length;
   const invitedCount = registrations.filter(r => r.status === "invited").length;
   const waitlistedCount = registrations.filter(r => r.status === "waitlisted").length;
+  const attendedCount = registrations.filter(r => r.status === "attended").length;
+  const noShowCount = registrations.filter(r => r.status === "no_show").length;
 
   const selectedPendingCount = selectedIds.filter(id => 
     filteredRegistrations.find(r => r.id === id)?.status === "pending"
@@ -1091,15 +1097,27 @@ export function BetaRegistrationsTab() {
                       {reg.target_roles}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {getStatusBadge(reg.status)}
-                        {reg.zoom_link_sent && (
-                          <div className="flex items-center gap-1 text-xs text-green-600">
-                            <Video className="w-3 h-3" />
-                            Zoom sent
-                          </div>
-                        )}
-                      </div>
+                      <Select
+                        value={reg.status}
+                        onValueChange={(value) => updateStatus(reg.id, value)}
+                      >
+                        <SelectTrigger className="h-8 w-[130px]">
+                          <SelectValue>{getStatusBadge(reg.status)}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border shadow-lg z-50">
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="invited">Invited</SelectItem>
+                          <SelectItem value="waitlisted">Waitlisted</SelectItem>
+                          <SelectItem value="attended">Attended</SelectItem>
+                          <SelectItem value="no_show">No Show</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {reg.zoom_link_sent && (
+                        <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
+                          <Video className="w-3 h-3" />
+                          Zoom sent
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">

@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -467,7 +474,22 @@ export function WebinarRegistrationsTab() {
                           {reg.email}
                         </a>
                       </TableCell>
-                      <TableCell>{getStatusBadge(reg.status)}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={reg.status}
+                          onValueChange={(value) => updateRegistrationStatus(reg.id, value)}
+                        >
+                          <SelectTrigger className="h-8 w-[130px]">
+                            <SelectValue>{getStatusBadge(reg.status)}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border shadow-lg z-50">
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="email_sent">Email Sent</SelectItem>
+                            <SelectItem value="attended">Attended</SelectItem>
+                            <SelectItem value="no_show">No Show</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                       <TableCell>
                         {reg.confirmation_sent ? (
                           <Badge variant="outline" className="text-green-600 border-green-600/30">
