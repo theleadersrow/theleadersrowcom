@@ -733,9 +733,16 @@ const The200KMethod = () => {
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-6">
               Investment
             </h2>
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <TrendingUp className="w-6 h-6 text-secondary" />
-              <span className="font-serif text-5xl md:text-6xl font-semibold text-cream">$2,000</span>
+            <div className="flex flex-col items-center justify-center mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-6 h-6 text-secondary" />
+                <span className="font-serif text-3xl md:text-4xl font-semibold text-cream/50 line-through">$2,000</span>
+              </div>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="font-serif text-5xl md:text-6xl font-semibold text-cream">$1,800</span>
+                <span className="bg-secondary text-secondary-foreground text-sm font-semibold px-3 py-1 rounded-full">10% OFF</span>
+              </div>
+              <p className="text-secondary text-sm mt-2 font-medium">Use code: ExEUgtY9</p>
             </div>
             <p className="text-cream/70 mb-6 text-lg leading-relaxed max-w-xl mx-auto">
               A single salary increase from leveling up often returns 10–50x this investment. 
