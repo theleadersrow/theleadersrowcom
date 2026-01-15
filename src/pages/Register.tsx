@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Programs that use direct Stripe Payment Links
 const PAYMENT_LINK_PROGRAMS: Record<string, string> = {
-  "200k-method": "https://buy.stripe.com/28o7sObCpdag2YnfZg",
+  "200k-method": "https://buy.stripe.com/28EbJ0bCpcqS5gz9IT9sk0i",
 };
 
 // Program details for pricing breakdown
