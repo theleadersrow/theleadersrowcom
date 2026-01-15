@@ -194,6 +194,11 @@ const Register = () => {
       return;
     }
 
+    // Paid programs must open Stripe in a new tab (Stripe Checkout cannot render inside the Lovable preview iframe).
+    // We pre-open the tab synchronously to avoid popup blockers.
+    const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
+    const paymentWindow = isPaidProgram ? window.open("", "_blank", "noopener,noreferrer") : null;
+
     setIsSubmitting(true);
 
     try {
@@ -206,29 +211,42 @@ const Register = () => {
         throw error;
       }
 
-      // Check if this program uses checkout session
-      const isPaidProgram = CHECKOUT_PROGRAMS.includes(formData.program);
-      
       if (isPaidProgram) {
         // Create checkout session via edge function
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-200k-checkout", {
-          body: formData,
-        });
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke(
+          "create-200k-checkout",
+          {
+            body: formData,
+          }
+        );
 
         if (checkoutError) {
           throw checkoutError;
         }
 
         if (checkoutData?.url) {
-          // Redirect to Stripe Checkout (avoids popup blockers)
-          window.location.href = checkoutData.url;
+          // Keep the current tab on a "complete your payment" state while the new tab handles Stripe.
+          setIsSubmitted(true);
+
+          if (paymentWindow && !paymentWindow.closed) {
+            paymentWindow.location.href = checkoutData.url;
+          } else {
+            // Fallback (e.g. if the browser still blocked the new tab)
+            window.location.href = checkoutData.url;
+          }
           return;
         }
+
+        throw new Error("No checkout URL returned");
       }
 
       // For programs without payment, just show success
       setIsSubmitted(true);
     } catch (error: any) {
+      if (paymentWindow && !paymentWindow.closed) {
+        paymentWindow.close();
+      }
+
       console.error("Error sending registration:", error);
       toast({
         title: "Something went wrong",
@@ -292,11 +310,26 @@ const Register = () => {
                         variant="gold"
                         size="lg"
                         onClick={async () => {
-                          const { data } = await supabase.functions.invoke("create-200k-checkout", {
+                          const paymentWindow = window.open("", "_blank", "noopener,noreferrer");
+
+                          const { data, error } = await supabase.functions.invoke("create-200k-checkout", {
                             body: formData,
                           });
-                          if (data?.url) {
-                            window.open(data.url, '_blank');
+
+                          if (error || !data?.url) {
+                            paymentWindow?.close();
+                            toast({
+                              title: "Couldn't open payment page",
+                              description: "Please try again.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+
+                          if (paymentWindow && !paymentWindow.closed) {
+                            paymentWindow.location.href = data.url;
+                          } else {
+                            window.location.href = data.url;
                           }
                         }}
                         className="w-full"
