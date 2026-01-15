@@ -14,8 +14,9 @@ interface BulkEmailRequest {
   email: string;
   toolType: string;
   eventDate: string;
-  zoomLink: string;
+  zoomLink: string | null;
   message: string;
+  subject: string;
 }
 
 const getToolName = (toolType: string): string => {
@@ -56,17 +57,38 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, toolType, eventDate, zoomLink, message }: BulkEmailRequest = await req.json();
+    const { name, email, toolType, eventDate, zoomLink, message, subject }: BulkEmailRequest = await req.json();
 
-    console.log(`Sending beta session invite to: ${email}`);
+    console.log(`Sending bulk email to: ${email}`);
 
     const toolName = getToolName(toolType);
     const formattedDate = formatEventDate(eventDate);
+    const hasZoomLink = zoomLink && zoomLink.trim() !== "";
+
+    // Build session details section only if there's a zoom link
+    const sessionDetailsSection = hasZoomLink ? `
+      <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <h3 style="margin: 0 0 16px 0; color: #1a1a2e; font-size: 16px;">📅 Session Details</h3>
+        <p style="margin: 0 0 8px 0;"><strong>Tool:</strong> ${toolName}</p>
+        <p style="margin: 0 0 8px 0;"><strong>When:</strong> ${formattedDate}</p>
+        <p style="margin: 0;"><strong>Where:</strong> Zoom (link below)</p>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${zoomLink}" style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); color: #1a1a2e; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">
+          Join Zoom Session
+        </a>
+      </div>
+      
+      <p style="font-size: 14px; color: #666; margin-top: 20px;">
+        <strong>Zoom Link:</strong> <a href="${zoomLink}" style="color: #1a1a2e;">${zoomLink}</a>
+      </p>
+    ` : "";
 
     const emailResponse = await resend.emails.send({
       from: "The Leader's Row <hello@theleadersrow.com>",
       to: [email],
-      subject: `🎉 You're Invited: ${toolName} Beta Testing Session`,
+      subject: subject || `🎉 You're Invited: ${toolName} Beta Testing Session`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -76,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-              <h1 style="color: #fff; margin: 0; font-size: 24px;">🚀 Beta Testing Session</h1>
+              <h1 style="color: #fff; margin: 0; font-size: 24px;">🚀 ${hasZoomLink ? "Beta Testing Session" : "Update from The Leader's Row"}</h1>
               <p style="color: #d4af37; margin: 10px 0 0; font-size: 16px;">${toolName}</p>
             </div>
             
@@ -85,22 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div style="white-space: pre-wrap; margin: 20px 0;">${message}</div>
               
-              <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 24px 0;">
-                <h3 style="margin: 0 0 16px 0; color: #1a1a2e; font-size: 16px;">📅 Session Details</h3>
-                <p style="margin: 0 0 8px 0;"><strong>Tool:</strong> ${toolName}</p>
-                <p style="margin: 0 0 8px 0;"><strong>When:</strong> ${formattedDate}</p>
-                <p style="margin: 0;"><strong>Where:</strong> Zoom (link below)</p>
-              </div>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${zoomLink}" style="background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); color: #1a1a2e; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">
-                  Join Zoom Session
-                </a>
-              </div>
-              
-              <p style="font-size: 14px; color: #666; margin-top: 20px;">
-                <strong>Zoom Link:</strong> <a href="${zoomLink}" style="color: #1a1a2e;">${zoomLink}</a>
-              </p>
+              ${sessionDetailsSection}
               
               <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
               
@@ -118,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Beta session invite sent successfully:", emailResponse);
+    console.log("Bulk email sent successfully:", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
