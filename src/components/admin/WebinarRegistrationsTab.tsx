@@ -44,7 +44,7 @@ const DEFAULT_EMAIL_BODY = `Hi there,
 
 This is a reminder that The 200K Method webinar is happening soon!
 
-📅 Date: Thursday, January 15th, 2025
+📅 Date: Thursday, January 15th, 2026
 ⏰ Time: 7:30 PM Central (1 hour)
 📍 Where: Zoom
 
