@@ -38,8 +38,9 @@ interface WebinarRegistration {
   created_at: string;
 }
 
+const DEFAULT_ZOOM_LINK = "https://zoom.us/j/97216217059?pwd=OMqa5Bi6L4BBeoDfnO9tCdGK6AAShn.1";
 const DEFAULT_EMAIL_SUBJECT = "Reminder: The 200K Method Webinar - Thursday, January 15th";
-const DEFAULT_EMAIL_BODY = `Hi {name},
+const DEFAULT_EMAIL_BODY = `Hi there,
 
 This is a reminder that The 200K Method webinar is happening soon!
 
@@ -71,7 +72,7 @@ export function WebinarRegistrationsTab() {
   const [selectedRegistration, setSelectedRegistration] = useState<WebinarRegistration | null>(null);
   const [emailSubject, setEmailSubject] = useState(DEFAULT_EMAIL_SUBJECT);
   const [emailBody, setEmailBody] = useState(DEFAULT_EMAIL_BODY);
-  const [zoomLink, setZoomLink] = useState("");
+  const [zoomLink, setZoomLink] = useState(DEFAULT_ZOOM_LINK);
   const [isSending, setIsSending] = useState(false);
 
   const fetchRegistrations = async () => {
@@ -125,7 +126,7 @@ export function WebinarRegistrationsTab() {
     setSelectedRegistration(registration);
     setEmailSubject(DEFAULT_EMAIL_SUBJECT);
     setEmailBody(DEFAULT_EMAIL_BODY);
-    setZoomLink("");
+    setZoomLink(DEFAULT_ZOOM_LINK);
     setEmailDialogOpen(true);
   };
 
@@ -136,7 +137,7 @@ export function WebinarRegistrationsTab() {
     }
     setEmailSubject(DEFAULT_EMAIL_SUBJECT);
     setEmailBody(DEFAULT_EMAIL_BODY);
-    setZoomLink("");
+    setZoomLink(DEFAULT_ZOOM_LINK);
     setBulkEmailDialogOpen(true);
   };
 
