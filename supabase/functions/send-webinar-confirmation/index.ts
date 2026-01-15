@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
         full_name: name,
         email: email,
         webinar_title: "The 200K Method",
-        webinar_date: "2025-01-15T19:30:00-06:00",
+        webinar_date: "2025-01-16T19:30:00-06:00",
         status: "registered",
         confirmation_sent: true,
       });
@@ -88,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div style="background-color: #f8f9fa; border-radius: 8px; padding: 24px; margin: 24px 0;">
                 <h3 style="margin: 0 0 16px 0; color: #1a1a2e; font-size: 18px;">📅 Event Details</h3>
-                <p style="margin: 0 0 8px 0;"><strong>Date:</strong> Thursday, January 15th, 2025</p>
+                <p style="margin: 0 0 8px 0;"><strong>Date:</strong> Thursday, January 16th, 2025</p>
                 <p style="margin: 0 0 8px 0;"><strong>Time:</strong> 7:30 PM Central (1 hour)</p>
                 <p style="margin: 0;"><strong>Where:</strong> Zoom (link below)</p>
               </div>
@@ -135,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Event:</strong> The 200K Method Webinar</p>
-        <p><strong>Date:</strong> Thursday, January 15th, 2025 at 7:30 PM Central</p>
+        <p><strong>Date:</strong> Thursday, January 16th, 2025 at 7:30 PM Central</p>
       `,
     });
 
