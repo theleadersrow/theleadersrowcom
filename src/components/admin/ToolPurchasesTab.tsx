@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { RefreshCw, FileText, Linkedin, Clock, CheckCircle, Mail, CalendarClock, Send, MoreHorizontal, Pencil, RotateCcw, XCircle, CalendarPlus, Search, X } from "lucide-react";
+import { RefreshCw, FileText, Linkedin, Clock, CheckCircle, Mail, CalendarClock, Send, MoreHorizontal, Pencil, RotateCcw, XCircle, CalendarPlus, Search, X, Mic } from "lucide-react";
 import { format, formatDistanceToNow, isPast, differenceInDays, addMonths, isAfter, isBefore, parseISO, startOfDay, endOfDay } from "date-fns";
 import { useMemo } from "react";
 
@@ -57,7 +57,7 @@ interface ToolPurchase {
 export function ToolPurchasesTab() {
   const [purchases, setPurchases] = useState<ToolPurchase[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "resume_suite" | "linkedin_signal">("all");
+  const [filter, setFilter] = useState<"all" | "resume_suite" | "linkedin_signal" | "interview_prep">("all");
   const [view, setView] = useState<"all" | "expiring" | "reminders">("all");
   
   // Additional filters
@@ -237,15 +237,25 @@ export function ToolPurchasesTab() {
 
 
   const getToolLabel = (toolType: string) => {
-    return toolType === "resume_suite" ? "Resume Intelligence Suite" : "LinkedIn Signal Score";
+    switch (toolType) {
+      case "resume_suite": return "Resume Intelligence Suite";
+      case "linkedin_signal": return "LinkedIn Signal Score";
+      case "interview_prep": return "Interview Prep Tool";
+      default: return toolType;
+    }
   };
 
   const getToolIcon = (toolType: string) => {
-    return toolType === "resume_suite" ? (
-      <FileText className="w-4 h-4 text-amber-600" />
-    ) : (
-      <Linkedin className="w-4 h-4 text-blue-600" />
-    );
+    switch (toolType) {
+      case "resume_suite":
+        return <FileText className="w-4 h-4 text-amber-600" />;
+      case "linkedin_signal":
+        return <Linkedin className="w-4 h-4 text-blue-600" />;
+      case "interview_prep":
+        return <Mic className="w-4 h-4 text-green-600" />;
+      default:
+        return <FileText className="w-4 h-4" />;
+    }
   };
 
   const getStatusBadge = (purchase: ToolPurchase) => {
@@ -262,6 +272,7 @@ export function ToolPurchasesTab() {
 
   const resumePurchases = purchases.filter(p => p.tool_type === "resume_suite");
   const linkedinPurchases = purchases.filter(p => p.tool_type === "linkedin_signal");
+  const interviewPurchases = purchases.filter(p => p.tool_type === "interview_prep");
   const activePurchases = purchases.filter(p => p.status === "active" && !isPast(new Date(p.expires_at)));
   
   // Expiring soon (within 7 days)
@@ -384,6 +395,17 @@ export function ToolPurchasesTab() {
             <div className="text-2xl font-bold text-amber-600">{resumePurchases.length}</div>
           </CardContent>
         </Card>
+        <Card className="border-green-500/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Mic className="w-4 h-4 text-green-600" />
+              Interview Prep
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{interviewPurchases.length}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* View Tabs */}
@@ -413,6 +435,9 @@ export function ToolPurchasesTab() {
             </TabsTrigger>
             <TabsTrigger value="linkedin_signal" className="flex items-center gap-1">
               <Linkedin className="w-3 h-3" /> LinkedIn
+            </TabsTrigger>
+            <TabsTrigger value="interview_prep" className="flex items-center gap-1">
+              <Mic className="w-3 h-3" /> Interview
             </TabsTrigger>
           </TabsList>
         </Tabs>

@@ -149,6 +149,7 @@ export function EnrollmentsTab() {
           profiles!enrollments_user_id_fkey (full_name, email),
           programs!enrollments_program_id_fkey (name, start_date)
         `)
+        .eq("program_id", "bf9d826f-3b8e-406e-b54a-24e2e58e8066") // 200K Method only
         .order("enrolled_at", { ascending: false }),
       supabase.from("programs").select("id, name")
     ]);
@@ -173,6 +174,7 @@ export function EnrollmentsTab() {
         profiles!enrollments_user_id_fkey (full_name, email),
         programs!enrollments_program_id_fkey (name, start_date)
       `)
+      .eq("program_id", "bf9d826f-3b8e-406e-b54a-24e2e58e8066") // 200K Method only
       .order("enrolled_at", { ascending: false });
 
     if (!error) {
