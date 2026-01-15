@@ -119,11 +119,13 @@ export function BetaRegistrationsTab() {
 
   // Bulk email dialog
   const [bulkEmailDialogOpen, setBulkEmailDialogOpen] = useState(false);
+  const [bulkEmailSubject, setBulkEmailSubject] = useState("You're Invited: Beta Testing Session");
   const [bulkEmailZoomLink, setBulkEmailZoomLink] = useState("");
   const [bulkEmailMessage, setBulkEmailMessage] = useState(
     `We're excited to have you join us for this exclusive beta testing session!\n\nDuring this session, you'll get hands-on experience with our tool and provide valuable feedback that will help shape its development.\n\nPlease make sure to:\n• Join 5 minutes early to ensure your setup is working\n• Have your resume ready (if applicable)\n• Come prepared with questions or specific scenarios you'd like to test\n\nWe can't wait to see you there!`
   );
   const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
 
   // Add/Edit registration dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -539,8 +541,8 @@ P.S. Your beta access is valid for 30 days from activation.`;
   };
 
   const sendBulkEmail = async () => {
-    if (!bulkEmailZoomLink.trim()) {
-      toast.error("Please enter the Zoom link");
+    if (!bulkEmailSubject.trim()) {
+      toast.error("Please enter an email subject");
       return;
     }
     if (!bulkEmailMessage.trim()) {
@@ -569,8 +571,9 @@ P.S. Your beta access is valid for 30 days from activation.`;
               email: reg.email,
               toolType: reg.tool_type,
               eventDate: reg.event_date,
-              zoomLink: bulkEmailZoomLink.trim(),
+              zoomLink: bulkEmailZoomLink.trim() || null,
               message: bulkEmailMessage.trim(),
+              subject: bulkEmailSubject.trim(),
             },
           });
           
@@ -964,16 +967,6 @@ P.S. Your beta access is valid for 30 days from activation.`;
       {/* Filters & Actions */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <TabsList>
-              <TabsTrigger value="all">All Status</TabsTrigger>
-              <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-              <TabsTrigger value="invited">Invited ({invitedCount})</TabsTrigger>
-              <TabsTrigger value="attended">Attended ({attendedCount})</TabsTrigger>
-              <TabsTrigger value="no_show">No Show ({noShowCount})</TabsTrigger>
-              <TabsTrigger value="waitlisted">Waitlisted ({waitlistedCount})</TabsTrigger>
-            </TabsList>
-          </Tabs>
           
           <div className="flex flex-wrap gap-2">
             <Button 
@@ -1556,61 +1549,137 @@ P.S. Your beta access is valid for 30 days from activation.`;
       </Dialog>
 
       {/* Bulk Email Dialog */}
-      <Dialog open={bulkEmailDialogOpen} onOpenChange={setBulkEmailDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+      <Dialog open={bulkEmailDialogOpen} onOpenChange={(open) => {
+        setBulkEmailDialogOpen(open);
+        if (!open) setShowEmailPreview(false);
+      }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Send Beta Session Invite</DialogTitle>
+            <DialogTitle>Send Bulk Email</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="bg-muted/50 p-3 rounded-lg text-sm">
-              <p className="text-muted-foreground">
-                This will send a beta testing session invite to the selected participants. 
-                The email will include the tool name, event date (from registration), and Zoom link.
-              </p>
-            </div>
-            <div>
-              <Label>Zoom Link *</Label>
-              <Input
-                value={bulkEmailZoomLink}
-                onChange={(e) => setBulkEmailZoomLink(e.target.value)}
-                placeholder="https://zoom.us/j/..."
-              />
-            </div>
-            <div>
-              <Label>Custom Message</Label>
-              <Textarea
-                value={bulkEmailMessage}
-                onChange={(e) => setBulkEmailMessage(e.target.value)}
-                rows={8}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                This message will appear in the email body. The recipient's name will be added automatically.
-              </p>
-            </div>
-            <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-              <strong>Recipients ({selectedIds.length}):</strong>
-              <div className="mt-2 max-h-24 overflow-y-auto space-y-1">
-                {filteredRegistrations
-                  .filter(r => selectedIds.includes(r.id))
-                  .map(r => (
-                    <div key={r.id} className="text-xs flex justify-between">
-                      <span>{r.full_name} ({r.email})</span>
-                      <Badge variant="outline" className="text-[10px]">
-                        {r.tool_type === "resume_suite" ? "Resume" : 
-                         r.tool_type === "linkedin_signal" ? "LinkedIn" : "Interview"}
-                      </Badge>
-                    </div>
-                  ))}
+          
+          {!showEmailPreview ? (
+            <div className="space-y-4 py-4">
+              <div className="bg-muted/50 p-3 rounded-lg text-sm">
+                <p className="text-muted-foreground">
+                  Send a custom email to the selected beta participants. Zoom link is optional.
+                </p>
+              </div>
+              
+              <div>
+                <Label>Email Subject *</Label>
+                <Input
+                  value={bulkEmailSubject}
+                  onChange={(e) => setBulkEmailSubject(e.target.value)}
+                  placeholder="You're Invited: Beta Testing Session"
+                />
+              </div>
+              
+              <div>
+                <Label>Zoom Link (Optional)</Label>
+                <Input
+                  value={bulkEmailZoomLink}
+                  onChange={(e) => setBulkEmailZoomLink(e.target.value)}
+                  placeholder="https://zoom.us/j/... (leave empty for non-event emails)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Leave blank if this is not an event invitation
+                </p>
+              </div>
+              
+              <div>
+                <Label>Email Message *</Label>
+                <Textarea
+                  value={bulkEmailMessage}
+                  onChange={(e) => setBulkEmailMessage(e.target.value)}
+                  rows={8}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  The recipient's name will be added as a greeting automatically.
+                </p>
+              </div>
+              
+              <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                <strong>Recipients ({selectedIds.length}):</strong>
+                <div className="mt-2 max-h-24 overflow-y-auto space-y-1">
+                  {filteredRegistrations
+                    .filter(r => selectedIds.includes(r.id))
+                    .map(r => (
+                      <div key={r.id} className="text-xs flex justify-between">
+                        <span>{r.full_name} ({r.email})</span>
+                        <Badge variant="outline" className="text-[10px]">
+                          {r.tool_type === "resume_suite" ? "Resume" : 
+                           r.tool_type === "linkedin_signal" ? "LinkedIn" : "Interview"}
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-          <DialogFooter>
+          ) : (
+            <div className="space-y-4 py-4">
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-[#1a1a2e] to-[#16213e] p-6 text-center">
+                  <h2 className="text-white text-xl font-bold">🚀 Beta Testing Session</h2>
+                  <p className="text-[#d4af37] mt-2">Resume Intelligence Suite</p>
+                </div>
+                <div className="p-6 bg-white">
+                  <p className="text-lg mb-4">Hi [Recipient Name],</p>
+                  <div className="whitespace-pre-wrap text-sm text-gray-700 mb-4">
+                    {bulkEmailMessage}
+                  </div>
+                  
+                  {bulkEmailZoomLink && (
+                    <>
+                      <div className="bg-gray-100 rounded-lg p-4 my-4">
+                        <h3 className="font-semibold text-[#1a1a2e] mb-3">📅 Session Details</h3>
+                        <p className="text-sm"><strong>Tool:</strong> [Tool Name]</p>
+                        <p className="text-sm"><strong>When:</strong> [Event Date]</p>
+                        <p className="text-sm"><strong>Where:</strong> Zoom (link below)</p>
+                      </div>
+                      <div className="text-center my-6">
+                        <span className="inline-block bg-gradient-to-r from-[#d4af37] to-[#f4d03f] text-[#1a1a2e] px-8 py-3 rounded-lg font-bold">
+                          Join Zoom Session
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  
+                  <hr className="my-6" />
+                  <p className="text-gray-600 text-sm">
+                    See you soon!<br />
+                    <strong>The Leader's Row Team</strong>
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-4 text-center text-xs text-gray-500">
+                  © 2026 The Leader's Row. All rights reserved.
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <strong>Subject:</strong> {bulkEmailSubject}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setBulkEmailDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={sendBulkEmail} disabled={sendingBulkEmail}>
-              {sendingBulkEmail ? "Sending..." : `Send to ${selectedIds.length} Recipients`}
-            </Button>
+            {showEmailPreview ? (
+              <>
+                <Button variant="outline" onClick={() => setShowEmailPreview(false)}>
+                  Back to Edit
+                </Button>
+                <Button onClick={sendBulkEmail} disabled={sendingBulkEmail}>
+                  {sendingBulkEmail ? "Sending..." : `Send to ${selectedIds.length} Recipients`}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setShowEmailPreview(true)} disabled={!bulkEmailSubject.trim() || !bulkEmailMessage.trim()}>
+                Preview Email
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
