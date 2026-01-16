@@ -20,17 +20,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Programs that use direct Stripe Payment Links
 const PAYMENT_LINK_PROGRAMS: Record<string, string> = {
-  "200k-method": "https://buy.stripe.com/28EbJ0bCpcqS5gz9IT9sk0i",
+  "200k-method": "https://buy.stripe.com/4gw00i7md8aCalT28T",
 };
 
 // Program details for pricing breakdown
 const PROGRAM_DETAILS = {
   "200k-method": {
     name: "The 200K Method",
-    price: "$1,800",
-    originalPrice: "$2,000",
+    price: "$2,000",
     priceSubtext: "One-time payment",
-    promoNote: "10% off — valid till Jan 16th, 2026",
     description: "A comprehensive 8-week intensive program designed to help you land a $200K+ role",
     features: [
       { icon: Video, text: "8 live weekly group coaching sessions (90 min each)" },
@@ -41,7 +39,6 @@ const PROGRAM_DETAILS = {
       { icon: Calendar, text: "Salary negotiation masterclass" },
       { icon: Sparkles, text: "Lifetime access to course materials" },
     ],
-    highlight: "10% Off",
   },
 };
 
@@ -596,37 +593,20 @@ const Register = () => {
                   <div className="rounded-2xl border border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent p-6 space-y-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-serif text-xl font-semibold text-foreground">
-                            {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].name}
-                          </h3>
-                          {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].highlight && (
-                            <span className="bg-secondary text-secondary-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-                              {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].highlight}
-                            </span>
-                          )}
-                        </div>
+                        <h3 className="font-serif text-xl font-semibold text-foreground">
+                          {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].name}
+                        </h3>
                         <p className="text-muted-foreground text-sm mt-1">
                           {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].description}
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        {'originalPrice' in PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] && (
-                          <div className="font-serif text-lg text-muted-foreground/50 line-through">
-                            {(PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] as any).originalPrice}
-                          </div>
-                        )}
                         <div className="font-serif text-2xl font-bold text-secondary">
                           {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].price}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS].priceSubtext}
                         </div>
-                        {'promoNote' in PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] && (
-                          <div className="text-xs text-secondary font-medium mt-1">
-                            {(PROGRAM_DETAILS[formData.program as keyof typeof PROGRAM_DETAILS] as any).promoNote}
-                          </div>
-                        )}
                       </div>
                     </div>
                     
