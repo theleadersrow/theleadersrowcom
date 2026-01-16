@@ -31,12 +31,9 @@ const ProgramsSection = () => {
               "Value Capture & Negotiation Strategy",
               "Future-Proofing: The Leader's Playbook",
             ]}
-            price="$1,800"
-            originalPrice="$2,000"
+            price="$2,000"
             href="/200k-method"
             ctaText="Join The 200K Method"
-            featured
-            badge="10% Off"
           />
         </div>
       </div>

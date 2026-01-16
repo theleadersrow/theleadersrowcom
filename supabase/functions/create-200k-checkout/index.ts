@@ -50,8 +50,8 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Use the promo price for $1800
-    const priceId = "price_1SpwjKCD119gx37USjHQloeu";
+    // Use the original price for $2000
+    const priceId = "price_1SdcR1CD119gx37UY1m7KYal";
 
     // Create checkout session with all customer metadata
     const session = await stripe.checkout.sessions.create({
