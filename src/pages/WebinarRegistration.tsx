@@ -66,11 +66,11 @@ const WebinarRegistration = () => {
                   <div className="space-y-3 text-left">
                     <div className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-secondary" />
-                      <span>Thursday, January 15th, 2026</span>
+                      <span>Monday, January 20th, 2026</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Clock className="w-5 h-5 text-secondary" />
-                      <span>7:30 PM Central (1 hour)</span>
+                      <span>5:30 PM - 6:30 PM Central (1 hour)</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Video className="w-5 h-5 text-secondary" />
@@ -121,7 +121,7 @@ const WebinarRegistration = () => {
                       <Calendar className="w-5 h-5 text-secondary" />
                     </div>
                     <div>
-                      <p className="font-medium">Thursday, January 15th, 2026</p>
+                      <p className="font-medium">Monday, January 20th, 2026</p>
                       <p className="text-sm text-cream/60">Mark your calendar</p>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ const WebinarRegistration = () => {
                       <Clock className="w-5 h-5 text-secondary" />
                     </div>
                     <div>
-                      <p className="font-medium">7:30 PM Central</p>
+                      <p className="font-medium">5:30 PM - 6:30 PM Central</p>
                       <p className="text-sm text-cream/60">1 hour session</p>
                     </div>
                   </div>
