@@ -191,6 +191,12 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // LinkedIn PDF upload states
+  const [isUploadingLinkedInPdf, setIsUploadingLinkedInPdf] = useState(false);
+  const linkedInPdfInputRef = useRef<HTMLInputElement>(null);
+  const [parsedLinkedInSections, setParsedLinkedInSections] = useState<Array<{ type: string; title: string; content: string }>>([]);
+  const [showParsedSections, setShowParsedSections] = useState(false);
 
   // Access and payment states
   const [accessInfo, setAccessInfo] = useState<AccessInfo>({ hasAccess: false });
@@ -504,6 +510,62 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
       }
     } finally {
       setIsFetchingProfile(false);
+    }
+  };
+
+  // Handle LinkedIn PDF upload
+  const handleLinkedInPdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error("Please upload a PDF file exported from LinkedIn");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    setIsUploadingLinkedInPdf(true);
+    setParsedLinkedInSections([]);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data, error } = await supabase.functions.invoke("parse-linkedin-pdf", {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      if (data.text) {
+        setProfileText(data.text);
+        
+        if (data.parsed?.sections && data.parsed.sections.length > 0) {
+          setParsedLinkedInSections(data.parsed.sections);
+          setShowParsedSections(true);
+          toast.success(`LinkedIn PDF parsed! Found ${data.parsed.sections.length} sections.`);
+        } else if (data.sectionsFound && data.sectionsFound.length > 0) {
+          setParsedLinkedInSections(data.sectionsFound);
+          setShowParsedSections(true);
+          toast.success(`LinkedIn PDF parsed! Found ${data.sectionsFound.length} sections.`);
+        } else {
+          toast.success("LinkedIn PDF text extracted successfully!");
+        }
+      } else {
+        toast.error("Could not extract text from PDF. Please paste your LinkedIn content manually.");
+      }
+    } catch (error) {
+      console.error("Error uploading LinkedIn PDF:", error);
+      toast.error("Failed to process LinkedIn PDF. Please paste content manually.");
+    } finally {
+      setIsUploadingLinkedInPdf(false);
+      if (linkedInPdfInputRef.current) {
+        linkedInPdfInputRef.current.value = "";
+      }
     }
   };
 
@@ -987,6 +1049,82 @@ export function LinkedInSignalScore({ onBack }: LinkedInSignalScoreProps) {
               <label className="text-sm font-medium mb-2 block">
                 Profile Content <span className="text-destructive">*</span>
               </label>
+              
+              {/* LinkedIn PDF Upload Option */}
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="file"
+                  ref={linkedInPdfInputRef}
+                  onChange={handleLinkedInPdfUpload}
+                  accept=".pdf"
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => linkedInPdfInputRef.current?.click()}
+                  disabled={isUploadingLinkedInPdf}
+                  className="flex-1"
+                >
+                  {isUploadingLinkedInPdf ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Parsing LinkedIn PDF...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload LinkedIn PDF
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Export your LinkedIn profile as PDF: Go to your profile → More → Save to PDF
+              </p>
+              
+              {/* Parsed Sections Display */}
+              {showParsedSections && parsedLinkedInSections.length > 0 && (
+                <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-primary" />
+                      Sections Identified from Your LinkedIn
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowParsedSections(false)}
+                      className="text-xs"
+                    >
+                      Hide
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {parsedLinkedInSections.map((section, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 px-3 py-2 bg-background rounded-md border border-border"
+                      >
+                        <div className={`w-2 h-2 rounded-full ${
+                          section.type === 'experience' ? 'bg-blue-500' :
+                          section.type === 'education' ? 'bg-purple-500' :
+                          section.type === 'skills' ? 'bg-green-500' :
+                          section.type === 'about' ? 'bg-yellow-500' :
+                          section.type === 'certifications' ? 'bg-orange-500' :
+                          'bg-muted-foreground'
+                        }`} />
+                        <span className="text-xs font-medium capitalize">
+                          {section.title || section.type}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    These sections will be analyzed. After optimization, you'll see exactly which sections to update on LinkedIn.
+                  </p>
+                </div>
+              )}
+              
               <Textarea
                 placeholder={`Paste your LinkedIn content here. Include:
 

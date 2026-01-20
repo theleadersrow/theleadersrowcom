@@ -254,8 +254,8 @@ export function WebinarRegistrationsTab() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-semibold">Jan 15, 2026</div>
-            <div className="text-sm text-muted-foreground">7:30 PM Central</div>
+            <div className="text-lg font-semibold">Jan 20, 2026</div>
+            <div className="text-sm text-muted-foreground">5:30 PM - 6:30 PM Central</div>
           </CardContent>
         </Card>
         <Card>

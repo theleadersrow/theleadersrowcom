@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
         full_name: name,
         email: email,
         webinar_title: "The 200K Method",
-        webinar_date: "2026-01-15T19:30:00-06:00",
+        webinar_date: "2026-01-20T17:30:00-06:00",
         status: "pending",
         confirmation_sent: false,
       });
