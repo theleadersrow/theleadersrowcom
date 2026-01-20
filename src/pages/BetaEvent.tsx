@@ -227,16 +227,16 @@ const BetaEvent = () => {
           </h2>
           
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Resume Intelligence Suite Beta */}
-            <div className="border-2 border-amber-500/50 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 overflow-hidden hover:border-amber-500 transition-all group">
+            {/* Resume Intelligence Suite - Beta Complete */}
+            <div className="border-2 border-amber-500/30 rounded-xl bg-gradient-to-br from-amber-500/5 to-amber-500/10 overflow-hidden transition-all group">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center">
                     <FileText className="w-7 h-7 text-amber-600" />
                   </div>
                   <div>
-                    <span className="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
-                      Live Beta Event
+                    <span className="text-xs bg-green-500/20 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                      Beta Complete
                     </span>
                     <h3 className="font-semibold text-lg text-foreground mt-1">
                       Resume Intelligence Suite
@@ -245,23 +245,8 @@ const BetaEvent = () => {
                 </div>
                 
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  Walk through the Resume Intelligence experience live, identify gaps in your resume, and get a prioritized improvement checklist.
+                  Beta complete. Feel free to use live.
                 </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span className="font-medium">Jan 14, 2026</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span className="font-medium">6–7:30 PM CT</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/10 rounded-lg px-2.5 py-1.5 text-amber-700">
-                    <Users className="w-3.5 h-3.5" />
-                    <span className="font-medium">20 Spots</span>
-                  </div>
-                </div>
 
                 <div className="space-y-2 mb-5">
                   {toolInfo.resume_suite.features.map((feature, i) => (
@@ -273,11 +258,13 @@ const BetaEvent = () => {
                 </div>
 
                 <Button 
-                  onClick={() => openRegistration("resume_suite")}
+                  asChild
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                 >
-                  Apply Now
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <a href="/resume-suite">
+                    Try It Now
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </a>
                 </Button>
               </div>
             </div>
@@ -306,11 +293,11 @@ const BetaEvent = () => {
                 <div className="flex flex-wrap gap-2 mb-4">
                   <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span className="font-medium">Jan 15, 2026</span>
+                    <span className="font-medium">TBD</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="font-medium">6–7:30 PM CT</span>
+                    <span className="font-medium">TBD</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs bg-blue-500/10 rounded-lg px-2.5 py-1.5 text-blue-700">
                     <Users className="w-3.5 h-3.5" />
