@@ -270,7 +270,7 @@ const faqs = [
   },
   {
     question: "When does the next cohort start?",
-    answer: "The next cohort runs from January 22nd to March 12th, 2026. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
+    answer: "The next cohort runs from February 5th to March 26th, 2026. Sessions are held every Thursday from 7:00 PM to 9:00 PM CT.",
   },
   {
     question: "Do you offer refunds?",
@@ -339,7 +339,7 @@ const The200KMethod = () => {
             {/* Next Cohort Info */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
               <p className="text-secondary font-semibold mb-1">Next Cohort</p>
-              <p className="text-cream text-lg">Jan 22nd – Mar 12th, 2026</p>
+              <p className="text-cream text-lg">Feb 5th – Mar 26th, 2026</p>
               <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
             </div>
             
@@ -747,7 +747,7 @@ const The200KMethod = () => {
             {/* Next Cohort Info */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
               <p className="text-secondary font-semibold mb-1">Next Cohort</p>
-              <p className="text-cream text-lg">Jan 22nd – Mar 12th, 2026</p>
+              <p className="text-cream text-lg">Feb 5th – Mar 26th, 2026</p>
               <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
             </div>
             
