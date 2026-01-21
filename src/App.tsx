@@ -90,8 +90,10 @@ const App = () => (
             <Route path="/speaking" element={<Speaking />} />
             <Route path="/live-programs" element={<LivePrograms />} />
             <Route path="/community" element={<Community />} />
+            {/* HIDDEN - AMA Events routes (can recover later)
             <Route path="/ama-events" element={<AMAEvents />} />
             <Route path="/ama-feedback" element={<AMAFeedback />} />
+            */}
             <Route path="/join-community" element={<JoinCommunity />} />
             <Route path="/coaching" element={<Coaching />} />
             <Route path="/interview-tool" element={<StrategicBenchmark />} />
