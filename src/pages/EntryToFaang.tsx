@@ -112,10 +112,6 @@ const whoIsNotFor = [
     label: "Passive Learners",
     description: "This is an execution lab, not a lecture series.",
   },
-  {
-    label: "Early-Career PMs",
-    description: "This program assumes strong fundamentals and real experience.",
-  },
 ];
 
 const workOnItems = [
