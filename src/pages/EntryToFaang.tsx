@@ -408,11 +408,11 @@ const The200KMethod = () => {
                   <span>Senior/Director readiness</span>
                 </div>
               </div>
-              <p className="text-cream/70 text-xs mb-3">
-                High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
+              <p className="text-cream/80 text-xs mb-3">
+                It's a system that upgrades how you think, show up, and lead—so the outcomes become inevitable.
               </p>
-              <p className="text-secondary font-semibold text-sm">
-                A system you can reuse every time you level up.
+              <p className="text-secondary font-semibold text-xs">
+                Clarity → Positioning → Brand → Presence → Visibility → Next Level Outcomes
               </p>
             </div>
           </div>
