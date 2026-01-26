@@ -432,50 +432,6 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      <section className="section-padding bg-muted/30">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10">
-              <p className="text-secondary font-medium mb-2">Program Philosophy</p>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-6">
-                Most Product Managers Don't Stall Because They Lack Execution
-              </h2>
-            </div>
-            
-            <div className="bg-card rounded-2xl p-8 border border-border/50 shadow-soft mb-8">
-              <p className="text-lg text-foreground font-medium mb-6">They stall because:</p>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <X className="w-3 h-3 text-destructive" />
-                  </div>
-                  <p className="text-muted-foreground">Their internal clarity doesn't match their external impact</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <X className="w-3 h-3 text-destructive" />
-                  </div>
-                  <p className="text-muted-foreground">Their decision-making signals don't translate at scale</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <X className="w-3 h-3 text-destructive" />
-                  </div>
-                  <p className="text-muted-foreground">Their identity, narrative, and execution are misaligned</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-navy rounded-2xl p-8 text-center">
-              <p className="text-secondary font-semibold text-lg mb-2">The 200K Method™ fixes that.</p>
-              <p className="text-cream/80 text-lg leading-relaxed">
-                We recalibrate how you think, decide, and show up — so $200K+ roles become a natural outcome, not a stretch.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Who This Is For */}
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
