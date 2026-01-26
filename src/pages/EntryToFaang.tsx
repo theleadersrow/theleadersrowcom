@@ -387,7 +387,7 @@ const The200KMethod = () => {
             {/* Right Column - Key Points */}
             <div className="bg-cream/5 border border-cream/20 rounded-xl p-5">
               <p className="text-cream/90 text-sm mb-4">
-                An 8-week career acceleration for PMs ready for promotion, bigger scope, or a higher-impact role.
+                An 8-week career acceleration for PMs who are ready for promotion, bigger scope, or a higher-impact role—by building a repeatable Career Operating System, not chasing random tactics.
               </p>
               <p className="text-cream font-medium text-sm mb-3">Build a Career Operating System for:</p>
               <div className="grid grid-cols-2 gap-2 mb-4">
