@@ -360,11 +360,14 @@ const The200KMethod = () => {
               <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-3">
                 The 200K Method™
               </h1>
-              <p className="text-lg md:text-xl text-secondary font-medium mb-4">
-                The Next-Level PM System
+              <p className="text-lg md:text-xl text-secondary font-medium mb-3">
+                Build the Career System that Takes You to the Next Level.
               </p>
-              <p className="text-cream/90 text-base md:text-lg mb-5 leading-relaxed">
-                <span className="font-semibold">Your next level won't come from working harder</span> — it comes from building the right repeatable system.
+              <p className="text-cream/90 text-sm md:text-base mb-2 leading-relaxed">
+                In 8 weeks, you'll identify where you stand today, define where you're meant to go next, and build a repeatable system—not random tactics—to get there with clarity, confidence, and leadership presence.
+              </p>
+              <p className="text-secondary/90 text-sm font-medium mb-5">
+                Positioning. Brand. Visibility. Executive communication. Real momentum.
               </p>
               
               {/* Next Cohort + CTA */}
