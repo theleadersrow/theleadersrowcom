@@ -395,7 +395,7 @@ const The200KMethod = () => {
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div className="flex items-center gap-2 text-cream/80 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Stronger interviews</span>
+                  <span>Offer-winning interviews</span>
                 </div>
                 <div className="flex items-center gap-2 text-cream/80 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -403,11 +403,11 @@ const The200KMethod = () => {
                 </div>
                 <div className="flex items-center gap-2 text-cream/80 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Leadership presence</span>
+                  <span>Leadership presence + visibility</span>
                 </div>
                 <div className="flex items-center gap-2 text-cream/80 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Senior/Director readiness</span>
+                  <span>Senior-level scope</span>
                 </div>
               </div>
               <p className="text-cream/80 text-xs mb-3">
