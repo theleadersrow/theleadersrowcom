@@ -364,7 +364,7 @@ const The200KMethod = () => {
                 The Next-Level PM System
               </p>
               <p className="text-cream/90 text-base md:text-lg mb-5 leading-relaxed">
-                <span className="font-semibold">Your next level won't come from working harder</span> — it comes from building the right system.
+                <span className="font-semibold">Your next level won't come from working harder</span> — it comes from building the right repeatable system.
               </p>
               
               {/* Next Cohort + CTA */}
