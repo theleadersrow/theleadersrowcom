@@ -479,33 +479,114 @@ const The200KMethod = () => {
       {/* Who This Is For */}
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            {/* Who This Is For */}
-            <div className="mb-16">
-              <div className="text-center mb-10">
-                <p className="text-secondary font-medium mb-2">Senior, High-Performing Product Leaders Who Are:</p>
-                <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-                  Who This Program Is For
-                </h2>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                {whoIsFor.map((item, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-card rounded-xl p-5 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
-                        <CheckCircle2 className="w-4 h-4 text-secondary" />
-                      </div>
-                      <h3 className="font-semibold text-foreground">{item.label}</h3>
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                Who This Program Is For
+              </h2>
+              <p className="text-muted-foreground">
+                This program is for you if…
+              </p>
+            </div>
+
+            <div className="space-y-6 mb-10">
+              {/* Item 1 */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" />
                   </div>
-                ))}
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">You want more from your career — but your next move isn't happening</h3>
+                    <p className="text-muted-foreground text-sm">You're craving a bigger role, bigger scope, or a stronger company… but you feel stuck and unsure what to do next.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Item 2 */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">You're ready for a promotion or scope jump</h3>
+                    <p className="text-muted-foreground text-sm mb-3">You're already performing — but you want to be seen as:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Promotion-ready</span>
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Leadership-ready</span>
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Trusted with bigger ownership</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Item 3 */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">You want to switch companies and land a higher-level role</h3>
+                    <p className="text-muted-foreground text-sm">You're aiming for a better brand, stronger compensation, or more responsibility — and you want a strategy that works in a competitive market.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Item 4 */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">You're trying to land your first PM role (or break into tech)</h3>
+                    <p className="text-muted-foreground text-sm">You need a structured system to build credibility, confidence, and a story that gets interviews.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Item 5 */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">You feel "qualified"… but not chosen</h3>
+                    <p className="text-muted-foreground text-sm">You know you're capable, but your resume, storytelling, confidence, or visibility isn't translating into offers or opportunities yet.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Item 6 */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">You want to build a repeatable career system (not chase random tactics)</h3>
+                    <p className="text-muted-foreground text-sm mb-3">You don't want another course. You want:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Structure</span>
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Coaching</span>
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Execution</span>
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">Feedback</span>
+                      <span className="bg-secondary/10 text-secondary text-xs px-3 py-1 rounded-full">A system you can reuse</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
+            {/* One-Liner Summary */}
+            <div className="bg-secondary/10 rounded-2xl p-6 text-center border border-secondary/20">
+              <p className="text-foreground text-lg font-medium leading-relaxed">
+                This program is for product professionals who want their next promotion, role, or breakthrough—and are ready to build the system that makes it <span className="text-secondary font-semibold">inevitable.</span>
+              </p>
+            </div>
           </div>
         </div>
       </section>
