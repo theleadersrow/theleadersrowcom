@@ -364,17 +364,22 @@ const The200KMethod = () => {
                 Build the Career System that Takes You to the Next Level.
               </p>
               
-              {/* Next Cohort + CTA */}
-              <div className="flex flex-wrap items-center gap-4">
+              {/* CTAs */}
+              <div className="flex flex-wrap items-center gap-3 mb-4">
                 <Link to="/register?program=200k-method">
                   <Button variant="hero" size="lg" className="group">
-                    Join Now
+                    Build My Career System
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <div className="text-cream/80 text-sm">
-                  <span className="text-secondary font-semibold">Next:</span> Feb 5 – Mar 26, 2026
-                </div>
+                <a href="#curriculum">
+                  <Button variant="outline" size="lg" className="border-cream/30 text-cream hover:bg-cream/10">
+                    See Program Details
+                  </Button>
+                </a>
+              </div>
+              <div className="text-cream/70 text-sm">
+                <span className="text-secondary font-semibold">Next Cohort:</span> Feb 5 – Mar 26, 2026
               </div>
             </div>
             
@@ -497,7 +502,7 @@ const The200KMethod = () => {
 
 
       {/* 8 Modules */}
-      <section className="section-padding bg-background">
+      <section id="curriculum" className="section-padding bg-background scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <p className="text-secondary font-medium mb-2">8-Module Career Operating System</p>
