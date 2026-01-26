@@ -378,6 +378,9 @@ const The200KMethod = () => {
                   </Button>
                 </a>
               </div>
+              <p className="text-cream/60 text-sm mb-3">
+                High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
+              </p>
               <div className="text-cream/70 text-sm">
                 <span className="text-secondary font-semibold">Next Cohort:</span> Feb 5 – Mar 26, 2026
               </div>
