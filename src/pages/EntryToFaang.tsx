@@ -422,7 +422,7 @@ const The200KMethod = () => {
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-secondary font-medium text-sm mb-2">The Simple Promise</p>
             <p className="text-xl md:text-2xl font-serif font-semibold text-foreground leading-relaxed">
-              You'll walk away with a career system that creates promotions, interviews, and next-level roles—<span className="text-secondary">on repeat.</span>
+              You'll leave with a repeatable <span className="text-secondary">Career Operating System</span> — not just clarity, but a structure you can use every time you're ready to level up.
             </p>
           </div>
         </div>
