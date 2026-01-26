@@ -412,6 +412,25 @@ const The200KMethod = () => {
         </div>
       </section>
 
+      {/* What Makes This Different */}
+      <section className="section-padding bg-navy">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-6">
+              What Makes This Different
+            </h2>
+            <p className="text-cream/90 text-lg mb-6">
+              This isn't a course or generic interview prep. <span className="text-secondary font-semibold">It's a career operating system.</span>
+            </p>
+            <p className="text-cream/70 leading-relaxed mb-6">
+              We don't obsess over goals—we build the system that creates outcomes: promotions, bigger scope, interviews, and next-level roles.
+            </p>
+            <p className="text-cream/70 leading-relaxed">
+              You'll get <span className="text-cream font-medium">high-touch coaching</span>, <span className="text-cream font-medium">deep calibration</span>, <span className="text-cream font-medium">role plays + real-time feedback</span>, <span className="text-cream font-medium">asset reviews</span> (resume/LinkedIn/pitch), <span className="text-cream font-medium">accountability triads</span>, and a <span className="text-cream font-medium">private community</span>—so you don't just learn, you <span className="text-secondary font-semibold">execute and transform.</span>
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
