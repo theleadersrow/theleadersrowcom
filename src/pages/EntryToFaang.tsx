@@ -354,18 +354,18 @@ const The200KMethod = () => {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Column - Title & CTA */}
             <div>
-              <p className="text-secondary font-medium mb-3">
+              <p className="text-secondary font-medium mb-4">
                 <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based</span>
               </p>
-              <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-3">
+              <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
                 The 200K Method™
               </h1>
-              <p className="text-lg md:text-xl text-secondary font-medium mb-3">
+              <p className="text-lg md:text-xl text-secondary font-medium mb-6">
                 Build the Career System that Takes You to the Next Level.
               </p>
               
               {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-4 mb-5">
                 <Link to="/register?program=200k-method">
                   <Button variant="hero" size="lg" className="group">
                     Build My Career System
@@ -378,7 +378,7 @@ const The200KMethod = () => {
                   </Button>
                 </a>
               </div>
-              <p className="text-cream/60 text-sm mb-3">
+              <p className="text-cream/60 text-sm mb-4">
                 High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
               </p>
               <div className="text-cream/70 text-sm">
@@ -387,12 +387,12 @@ const The200KMethod = () => {
             </div>
             
             {/* Right Column - Key Points */}
-            <div className="bg-cream/5 border border-cream/20 rounded-xl p-5">
-              <p className="text-cream/90 text-sm mb-4">
+            <div className="bg-cream/5 border border-cream/20 rounded-xl p-6">
+              <p className="text-cream/90 text-sm mb-5 leading-relaxed">
                 An 8-week career acceleration for PMs who are ready for promotion, bigger scope, or a higher-impact role—by building a repeatable Career Operating System, not chasing random tactics.
               </p>
-              <p className="text-cream font-medium text-sm mb-3">Build a Career Operating System for:</p>
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              <p className="text-cream font-medium text-sm mb-4">Build a Career Operating System for:</p>
+              <div className="grid grid-cols-2 gap-3 mb-5">
                 <div className="flex items-center gap-2 text-cream/80 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                   <span>Offer-winning interviews</span>
@@ -410,7 +410,7 @@ const The200KMethod = () => {
                   <span>Senior-level scope</span>
                 </div>
               </div>
-              <p className="text-cream/80 text-xs mb-3">
+              <p className="text-cream/80 text-xs mb-4 leading-relaxed">
                 It's a system that upgrades how you think, show up, and lead—so the outcomes become inevitable.
               </p>
               <p className="text-secondary font-semibold text-xs">
