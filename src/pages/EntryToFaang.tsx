@@ -482,32 +482,6 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* The Learning Model */}
-      <section className="section-padding bg-muted/30">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-                The Learning Model
-              </h2>
-              <p className="text-secondary font-semibold text-xl">Learn → Apply → Coach</p>
-              <p className="text-muted-foreground mt-2">Every session follows the same structure:</p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {learningModel.map((item, index) => (
-                <div key={index} className="bg-card rounded-xl p-5 border border-border/50 shadow-soft text-center">
-                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center mx-auto mb-3">
-                    <span className="text-secondary font-semibold">{index + 1}</span>
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground text-sm">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 8 Modules */}
       <section className="section-padding bg-background">
