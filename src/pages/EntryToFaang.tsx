@@ -360,7 +360,7 @@ const The200KMethod = () => {
               The 200K Method™
             </h1>
             <p className="text-xl md:text-2xl text-secondary font-medium mb-2">
-              8-Module Career Operating System
+              The Next-Level PM System
             </p>
             <p className="text-lg md:text-xl text-cream/90 font-medium mb-6">
               Maximum Potential Activation
