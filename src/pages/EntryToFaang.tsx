@@ -28,59 +28,99 @@ import {
 const modules = [
   {
     icon: Compass,
-    title: "The Strategic Benchmark",
-    subtitle: "Internal + External Level Alignment",
-    description: "Diagnose your true PM operating level. Identify target roles and companies aligned to your leverage. Expose gaps between self-perception and market signals.",
-    outcome: "Absolute clarity on where you are — and where you belong.",
-  },
-  {
-    icon: Brain,
-    title: "Decision Identity: How Senior PMs Think",
-    subtitle: "Thinking at Scale",
-    description: "How senior leaders frame problems. What decisions actually signal level. Why execution alone doesn't translate upward.",
-    outcome: "You stop 'doing more' and start signaling seniority.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Narrative Control: Engineering Your PM Brand",
-    subtitle: "Leadership-Caliber Positioning",
-    description: "Build a leadership-caliber narrative. Reposition past work for scale and impact. Control how your value is interpreted.",
-    outcome: "You sound like the level you're targeting.",
-  },
-  {
-    icon: Users,
-    title: "High-Value Profile & Network Activation",
-    subtitle: "Strategic Visibility",
-    description: "Optimize resume and LinkedIn with influence metrics. Activate the right network, not a broad one. Position yourself for pull, not push.",
-    outcome: "Your profile works for you, not against you.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Interview Mastery: Executive-Level Performance",
-    subtitle: "Hire-Level Performance",
-    description: "Advanced behavioral and product sense frameworks. Communicate tradeoffs, judgment, and scope. Perform under senior-level scrutiny.",
-    outcome: "Interview confidence rooted in clarity, not memorization.",
+    title: "Strategic Benchmark",
+    subtitle: "Current Reality → Next Level Standard",
+    description: "Stop guessing and get extremely real about where you stand today—skills, scope, visibility, confidence, and credibility.",
+    outcomes: [
+      "Your true baseline (not what you think your level is)",
+      "A clear view of what the next role requires",
+      "A career 'starting point' you can build from strategically",
+    ],
+    deliverables: ["Strategic Benchmark Scorecard", "Current vs Target Role Snapshot"],
   },
   {
     icon: Target,
-    title: "Product Judgment: High-Stakes Decision Making",
-    subtitle: "Leadership-Level Reasoning",
-    description: "Apply economic, system, and leverage thinking. Navigate ambiguity at scale. Make decisions that reflect leadership maturity.",
-    outcome: "Stronger judgment, clearer reasoning, better outcomes.",
+    title: "Gap Mapping",
+    subtitle: "Find the Real Blockers",
+    description: "If your effort isn't converting into results, your system has gaps. This module reveals what's actually holding you back.",
+    outcomes: [
+      "Identify your blockers: clarity gaps, skill gaps, positioning gaps, confidence gaps",
+      "Understand why 'hard work' isn't translating into career movement",
+      "Prioritize what will produce the biggest lift",
+    ],
+    deliverables: ["Gap Map Dashboard", "Skill Priority Ladder (top gaps + actions)"],
   },
   {
     icon: Award,
-    title: "Executive Presence & Influence",
-    subtitle: "Gravitas & Power Dynamics",
-    description: "Communicate with clarity and gravitas. Manage power dynamics up, down, and across. Build an influence portfolio.",
-    outcome: "You are perceived as a peer, not a candidate.",
+    title: "Identity & Positioning",
+    subtitle: "Become the Person Who Gets Chosen",
+    description: "Shift from being seen as 'qualified' to being seen as 'next-level.' Build your next-level identity before the title arrives.",
+    outcomes: [
+      "Build your next-level identity + confidence",
+      "Upgrade your positioning from execution → leadership",
+      "Create a clear 'why you' narrative",
+    ],
+    deliverables: ["Identity Statement", "Positioning Pillars + Leadership Signal Checklist"],
+  },
+  {
+    icon: Users,
+    title: "Brand & Network Activation",
+    subtitle: "Visibility Through People",
+    description: "Stop being invisible. Your network becomes your distribution channel. Build momentum without begging for referrals.",
+    outcomes: [
+      "Build a high-value brand that matches your next-level goal",
+      "Activate visibility through the right people",
+      "Create consistent interview flow and internal opportunity pull",
+    ],
+    deliverables: ["Brand Signal Framework", "Outreach Scripts", "Weekly Network Momentum System"],
+  },
+  {
+    icon: MessageSquare,
+    title: "Interview Mastery: Phase 1",
+    subtitle: "Clarity + Structure",
+    description: "Become great on paper and in first rounds. Show up as a structured, strategic candidate who feels easy to say yes to.",
+    outcomes: [
+      "Strong interview foundations (confidence, structure, clarity)",
+      "Build 'hireable' signals in your stories and answers",
+      "Close early-stage interview gaps fast",
+    ],
+    deliverables: ["STAR + Strategic Story Bank", "Interview Answer Structures"],
+  },
+  {
+    icon: Brain,
+    title: "Interview Mastery: Phase 2",
+    subtitle: "Product Judgment + Strategy",
+    description: "Master the interviews that decide the offer: product sense, tradeoffs, execution judgment, and leadership thinking.",
+    outcomes: [
+      "Strong product thinking under pressure",
+      "Tradeoff mastery and structured decision-making",
+      "Become the candidate who sounds like they've already done the job",
+    ],
+    deliverables: ["Product Judgment Playbook", "Executive Product Thinking Framework"],
+  },
+  {
+    icon: Shield,
+    title: "Executive Performance & Influence",
+    subtitle: "High-Stakes Meetings & Power Dynamics",
+    description: "Learn how careers actually grow: not through effort alone, but through influence, trust, communication, and leadership energy.",
+    outcomes: [
+      "Executive presence in high-stakes moments",
+      "Influence without authority",
+      "Learn power dynamics so you're never blindsided again",
+    ],
+    deliverables: ["Executive Presence Checklist", "Influence + Power Dynamics Toolkit", "High-Stakes Meeting System"],
   },
   {
     icon: Rocket,
-    title: "Future-Proofing: The Leader's Playbook",
-    subtitle: "Repeatable Career System",
-    description: "Build a repeatable self-assessment system. Avoid future plateaus. Define your next strategic horizon.",
-    outcome: "You leave with a system, not just a result.",
+    title: "The Leader's Playbook",
+    subtitle: "System Reuse & Repeatable Growth",
+    description: "Your lifetime career operating system. Promotions, pivots, layoffs, leadership jumps—this becomes your repeatable method.",
+    outcomes: [
+      "A reusable personal 'Career OS'",
+      "A system you can apply to any new goal",
+      "Long-term compounding growth through iteration",
+    ],
+    deliverables: ["Leader's Playbook Dashboard", "Career Growth System for Life"],
   },
 ];
 
@@ -116,48 +156,57 @@ const whoIsNotFor = [
 
 const workOnItems = [
   {
-    icon: Brain,
-    title: "Decision & Identity Calibration",
+    icon: Compass,
+    title: "Level Calibration & Career Strategy",
     points: [
-      "Clarify your true operating level vs. your current title",
-      "Understand how senior leaders are evaluated beyond execution",
-      "Rebuild confidence rooted in judgment, not validation",
-    ],
-  },
-  {
-    icon: MessageSquare,
-    title: "Narrative & Positioning",
-    points: [
-      "Engineer a leadership narrative that hiring committees trust",
-      "Align perception with actual impact",
-      "Stop underselling or over-explaining your work",
+      "Diagnose your true operating level vs. your current title",
+      "Define your North Star goal + timeline",
+      "Benchmark against next-level expectations",
     ],
   },
   {
     icon: Target,
-    title: "Product Judgment at Scale",
+    title: "Gap Identification & Prioritization",
     points: [
-      "Strengthen high-stakes decision-making",
-      "Apply economic, systems, and leverage thinking",
-      "Signal seniority through how you frame problems and tradeoffs",
+      "Map gaps across product judgment, execution, leadership, influence",
+      "Create your 'Gap-to-Outcome' plan (no noise, no overwhelm)",
+      "Choose your top 3 compounding skills",
     ],
   },
   {
-    icon: Zap,
-    title: "Signal Execution (Interviews + Visibility)",
+    icon: Award,
+    title: "Identity & Positioning Shift",
     points: [
-      "Translate leadership thinking into hire-level interview performance",
-      "Communicate clearly under pressure",
-      "Demonstrate level without theatrics",
+      "Build your next-level identity before the title arrives",
+      "Define your leadership edge + signature strengths",
+      "Create positioning statements for interviews + promotions",
+    ],
+  },
+  {
+    icon: MessageSquare,
+    title: "Interview Performance at Senior/Principal Bar",
+    points: [
+      "Build structured, strategic answers that signal seniority",
+      "Master product sense, tradeoffs, and execution judgment",
+      "Become the candidate who sounds like they've done the job",
+    ],
+  },
+  {
+    icon: Shield,
+    title: "Executive Storytelling & Decision Judgment",
+    points: [
+      "Speak with clarity, conviction, brevity, and control",
+      "Navigate conflict, negotiation, and perception management",
+      "Build executive presence in high-stakes moments",
     ],
   },
   {
     icon: TrendingUp,
-    title: "Value Capture",
+    title: "Negotiation Tactics That Protect Your Value",
     points: [
-      "Negotiate compensation, scope, and leveling from a position of clarity",
-      "Stop leaving value on the table",
-      "Anchor discussions to impact, not hope",
+      "Learn power dynamics so you're never blindsided",
+      "Drive alignment across stakeholders",
+      "Capture compensation that matches your true level",
     ],
   },
 ];
@@ -311,10 +360,10 @@ const The200KMethod = () => {
               The 200K Method™
             </h1>
             <p className="text-xl md:text-2xl text-secondary font-medium mb-2">
-              Career Recalibration for Senior Product Leaders
+              8-Module Career Operating System
             </p>
             <p className="text-lg md:text-xl text-cream/90 font-medium mb-6">
-              Clarity. Positioning. Execution at the $200K+ Level.
+              Maximum Potential Activation
             </p>
             
             <div className="bg-cream/5 border border-cream/20 rounded-xl p-5 mb-6 max-w-2xl">
@@ -544,34 +593,55 @@ const The200KMethod = () => {
       <section className="section-padding bg-background">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <p className="text-secondary font-medium mb-2">Refined Curriculum</p>
+            <p className="text-secondary font-medium mb-2">8-Module Career Operating System</p>
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-              The 8 Modules
+              The Complete Curriculum
             </h2>
+            <p className="text-muted-foreground italic">
+              "We're not chasing outcomes. We're building the system that guarantees outcomes."
+            </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {modules.map((module, index) => (
               <div
                 key={index}
-                className="group bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1"
+                className="group bg-card rounded-2xl p-6 border border-border/50 shadow-soft hover:shadow-card transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
-                  <module.icon className="w-6 h-6 text-secondary" />
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/20 transition-colors">
+                    <module.icon className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <div className="text-secondary/60 text-sm font-medium mb-1">
+                      Module {index + 1}
+                    </div>
+                    <h3 className="font-semibold text-foreground leading-snug">
+                      {module.title}
+                    </h3>
+                    <p className="text-secondary/80 text-xs font-medium">{module.subtitle}</p>
+                  </div>
                 </div>
-                <div className="text-secondary/60 text-sm font-medium mb-1">
-                  Module {index + 1}
-                </div>
-                <h3 className="font-semibold text-foreground leading-snug mb-1">
-                  {module.title}
-                </h3>
-                <p className="text-secondary/80 text-xs font-medium mb-3">{module.subtitle}</p>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   {module.description}
                 </p>
+                
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-foreground mb-2">Core Outcomes:</p>
+                  <ul className="space-y-1">
+                    {module.outcomes.map((outcome, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <CheckCircle2 className="w-3 h-3 text-secondary flex-shrink-0 mt-0.5" />
+                        <span>{outcome}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground">
-                    <span className="text-secondary font-medium">Outcome:</span> {module.outcome}
+                  <p className="text-xs font-semibold text-foreground mb-1">Deliverables:</p>
+                  <p className="text-xs text-muted-foreground">
+                    {module.deliverables.join(" • ")}
                   </p>
                 </div>
               </div>
