@@ -367,18 +367,37 @@ const The200KMethod = () => {
             </p>
             
             <div className="bg-cream/5 border border-cream/20 rounded-xl p-5 mb-6 max-w-2xl">
-              <p className="text-cream text-lg mb-3">
-                <span className="font-semibold">Stop guessing your value.</span>{" "}
-                Start operating at the level you're already capable of.
+              <p className="text-cream text-lg mb-4">
+                <span className="font-semibold">Your next level won't come from working harder</span> — it comes from building the right system.
               </p>
               <p className="text-cream/80 leading-relaxed mb-4">
-                The 200K Method™ is an intensive, 8-week, cohort-based coaching program for experienced Product Leaders who are ready to make a step-change leap into Senior PM, Principal, GPM, or Director roles — without over-indexing on luck, interviews, or brute effort.
+                This 8-week, cohort-based program is a career acceleration experience for Product Managers and Product Leaders ready for a real leap: promotion, bigger scope, stronger company, or a higher-impact role.
               </p>
-              <div className="space-y-1">
-                <p className="text-cream font-semibold">This is not interview prep.</p>
-                <p className="text-cream font-semibold">This is not resume coaching.</p>
-                <p className="text-secondary font-semibold text-lg">This is career recalibration at the leadership level.</p>
-              </div>
+              <p className="text-cream/90 font-medium mb-3">You'll build a repeatable Career Operating System that helps you create outcomes like:</p>
+              <ul className="space-y-2 mb-4">
+                <li className="flex items-start gap-2 text-cream/80">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
+                  <span>Stronger interviews and better opportunities</span>
+                </li>
+                <li className="flex items-start gap-2 text-cream/80">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
+                  <span>Executive-level communication and confidence</span>
+                </li>
+                <li className="flex items-start gap-2 text-cream/80">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
+                  <span>Visibility, influence, and leadership presence in high-stakes moments</span>
+                </li>
+                <li className="flex items-start gap-2 text-cream/80">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
+                  <span>Readiness for Senior PM, Principal, GPM, and Director-level expectations</span>
+                </li>
+              </ul>
+              <p className="text-cream/80 leading-relaxed mb-4">
+                This isn't a passive course or generic interview prep. It's a high-touch coaching experience with accountability triads, role plays, pitch delivery, asset reviews, and a private community—so you don't just learn the strategy, you execute it.
+              </p>
+              <p className="text-secondary font-semibold">
+                By the end, you won't just feel clear — you'll have a system you can reuse every time you level up.
+              </p>
             </div>
             
             {/* Next Cohort Info */}
