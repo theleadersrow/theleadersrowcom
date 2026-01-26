@@ -611,35 +611,169 @@ const The200KMethod = () => {
       {/* Program Experience */}
       <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <p className="text-secondary font-medium mb-2">How This Works + What You Get</p>
               <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
                 Program Experience
               </h2>
-              <p className="text-lg text-secondary font-medium">
-                This is not a classroom. It is a live execution lab.
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                This isn't a passive course. It's a high-touch career acceleration experience built to create real outcomes through structure, feedback, and execution.
               </p>
             </div>
 
-            <div>
-              <h3 className="font-serif text-xl font-semibold text-foreground mb-6 text-center">
-                Between Sessions:
-              </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-card rounded-xl p-5 border border-border/50 text-center">
-                  <p className="font-semibold text-foreground">Private community access</p>
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              {/* Accountability Triads */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <span className="text-secondary font-bold">1</span>
+                  </div>
+                  <h3 className="font-semibold text-foreground">Accountability Triads</h3>
                 </div>
-                <div className="bg-card rounded-xl p-5 border border-border/50 text-center">
-                  <p className="font-semibold text-foreground">Accountability triads</p>
-                </div>
-                <div className="bg-card rounded-xl p-5 border border-border/50 text-center">
-                  <p className="font-semibold text-foreground">Asset reviews</p>
-                  <p className="text-muted-foreground text-xs mt-1">(resume, narrative, interview responses)</p>
-                </div>
-                <div className="bg-card rounded-xl p-5 border border-border/50 text-center">
-                  <p className="font-semibold text-foreground">Ongoing calibration</p>
+                <p className="text-muted-foreground text-sm mb-4">
+                  You'll be placed into a small Accountability Triad so you're never doing this alone.
+                </p>
+                <ul className="space-y-2 mb-4">
+                  {["Weekly check-ins", "Momentum tracking", "Consistency + execution support", "Peer pressure that actually helps"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span className="text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You stop starting and stopping. You build real traction.</p>
                 </div>
               </div>
+
+              {/* Live Role-Playing */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <span className="text-secondary font-bold">2</span>
+                  </div>
+                  <h3 className="font-semibold text-foreground">Live Role-Playing + Interview Simulations</h3>
+                </div>
+                <p className="text-muted-foreground text-sm mb-4">
+                  We'll practice high-stakes scenarios live:
+                </p>
+                <ul className="space-y-2 mb-4">
+                  {["Interview rounds", "Executive-level storytelling", "Stakeholder pushback situations", "\"Tell me about yourself\" + product judgment drills"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span className="text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You don't just learn the frameworks—you build the confidence to perform.</p>
+                </div>
+              </div>
+
+              {/* Pitch Creation */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <span className="text-secondary font-bold">3</span>
+                  </div>
+                  <h3 className="font-semibold text-foreground">Pitch Creation + Delivery</h3>
+                </div>
+                <p className="text-muted-foreground text-sm mb-4">
+                  You'll craft and rehearse the pitch that sells your value:
+                </p>
+                <ul className="space-y-2 mb-4">
+                  {["Your positioning statement", "Your leadership narrative", "Your \"why you / why now\"", "Promo pitch + interview pitch"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span className="text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You become clear, convincing, and unforgettable.</p>
+                </div>
+              </div>
+
+              {/* Asset Reviews */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <span className="text-secondary font-bold">4</span>
+                  </div>
+                  <h3 className="font-semibold text-foreground">Asset Reviews (Resume + LinkedIn + Story Bank)</h3>
+                </div>
+                <p className="text-muted-foreground text-sm mb-4">
+                  You'll get detailed reviews and feedback on the assets that drive your outcomes:
+                </p>
+                <ul className="space-y-2 mb-4">
+                  {["Resume recalibration", "LinkedIn profile + messaging", "Story bank quality + depth", "Interview answers + structure"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span className="text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> Your profile becomes high-signal and next-level.</p>
+                </div>
+              </div>
+
+              {/* Deep-Level Calibration */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <span className="text-secondary font-bold">5</span>
+                  </div>
+                  <h3 className="font-semibold text-foreground">Deep-Level Calibration</h3>
+                </div>
+                <p className="text-muted-foreground text-sm mb-4">
+                  This is the difference between good advice and a real transformation. We calibrate your thinking, delivery, and leadership presence to the level you're trying to reach.
+                </p>
+                <ul className="space-y-2 mb-4">
+                  {["Clarity calibration", "Leadership calibration", "Communication calibration", "Confidence calibration"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span className="text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You stop "trying" to be next-level and start operating at that level.</p>
+                </div>
+              </div>
+
+              {/* Private Community */}
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <span className="text-secondary font-bold">6</span>
+                  </div>
+                  <h3 className="font-semibold text-foreground">Private Community Access</h3>
+                </div>
+                <p className="text-muted-foreground text-sm mb-4">
+                  You'll get access to a private community where you'll have:
+                </p>
+                <ul className="space-y-2 mb-4">
+                  {["Support + motivation", "Resources + frameworks", "Wins tracking", "Consistent high-performance energy"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span className="text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You stay in the right room long enough to change your results.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium One-Liner */}
+            <div className="bg-navy rounded-2xl p-6 text-center">
+              <p className="text-cream/70 text-sm mb-2">⭐ The Experience</p>
+              <p className="text-cream text-lg md:text-xl font-medium leading-relaxed">
+                A structured, high-touch career operating system—built on <span className="text-secondary">coaching, execution, feedback, and real-time performance.</span>
+              </p>
             </div>
           </div>
         </div>
