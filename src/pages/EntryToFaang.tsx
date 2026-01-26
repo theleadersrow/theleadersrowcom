@@ -400,7 +400,19 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* Program Philosophy */}
+      {/* The Simple Promise */}
+      <section className="py-12 bg-secondary/10 border-y border-secondary/20">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-secondary font-medium text-sm mb-2">The Simple Promise</p>
+            <p className="text-xl md:text-2xl font-serif font-semibold text-foreground leading-relaxed">
+              You'll walk away with a career system that creates promotions, interviews, and next-level roles—<span className="text-secondary">on repeat.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+
       <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
