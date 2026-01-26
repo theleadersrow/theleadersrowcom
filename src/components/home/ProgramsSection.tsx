@@ -11,7 +11,7 @@ const ProgramsSection = () => {
             The 200K Method
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg leading-relaxed px-2">
-            An intensive transformation program for senior product leaders ready to make a step-change leap.
+            Build the Career System that Takes You to the Next Level.
           </p>
         </div>
 
@@ -19,21 +19,21 @@ const ProgramsSection = () => {
         <div className="max-w-lg mx-auto">
           <ProgramCard
             title="The 200K Method"
-            subtitle="Career Recalibration for Senior Product Leaders"
-            description="An intensive 8-week, cohort-based coaching program for experienced Product Leaders ready to make a step-change leap into Senior PM, Principal, GPM, or Director roles. Stop guessing your value — start operating at the level you're already capable of."
+            subtitle="8-Week Career Operating System"
+            description="High-touch coaching with accountability triads, role plays, asset reviews, and a private community. Build the system that takes you to your next level."
             features={[
-              "Decision & Identity Calibration",
-              "Narrative Control: Engineering Your PM Brand",
+              "The Strategic Benchmark",
+              "Narrative Control",
               "High-Value Profile & Network Activation",
-              "Interview Mastery: Executive-Level Performance",
-              "Product Judgment: High-Stakes Decision Making",
-              "Executive Presence & Influence",
-              "Value Capture & Negotiation Strategy",
-              "Future-Proofing: The Leader's Playbook",
+              "Interview Mastery",
+              "Product Judgment",
+              "Executive Presence",
+              "The Influence Engine",
+              "Future-Proofing",
             ]}
             price="$2,000"
             href="/200k-method"
-            ctaText="Join The 200K Method"
+            ctaText="Build My Career System"
           />
         </div>
       </div>

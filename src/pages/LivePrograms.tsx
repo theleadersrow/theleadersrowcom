@@ -6,24 +6,24 @@ import { ArrowRight, Calendar, Users, Clock, CheckCircle, Zap, X, Video, Message
 const livePrograms = [
   {
     title: "The 200K Method",
-    subtitle: "An 8-Week Accelerator for $200K+ Roles",
-    description: "Designed for Product Managers who are strong performers but under-leveled — and ready to move into higher-impact, higher-compensation roles.",
+    subtitle: "8-Week Career Operating System",
+    description: "Build the Career System that Takes You to the Next Level. High-touch coaching with accountability triads, role plays, asset reviews, and a private community.",
     duration: "8 weeks",
     format: "Live cohort-based",
     href: "/200k-method",
     youllWorkOn: [
-      "Level calibration & career strategy",
-      "Interview performance at the Senior / Principal bar",
-      "Executive storytelling & decision judgment",
+      "The Strategic Benchmark & career clarity",
+      "Narrative Control & personal brand",
+      "Interview Mastery & executive presence",
       "Negotiation tactics that protect your value",
     ],
     includes: [
       "Weekly live coaching",
-      "Personalized guidance",
+      "Accountability triads",
       "Private community access",
     ],
     featured: true,
-    ctaText: "Start Your Application",
+    ctaText: "Build My Career System",
   },
 ];
 
