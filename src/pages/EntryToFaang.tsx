@@ -491,67 +491,6 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* What You Will Work On */}
-      <section className="section-padding bg-navy relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
-        </div>
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <p className="text-secondary font-medium mb-2">Reframed to integrate results-driven coaching</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-4">
-              What You Will Work On
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
-            {workOnItems.map((item, index) => (
-              <div key={index} className="bg-cream/5 backdrop-blur-sm rounded-2xl p-6 border border-cream/10">
-                <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4">
-                  <item.icon className="w-6 h-6 text-secondary" />
-                </div>
-                <h3 className="font-semibold text-cream mb-4">{index + 1}. {item.title}</h3>
-                <ul className="space-y-2">
-                  {item.points.map((point, pointIndex) => (
-                    <li key={pointIndex} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" />
-                      <span className="text-cream/70 text-sm">{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Program Structure */}
-          <div className="max-w-4xl mx-auto">
-            <h3 className="font-serif text-2xl font-semibold text-cream mb-6 text-center">
-              Program Structure
-            </h3>
-            <p className="text-cream/60 text-center mb-8">
-              This is a guided execution environment, not a content dump.
-            </p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {programFormat.slice(0, 4).map((item, index) => (
-                <div key={index} className="flex items-center gap-3 bg-cream/5 rounded-xl p-4 border border-cream/10">
-                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                  <span className="text-cream text-sm">{item}</span>
-                </div>
-              ))}
-            </div>
-            <div className="grid sm:grid-cols-3 gap-4 mt-4">
-              {programFormat.slice(4).map((item, index) => (
-                <div key={index} className="flex items-center gap-3 bg-cream/5 rounded-xl p-4 border border-cream/10">
-                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                  <span className="text-cream text-sm">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* The Learning Model */}
       <section className="section-padding bg-muted/30">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
