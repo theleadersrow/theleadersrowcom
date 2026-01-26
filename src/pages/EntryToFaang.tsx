@@ -346,74 +346,71 @@ const The200KMethod = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="pt-32 pb-20 bg-navy relative overflow-hidden">
+      <section className="pt-24 pb-12 md:pt-28 md:pb-16 bg-navy relative overflow-hidden min-h-[calc(100vh-80px)] flex items-center">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 right-20 w-96 h-96 bg-secondary rounded-full blur-3xl" />
         </div>
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-4xl">
-            <p className="text-secondary font-medium mb-4">
-              <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm mr-2">High Demand</span>
-              8-Week Cohort-Based
-            </p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-4">
-              The 200K Method™
-            </h1>
-            <p className="text-xl md:text-2xl text-secondary font-medium mb-2">
-              The Next-Level PM System
-            </p>
-            <p className="text-lg md:text-xl text-cream/90 font-medium mb-6">
-              Maximum Potential Activation
-            </p>
-            
-            <div className="bg-cream/5 border border-cream/20 rounded-xl p-5 mb-6 max-w-2xl">
-              <p className="text-cream text-lg mb-4">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Column - Title & CTA */}
+            <div>
+              <p className="text-secondary font-medium mb-3">
+                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based</span>
+              </p>
+              <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-3">
+                The 200K Method™
+              </h1>
+              <p className="text-lg md:text-xl text-secondary font-medium mb-4">
+                The Next-Level PM System
+              </p>
+              <p className="text-cream/90 text-base md:text-lg mb-5 leading-relaxed">
                 <span className="font-semibold">Your next level won't come from working harder</span> — it comes from building the right system.
               </p>
-              <p className="text-cream/80 leading-relaxed mb-4">
-                This 8-week, cohort-based program is a career acceleration experience for Product Managers and Product Leaders ready for a real leap: promotion, bigger scope, stronger company, or a higher-impact role.
-              </p>
-              <p className="text-cream/90 font-medium mb-3">You'll build a repeatable Career Operating System that helps you create outcomes like:</p>
-              <ul className="space-y-2 mb-4">
-                <li className="flex items-start gap-2 text-cream/80">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
-                  <span>Stronger interviews and better opportunities</span>
-                </li>
-                <li className="flex items-start gap-2 text-cream/80">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
-                  <span>Executive-level communication and confidence</span>
-                </li>
-                <li className="flex items-start gap-2 text-cream/80">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
-                  <span>Visibility, influence, and leadership presence in high-stakes moments</span>
-                </li>
-                <li className="flex items-start gap-2 text-cream/80">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0 mt-1" />
-                  <span>Readiness for Senior PM, Principal, GPM, and Director-level expectations</span>
-                </li>
-              </ul>
-              <p className="text-cream/80 leading-relaxed mb-4">
-                This isn't a passive course or generic interview prep. It's a high-touch coaching experience with accountability triads, role plays, pitch delivery, asset reviews, and a private community—so you don't just learn the strategy, you execute it.
-              </p>
-              <p className="text-secondary font-semibold">
-                By the end, you won't just feel clear — you'll have a system you can reuse every time you level up.
-              </p>
+              
+              {/* Next Cohort + CTA */}
+              <div className="flex flex-wrap items-center gap-4">
+                <Link to="/register?program=200k-method">
+                  <Button variant="hero" size="lg" className="group">
+                    Join Now
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+                <div className="text-cream/80 text-sm">
+                  <span className="text-secondary font-semibold">Next:</span> Feb 5 – Mar 26, 2026
+                </div>
+              </div>
             </div>
             
-            {/* Next Cohort Info */}
-            <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
-              <p className="text-secondary font-semibold mb-1">Next Cohort</p>
-              <p className="text-cream text-lg">Feb 5th – Mar 26th, 2026</p>
-              <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
-            </div>
-            
-            <div className="block">
-              <Link to="/register?program=200k-method">
-                <Button variant="hero" size="xl" className="group">
-                  Join Now
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
+            {/* Right Column - Key Points */}
+            <div className="bg-cream/5 border border-cream/20 rounded-xl p-5">
+              <p className="text-cream/90 text-sm mb-4">
+                An 8-week career acceleration for PMs ready for promotion, bigger scope, or a higher-impact role.
+              </p>
+              <p className="text-cream font-medium text-sm mb-3">Build a Career Operating System for:</p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="flex items-center gap-2 text-cream/80 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span>Stronger interviews</span>
+                </div>
+                <div className="flex items-center gap-2 text-cream/80 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span>Executive communication</span>
+                </div>
+                <div className="flex items-center gap-2 text-cream/80 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span>Leadership presence</span>
+                </div>
+                <div className="flex items-center gap-2 text-cream/80 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span>Senior/Director readiness</span>
+                </div>
+              </div>
+              <p className="text-cream/70 text-xs mb-3">
+                High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
+              </p>
+              <p className="text-secondary font-semibold text-sm">
+                A system you can reuse every time you level up.
+              </p>
             </div>
           </div>
         </div>
