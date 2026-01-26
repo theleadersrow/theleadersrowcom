@@ -475,28 +475,6 @@ const The200KMethod = () => {
               </div>
             </div>
 
-            {/* Who This Is NOT For */}
-            <div className="bg-muted/30 rounded-2xl p-8 border border-border/30">
-              <h3 className="font-serif text-2xl font-semibold text-foreground mb-6 text-center">
-                ⛔ Who This Is NOT For
-              </h3>
-              <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-                {whoIsNotFor.map((item, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-background rounded-xl p-5 border border-destructive/20"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
-                        <X className="w-4 h-4 text-destructive" />
-                      </div>
-                      <h4 className="font-semibold text-foreground text-sm">{item.label}</h4>
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </section>
