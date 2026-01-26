@@ -854,9 +854,8 @@ const The200KMethod = () => {
                 <span className="font-serif text-5xl md:text-6xl font-semibold text-cream">$2,000</span>
               </div>
             </div>
-            <p className="text-cream/70 mb-6 text-lg leading-relaxed max-w-xl mx-auto">
-              A single salary increase from leveling up often returns 10–50x this investment. 
-              This is an investment in your long-term earning potential and career trajectory.
+            <p className="text-cream/70 mb-8 text-lg leading-relaxed max-w-xl mx-auto">
+              One promotion or role upgrade can return 10–50x this investment. This is not a course purchase—it's an investment in your long-term earning power, confidence, and career trajectory.
             </p>
             
             {/* Next Cohort Info */}
