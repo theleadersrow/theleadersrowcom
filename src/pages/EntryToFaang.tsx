@@ -877,7 +877,7 @@ const The200KMethod = () => {
                 <p className="text-muted-foreground font-medium">— Anonymous</p>
               </div>
 
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft md:col-span-2 lg:col-span-1">
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
@@ -885,6 +885,18 @@ const The200KMethod = () => {
                 </div>
                 <p className="text-foreground text-lg leading-relaxed mb-4">
                   "I am very happy with the attention to detail, personal care, understanding I have received during this coaching. I never knew how important it is to understand my identity and how to position my experience to align with my desired career graph. It's such good investment for one's career."
+                </p>
+                <p className="text-muted-foreground font-medium">— Anonymous</p>
+              </div>
+
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
+                  ))}
+                </div>
+                <p className="text-foreground text-lg leading-relaxed mb-4">
+                  "Overall, the program is going well so far and has been real boosting the confidence."
                 </p>
                 <p className="text-muted-foreground font-medium">— Anonymous</p>
               </div>
