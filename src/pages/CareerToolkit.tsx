@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield } from "lucide-react";
+import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
@@ -7,6 +7,7 @@ import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder"
 import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
 import { WeeklyCareerPlanner } from "@/components/scorecard/WeeklyCareerPlanner";
 import { LeadershipSignalsChecklist } from "@/components/scorecard/LeadershipSignalsChecklist";
+import { TargetRoleMatchingGrid } from "@/components/scorecard/TargetRoleMatchingGrid";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
@@ -19,6 +20,15 @@ const tools = [
     icon: Target,
     filename: "True-Level-Scorecard",
     component: TrueLevelScorecard,
+  },
+  {
+    id: "target-role",
+    title: "Target Role Matching Grid",
+    shortTitle: "Target Role",
+    description: "Find the right next role—not just the next role.",
+    icon: Crosshair,
+    filename: "Target-Role-Matching-Grid",
+    component: TargetRoleMatchingGrid,
   },
   {
     id: "gap-skill",
