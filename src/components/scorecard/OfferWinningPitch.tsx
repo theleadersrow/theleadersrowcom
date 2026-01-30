@@ -343,7 +343,7 @@ export const OfferWinningPitch = forwardRef<HTMLDivElement, OfferWinningPitchPro
             </div>
             <div style={{ textAlign: "right" }}>
               <p style={{ margin: 0, fontSize: "7pt", color: "#9ca3af" }}>
-                © Naina Agarwal — All rights reserved
+                © the Leader's Row — All rights reserved
               </p>
             </div>
           </div>
