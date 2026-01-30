@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import TestimonialsMarquee from "@/components/home/TestimonialsMarquee";
+import PageSidebar from "@/components/200k/PageSidebar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { 
@@ -346,8 +347,10 @@ const commonObjections = [
 const The200KMethod = () => {
   return (
     <Layout>
+      <PageSidebar />
+      
       {/* Hero */}
-      <section className="pt-24 pb-12 md:pt-28 md:pb-16 bg-navy relative overflow-hidden min-h-[calc(100vh-80px)] flex items-center">
+      <section id="hero" className="pt-24 pb-12 md:pt-28 md:pb-16 bg-navy relative overflow-hidden min-h-[calc(100vh-80px)] flex items-center scroll-mt-20">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 right-20 w-96 h-96 bg-secondary rounded-full blur-3xl" />
         </div>
@@ -445,7 +448,7 @@ const The200KMethod = () => {
       </section>
 
       {/* The Simple Promise */}
-      <section className="py-12 bg-secondary/10 border-y border-secondary/20">
+      <section id="promise" className="py-12 bg-secondary/10 border-y border-secondary/20 scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-secondary font-medium text-sm mb-2">The Simple Promise</p>
@@ -457,7 +460,7 @@ const The200KMethod = () => {
       </section>
 
       {/* What Makes This Different */}
-      <section className="section-padding bg-navy">
+      <section id="difference" className="section-padding bg-navy scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-6">
@@ -477,7 +480,7 @@ const The200KMethod = () => {
       </section>
 
       {/* Who This Is For */}
-      <section className="section-padding bg-background">
+      <section id="who-for" className="section-padding bg-background scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
@@ -589,7 +592,7 @@ const The200KMethod = () => {
       </section>
 
       {/* The Outcome */}
-      <section className="section-padding bg-navy relative overflow-hidden">
+      <section id="outcome" className="section-padding bg-navy relative overflow-hidden scroll-mt-20">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 right-20 w-96 h-96 bg-secondary rounded-full blur-3xl" />
         </div>
@@ -618,7 +621,7 @@ const The200KMethod = () => {
       </section>
 
       {/* Program Experience */}
-      <section className="section-padding bg-muted/30">
+      <section id="experience" className="section-padding bg-muted/30 scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
@@ -789,7 +792,7 @@ const The200KMethod = () => {
       </section>
 
       {/* Free Toolkit Section */}
-      <section className="py-16 bg-muted/30">
+      <section id="toolkit" className="py-16 bg-muted/30 scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <span className="inline-block bg-secondary/20 text-secondary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
@@ -841,7 +844,7 @@ const The200KMethod = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="section-padding bg-muted/30">
+      <section id="faq" className="section-padding bg-muted/30 scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -908,7 +911,7 @@ const The200KMethod = () => {
       <TestimonialsMarquee />
 
       {/* Investment & CTA */}
-      <section className="section-padding bg-navy">
+      <section id="investment" className="section-padding bg-navy scroll-mt-20">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-6">
