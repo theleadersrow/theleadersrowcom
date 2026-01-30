@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import TestimonialsMarquee from "@/components/home/TestimonialsMarquee";
-import PageSidebar from "@/components/200k/PageSidebar";
+import RightSidebar from "@/components/200k/RightSidebar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { 
@@ -351,7 +351,7 @@ const commonObjections = [
 const The200KMethod = () => {
   return (
     <Layout>
-      <PageSidebar />
+      <RightSidebar />
       
       {/* Hero */}
       <section id="hero" className="pt-24 pb-12 md:pt-28 md:pb-16 bg-navy relative overflow-hidden min-h-[calc(100vh-80px)] flex items-center scroll-mt-20">
