@@ -13,25 +13,14 @@ import { ToolkitSidebar } from "@/components/toolkit/ToolkitSidebar";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
+// PDF-only pages (not shown in navigation)
+const pdfOnlyPages = [
+  { id: "cover", component: ToolkitCoverPage },
+  { id: "toc", component: TableOfContents },
+];
+
+// Viewable tools (shown in sidebar navigation)
 const tools = [
-  {
-    id: "cover",
-    title: "Cover & Welcome",
-    shortTitle: "Cover",
-    description: "The toolkit cover page and welcome instructions for this Career Operating System.",
-    icon: BookOpen,
-    filename: "Career-Operating-System-Cover",
-    component: ToolkitCoverPage,
-  },
-  {
-    id: "toc",
-    title: "Table of Contents",
-    shortTitle: "Contents",
-    description: "How to use this toolkit and what's inside each page.",
-    icon: List,
-    filename: "Table-of-Contents",
-    component: TableOfContents,
-  },
   {
     id: "true-level",
     title: "True Level Scorecard",
@@ -230,13 +219,23 @@ const CareerToolkit = () => {
             className="absolute -left-[9999px] top-0"
             aria-hidden="true"
           >
+            {/* PDF-only pages first (Cover + TOC) */}
+            {pdfOnlyPages.map((page) => (
+              <page.component key={page.id} />
+            ))}
+            {/* Then all viewable tools */}
             {tools.map((tool) => (
               <tool.component key={tool.id} />
             ))}
           </div>
 
-          {/* Print-only: Show all tools */}
+          {/* Print-only: Show all tools including cover and TOC */}
           <div className="hidden print:block">
+            {pdfOnlyPages.map((page) => (
+              <div key={page.id} className="bg-white">
+                <page.component />
+              </div>
+            ))}
             {tools.map((tool) => (
               <div key={tool.id} className="bg-white">
                 <tool.component />
