@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair } from "lucide-react";
+import { ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair, BookOpen, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
@@ -8,10 +8,28 @@ import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
 import { WeeklyCareerPlanner } from "@/components/scorecard/WeeklyCareerPlanner";
 import { LeadershipSignalsChecklist } from "@/components/scorecard/LeadershipSignalsChecklist";
 import { TargetRoleMatchingGrid } from "@/components/scorecard/TargetRoleMatchingGrid";
+import { ToolkitCoverPage } from "@/components/scorecard/ToolkitCoverPage";
+import { TableOfContents } from "@/components/scorecard/TableOfContents";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
 const tools = [
+  {
+    id: "intro",
+    title: "Welcome",
+    shortTitle: "Intro",
+    description: "Your complete Career Operating System toolkit overview.",
+    icon: BookOpen,
+    component: ToolkitCoverPage,
+  },
+  {
+    id: "toc",
+    title: "Table of Contents",
+    shortTitle: "Contents",
+    description: "Navigate through all the tools in your career toolkit.",
+    icon: List,
+    component: TableOfContents,
+  },
   {
     id: "true-level",
     title: "True Level Scorecard",
@@ -63,7 +81,7 @@ const tools = [
 ];
 
 const CareerToolkit = () => {
-  const [activeTab, setActiveTab] = useState("true-level");
+  const [activeTab, setActiveTab] = useState("intro");
   const activeTool = tools.find(t => t.id === activeTab);
 
   return (
