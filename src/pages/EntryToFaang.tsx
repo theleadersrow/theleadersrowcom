@@ -912,6 +912,18 @@ const The200KMethod = () => {
                 </p>
                 <p className="text-muted-foreground font-medium">— Anonymous</p>
               </div>
+
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
+                  ))}
+                </div>
+                <p className="text-foreground text-lg leading-relaxed mb-4">
+                  "It was my dream to interview and work at Capital One and I can't believe I got called in after my branding was re-done. The recruiter even said 'Your resume is very well written and your positioning is very crisp.' So worth the effort. Thank you so much!"
+                </p>
+                <p className="text-muted-foreground font-medium">— Anonymous</p>
+              </div>
             </div>
           </div>
         </div>
