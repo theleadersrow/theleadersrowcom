@@ -82,13 +82,12 @@ const CareerToolkit = () => {
   const [activeTab, setActiveTab] = useState("true-level");
   const [isGenerating, setIsGenerating] = useState(false);
   const pdfContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const fullPdfContainerRef = useRef<HTMLDivElement | null>(null);
 
   const activeTool = tools.find(t => t.id === activeTab);
 
-  const handleDownload = async () => {
-    if (!activeTool) return;
-    const container = pdfContainerRefs.current[activeTab];
-    if (!container) return;
+  const handleDownloadFullToolkit = async () => {
+    if (!fullPdfContainerRef.current) return;
 
     setIsGenerating(true);
     try {
@@ -96,7 +95,7 @@ const CareerToolkit = () => {
 
       const opt = {
         margin: 0,
-        filename: `${activeTool.filename}.pdf`,
+        filename: "Career-Operating-System-Toolkit.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { 
           scale: 2, 
@@ -108,9 +107,10 @@ const CareerToolkit = () => {
           format: "a4", 
           orientation: "portrait" 
         },
+        pagebreak: { mode: ['css', 'legacy'] },
       };
 
-      await html2pdf().set(opt).from(container).save();
+      await html2pdf().set(opt).from(fullPdfContainerRef.current).save();
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -150,13 +150,13 @@ const CareerToolkit = () => {
                 </Button>
                 <Button
                   variant="gold"
-                  onClick={handleDownload}
+                  onClick={handleDownloadFullToolkit}
                   disabled={isGenerating}
                   className="gap-2"
                   size="sm"
                 >
                   <Download className="w-4 h-4" />
-                  {isGenerating ? "Generating..." : <span className="hidden sm:inline">Download PDF</span>}
+                  {isGenerating ? "Generating..." : <span className="hidden sm:inline">Download Full Toolkit</span>}
                   {!isGenerating && <span className="sm:hidden">PDF</span>}
                 </Button>
               </div>
@@ -198,13 +198,13 @@ const CareerToolkit = () => {
                 <p className="text-muted-foreground mb-4">{activeTool.description}</p>
                 <Button
                   variant="gold"
-                  onClick={handleDownload}
+                  onClick={handleDownloadFullToolkit}
                   disabled={isGenerating}
                   className="gap-2"
                   size="lg"
                 >
                   <Download className="w-5 h-5" />
-                  {isGenerating ? "Generating PDF..." : `Download ${activeTool.shortTitle} as PDF`}
+                  {isGenerating ? "Generating PDF..." : "Download Complete Toolkit PDF"}
                 </Button>
               </div>
             )}
@@ -224,13 +224,24 @@ const CareerToolkit = () => {
             ))}
           </Tabs>
 
-          {/* Print-only: Show active tool */}
+          {/* Hidden container for full PDF generation - contains all pages */}
+          <div 
+            ref={fullPdfContainerRef}
+            className="absolute -left-[9999px] top-0"
+            aria-hidden="true"
+          >
+            {tools.map((tool) => (
+              <tool.component key={tool.id} />
+            ))}
+          </div>
+
+          {/* Print-only: Show all tools */}
           <div className="hidden print:block">
-            {activeTool && (
-              <div className="bg-white">
-                <activeTool.component />
+            {tools.map((tool) => (
+              <div key={tool.id} className="bg-white">
+                <tool.component />
               </div>
-            )}
+            ))}
           </div>
 
           {/* CTA Below Tool - Hidden in Print */}
@@ -256,6 +267,9 @@ const CareerToolkit = () => {
             @page {
               size: A4;
               margin: 0;
+            }
+            .pdf-page {
+              page-break-after: always;
             }
           }
         `}</style>
