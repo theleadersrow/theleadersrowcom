@@ -38,7 +38,7 @@ export const OfferWinningPitch = forwardRef<HTMLDivElement, OfferWinningPitchPro
         style={{
           width: "210mm",
           minHeight: "297mm",
-          padding: "14mm 18mm",
+          padding: "14mm 22mm",
           fontFamily: "'DM Sans', Arial, sans-serif",
           backgroundColor: "#ffffff",
           color: "#1a2332",

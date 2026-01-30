@@ -62,7 +62,7 @@ export const WeeklyCareerPlanner = forwardRef<HTMLDivElement, WeeklyCareerPlanne
         style={{
           width: "210mm",
           minHeight: "297mm",
-          padding: "12mm 16mm",
+          padding: "12mm 20mm",
           fontFamily: "'DM Sans', Arial, sans-serif",
           backgroundColor: "#ffffff",
           color: "#1a2332",
