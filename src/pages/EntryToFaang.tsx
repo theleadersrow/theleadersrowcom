@@ -852,7 +852,7 @@ const The200KMethod = () => {
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-1 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -861,6 +861,18 @@ const The200KMethod = () => {
                 </div>
                 <p className="text-foreground text-lg leading-relaxed mb-4">
                   "I understood how much PPS and a good resume matter for next career leap"
+                </p>
+                <p className="text-muted-foreground font-medium">— Anonymous</p>
+              </div>
+
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
+                  ))}
+                </div>
+                <p className="text-foreground text-lg leading-relaxed mb-4">
+                  "I realized that I can showcase myself as a PM since I had done a lot of it in my previous jobs, despite not having the title."
                 </p>
                 <p className="text-muted-foreground font-medium">— Anonymous</p>
               </div>
