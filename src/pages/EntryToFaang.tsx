@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import TestimonialsMarquee from "@/components/home/TestimonialsMarquee";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { 
@@ -842,116 +843,7 @@ const The200KMethod = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="section-padding bg-background">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10">
-              <p className="text-secondary font-medium mb-2">Real Results</p>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-                What Members Are Saying
-              </h2>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "I understood how much PPS and a good resume matter for next career leap"
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "I realized that I can showcase myself as a PM since I had done a lot of it in my previous jobs, despite not having the title."
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "I am very happy with the attention to detail, personal care, understanding I have received during this coaching. I never knew how important it is to understand my identity and how to position my experience to align with my desired career graph. It's such good investment for one's career."
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "Overall, the program is going well so far and has been real boosting the confidence."
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "I was able to identify my true level—I wasn't sure before how I should target myself. After getting help on positioning and branding, I immediately started getting traction from the job market and was able to interview for an APM role at Google and get that role. So happy I invested in this training!"
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "It was my dream to interview and work at Capital One and I can't believe I got called in after my branding was re-done. The recruiter even said 'Your resume is very well written and your positioning is very crisp.' So worth the effort. Thank you so much!"
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "I took a leap of faith to join this program and wasn't 100% sure at first, but I started quickly getting interview calls after updating my positioning. Earlier, I wouldn't hear back for weeks but now recruiters tell me how crisp my pitch is and that I'm a great fit for the roles I apply for. This program was so worth it!"
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-
-              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
-                  ))}
-                </div>
-                <p className="text-foreground text-lg leading-relaxed mb-4">
-                  "I am a more confident PM after this course and have been able to confidently create more presence and visibility at work, especially with leadership teams."
-                </p>
-                <p className="text-muted-foreground font-medium">— Anonymous</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <TestimonialsMarquee />
 
       {/* Investment & CTA */}
       <section className="section-padding bg-navy">
