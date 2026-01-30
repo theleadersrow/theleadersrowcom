@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
 import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder";
 import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
+import { WeeklyCareerPlanner } from "@/components/scorecard/WeeklyCareerPlanner";
 import { Link } from "react-router-dom";
 
 const Scorecard = () => {
@@ -88,7 +89,7 @@ const Scorecard = () => {
         {/* Page Navigation - Hidden in Print */}
         <div className="print:hidden text-center mb-6">
           <p className="text-sm text-muted-foreground mb-2">
-            3-Page Career Diagnostic Workbook
+            4-Page Career Diagnostic Workbook
           </p>
           <div className="flex items-center justify-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
@@ -99,6 +100,9 @@ const Scorecard = () => {
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm font-medium">
               Page 3: Offer-Winning Pitch
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium">
+              Page 4: Weekly Planner
             </span>
           </div>
         </div>
@@ -124,6 +128,14 @@ const Scorecard = () => {
           {/* Page 3 */}
           <div className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none">
             <OfferWinningPitch />
+          </div>
+          
+          {/* Page Break */}
+          <div className="page-break print:block" style={{ pageBreakBefore: 'always' }} />
+          
+          {/* Page 4 */}
+          <div className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none">
+            <WeeklyCareerPlanner />
           </div>
         </div>
 
