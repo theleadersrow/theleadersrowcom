@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair } from "lucide-react";
+import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
@@ -8,10 +8,20 @@ import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
 import { WeeklyCareerPlanner } from "@/components/scorecard/WeeklyCareerPlanner";
 import { LeadershipSignalsChecklist } from "@/components/scorecard/LeadershipSignalsChecklist";
 import { TargetRoleMatchingGrid } from "@/components/scorecard/TargetRoleMatchingGrid";
+import { ToolkitCoverPage } from "@/components/scorecard/ToolkitCoverPage";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
 const tools = [
+  {
+    id: "cover-toc",
+    title: "Cover & Table of Contents",
+    shortTitle: "Cover & TOC",
+    description: "The toolkit cover page and how-to guide for this Career Operating System.",
+    icon: BookOpen,
+    filename: "Career-Operating-System-Cover",
+    component: ToolkitCoverPage,
+  },
   {
     id: "true-level",
     title: "True Level Scorecard",
