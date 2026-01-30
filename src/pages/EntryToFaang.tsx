@@ -936,6 +936,18 @@ const The200KMethod = () => {
                 </p>
                 <p className="text-muted-foreground font-medium">— Anonymous</p>
               </div>
+
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
+                  ))}
+                </div>
+                <p className="text-foreground text-lg leading-relaxed mb-4">
+                  "I am a more confident PM after this course and have been able to confidently create more presence and visibility at work, especially with leadership teams."
+                </p>
+                <p className="text-muted-foreground font-medium">— Anonymous</p>
+              </div>
             </div>
           </div>
         </div>
