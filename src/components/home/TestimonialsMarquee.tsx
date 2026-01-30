@@ -47,7 +47,7 @@ const TestimonialsMarquee = () => {
   const secondRow = testimonials.slice(4);
 
   return (
-    <section className="py-16 bg-background overflow-hidden">
+    <section id="reviews" className="py-16 bg-background overflow-hidden scroll-mt-20">
       <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <p className="text-secondary font-medium mb-2">Real Results</p>
