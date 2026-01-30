@@ -222,19 +222,19 @@ const ToolkitCoverPage = () => {
             marginBottom: "16px",
           }}
         >
-          <p style={{ fontSize: "12px", color: "#1a2332", margin: "0 0 10px 0", lineHeight: "1.6" }}>
+          <p style={{ fontSize: "12px", color: "#1a2332", margin: "0 0 14px 0", lineHeight: "1.8" }}>
             <strong>Hi — I'm Naina Agarwal 👋</strong><br />
             Former Product Leader at Apple, and I've spent 15+ years building and leading product teams.
           </p>
-          <p style={{ fontSize: "11px", color: "#475569", margin: "0 0 10px 0", lineHeight: "1.6" }}>
+          <p style={{ fontSize: "11px", color: "#475569", margin: "0 0 14px 0", lineHeight: "1.8" }}>
             If you've been feeling like you want more from your career — promotion, bigger scope, better interviews, a stronger company, or your next breakthrough — I want you to know this:
           </p>
-          <div style={{ fontSize: "12px", color: "#1a2332", fontWeight: "600", lineHeight: "1.7" }}>
+          <div style={{ fontSize: "12px", color: "#1a2332", fontWeight: "600", lineHeight: "2" }}>
             You don't need more hustle.<br />
             You don't need another degree.<br />
             <span style={{ color: "#c9a227" }}>You need a system.</span>
           </div>
-          <p style={{ fontSize: "11px", color: "#475569", margin: "12px 0 0 0", lineHeight: "1.6" }}>
+          <p style={{ fontSize: "11px", color: "#475569", margin: "16px 0 0 0", lineHeight: "1.8" }}>
             This toolkit is designed to help you build your personal Career Operating System — a repeatable way to create the outcomes you want, without guessing.
           </p>
         </div>
@@ -252,7 +252,7 @@ const ToolkitCoverPage = () => {
           <h2 style={{ fontSize: "13px", fontWeight: "700", margin: "0 0 10px 0", color: "#166534", display: "flex", alignItems: "center", gap: "6px" }}>
             <span>✅</span> What This Toolkit Will Help You Do
           </h2>
-          <div style={{ fontSize: "11px", color: "#166534", lineHeight: "1.7" }}>
+          <div style={{ fontSize: "11px", color: "#166534", lineHeight: "2" }}>
             {[
               "Understand where you stand today (your true level)",
               "Get clear on where you should go next (the right next role for you)",
@@ -260,7 +260,7 @@ const ToolkitCoverPage = () => {
               "Build proof and momentum through simple weekly actions",
               "Communicate your value through an offer-winning pitch",
             ].map((item, idx) => (
-              <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "6px", marginBottom: "4px" }}>
+              <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
                 <span style={{ color: "#22c55e" }}>•</span>
                 <span>{item}</span>
               </div>
@@ -292,7 +292,7 @@ const ToolkitCoverPage = () => {
             { time: "14–17", title: "Build Your Gap → Skill → Proof Plan", action: "Complete the Gap → Skill → Proof Ladder", tip: "Choose one skill and one proof outcome to build in the next 2–4 weeks." },
             { time: "17–20", title: "Lock Your Weekly Momentum", action: "Fill the 7-Day Career System Planner", tip: "Pick 3 actions you will execute this week." },
           ].map((step, idx) => (
-            <div key={idx} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+            <div key={idx} style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
               <div
                 style={{
                   backgroundColor: "#c9a227",
@@ -377,15 +377,15 @@ const ToolkitCoverPage = () => {
             borderTop: "1px solid #e2e8f0",
           }}
         >
-          <p style={{ fontSize: "11px", color: "#475569", margin: "0 0 8px 0", lineHeight: "1.6" }}>
+          <p style={{ fontSize: "12px", color: "#475569", margin: "0 0 12px 0", lineHeight: "1.8" }}>
             <strong>You've got this.</strong>
           </p>
-          <p style={{ fontSize: "11px", color: "#64748b", margin: "0 0 4px 0", fontStyle: "italic", lineHeight: "1.5" }}>
+          <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 8px 0", fontStyle: "italic", lineHeight: "1.9" }}>
             Clarity creates confidence.<br />
             A system creates outcomes.<br />
             And you're closer than you think.
           </p>
-          <p style={{ fontSize: "12px", color: "#c9a227", fontWeight: "700", margin: "8px 0 0 0" }}>
+          <p style={{ fontSize: "13px", color: "#c9a227", fontWeight: "700", margin: "12px 0 0 0" }}>
             — Naina
           </p>
         </div>
