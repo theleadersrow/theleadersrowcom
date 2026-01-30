@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair, BookOpen, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
 import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder";
 import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
@@ -10,6 +9,7 @@ import { LeadershipSignalsChecklist } from "@/components/scorecard/LeadershipSig
 import { TargetRoleMatchingGrid } from "@/components/scorecard/TargetRoleMatchingGrid";
 import { ToolkitCoverPage } from "@/components/scorecard/ToolkitCoverPage";
 import { TableOfContents } from "@/components/scorecard/TableOfContents";
+import { ToolkitSidebar } from "@/components/toolkit/ToolkitSidebar";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
@@ -174,6 +174,15 @@ const CareerToolkit = () => {
           </div>
         </div>
 
+        {/* Right Sidebar Navigation */}
+        <ToolkitSidebar 
+          tools={tools}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onDownload={handleDownloadFullToolkit}
+          isGenerating={isGenerating}
+        />
+
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8 print:p-0">
           {/* Page Title - Hidden in Print */}
@@ -182,57 +191,38 @@ const CareerToolkit = () => {
               Career Operating System Toolkit
             </h1>
             <p className="text-muted-foreground">
-              Select a tool below to view and download
+              Use the menu on the right to navigate between pages
             </p>
           </div>
 
-          {/* Tabs Navigation - Hidden in Print */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
-            <TabsList className="w-full flex flex-wrap justify-center gap-2 h-auto bg-transparent mb-8">
-              {tools.map((tool) => (
-                <TabsTrigger
-                  key={tool.id}
-                  value={tool.id}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary transition-all"
-                >
-                  <tool.icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{tool.title}</span>
-                  <span className="md:hidden">{tool.shortTitle}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          {/* Tool Description + Download Button */}
+          {activeTool && (
+            <div className="print:hidden text-center mb-6">
+              <p className="text-muted-foreground mb-4">{activeTool.description}</p>
+              <Button
+                variant="gold"
+                onClick={handleDownloadFullToolkit}
+                disabled={isGenerating}
+                className="gap-2"
+                size="lg"
+              >
+                <Download className="w-5 h-5" />
+                {isGenerating ? "Generating PDF..." : "Download Complete Toolkit PDF"}
+              </Button>
+            </div>
+          )}
 
-            {/* Tool Description + Download Button */}
+          {/* Active Tool Content */}
+          <div className="print:hidden flex justify-center">
             {activeTool && (
-              <div className="text-center mb-6">
-                <p className="text-muted-foreground mb-4">{activeTool.description}</p>
-                <Button
-                  variant="gold"
-                  onClick={handleDownloadFullToolkit}
-                  disabled={isGenerating}
-                  className="gap-2"
-                  size="lg"
-                >
-                  <Download className="w-5 h-5" />
-                  {isGenerating ? "Generating PDF..." : "Download Complete Toolkit PDF"}
-                </Button>
+              <div 
+                ref={(el) => { pdfContainerRefs.current[activeTab] = el; }}
+                className="bg-white shadow-xl rounded-lg overflow-hidden"
+              >
+                <activeTool.component />
               </div>
             )}
-
-            {/* Tab Content */}
-            {tools.map((tool) => (
-              <TabsContent key={tool.id} value={tool.id} className="mt-0">
-                <div className="flex justify-center">
-                  <div 
-                    ref={(el) => { pdfContainerRefs.current[tool.id] = el; }}
-                    className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none"
-                  >
-                    <tool.component />
-                  </div>
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
+          </div>
 
           {/* Hidden container for full PDF generation - contains all pages */}
           <div 
