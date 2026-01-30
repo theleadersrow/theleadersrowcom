@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair, BookOpen, List } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
@@ -8,18 +8,9 @@ import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
 import { WeeklyCareerPlanner } from "@/components/scorecard/WeeklyCareerPlanner";
 import { LeadershipSignalsChecklist } from "@/components/scorecard/LeadershipSignalsChecklist";
 import { TargetRoleMatchingGrid } from "@/components/scorecard/TargetRoleMatchingGrid";
-import { ToolkitCoverPage } from "@/components/scorecard/ToolkitCoverPage";
-import { TableOfContents } from "@/components/scorecard/TableOfContents";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
-// PDF-only pages (not shown in navigation)
-const pdfOnlyPages = [
-  { id: "cover", component: ToolkitCoverPage },
-  { id: "toc", component: TableOfContents },
-];
-
-// Viewable tools (shown in tabs)
 const tools = [
   {
     id: "true-level",
@@ -27,7 +18,6 @@ const tools = [
     shortTitle: "1. Diagnose",
     description: "Identify where you stand today—your baseline and 2 biggest blockers.",
     icon: Target,
-    filename: "True-Level-Scorecard",
     component: TrueLevelScorecard,
   },
   {
@@ -36,7 +26,6 @@ const tools = [
     shortTitle: "2. Target",
     description: "Pick the right next move—your best-fit target roles + readiness.",
     icon: Crosshair,
-    filename: "Target-Role-Matching-Grid",
     component: TargetRoleMatchingGrid,
   },
   {
@@ -45,7 +34,6 @@ const tools = [
     shortTitle: "3. Signal",
     description: "See what you're missing to be seen as next-level—signal gaps to upgrade.",
     icon: Shield,
-    filename: "Leadership-Signals-Checklist",
     component: LeadershipSignalsChecklist,
   },
   {
@@ -54,7 +42,6 @@ const tools = [
     shortTitle: "4. Close Gaps",
     description: "Turn gaps into a focused skill plan + proof-building plan.",
     icon: FileText,
-    filename: "Gap-Skill-Proof-Ladder",
     component: GapSkillProofLadder,
   },
   {
@@ -63,7 +50,6 @@ const tools = [
     shortTitle: "5. Execute",
     description: "Turn strategy into weekly execution + momentum—a simple repeatable cadence.",
     icon: Calendar,
-    filename: "Weekly-Career-Planner",
     component: WeeklyCareerPlanner,
   },
   {
@@ -72,60 +58,19 @@ const tools = [
     shortTitle: "6. Pitch",
     description: "Communicate your value clearly everywhere—a ready-to-use pitch you practice daily.",
     icon: MessageSquare,
-    filename: "Offer-Winning-Pitch",
     component: OfferWinningPitch,
   },
 ];
 
 const CareerToolkit = () => {
   const [activeTab, setActiveTab] = useState("true-level");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const pdfContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const fullPdfContainerRef = useRef<HTMLDivElement | null>(null);
-
   const activeTool = tools.find(t => t.id === activeTab);
-
-  const handleDownloadFullToolkit = async () => {
-    if (!fullPdfContainerRef.current) return;
-
-    setIsGenerating(true);
-    try {
-      const html2pdf = (await import("html2pdf.js")).default;
-
-      const opt = {
-        margin: 0,
-        filename: "Career-Operating-System-Toolkit.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          logging: false,
-        },
-        jsPDF: { 
-          unit: "mm", 
-          format: "a4", 
-          orientation: "portrait" 
-        },
-        pagebreak: { mode: ['css', 'legacy'] },
-      };
-
-      await html2pdf().set(opt).from(fullPdfContainerRef.current).save();
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   return (
     <Layout>
       <div className="min-h-screen bg-muted/30">
-        {/* Header Controls - Hidden in Print */}
-        <div className="print:hidden sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link 
@@ -136,37 +81,14 @@ const CareerToolkit = () => {
                 <span className="hidden sm:inline">Back to 200K Method</span>
                 <span className="sm:hidden">Back</span>
               </Link>
-              
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handlePrint}
-                  className="gap-2"
-                  size="sm"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span className="hidden sm:inline">Print</span>
-                </Button>
-                <Button
-                  variant="gold"
-                  onClick={handleDownloadFullToolkit}
-                  disabled={isGenerating}
-                  className="gap-2"
-                  size="sm"
-                >
-                  <Download className="w-4 h-4" />
-                  {isGenerating ? "Generating..." : <span className="hidden sm:inline">Download Full Toolkit</span>}
-                  {!isGenerating && <span className="sm:hidden">PDF</span>}
-                </Button>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-8 print:p-0">
-          {/* Page Title - Hidden in Print */}
-          <div className="print:hidden text-center mb-6">
+        <div className="container mx-auto px-4 py-8">
+          {/* Page Title */}
+          <div className="text-center mb-6">
             <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-2">
               Career Operating System Toolkit
             </h1>
@@ -176,7 +98,7 @@ const CareerToolkit = () => {
           </div>
 
           {/* Tabs Navigation */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full flex-wrap h-auto gap-2 bg-transparent mb-6 justify-center">
               {tools.map((tool) => {
                 const Icon = tool.icon;
@@ -194,69 +116,26 @@ const CareerToolkit = () => {
               })}
             </TabsList>
 
-            {/* Tool Description + Download Button */}
+            {/* Tool Description */}
             {activeTool && (
               <div className="text-center mb-6">
                 <h2 className="font-semibold text-lg text-foreground mb-2">{activeTool.title}</h2>
-                <p className="text-muted-foreground mb-4">{activeTool.description}</p>
-                <Button
-                  variant="gold"
-                  onClick={handleDownloadFullToolkit}
-                  disabled={isGenerating}
-                  className="gap-2"
-                  size="lg"
-                >
-                  <Download className="w-5 h-5" />
-                  {isGenerating ? "Generating PDF..." : "Download Complete Toolkit PDF"}
-                </Button>
+                <p className="text-muted-foreground">{activeTool.description}</p>
               </div>
             )}
 
             {/* Tab Contents */}
             {tools.map((tool) => (
               <TabsContent key={tool.id} value={tool.id} className="flex justify-center">
-                <div 
-                  ref={(el) => { pdfContainerRefs.current[tool.id] = el; }}
-                  className="bg-white shadow-xl rounded-lg overflow-hidden"
-                >
+                <div className="bg-white shadow-xl rounded-lg overflow-hidden">
                   <tool.component />
                 </div>
               </TabsContent>
             ))}
           </Tabs>
 
-          {/* Hidden container for full PDF generation - contains all pages */}
-          <div 
-            ref={fullPdfContainerRef}
-            className="absolute -left-[9999px] top-0"
-            aria-hidden="true"
-          >
-            {/* PDF-only pages first (Cover + TOC) */}
-            {pdfOnlyPages.map((page) => (
-              <page.component key={page.id} />
-            ))}
-            {/* Then all viewable tools */}
-            {tools.map((tool) => (
-              <tool.component key={tool.id} />
-            ))}
-          </div>
-
-          {/* Print-only: Show all tools including cover and TOC */}
-          <div className="hidden print:block">
-            {pdfOnlyPages.map((page) => (
-              <div key={page.id} className="bg-white">
-                <page.component />
-              </div>
-            ))}
-            {tools.map((tool) => (
-              <div key={tool.id} className="bg-white">
-                <tool.component />
-              </div>
-            ))}
-          </div>
-
-          {/* CTA Below Tool - Hidden in Print */}
-          <div className="print:hidden mt-12 text-center max-w-2xl mx-auto">
+          {/* CTA Below Tool */}
+          <div className="mt-12 text-center max-w-2xl mx-auto">
             <p className="text-lg text-muted-foreground mb-4">
               Ready to build your complete Career Operating System?
             </p>
@@ -267,23 +146,6 @@ const CareerToolkit = () => {
             </Link>
           </div>
         </div>
-
-        {/* Print Styles */}
-        <style>{`
-          @media print {
-            body {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            @page {
-              size: A4;
-              margin: 0;
-            }
-            .pdf-page {
-              page-break-after: always;
-            }
-          }
-        `}</style>
       </div>
     </Layout>
   );
