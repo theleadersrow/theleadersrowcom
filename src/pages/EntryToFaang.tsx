@@ -327,6 +327,10 @@ const faqs = [
     question: "Is there ongoing support after the 8 weeks?",
     answer: "Yes! You'll have access to our private community where you can continue to connect with your cohort, ask questions, and receive support even after the program ends.",
   },
+  {
+    question: "Is there a payment plan?",
+    answer: "Yes. We offer flexible payment options to make the program accessible. You can pay in full or split your investment into installments. Details are provided during the enrollment process.",
+  },
 ];
 
 const commonObjections = [
