@@ -46,6 +46,7 @@ import PMInterview from "./pages/PMInterview";
 import AMAFeedback from "./pages/AMAFeedback";
 import WebinarRegistration from "./pages/WebinarRegistration";
 import Scorecard from "./pages/Scorecard";
+import CareerToolkit from "./pages/CareerToolkit";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ const App = () => (
             <Route path="/pm-interview" element={<PMInterview />} />
             <Route path="/webinar" element={<WebinarRegistration />} />
             <Route path="/scorecard" element={<Scorecard />} />
+            <Route path="/career-toolkit" element={<CareerToolkit />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
