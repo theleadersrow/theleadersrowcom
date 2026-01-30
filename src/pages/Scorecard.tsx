@@ -2,14 +2,15 @@ import { useRef, useState } from "react";
 import { Download, Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
+import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder";
 import { Link } from "react-router-dom";
 
 const Scorecard = () => {
-  const scorecardRef = useRef<HTMLDivElement>(null);
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownloadPDF = async () => {
-    if (!scorecardRef.current) return;
+    if (!pdfContainerRef.current) return;
     
     setIsGenerating(true);
     try {
@@ -17,7 +18,7 @@ const Scorecard = () => {
       
       const opt = {
         margin: 0,
-        filename: "True-Level-Scorecard-200K-Method.pdf",
+        filename: "200K-Method-Career-Diagnostic.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { 
           scale: 2, 
@@ -29,9 +30,10 @@ const Scorecard = () => {
           format: "a4", 
           orientation: "portrait" 
         },
+        pagebreak: { mode: 'css', before: '.page-break' },
       };
 
-      await html2pdf().set(opt).from(scorecardRef.current).save();
+      await html2pdf().set(opt).from(pdfContainerRef.current).save();
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
@@ -80,11 +82,36 @@ const Scorecard = () => {
         </div>
       </div>
 
-      {/* Scorecard Preview */}
+      {/* PDF Pages Preview */}
       <div className="container mx-auto px-4 py-8 print:p-0">
-        <div className="flex justify-center print:block">
+        {/* Page Navigation - Hidden in Print */}
+        <div className="print:hidden text-center mb-6">
+          <p className="text-sm text-muted-foreground mb-2">
+            2-Page Career Diagnostic Workbook
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              Page 1: True Level Scorecard
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
+              Page 2: Gap → Skill → Proof
+            </span>
+          </div>
+        </div>
+
+        {/* PDF Container */}
+        <div ref={pdfContainerRef} className="flex flex-col items-center gap-8 print:gap-0">
+          {/* Page 1 */}
           <div className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none">
-            <TrueLevelScorecard ref={scorecardRef} />
+            <TrueLevelScorecard />
+          </div>
+          
+          {/* Page Break */}
+          <div className="page-break print:block" style={{ pageBreakBefore: 'always' }} />
+          
+          {/* Page 2 */}
+          <div className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none">
+            <GapSkillProofLadder />
           </div>
         </div>
 
@@ -111,6 +138,9 @@ const Scorecard = () => {
           @page {
             size: A4;
             margin: 0;
+          }
+          .page-break {
+            page-break-before: always;
           }
         }
       `}</style>
