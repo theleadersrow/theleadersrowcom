@@ -172,10 +172,20 @@ const CareerToolkit = () => {
               ))}
             </TabsList>
 
-            {/* Tool Description */}
+            {/* Tool Description + Download Button */}
             {activeTool && (
               <div className="text-center mb-6">
-                <p className="text-muted-foreground">{activeTool.description}</p>
+                <p className="text-muted-foreground mb-4">{activeTool.description}</p>
+                <Button
+                  variant="gold"
+                  onClick={handleDownload}
+                  disabled={isGenerating}
+                  className="gap-2"
+                  size="lg"
+                >
+                  <Download className="w-5 h-5" />
+                  {isGenerating ? "Generating PDF..." : `Download ${activeTool.shortTitle} as PDF`}
+                </Button>
               </div>
             )}
 
