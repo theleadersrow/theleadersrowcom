@@ -338,15 +338,12 @@ export const OfferWinningPitch = forwardRef<HTMLDivElement, OfferWinningPitchPro
           }}>
             <div>
               <p style={{ margin: 0, fontSize: "8pt", fontWeight: 600, color: "#B8860B" }}>
-                THE LEADER'S ROW
-              </p>
-              <p style={{ margin: "2px 0 0 0", fontSize: "7pt", color: "#6b7280" }}>
-                theleadersrow.com/200k-method
+                Career Operating System Toolkit
               </p>
             </div>
             <div style={{ textAlign: "right" }}>
               <p style={{ margin: 0, fontSize: "7pt", color: "#9ca3af" }}>
-                © The Leader's Row • The 200K Method™
+                © Naina Agarwal — All rights reserved
               </p>
             </div>
           </div>
