@@ -841,6 +841,34 @@ const The200KMethod = () => {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="section-padding bg-background">
+        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-10">
+              <p className="text-secondary font-medium mb-2">Real Results</p>
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
+                What Members Are Saying
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-1 gap-6">
+              <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
+                <div className="flex items-center gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 text-secondary fill-secondary" />
+                  ))}
+                </div>
+                <p className="text-foreground text-lg leading-relaxed mb-4">
+                  "I understood how much PPS and a good resume matter for next career leap"
+                </p>
+                <p className="text-muted-foreground font-medium">— Anonymous</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Investment & CTA */}
       <section className="section-padding bg-navy">
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
