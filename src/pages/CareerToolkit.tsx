@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { Download, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield } from "lucide-react";
+import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
 import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder";
 import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
@@ -14,64 +14,69 @@ const tools = [
   {
     id: "true-level",
     title: "True Level Scorecard",
+    shortTitle: "True Level",
     description: "Know exactly where you stand today—not where you think you are.",
     icon: Target,
-    color: "bg-primary/10 text-primary",
+    filename: "True-Level-Scorecard",
+    component: TrueLevelScorecard,
   },
   {
     id: "gap-skill",
     title: "Gap → Skill → Proof Ladder",
+    shortTitle: "Gap → Skill",
     description: "Turn identified gaps into tangible skills and documented proof.",
     icon: FileText,
-    color: "bg-secondary/10 text-secondary",
+    filename: "Gap-Skill-Proof-Ladder",
+    component: GapSkillProofLadder,
   },
   {
     id: "offer-pitch",
     title: "Offer-Winning Pitch Builder",
+    shortTitle: "Pitch Builder",
     description: "Craft the narrative that makes hiring managers say yes.",
     icon: MessageSquare,
-    color: "bg-purple-100 text-purple-700",
+    filename: "Offer-Winning-Pitch",
+    component: OfferWinningPitch,
   },
   {
     id: "weekly-planner",
     title: "7-Day Career System Planner",
+    shortTitle: "Weekly Planner",
     description: "Small daily actions that compound into career momentum.",
     icon: Calendar,
-    color: "bg-emerald-100 text-emerald-700",
+    filename: "Weekly-Career-Planner",
+    component: WeeklyCareerPlanner,
   },
   {
     id: "leadership-signals",
     title: "Leadership Signals Checklist",
+    shortTitle: "Leadership Signals",
     description: "The signals decision-makers look for at Senior/Principal/Director level.",
     icon: Shield,
-    color: "bg-blue-100 text-blue-700",
+    filename: "Leadership-Signals-Checklist",
+    component: LeadershipSignalsChecklist,
   },
 ];
 
 const CareerToolkit = () => {
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const hiddenContainerRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState("true-level");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const pdfContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const handleDownload = async (toolId: string) => {
-    setDownloadingId(toolId);
+  const activeTool = tools.find(t => t.id === activeTab);
+
+  const handleDownload = async () => {
+    if (!activeTool) return;
+    const container = pdfContainerRefs.current[activeTab];
+    if (!container) return;
+
+    setIsGenerating(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
-      
-      // Get the component container
-      const container = document.getElementById(`pdf-${toolId}`);
-      if (!container) return;
-
-      const titleMap: Record<string, string> = {
-        "true-level": "True-Level-Scorecard",
-        "gap-skill": "Gap-Skill-Proof-Ladder",
-        "offer-pitch": "Offer-Winning-Pitch",
-        "weekly-planner": "Weekly-Career-Planner",
-        "leadership-signals": "Leadership-Signals-Checklist",
-      };
 
       const opt = {
         margin: 0,
-        filename: `${titleMap[toolId]}.pdf`,
+        filename: `${activeTool.filename}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { 
           scale: 2, 
@@ -89,92 +94,141 @@ const CareerToolkit = () => {
     } catch (error) {
       console.error("Error generating PDF:", error);
     } finally {
-      setDownloadingId(null);
+      setIsGenerating(false);
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <Layout>
-      <div className="min-h-screen bg-muted/30 py-16">
-        <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <Link 
-              to="/200k-method" 
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to 200K Method</span>
-            </Link>
-            
-            <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Career Operating System Toolkit
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Free diagnostic tools to help you identify gaps, build skills, and accelerate your career.
-            </p>
-          </div>
-
-          {/* Tools Grid */}
-          <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-16">
-            {tools.map((tool) => (
-              <Card 
-                key={tool.id}
-                className="p-6 hover:shadow-lg transition-shadow"
+      <div className="min-h-screen bg-muted/30">
+        {/* Header Controls - Hidden in Print */}
+        <div className="print:hidden sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Link 
+                to="/200k-method" 
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${tool.color}`}>
-                  <tool.icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">{tool.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
-                <Button 
-                  variant="outline" 
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back to 200K Method</span>
+                <span className="sm:hidden">Back</span>
+              </Link>
+              
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handlePrint}
+                  className="gap-2"
                   size="sm"
-                  className="w-full gap-2"
-                  onClick={() => handleDownload(tool.id)}
-                  disabled={downloadingId === tool.id}
+                >
+                  <Printer className="w-4 h-4" />
+                  <span className="hidden sm:inline">Print</span>
+                </Button>
+                <Button
+                  variant="gold"
+                  onClick={handleDownload}
+                  disabled={isGenerating}
+                  className="gap-2"
+                  size="sm"
                 >
                   <Download className="w-4 h-4" />
-                  {downloadingId === tool.id ? "Generating..." : "Download PDF"}
+                  {isGenerating ? "Generating..." : <span className="hidden sm:inline">Download PDF</span>}
+                  {!isGenerating && <span className="sm:hidden">PDF</span>}
                 </Button>
-              </Card>
-            ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8 print:p-0">
+          {/* Page Title - Hidden in Print */}
+          <div className="print:hidden text-center mb-6">
+            <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-2">
+              Career Operating System Toolkit
+            </h1>
+            <p className="text-muted-foreground">
+              Select a tool below to view and download
+            </p>
           </div>
 
-          {/* CTA */}
-          <div className="max-w-2xl mx-auto text-center bg-navy rounded-2xl p-8">
-            <h2 className="font-serif text-2xl font-semibold text-cream mb-4">
-              Ready to Build Your Career System?
-            </h2>
-            <p className="text-cream/70 mb-6">
-              These tools are just the beginning. The 200K Method gives you the complete system to execute on your career goals.
+          {/* Tabs Navigation - Hidden in Print */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
+            <TabsList className="w-full flex flex-wrap justify-center gap-2 h-auto bg-transparent mb-8">
+              {tools.map((tool) => (
+                <TabsTrigger
+                  key={tool.id}
+                  value={tool.id}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary transition-all"
+                >
+                  <tool.icon className="w-4 h-4" />
+                  <span className="hidden md:inline">{tool.title}</span>
+                  <span className="md:hidden">{tool.shortTitle}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {/* Tool Description */}
+            {activeTool && (
+              <div className="text-center mb-6">
+                <p className="text-muted-foreground">{activeTool.description}</p>
+              </div>
+            )}
+
+            {/* Tab Content */}
+            {tools.map((tool) => (
+              <TabsContent key={tool.id} value={tool.id} className="mt-0">
+                <div className="flex justify-center">
+                  <div 
+                    ref={(el) => { pdfContainerRefs.current[tool.id] = el; }}
+                    className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none"
+                  >
+                    <tool.component />
+                  </div>
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {/* Print-only: Show active tool */}
+          <div className="hidden print:block">
+            {activeTool && (
+              <div className="bg-white">
+                <activeTool.component />
+              </div>
+            )}
+          </div>
+
+          {/* CTA Below Tool - Hidden in Print */}
+          <div className="print:hidden mt-12 text-center max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-4">
+              Ready to build your complete Career Operating System?
             </p>
             <Link to="/200k-method">
-              <Button variant="hero" size="lg">
+              <Button variant="gold" size="lg" className="gap-2">
                 Explore the 200K Method
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Hidden PDF Containers */}
-        <div ref={hiddenContainerRef} className="absolute left-[-9999px] top-0">
-          <div id="pdf-true-level">
-            <TrueLevelScorecard />
-          </div>
-          <div id="pdf-gap-skill">
-            <GapSkillProofLadder />
-          </div>
-          <div id="pdf-offer-pitch">
-            <OfferWinningPitch />
-          </div>
-          <div id="pdf-weekly-planner">
-            <WeeklyCareerPlanner />
-          </div>
-          <div id="pdf-leadership-signals">
-            <LeadershipSignalsChecklist />
-          </div>
-        </div>
+        {/* Print Styles */}
+        <style>{`
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            @page {
+              size: A4;
+              margin: 0;
+            }
+          }
+        `}</style>
       </div>
     </Layout>
   );
