@@ -382,8 +382,30 @@ const The200KMethod = () => {
               <p className="text-cream/60 text-sm mb-4">
                 High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
               </p>
-              <div className="text-cream/70 text-sm">
+              <div className="text-cream/70 text-sm mb-6">
                 <span className="text-secondary font-semibold">Next Cohort:</span> Feb 5 – Mar 26, 2026
+              </div>
+
+              {/* Testimonials Snapshot */}
+              <div className="bg-cream/5 border border-cream/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="w-4 h-4 text-secondary fill-secondary" />
+                    ))}
+                  </div>
+                  <span className="text-cream/70 text-sm">From our members</span>
+                </div>
+                <p className="text-cream/90 text-sm leading-relaxed mb-3 line-clamp-2">
+                  "I was able to identify my true level—I wasn't sure before how I should target myself. After getting help on positioning and branding, I immediately started getting traction..."
+                </p>
+                <a 
+                  href="#reviews" 
+                  className="text-secondary text-sm font-medium hover:underline inline-flex items-center gap-1"
+                >
+                  Read more success stories
+                  <ArrowRight className="w-3 h-3" />
+                </a>
               </div>
             </div>
             
