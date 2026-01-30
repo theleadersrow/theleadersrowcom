@@ -15,7 +15,7 @@ const tools = [
   {
     id: "true-level",
     title: "True Level Scorecard",
-    shortTitle: "True Level",
+    shortTitle: "1. Diagnose",
     description: "Identify where you stand today—your baseline and 2 biggest blockers.",
     icon: Target,
     filename: "True-Level-Scorecard",
@@ -24,7 +24,7 @@ const tools = [
   {
     id: "target-role",
     title: "Target Role Matching Grid",
-    shortTitle: "Target Role",
+    shortTitle: "2. Target",
     description: "Pick the right next move—your best-fit target roles + readiness.",
     icon: Crosshair,
     filename: "Target-Role-Matching-Grid",
@@ -33,7 +33,7 @@ const tools = [
   {
     id: "leadership-signals",
     title: "Leadership Signals Checklist",
-    shortTitle: "Leadership Signals",
+    shortTitle: "3. Signal",
     description: "See what you're missing to be seen as next-level—signal gaps to upgrade.",
     icon: Shield,
     filename: "Leadership-Signals-Checklist",
@@ -42,7 +42,7 @@ const tools = [
   {
     id: "gap-skill",
     title: "Gap → Skill → Proof Ladder",
-    shortTitle: "Gap → Skill",
+    shortTitle: "4. Close Gaps",
     description: "Turn gaps into a focused skill plan + proof-building plan.",
     icon: FileText,
     filename: "Gap-Skill-Proof-Ladder",
@@ -51,7 +51,7 @@ const tools = [
   {
     id: "weekly-planner",
     title: "7-Day Career System Planner",
-    shortTitle: "Weekly Planner",
+    shortTitle: "5. Execute",
     description: "Turn strategy into weekly execution + momentum—a simple repeatable cadence.",
     icon: Calendar,
     filename: "Weekly-Career-Planner",
@@ -60,7 +60,7 @@ const tools = [
   {
     id: "offer-pitch",
     title: "Offer-Winning Pitch Template",
-    shortTitle: "Pitch Builder",
+    shortTitle: "6. Pitch",
     description: "Communicate your value clearly everywhere—a ready-to-use pitch you practice daily.",
     icon: MessageSquare,
     filename: "Offer-Winning-Pitch",
