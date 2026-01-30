@@ -50,7 +50,7 @@ export const TrueLevelScorecard = forwardRef<HTMLDivElement, TrueLevelScorecardP
         style={{
           width: "210mm",
           minHeight: "297mm",
-          padding: "16mm 18mm",
+          padding: "16mm 22mm",
           fontFamily: "'DM Sans', Arial, sans-serif",
           backgroundColor: "#ffffff",
           color: "#1a2332",
