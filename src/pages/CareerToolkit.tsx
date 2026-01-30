@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Download, Printer, ArrowLeft, FileText, Target, MessageSquare, Calendar, Shield, Crosshair, BookOpen, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
 import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder";
 import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
@@ -9,7 +10,6 @@ import { LeadershipSignalsChecklist } from "@/components/scorecard/LeadershipSig
 import { TargetRoleMatchingGrid } from "@/components/scorecard/TargetRoleMatchingGrid";
 import { ToolkitCoverPage } from "@/components/scorecard/ToolkitCoverPage";
 import { TableOfContents } from "@/components/scorecard/TableOfContents";
-import { ToolkitSidebar } from "@/components/toolkit/ToolkitSidebar";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
@@ -19,7 +19,7 @@ const pdfOnlyPages = [
   { id: "toc", component: TableOfContents },
 ];
 
-// Viewable tools (shown in sidebar navigation)
+// Viewable tools (shown in tabs)
 const tools = [
   {
     id: "true-level",
@@ -163,15 +163,6 @@ const CareerToolkit = () => {
           </div>
         </div>
 
-        {/* Right Sidebar Navigation */}
-        <ToolkitSidebar 
-          tools={tools}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onDownload={handleDownloadFullToolkit}
-          isGenerating={isGenerating}
-        />
-
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8 print:p-0">
           {/* Page Title - Hidden in Print */}
@@ -180,38 +171,59 @@ const CareerToolkit = () => {
               Career Operating System Toolkit
             </h1>
             <p className="text-muted-foreground">
-              Use the menu on the right to navigate between pages
+              Complete all 6 pages to build your personalized career system
             </p>
           </div>
 
-          {/* Tool Description + Download Button */}
-          {activeTool && (
-            <div className="print:hidden text-center mb-6">
-              <p className="text-muted-foreground mb-4">{activeTool.description}</p>
-              <Button
-                variant="gold"
-                onClick={handleDownloadFullToolkit}
-                disabled={isGenerating}
-                className="gap-2"
-                size="lg"
-              >
-                <Download className="w-5 h-5" />
-                {isGenerating ? "Generating PDF..." : "Download Complete Toolkit PDF"}
-              </Button>
-            </div>
-          )}
+          {/* Tabs Navigation */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
+            <TabsList className="w-full flex-wrap h-auto gap-2 bg-transparent mb-6 justify-center">
+              {tools.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <TabsTrigger
+                    key={tool.id}
+                    value={tool.id}
+                    className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg border border-border/50 bg-card"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{tool.shortTitle}</span>
+                    <span className="sm:hidden text-xs">{tool.shortTitle.split('. ')[0]}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
 
-          {/* Active Tool Content */}
-          <div className="print:hidden flex justify-center">
+            {/* Tool Description + Download Button */}
             {activeTool && (
-              <div 
-                ref={(el) => { pdfContainerRefs.current[activeTab] = el; }}
-                className="bg-white shadow-xl rounded-lg overflow-hidden"
-              >
-                <activeTool.component />
+              <div className="text-center mb-6">
+                <h2 className="font-semibold text-lg text-foreground mb-2">{activeTool.title}</h2>
+                <p className="text-muted-foreground mb-4">{activeTool.description}</p>
+                <Button
+                  variant="gold"
+                  onClick={handleDownloadFullToolkit}
+                  disabled={isGenerating}
+                  className="gap-2"
+                  size="lg"
+                >
+                  <Download className="w-5 h-5" />
+                  {isGenerating ? "Generating PDF..." : "Download Complete Toolkit PDF"}
+                </Button>
               </div>
             )}
-          </div>
+
+            {/* Tab Contents */}
+            {tools.map((tool) => (
+              <TabsContent key={tool.id} value={tool.id} className="flex justify-center">
+                <div 
+                  ref={(el) => { pdfContainerRefs.current[tool.id] = el; }}
+                  className="bg-white shadow-xl rounded-lg overflow-hidden"
+                >
+                  <tool.component />
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
 
           {/* Hidden container for full PDF generation - contains all pages */}
           <div 
