@@ -349,7 +349,7 @@ export const WeeklyCareerPlanner = forwardRef<HTMLDivElement, WeeklyCareerPlanne
             </div>
             <div style={{ textAlign: "right" }}>
               <p style={{ margin: 0, fontSize: "6pt", color: "#9ca3af" }}>
-                © Naina Agarwal — All rights reserved
+                © the Leader's Row — All rights reserved
               </p>
             </div>
           </div>
