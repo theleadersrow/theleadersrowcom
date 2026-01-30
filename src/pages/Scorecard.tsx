@@ -3,6 +3,7 @@ import { Download, Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TrueLevelScorecard } from "@/components/scorecard/TrueLevelScorecard";
 import { GapSkillProofLadder } from "@/components/scorecard/GapSkillProofLadder";
+import { OfferWinningPitch } from "@/components/scorecard/OfferWinningPitch";
 import { Link } from "react-router-dom";
 
 const Scorecard = () => {
@@ -87,14 +88,17 @@ const Scorecard = () => {
         {/* Page Navigation - Hidden in Print */}
         <div className="print:hidden text-center mb-6">
           <p className="text-sm text-muted-foreground mb-2">
-            2-Page Career Diagnostic Workbook
+            3-Page Career Diagnostic Workbook
           </p>
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
               Page 1: True Level Scorecard
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-medium">
               Page 2: Gap → Skill → Proof
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm font-medium">
+              Page 3: Offer-Winning Pitch
             </span>
           </div>
         </div>
@@ -112,6 +116,14 @@ const Scorecard = () => {
           {/* Page 2 */}
           <div className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none">
             <GapSkillProofLadder />
+          </div>
+          
+          {/* Page Break */}
+          <div className="page-break print:block" style={{ pageBreakBefore: 'always' }} />
+          
+          {/* Page 3 */}
+          <div className="bg-white shadow-xl rounded-lg overflow-hidden print:shadow-none print:rounded-none">
+            <OfferWinningPitch />
           </div>
         </div>
 
