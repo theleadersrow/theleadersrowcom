@@ -876,37 +876,6 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* Common Objections */}
-      <section className="section-padding bg-background">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4">
-                Common Objections
-              </h2>
-            </div>
-
-            <div className="space-y-4">
-              {commonObjections.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="bg-card rounded-xl border border-border/50 p-6 shadow-soft"
-                >
-                  <p className="text-foreground font-semibold mb-2 flex items-start gap-2">
-                    <span className="text-secondary">"</span>
-                    {item.objection}
-                    <span className="text-secondary">"</span>
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed pl-4 border-l-2 border-secondary/30">
-                    {item.response}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials */}
       <TestimonialsMarquee />
 
