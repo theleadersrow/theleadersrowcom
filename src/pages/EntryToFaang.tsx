@@ -390,7 +390,7 @@ const The200KMethod = () => {
                 </Link>
                 <a href="#curriculum">
                   <Button variant="outline" size="lg" className="border-cream/30 text-cream hover:bg-cream/10">
-                    See Program Architecture
+                    See Program Details
                   </Button>
                 </a>
               </div>
