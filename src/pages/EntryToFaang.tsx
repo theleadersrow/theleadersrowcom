@@ -470,8 +470,12 @@ const The200KMethod = () => {
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-secondary font-medium text-sm mb-2">The Simple Promise</p>
-            <p className="text-xl md:text-2xl font-serif font-semibold text-foreground leading-relaxed">
-              You'll leave with a repeatable <span className="text-secondary">Career Operating System</span> — not just clarity, but a structure you can use every time you're ready to level up.
+            <p className="text-xl md:text-2xl font-serif font-semibold text-foreground leading-relaxed mb-4">
+              You leave with a repeatable <span className="text-secondary">Career Operating System</span> — a structured framework to recalibrate your identity, positioning, and leadership signal every time you step into greater scope.
+            </p>
+            <p className="text-muted-foreground text-base leading-relaxed">
+              This is not about working harder.<br />
+              It's about operating at the level your next role demands.
             </p>
           </div>
         </div>
