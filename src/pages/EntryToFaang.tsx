@@ -507,41 +507,56 @@ const The200KMethod = () => {
                 Who This Program Is For
               </h2>
               <p className="text-muted-foreground">
-                This program is for you if…
+                This program is for you if:
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mb-8">
-              <div className="flex items-center gap-3 bg-card rounded-xl p-4 border border-border/50">
-                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                <span className="text-foreground">You want more from your career — but feel stuck</span>
-              </div>
-              <div className="flex items-center gap-3 bg-card rounded-xl p-4 border border-border/50">
-                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                <span className="text-foreground">You're ready for a promotion or scope jump</span>
-              </div>
-              <div className="flex items-center gap-3 bg-card rounded-xl p-4 border border-border/50">
-                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                <span className="text-foreground">You want to switch companies at a higher level</span>
-              </div>
-              <div className="flex items-center gap-3 bg-card rounded-xl p-4 border border-border/50">
-                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                <span className="text-foreground">You're breaking into PM or tech</span>
-              </div>
-              <div className="flex items-center gap-3 bg-card rounded-xl p-4 border border-border/50">
-                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                <span className="text-foreground">You feel qualified… but not chosen</span>
-              </div>
-              <div className="flex items-center gap-3 bg-card rounded-xl p-4 border border-border/50">
-                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                <span className="text-foreground">You want a repeatable career system</span>
-              </div>
+            <div className="grid md:grid-cols-2 gap-4 mb-10">
+              {[
+                "You are already performing at a high level — but not being evaluated at that level",
+                "You're ready for a promotion, larger scope, or strategic ownership",
+                "You want to reposition your market signal — not just polish your resume",
+                "You feel capable… but under-leveled",
+                "You want a structured system to calibrate your identity and leadership presence",
+                "You're serious about operating at the next tier — not casually \"exploring options\"",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3 bg-card rounded-xl p-4 border border-border/50">
+                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                  <span className="text-foreground text-sm">{item}</span>
+                </div>
+              ))}
             </div>
 
-            {/* One-Liner Summary */}
+            {/* Who This Is NOT For */}
+            <div className="text-center mb-8">
+              <h3 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-3">
+                Who This Program Is <span className="text-muted-foreground">NOT</span> For
+              </h3>
+              <p className="text-muted-foreground">
+                This program is not for you if:
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-10">
+              {[
+                "You're looking for basic interview prep",
+                "You're early in your career and still building foundational skills",
+                "You want shortcuts instead of behavioral elevation",
+                "You're unwilling to receive direct calibration and feedback",
+                "You're satisfied with incremental growth",
+                "You want motivation more than structure",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3 bg-muted/50 rounded-xl p-4 border border-border/50">
+                  <X className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Closing Line */}
             <div className="bg-secondary/10 rounded-xl p-5 text-center border border-secondary/20">
-              <p className="text-foreground font-medium leading-relaxed">
-                For product professionals who want their next promotion, role, or breakthrough—and are ready to build the system that makes it <span className="text-secondary font-semibold">inevitable.</span>
+              <p className="text-foreground font-medium leading-relaxed italic">
+                This is for experienced professionals ready to be recalibrated — <span className="text-secondary font-semibold">not convinced.</span>
               </p>
             </div>
           </div>
