@@ -68,20 +68,27 @@ const Hero = () => {
           
           {/* Headline */}
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-cream mb-4 sm:mb-6 opacity-0 animate-fade-up delay-100 leading-tight px-2">
-            Helping Ambitious Professionals Reach the <span className="text-gradient-gold">Top 10% of Leadership Roles</span>
+            Reach the <span className="text-gradient-gold">Top 10% of Leadership Roles</span>
           </h1>
           
           {/* Subheadline */}
           <p className="text-lg sm:text-xl lg:text-2xl text-cream/90 max-w-2xl mx-auto mb-4 sm:mb-6 leading-relaxed opacity-0 animate-fade-up delay-200 px-4">
-            Clarity. Confidence. A proven system.
+            Not by doing more.<br />
+            By operating at a higher level.
           </p>
-          <div className="text-sm sm:text-base lg:text-lg text-cream/70 max-w-2xl mx-auto mb-6 sm:mb-8 space-y-1.5 sm:space-y-2 opacity-0 animate-fade-up delay-250 px-4">
-            <p>Stop guessing what's holding you back.</p>
-            <p>Master the skills that drive promotions and higher pay.</p>
-            <p>Live coaching. Ambitious community. Real results.</p>
+          <p className="text-sm sm:text-base text-cream/70 max-w-2xl mx-auto mb-4 opacity-0 animate-fade-up delay-250 px-4">
+            For ambitious professionals ready to move from "high performer" to undeniable.
+          </p>
+          <div className="text-sm sm:text-base lg:text-lg text-cream/70 max-w-2xl mx-auto mb-4 sm:mb-6 space-y-1.5 sm:space-y-2 opacity-0 animate-fade-up delay-250 px-4">
+            <p>Calibrate your positioning.</p>
+            <p>Elevate your presence.</p>
+            <p>Align your signal with senior scope.</p>
           </div>
+          <p className="text-sm sm:text-base text-cream/60 max-w-2xl mx-auto mb-4 opacity-0 animate-fade-up delay-300 px-4">
+            Live coaching. Strategic feedback. Real elevation.
+          </p>
           <p className="text-base sm:text-lg lg:text-xl text-secondary font-semibold max-w-2xl mx-auto mb-8 sm:mb-10 opacity-0 animate-fade-up delay-300 px-4">
-            Your career plateau ends here.
+            Your next level isn't a stretch. It's a standard.
           </p>
           
           {/* CTAs */}
