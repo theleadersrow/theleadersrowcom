@@ -235,22 +235,22 @@ const QuizLeadMagnet = () => {
         challenge.includes("All of the above") ||
         growthType === "Both - I want it all") {
       return {
-        title: "The 200K Method is Perfect for You",
+        title: "The Strategic Career Mastery Program is Perfect for You",
         message: "You're ready for a complete career transformation. Our career recalibration program will rebuild your brand, sharpen your skills, and position you for senior roles.",
-        cta: "Explore The 200K Method",
+        cta: "Explore The Program",
         link: "/200k-method",
       };
     }
     
-    // Wants steady growth or coaching/community - redirect to 200K Method for now
+    // Wants steady growth or coaching/community - redirect to Strategic Career Mastery for now
     if (growthType === "Steady weekly skill-building" || 
         helpType.includes("Live coaching & feedback") ||
         helpType.includes("Community & accountability") ||
         commitment === "Ready to invest time weekly") {
       return {
-        title: "The 200K Method is Your Path Forward",
+        title: "The Strategic Career Mastery Program is Your Path Forward",
         message: "Build your leadership skills with our comprehensive 8-week program. Transform your career with expert guidance and community support.",
-        cta: "Explore The 200K Method",
+        cta: "Explore The Program",
         link: "/200k-method",
       };
     }

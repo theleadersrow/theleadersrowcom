@@ -117,7 +117,7 @@ export const LeadershipSignalsChecklist = forwardRef<HTMLDivElement, LeadershipS
               letterSpacing: "2px",
               margin: "0 0 4px 0" 
             }}>
-              The 200K Method™ Career Diagnostic
+              The Strategic Career Mastery Program™ Career Diagnostic
             </p>
             <h1 style={{ 
               fontSize: "20pt", 

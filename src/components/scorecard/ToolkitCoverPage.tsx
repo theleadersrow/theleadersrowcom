@@ -49,7 +49,7 @@ const ToolkitCoverPage = () => {
               textTransform: "uppercase",
             }}
           >
-            The 200K Method™
+            The Strategic Career Mastery Program™
           </div>
 
           {/* Title */}

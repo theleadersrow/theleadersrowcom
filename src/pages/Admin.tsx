@@ -467,7 +467,7 @@ const Admin = () => {
           <TabsList className="grid w-full grid-cols-7 mb-6">
             <TabsTrigger value="200k-method" className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
-              <span className="hidden sm:inline">200K Method</span>
+              <span className="hidden sm:inline">Career Mastery</span>
             </TabsTrigger>
             <TabsTrigger value="ai-coach" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />

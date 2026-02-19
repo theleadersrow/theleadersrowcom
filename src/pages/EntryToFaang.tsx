@@ -276,7 +276,7 @@ const outcomes = [
 const faqs = [
   {
     question: "Is this program just interview prep?",
-    answer: "No. Interview performance is one expression of seniority — not the source of it. The 200K Method™ focuses on how you think, decide, and position yourself so interviews, leveling conversations, and negotiations become a natural extension of your operating level.",
+    answer: "No. Interview performance is one expression of seniority — not the source of it. The Strategic Career Mastery Program™ focuses on how you think, decide, and position yourself so interviews, leveling conversations, and negotiations become a natural extension of your operating level.",
   },
   {
     question: "Who is this program best suited for?",
@@ -292,11 +292,11 @@ const faqs = [
   },
   {
     question: "How is this different from other PM career programs?",
-    answer: "Most PM programs focus on tools, tactics, and templates. The 200K Method™ focuses on decision-making clarity, leadership identity, signal over effort, and repeatable career leverage. This is a thinking and execution system, not a checklist.",
+    answer: "Most PM programs focus on tools, tactics, and templates. The Strategic Career Mastery Program™ focuses on decision-making clarity, leadership identity, signal over effort, and repeatable career leverage. This is a thinking and execution system, not a checklist.",
   },
   {
     question: "How is this different from Weekly Edge?",
-    answer: "The 200K Method is an intensive 8-week accelerator focused on career repositioning, personal branding, interview mastery, and landing $200K+ roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of 200K Method continue with Weekly Edge to maintain momentum.",
+    answer: "The Strategic Career Mastery Program is an intensive 8-week accelerator focused on career repositioning, personal branding, interview mastery, and landing senior roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of the Strategic Career Mastery Program continue with Weekly Edge to maintain momentum.",
   },
   {
     question: "Is this suitable if I'm already at a $200K+ compensation level?",
@@ -369,7 +369,7 @@ const The200KMethod = () => {
                 <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based</span>
               </p>
               <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
-                The 200K Method™
+                The Strategic Career Mastery Program™
               </h1>
               <p className="text-lg md:text-xl text-secondary font-medium mb-6">
                 Build the Career System that Takes You to the Next Level.
@@ -859,7 +859,7 @@ const The200KMethod = () => {
                 Frequently Asked Questions
               </h2>
               <p className="text-muted-foreground text-lg">
-                Everything you need to know about the 200K Method.
+                Everything you need to know about the Strategic Career Mastery Program.
               </p>
             </div>
 

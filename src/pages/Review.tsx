@@ -266,7 +266,7 @@ const Review = () => {
                     <SelectValue placeholder="Select a program" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="200k-method">200K Method</SelectItem>
+                    <SelectItem value="200k-method">Strategic Career Mastery</SelectItem>
                     <SelectItem value="weekly-edge">Weekly Edge</SelectItem>
                     <SelectItem value="ai-career-coach">AI Career Coach</SelectItem>
                     <SelectItem value="other">Other / Multiple</SelectItem>

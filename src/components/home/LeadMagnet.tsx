@@ -75,7 +75,7 @@ const LeadMagnet = () => {
                 FREE GUIDE
               </span>
               <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-cream mb-3 sm:mb-4">
-                The 200K Method Quick Start Guide
+                The Strategic Career Mastery Quick Start Guide
               </h2>
               <p className="text-cream/70 mb-4 sm:mb-6 text-sm sm:text-base">
                 Discover the 3 key strategies that separate $200K+ Product Leaders from everyone else. A quick preview of what's possible.
@@ -102,7 +102,7 @@ const LeadMagnet = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-2">You're in!</h3>
                   <p className="text-muted-foreground">
-                    Check your email for the Quick Start Guide. Ready to go deeper? Explore the full 200K Method.
+                    Check your email for the Quick Start Guide. Ready to go deeper? Explore the full Strategic Career Mastery Program.
                   </p>
                 </div>
               ) : (
@@ -111,7 +111,7 @@ const LeadMagnet = () => {
                     Get the Free Quick Start Guide
                   </h3>
                   <p className="text-sm text-muted-foreground mb-6">
-                    A preview of the strategies inside the 200K Method program.
+                    A preview of the strategies inside the Strategic Career Mastery Program.
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-4">

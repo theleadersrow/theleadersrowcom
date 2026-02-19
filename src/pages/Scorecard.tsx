@@ -59,7 +59,7 @@ const Scorecard = () => {
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to 200K Method</span>
+              <span>Back to Program</span>
             </Link>
             
             <div className="flex items-center gap-3">
@@ -158,7 +158,7 @@ const Scorecard = () => {
           </p>
           <Link to="/200k-method">
             <Button variant="gold" size="lg" className="gap-2">
-              Explore the 200K Method
+              Explore the Strategic Career Mastery Program
             </Button>
           </Link>
         </div>

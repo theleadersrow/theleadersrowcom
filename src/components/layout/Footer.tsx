@@ -22,7 +22,7 @@ const Footer = () => {
             <ul className="space-y-2 sm:space-y-3">
               <li>
                 <Link to="/200k-method" className="text-cream/60 hover:text-secondary transition-colors text-sm">
-                  The 200K Method
+                  The Strategic Career Mastery Program
                 </Link>
               </li>
             </ul>

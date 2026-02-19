@@ -99,7 +99,7 @@ export function TestimonialsTab() {
 
   const getProgramLabel = (program: string | null) => {
     const labels: Record<string, string> = {
-      "200k-method": "200K Method",
+      "200k-method": "Strategic Career Mastery",
       "weekly-edge": "Weekly Edge",
       "ai-career-coach": "AI Career Coach",
       other: "Other",

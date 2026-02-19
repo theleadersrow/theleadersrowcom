@@ -29,7 +29,7 @@ const Terms = () => {
               </h2>
               <p className="mb-6">
                 The Leader's Row provides career coaching and professional development programs. 
-                Our programs include The 200K Method (Career Recalibration for Product Leaders) and Weekly Edge 
+                Our programs include The Strategic Career Mastery Program (Career Recalibration for Product Leaders) and Weekly Edge 
                 (ongoing membership).
               </p>
 

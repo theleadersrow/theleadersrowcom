@@ -78,7 +78,7 @@ const CareerToolkit = () => {
                 className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back to 200K Method</span>
+                <span className="hidden sm:inline">Back to Program</span>
                 <span className="sm:hidden">Back</span>
               </Link>
             </div>
@@ -141,7 +141,7 @@ const CareerToolkit = () => {
             </p>
             <Link to="/200k-method">
               <Button variant="gold" size="lg" className="gap-2">
-                Explore the 200K Method
+                Explore the Strategic Career Mastery Program
               </Button>
             </Link>
           </div>

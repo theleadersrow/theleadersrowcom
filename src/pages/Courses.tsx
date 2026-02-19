@@ -240,7 +240,7 @@ const Courses = () => {
                   What's the difference between courses and programs?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  <strong>Courses</strong> are self-paced, focused skill-building modules you complete on your own time. <strong>Programs</strong> (like 200K Method and Weekly Edge) are comprehensive, cohort-based experiences with live coaching, community support, and personalized feedback. Programs offer deeper transformation with direct access to coaches, while courses let you learn specific skills independently.
+                  <strong>Courses</strong> are self-paced, focused skill-building modules you complete on your own time. <strong>Programs</strong> (like the Strategic Career Mastery Program and Weekly Edge) are comprehensive, cohort-based experiences with live coaching, community support, and personalized feedback. Programs offer deeper transformation with direct access to coaches, while courses let you learn specific skills independently.
                 </AccordionContent>
               </AccordionItem>
 
