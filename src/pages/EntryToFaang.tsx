@@ -391,7 +391,7 @@ const The200KMethod = () => {
                 High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
               </p>
               <div className="text-cream/70 text-sm mb-6">
-                <span className="text-secondary font-semibold">Next Cohort:</span> Feb 5 – Mar 26, 2026
+                <span className="text-secondary font-semibold">Next Cohort:</span> April 2 – May 21, 2026
               </div>
 
               {/* Testimonials Snapshot */}
@@ -904,7 +904,7 @@ const The200KMethod = () => {
             {/* Next Cohort Info */}
             <div className="bg-cream/10 backdrop-blur-sm rounded-xl p-4 mb-8 inline-block">
               <p className="text-secondary font-semibold mb-1">Next Cohort</p>
-              <p className="text-cream text-lg">Feb 5th – Mar 26th, 2026</p>
+              <p className="text-cream text-lg">April 2nd – May 21st, 2026</p>
               <p className="text-cream/70 text-sm">Every Thursday, 7–9pm CT</p>
             </div>
             
