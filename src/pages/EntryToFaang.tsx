@@ -659,12 +659,13 @@ const The200KMethod = () => {
         <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <p className="text-secondary font-medium mb-2">How This Works + What You Get</p>
+              <p className="text-secondary font-medium mb-2">How It Works</p>
               <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
                 Program Experience
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                This isn't a passive course. It's a high-touch career acceleration experience built to create real outcomes through structure, feedback, and execution.
+                This is not passive learning.<br />
+                It's structured elevation through feedback, execution, and calibration.
               </p>
             </div>
 
@@ -678,10 +679,10 @@ const The200KMethod = () => {
                   <h3 className="font-semibold text-foreground">Accountability Triads</h3>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">
-                  You'll be placed into a small Accountability Triad so you're never doing this alone.
+                  You're not doing this alone.
                 </p>
                 <ul className="space-y-2 mb-4">
-                  {["Weekly check-ins", "Momentum tracking", "Consistency + execution support", "Peer pressure that actually helps"].map((item, i) => (
+                  {["Weekly check-ins", "Execution tracking", "Built-in momentum"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-foreground">{item}</span>
@@ -689,23 +690,23 @@ const The200KMethod = () => {
                   ))}
                 </ul>
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You stop starting and stopping. You build real traction.</p>
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You build real traction.</p>
                 </div>
               </div>
 
-              {/* Live Role-Playing */}
+              {/* Live Simulations */}
               <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
                     <span className="text-secondary font-bold">2</span>
                   </div>
-                  <h3 className="font-semibold text-foreground">Live Role-Playing + Interview Simulations</h3>
+                  <h3 className="font-semibold text-foreground">Live Simulations</h3>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">
-                  We'll practice high-stakes scenarios live:
+                  Practice high-stakes conversations.
                 </p>
                 <ul className="space-y-2 mb-4">
-                  {["Interview rounds", "Executive-level storytelling", "Stakeholder pushback situations", "\"Tell me about yourself\" + product judgment drills"].map((item, i) => (
+                  {["Interview rounds", "Executive storytelling", "Stakeholder pushback", "Product judgment drills"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-foreground">{item}</span>
@@ -713,23 +714,23 @@ const The200KMethod = () => {
                   ))}
                 </ul>
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You don't just learn the frameworks—you build the confidence to perform.</p>
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You don't just prepare — you perform.</p>
                 </div>
               </div>
 
-              {/* Pitch Creation */}
+              {/* Pitch Creation & Delivery */}
               <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
                     <span className="text-secondary font-bold">3</span>
                   </div>
-                  <h3 className="font-semibold text-foreground">Pitch Creation + Delivery</h3>
+                  <h3 className="font-semibold text-foreground">Pitch Creation & Delivery</h3>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">
-                  You'll craft and rehearse the pitch that sells your value:
+                  Craft your next-level narrative.
                 </p>
                 <ul className="space-y-2 mb-4">
-                  {["Your positioning statement", "Your leadership narrative", "Your \"why you / why now\"", "Promo pitch + interview pitch"].map((item, i) => (
+                  {["Positioning statement", "Leadership story", "Promo + interview pitch"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-foreground">{item}</span>
@@ -737,23 +738,23 @@ const The200KMethod = () => {
                   ))}
                 </ul>
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You become clear, convincing, and unforgettable.</p>
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You become clear and convincing.</p>
                 </div>
               </div>
 
-              {/* Asset Reviews */}
+              {/* Asset Recalibration */}
               <div className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
                     <span className="text-secondary font-bold">4</span>
                   </div>
-                  <h3 className="font-semibold text-foreground">Asset Reviews (Resume + LinkedIn + Story Bank)</h3>
+                  <h3 className="font-semibold text-foreground">Asset Recalibration</h3>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">
-                  You'll get detailed reviews and feedback on the assets that drive your outcomes:
+                  Upgrade the signals that represent you.
                 </p>
                 <ul className="space-y-2 mb-4">
-                  {["Resume recalibration", "LinkedIn profile + messaging", "Story bank quality + depth", "Interview answers + structure"].map((item, i) => (
+                  {["Resume", "LinkedIn", "Story bank", "Structured interview answers"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-foreground">{item}</span>
@@ -761,7 +762,7 @@ const The200KMethod = () => {
                   ))}
                 </ul>
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> Your profile becomes high-signal and next-level.</p>
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> Your profile becomes high-signal.</p>
                 </div>
               </div>
 
@@ -774,10 +775,10 @@ const The200KMethod = () => {
                   <h3 className="font-semibold text-foreground">Deep-Level Calibration</h3>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">
-                  This is the difference between good advice and a real transformation. We calibrate your thinking, delivery, and leadership presence to the level you're trying to reach.
+                  Refine how you think and show up.
                 </p>
                 <ul className="space-y-2 mb-4">
-                  {["Clarity calibration", "Leadership calibration", "Communication calibration", "Confidence calibration"].map((item, i) => (
+                  {["Leadership presence", "Communication clarity", "Scope articulation"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-foreground">{item}</span>
@@ -785,7 +786,7 @@ const The200KMethod = () => {
                   ))}
                 </ul>
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You stop "trying" to be next-level and start operating at that level.</p>
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You start operating at the next level.</p>
                 </div>
               </div>
 
@@ -795,13 +796,13 @@ const The200KMethod = () => {
                   <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
                     <span className="text-secondary font-bold">6</span>
                   </div>
-                  <h3 className="font-semibold text-foreground">Private Community Access</h3>
+                  <h3 className="font-semibold text-foreground">Private Community</h3>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4">
-                  You'll get access to a private community where you'll have:
+                  Stay in the right room.
                 </p>
                 <ul className="space-y-2 mb-4">
-                  {["Support + motivation", "Resources + frameworks", "Wins tracking", "Consistent high-performance energy"].map((item, i) => (
+                  {["Support", "Frameworks", "Momentum"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-foreground">{item}</span>
@@ -809,17 +810,9 @@ const The200KMethod = () => {
                   ))}
                 </ul>
                 <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/10">
-                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You stay in the right room long enough to change your results.</p>
+                  <p className="text-xs text-foreground"><span className="text-secondary font-semibold">Outcome:</span> You sustain elevation.</p>
                 </div>
               </div>
-            </div>
-
-            {/* Premium One-Liner */}
-            <div className="bg-navy rounded-2xl p-6 text-center">
-              <p className="text-cream/70 text-sm mb-2">⭐ The Experience</p>
-              <p className="text-cream text-lg md:text-xl font-medium leading-relaxed">
-                A structured, high-touch career operating system—built on <span className="text-secondary">coaching, execution, feedback, and real-time performance.</span>
-              </p>
             </div>
           </div>
         </div>
