@@ -825,45 +825,7 @@ const The200KMethod = () => {
         </div>
       </section>
 
-      {/* Free Toolkit Section */}
-      <section id="toolkit" className="py-16 bg-muted/30 scroll-mt-20">
-        <div className="container-wide mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block bg-secondary/20 text-secondary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-              Free Resource
-            </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4">
-              Career Operating System Toolkit
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-              Start building your career system today with these free diagnostic tools. Download individual PDFs to assess where you are and plan where you're going.
-            </p>
-            
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8 text-left">
-              {[
-                { title: "True Level Scorecard", desc: "Know where you really stand" },
-                { title: "Gap → Skill → Proof Ladder", desc: "Turn gaps into documented proof" },
-                { title: "Offer-Winning Pitch Builder", desc: "Craft your winning narrative" },
-                { title: "7-Day Career Planner", desc: "Build weekly momentum" },
-                { title: "Leadership Signals Checklist", desc: "What decision-makers look for" },
-              ].map((tool, i) => (
-                <div key={i} className="bg-card border border-border/50 rounded-xl p-4 shadow-soft">
-                  <CheckCircle2 className="w-5 h-5 text-secondary mb-2" />
-                  <h3 className="font-semibold text-foreground text-sm mb-1">{tool.title}</h3>
-                  <p className="text-xs text-muted-foreground">{tool.desc}</p>
-                </div>
-              ))}
-            </div>
-            
-            <Link to="/career-toolkit">
-              <Button variant="gold" size="lg" className="gap-2">
-                <Briefcase className="w-5 h-5" />
-                Access Free Toolkit
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+
 
       {/* The Promise */}
       <section className="py-16 bg-navy">
