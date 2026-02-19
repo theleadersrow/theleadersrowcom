@@ -31,7 +31,7 @@ const PROGRAM_DETAILS = {
     priceSubtext: "One-time payment",
     description: "8-Week Career Operating System — Build the system that takes you to your next level with high-touch coaching, accountability triads, and a private community.",
     features: [
-      { icon: Video, text: "8 live weekly group coaching sessions (90 min each)" },
+      { icon: Video, text: "8 live weekly group coaching sessions (2 hours each)" },
       { icon: BookOpen, text: "Complete career operating system curriculum" },
       { icon: MessageSquare, text: "1-on-1 resume & LinkedIn review" },
       { icon: Users, text: "Accountability triads & private community" },
