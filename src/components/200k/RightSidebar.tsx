@@ -22,7 +22,6 @@ const sections = [
   { id: "curriculum", label: "Curriculum", icon: BookOpen },
   { id: "outcome", label: "The Outcome", icon: Trophy },
   { id: "experience", label: "Program Experience", icon: Briefcase },
-  { id: "toolkit", label: "Free Toolkit", icon: Gift },
   { id: "faq", label: "FAQ", icon: HelpCircle },
   { id: "investment", label: "Investment", icon: DollarSign },
 ];
