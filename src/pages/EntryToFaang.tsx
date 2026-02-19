@@ -366,31 +366,36 @@ const The200KMethod = () => {
             {/* Left Column - Title & CTA */}
             <div>
               <p className="text-secondary font-medium mb-4">
-                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based</span>
+                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based Executive Program</span>
               </p>
               <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
                 The Strategic Career Mastery Program™
               </h1>
               <p className="text-lg md:text-xl text-secondary font-medium mb-6">
-                Build the Career System that Takes You to the Next Level.
+                Benchmark. Reposition. Operate at the Next Level.
+              </p>
+              <p className="text-cream/80 text-sm leading-relaxed mb-6 max-w-xl">
+                Stop chasing random tactics.{"\n\n"}
+                This is a structured career calibration system for high-performing PMs and business leaders ready for promotion, expanded scope, or higher-impact roles.{"\n\n"}
+                You will benchmark your true level, reposition your market signal, and begin operating at the standard your next role demands.
               </p>
               
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-4 mb-5">
                 <Link to="/register?program=200k-method">
                   <Button variant="hero" size="lg" className="group">
-                    Build My Career System
+                    Begin My Strategic Elevation
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
                 <a href="#curriculum">
                   <Button variant="outline" size="lg" className="border-cream/30 text-cream hover:bg-cream/10">
-                    See Program Details
+                    See Program Architecture
                   </Button>
                 </a>
               </div>
               <p className="text-cream/60 text-sm mb-4">
-                High-touch coaching with accountability triads, role plays, asset reviews, and a private community.
+                High-touch coaching with structured diagnostics, asset rebuilds, executive simulations, and implementation accountability.
               </p>
               <div className="text-cream/70 text-sm mb-6">
                 <span className="text-secondary font-semibold">Next Cohort:</span> April 2 – May 21, 2026
@@ -404,16 +409,16 @@ const The200KMethod = () => {
                       <Star key={star} className="w-4 h-4 text-secondary fill-secondary" />
                     ))}
                   </div>
-                  <span className="text-cream/70 text-sm">From our members</span>
+                  <span className="text-cream/70 text-sm">From Our Members</span>
                 </div>
-                <p className="text-cream/90 text-sm leading-relaxed mb-3 line-clamp-2">
-                  "I was able to identify my true level—I wasn't sure before how I should target myself. After getting help on positioning and branding, I immediately started getting traction..."
+                <p className="text-cream/90 text-sm leading-relaxed mb-3 line-clamp-3">
+                  "I finally understood the level I was actually operating at — and what had to change. Once I recalibrated my positioning and communication, interviews and internal conversations shifted immediately."
                 </p>
                 <a 
                   href="#reviews" 
                   className="text-secondary text-sm font-medium hover:underline inline-flex items-center gap-1"
                 >
-                  Read more success stories
+                  See more transformation stories
                   <ArrowRight className="w-3 h-3" />
                 </a>
               </div>
@@ -422,33 +427,39 @@ const The200KMethod = () => {
             {/* Right Column - Key Points */}
             <div className="bg-cream/5 border border-cream/20 rounded-xl p-6">
               <p className="text-cream/90 text-sm mb-5 leading-relaxed">
-                An 8-week career acceleration for PMs who are ready for promotion, bigger scope, or a higher-impact role—by building a repeatable Career Operating System, not chasing random tactics.
+                An 8-week strategic elevation system for PMs and business professionals ready to operate beyond their current title.
               </p>
-              <p className="text-cream font-medium text-sm mb-4">Build a Career Operating System for:</p>
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <div className="flex items-center gap-2 text-cream/80 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Offer-winning interviews</span>
-                </div>
-                <div className="flex items-center gap-2 text-cream/80 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Executive communication</span>
-                </div>
-                <div className="flex items-center gap-2 text-cream/80 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Leadership presence + visibility</span>
-                </div>
-                <div className="flex items-center gap-2 text-cream/80 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span>Senior-level scope</span>
-                </div>
+              <p className="text-cream/80 text-sm mb-4 leading-relaxed">
+                You won't just prepare for interviews.{" "}
+                You will recalibrate how you think, communicate, and position yourself — so the next level becomes a natural progression, not a stretch.
+              </p>
+              <p className="text-cream font-medium text-sm mb-4">Build Your Career Operating System For:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                {[
+                  "Executive-level communication",
+                  "Offer-winning positioning",
+                  "Senior-level scope articulation",
+                  "Leadership presence & visibility",
+                  "Strategic narrative control",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-cream/80 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                    <span>{item}</span>
+                  </div>
+                ))}
               </div>
-              <p className="text-cream/80 text-xs mb-4 leading-relaxed">
-                It's a system that upgrades how you think, show up, and lead—so the outcomes become inevitable.
+              <p className="text-cream/80 text-xs mb-4 leading-relaxed font-medium">
+                This is not career advice.
               </p>
-              <p className="text-secondary font-semibold text-xs">
-                Clarity → Positioning → Brand → Presence → Visibility → Next Level Outcomes
+              <p className="text-cream/70 text-xs mb-5 leading-relaxed">
+                It's a structured upgrade to how you show up, signal value, and lead.
               </p>
+              <div className="pt-4 border-t border-cream/10">
+                <p className="text-cream/60 text-xs font-medium mb-2">The Transformation Path</p>
+                <p className="text-secondary font-semibold text-xs">
+                  Benchmark → Diagnose → Reposition → Signal → Operate → Elevate
+                </p>
+              </div>
             </div>
           </div>
         </div>
