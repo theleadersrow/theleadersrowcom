@@ -76,19 +76,15 @@ const Hero = () => {
             Not by doing more.<br />
             By operating at a higher level.
           </p>
-          <p className="text-sm sm:text-base text-cream/70 max-w-2xl mx-auto mb-4 opacity-0 animate-fade-up delay-250 px-4">
+          <p className="text-sm sm:text-base text-cream/70 max-w-2xl mx-auto mb-4 sm:mb-6 opacity-0 animate-fade-up delay-250 px-4">
             For ambitious professionals ready to move from "high performer" to undeniable.
           </p>
           <div className="text-sm sm:text-base lg:text-lg text-cream/70 max-w-2xl mx-auto mb-4 sm:mb-6 space-y-1.5 sm:space-y-2 opacity-0 animate-fade-up delay-250 px-4">
-            <p>Calibrate your positioning.</p>
-            <p>Elevate your presence.</p>
-            <p>Align your signal with senior scope.</p>
+            <p>Strategic clarity. Executive positioning.</p>
+            <p>A repeatable system for real elevation.</p>
           </div>
-          <p className="text-sm sm:text-base text-cream/60 max-w-2xl mx-auto mb-4 opacity-0 animate-fade-up delay-300 px-4">
-            Live coaching. Strategic feedback. Real elevation.
-          </p>
           <p className="text-base sm:text-lg lg:text-xl text-secondary font-semibold max-w-2xl mx-auto mb-8 sm:mb-10 opacity-0 animate-fade-up delay-300 px-4">
-            Your next level isn't a stretch. It's a standard.
+            Your plateau ends when your standard rises.
           </p>
           
           {/* CTAs */}
