@@ -102,7 +102,7 @@ const WebinarRegistration = () => {
                 Free Live Webinar
               </span>
               <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-cream mb-4">
-                The 200K Method
+                The Strategic Career Mastery Program
               </h1>
               <p className="text-cream/80 text-lg max-w-2xl mx-auto">
                 Learn the proven framework that helps professionals land $200K+ roles at top tech companies.

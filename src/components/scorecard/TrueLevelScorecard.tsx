@@ -90,7 +90,7 @@ export const TrueLevelScorecard = forwardRef<HTMLDivElement, TrueLevelScorecardP
               letterSpacing: "2px",
               margin: "0 0 8px 0" 
             }}>
-              The 200K Method™ Career Diagnostic
+              The Strategic Career Mastery Program™ Career Diagnostic
             </p>
             <h1 style={{ 
               fontSize: "26pt", 

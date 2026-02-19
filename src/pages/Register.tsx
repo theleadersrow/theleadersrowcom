@@ -26,7 +26,7 @@ const PAYMENT_LINK_PROGRAMS: Record<string, string> = {
 // Program details for pricing breakdown
 const PROGRAM_DETAILS = {
   "200k-method": {
-    name: "The 200K Method",
+    name: "The Strategic Career Mastery Program",
     price: "$2,000",
     priceSubtext: "One-time payment",
     description: "8-Week Career Operating System — Build the system that takes you to your next level with high-touch coaching, accountability triads, and a private community.",
@@ -580,7 +580,7 @@ const Register = () => {
                       <SelectValue placeholder="Choose a program" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="200k-method">The 200K Method</SelectItem>
+                      <SelectItem value="200k-method">The Strategic Career Mastery Program</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.program && (

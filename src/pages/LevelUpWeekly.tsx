@@ -96,8 +96,8 @@ const faqs = [
     answer: "All sessions are recorded and available to members. You'll have access to the replay, along with all worksheets and materials, so you can catch up at your own pace.",
   },
   {
-    question: "How is this different from the 200K Method?",
-    answer: "The 200K Method is an intensive 8-week accelerator focused on career repositioning and landing $200K+ roles. Weekly Edge is an ongoing membership for continuous skill building — perfect for professionals who want to grow steadily week over week.",
+    question: "How is this different from the Strategic Career Mastery Program?",
+    answer: "The Strategic Career Mastery Program is an intensive 8-week accelerator focused on career repositioning and landing senior roles. Weekly Edge is an ongoing membership for continuous skill building — perfect for professionals who want to grow steadily week over week.",
   },
   {
     question: "What is the cancellation and refund policy?",

@@ -60,7 +60,7 @@ const Header = () => {
   const communityLinks = [
     { href: "/community", label: "Leader's Row Community" },
     // { href: "/ama-events", label: "Ask Me Anything Events" }, // HIDDEN - can recover later
-    { href: "/webinar", label: "Free Webinar: The 200K Method", isNew: true },
+    { href: "/webinar", label: "Free Webinar: Strategic Career Mastery", isNew: true },
   ];
 
   const contactLinks = [

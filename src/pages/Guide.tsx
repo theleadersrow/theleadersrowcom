@@ -83,7 +83,7 @@ const Guide = () => {
                   FREE RESOURCE
                 </span>
                 <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
-                  The 200K Method Quick Start Guide
+                  The Strategic Career Mastery Quick Start Guide
                 </h1>
                 <p className="text-lg text-cream/80 mb-8 leading-relaxed">
                   Discover the 3 key strategies that separate $200K+ Product Leaders from everyone else. 
@@ -114,7 +114,7 @@ const Guide = () => {
                       Check your email for the Quick Start Guide. Ready to go deeper?
                     </p>
                     <Button variant="gold" asChild>
-                      <Link to="/200k-method">Explore 200K Method</Link>
+                      <Link to="/200k-method">Explore the Program</Link>
                     </Button>
                   </div>
                 ) : (
@@ -203,11 +203,11 @@ const Guide = () => {
               Ready for the Full Transformation?
             </h2>
             <p className="text-muted-foreground mb-8">
-              The Quick Start Guide is just a preview. The 200K Method is an 8-week accelerator 
+              The Quick Start Guide is just a preview. The Strategic Career Mastery Program is an 8-week accelerator 
               that gives you the complete system to land your next senior role.
             </p>
             <Button variant="gold" size="lg" asChild>
-              <Link to="/200k-method">Learn About 200K Method</Link>
+              <Link to="/200k-method">Learn About the Program</Link>
             </Button>
           </div>
         </div>

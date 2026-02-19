@@ -297,7 +297,7 @@ export function WebinarRegistrationsTab() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
-            The 200K Method Webinar
+            The Strategic Career Mastery Webinar
           </CardTitle>
           
           <div className="flex flex-wrap gap-2">

@@ -24,7 +24,7 @@ const fallbackTestimonials = [
     role: "Jena, Germany",
     company: "",
     quote: "It has been really positive. I've learned things I can truly apply in my life on a daily basis. Thank you so much for making me a stronger person and making my belief even stronger.",
-    outcome: "200K Method Member",
+    outcome: "Program Member",
     rating: 5,
   },
   {
@@ -32,7 +32,7 @@ const fallbackTestimonials = [
     name: "James K.",
     role: "Product Manager → Senior PM",
     company: "Fortune 500",
-    quote: "I was stuck at the same level for 3 years. After the 200K Method, I landed a senior role with a 40% salary increase.",
+    quote: "I was stuck at the same level for 3 years. After the Strategic Career Mastery Program, I landed a senior role with a 40% salary increase.",
     outcome: "$45K salary increase",
     rating: 5,
   },

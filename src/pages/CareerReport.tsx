@@ -46,7 +46,7 @@ interface Report {
   recommended_skills?: Array<{
     skill: string;
     why: string;
-    program: "200K Method" | "Weekly Edge";
+    program: "Strategic Career Mastery" | "Weekly Edge";
   }>;
 }
 
@@ -472,7 +472,7 @@ const CareerReport = () => {
   // Map gaps to Leader's Row programs
   const getSkillRecommendations = () => {
     const gaps = score.skill_heatmap.gaps || [];
-    const recommendations: Array<{ skill: string; why: string; program: "200K Method" | "Weekly Edge"; module?: string }> = [];
+    const recommendations: Array<{ skill: string; why: string; program: "Strategic Career Mastery" | "Weekly Edge"; module?: string }> = [];
 
     gaps.forEach(gap => {
       const gapLower = gap.toLowerCase();
@@ -480,7 +480,7 @@ const CareerReport = () => {
         recommendations.push({
           skill: "Executive Storytelling",
           why: "Transform how you communicate impact and influence decisions",
-          program: "200K Method",
+          program: "Strategic Career Mastery",
           module: "Narrative Control"
         });
       }
@@ -488,7 +488,7 @@ const CareerReport = () => {
         recommendations.push({
           skill: "Personal Brand Engineering",
           why: "Build visibility that attracts opportunities to you",
-          program: "200K Method",
+          program: "Strategic Career Mastery",
           module: "High-Value Profile & Network"
         });
       }
@@ -496,7 +496,7 @@ const CareerReport = () => {
         recommendations.push({
           skill: "Executive Presence",
           why: "Command rooms and drive alignment at senior levels",
-          program: "200K Method",
+          program: "Strategic Career Mastery",
           module: "Executive Presence"
         });
       }
@@ -504,7 +504,7 @@ const CareerReport = () => {
         recommendations.push({
           skill: "Product Judgment",
           why: "Make high-stakes decisions with confidence",
-          program: "200K Method",
+          program: "Strategic Career Mastery",
           module: "Product Judgment"
         });
       }
@@ -897,7 +897,7 @@ const CareerReport = () => {
                         <div className="flex items-center gap-3 mb-1">
                           <h4 className="font-semibold text-foreground">{rec.skill}</h4>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            rec.program === "200K Method" 
+                            rec.program === "Strategic Career Mastery" 
                               ? "bg-accent/20 text-accent-foreground" 
                               : "bg-secondary text-secondary-foreground"
                           }`}>
@@ -923,7 +923,7 @@ const CareerReport = () => {
                       <Target className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-foreground">200K Method</h4>
+                      <h4 className="font-bold text-foreground">Strategic Career Mastery</h4>
                       <p className="text-sm text-muted-foreground">8-Week Accelerator</p>
                     </div>
                   </div>

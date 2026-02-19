@@ -5,7 +5,7 @@ import { ArrowRight, Calendar, Users, Clock, CheckCircle, Zap, X, Video, Message
 
 const livePrograms = [
   {
-    title: "The 200K Method",
+    title: "The Strategic Career Mastery Program",
     subtitle: "8-Week Career Operating System",
     description: "Build the Career System that Takes You to the Next Level. High-touch coaching with accountability triads, role plays, asset reviews, and a private community.",
     duration: "8 weeks",

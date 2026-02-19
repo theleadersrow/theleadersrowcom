@@ -12,7 +12,7 @@ interface Testimonial {
 }
 
 const fallbackTestimonials: Testimonial[] = [
-  { name: "Mona", outcome: "200K Method Member", quote: "I've learned things I can truly apply in my life on a daily basis." },
+  { name: "Mona", outcome: "Program Member", quote: "I've learned things I can truly apply in my life on a daily basis." },
   { name: "James K.", outcome: "$45K salary increase", quote: "Landed a senior role with a 40% salary increase." },
   { name: "Priya R.", outcome: "Landed FAANG offer", quote: "Got offers from 3 top tech companies." },
 ];
