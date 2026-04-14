@@ -7,8 +7,8 @@ const livePrograms = [
   {
     title: "The Strategic Career Mastery Program",
     subtitle: "Benchmark. Reposition. Operate at the Next Level.",
-    description: "An 8-week executive-level career calibration system designed to align your identity, positioning, and leadership signal with the scope of the roles you're ready to step into.\n\nThis is not resume polishing.\nThis is strategic repositioning.",
-    duration: "8 Weeks",
+    description: "An 6-week executive-level career calibration system designed to align your identity, positioning, and leadership signal with the scope of the roles you're ready to step into.\n\nThis is not resume polishing.\nThis is strategic repositioning.",
+    duration: "6 Weeks",
     format: "Live Cohort-Based",
     href: "/200k-method",
     youllWorkOn: [

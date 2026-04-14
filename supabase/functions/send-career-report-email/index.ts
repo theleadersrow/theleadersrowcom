@@ -230,7 +230,7 @@ This is a teaser of your full report. To unlock your complete Career Intelligenc
 
 View your full report: https://theleadersrow.com/career-report
 
-Ready to accelerate your career? The 200K Method is an 8-week program designed to help ambitious PMs break into senior roles with clarity and confidence.
+Ready to accelerate your career? The 200K Method is an 6-week program designed to help ambitious PMs break into senior roles with clarity and confidence.
 
 Learn more: https://theleadersrow.com/200k-method
 

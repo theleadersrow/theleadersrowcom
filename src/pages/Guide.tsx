@@ -203,7 +203,7 @@ const Guide = () => {
               Ready for the Full Transformation?
             </h2>
             <p className="text-muted-foreground mb-8">
-              The Quick Start Guide is just a preview. The Strategic Career Mastery Program is an 8-week accelerator 
+              The Quick Start Guide is just a preview. The Strategic Career Mastery Program is an 6-week accelerator 
               that gives you the complete system to land your next senior role.
             </p>
             <Button variant="gold" size="lg" asChild>

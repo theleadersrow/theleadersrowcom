@@ -19,16 +19,15 @@ const ProgramsSection = () => {
         <div className="max-w-lg mx-auto">
           <ProgramCard
             title="The Strategic Career Mastery Program"
-            subtitle="8-Week Career Operating System"
+            subtitle="6-Week Career Operating System"
             description="An executive-level career calibration system designed to align your identity, positioning, and leadership signal with the roles you're ready to step into."
             features={[
               "Strategic Benchmark & Leadership Baseline",
               "Gap Mapping: Skill, Scope & Positioning",
               "Identity & Positioning Shift",
               "Brand & Network Activation",
-              "Interview Mastery (Foundations + Strategy)",
+              "Interview Mastery",
               "Executive Performance & Influence",
-              "The Leader's Playbook",
             ]}
             price="$2,000"
             href="/200k-method"

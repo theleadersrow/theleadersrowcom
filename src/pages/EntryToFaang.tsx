@@ -81,27 +81,17 @@ const modules = [
   },
   {
     icon: MessageSquare,
-    title: "Interview Mastery: Phase 1",
-    subtitle: "Clarity + Structure",
-    description: "Become great on paper and in first rounds. Show up as a structured, strategic candidate who feels easy to say yes to.",
+    title: "Interview Mastery",
+    subtitle: "Foundations, Strategy & Product Judgment",
+    description: "Master every stage of the interview — from structured storytelling and first-round confidence to product sense, tradeoffs, and executive-level thinking.",
     outcomes: [
       "Strong interview foundations (confidence, structure, clarity)",
       "Build 'hireable' signals in your stories and answers",
-      "Close early-stage interview gaps fast",
-    ],
-    deliverables: ["STAR + Strategic Story Bank", "Interview Answer Structures"],
-  },
-  {
-    icon: Brain,
-    title: "Interview Mastery: Phase 2",
-    subtitle: "Product Judgment + Strategy",
-    description: "Master the interviews that decide the offer: product sense, tradeoffs, execution judgment, and leadership thinking.",
-    outcomes: [
       "Strong product thinking under pressure",
       "Tradeoff mastery and structured decision-making",
       "Become the candidate who sounds like they've already done the job",
     ],
-    deliverables: ["Product Judgment Playbook", "Executive Product Thinking Framework"],
+    deliverables: ["STAR + Strategic Story Bank", "Interview Answer Structures", "Product Judgment Playbook", "Executive Product Thinking Framework"],
   },
   {
     icon: Shield,
@@ -114,18 +104,6 @@ const modules = [
       "Learn power dynamics so you're never blindsided again",
     ],
     deliverables: ["Executive Presence Checklist", "Influence + Power Dynamics Toolkit", "High-Stakes Meeting System"],
-  },
-  {
-    icon: Rocket,
-    title: "The Leader's Playbook",
-    subtitle: "System Reuse & Repeatable Growth",
-    description: "Your lifetime career operating system. Promotions, pivots, layoffs, leadership jumps—this becomes your repeatable method.",
-    outcomes: [
-      "A reusable personal 'Career OS'",
-      "A system you can apply to any new goal",
-      "Long-term compounding growth through iteration",
-    ],
-    deliverables: ["Leader's Playbook Dashboard", "Career Growth System for Life"],
   },
 ];
 
@@ -217,7 +195,7 @@ const workOnItems = [
 ];
 
 const programFormat = [
-  "8 weeks | Live, cohort-based",
+  "6 weeks | Live, cohort-based",
   "Weekly 2-hour sessions",
   "Small, high-caliber group",
   "Personalized strategy & positioning",
@@ -296,7 +274,7 @@ const faqs = [
   },
   {
     question: "How is this different from Weekly Edge?",
-    answer: "The Strategic Career Mastery Program is an intensive 8-week accelerator focused on career repositioning, personal branding, interview mastery, and landing senior roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of the Strategic Career Mastery Program continue with Weekly Edge to maintain momentum.",
+    answer: "The Strategic Career Mastery Program is an intensive 6-week accelerator focused on career repositioning, personal branding, interview mastery, and landing senior roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of the Strategic Career Mastery Program continue with Weekly Edge to maintain momentum.",
   },
   {
     question: "Is this suitable if I'm already at a $200K+ compensation level?",
@@ -327,7 +305,7 @@ const faqs = [
     answer: "Because of the live, high-touch nature of this program, refunds are not offered once the cohort begins. This ensures commitment on both sides.",
   },
   {
-    question: "Is there ongoing support after the 8 weeks?",
+    question: "Is there ongoing support after the 6 weeks?",
     answer: "Yes! You'll have access to our private community where you can continue to connect with your cohort, ask questions, and receive support even after the program ends.",
   },
   {
@@ -366,7 +344,7 @@ const The200KMethod = () => {
             {/* Left Column - Title & CTA */}
             <div>
               <p className="text-secondary font-medium mb-4">
-                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based Executive Program</span>
+                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">6-Week Cohort-Based Executive Program</span>
               </p>
               <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
                 The Strategic Career Mastery Program™
@@ -427,7 +405,7 @@ const The200KMethod = () => {
             {/* Right Column - Key Points */}
             <div className="bg-cream/5 border border-cream/20 rounded-xl p-6">
               <p className="text-cream/90 text-sm mb-5 leading-relaxed">
-                An 8-week strategic elevation system for PMs and business professionals ready to operate beyond their current title.
+                An 6-week strategic elevation system for PMs and business professionals ready to operate beyond their current title.
               </p>
               <p className="text-cream/80 text-sm mb-4 leading-relaxed">
                 You won't just prepare for interviews.{" "}

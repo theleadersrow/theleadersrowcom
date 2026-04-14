@@ -166,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p>We have received your message and will get back to you as soon as possible.</p>
         <p>In the meantime, feel free to explore our programs:</p>
         <ul>
-          <li><a href="https://theleadersrow.com/200k-method" style="color: #B8860B;"><strong>200K Method</strong></a> - Our 8-week accelerator program</li>
+          <li><a href="https://theleadersrow.com/200k-method" style="color: #B8860B;"><strong>200K Method</strong></a> - Our 6-week accelerator program</li>
           <li><a href="https://theleadersrow.com/weekly-edge" style="color: #B8860B;"><strong>Weekly Edge</strong></a> - Ongoing membership for continuous growth</li>
         </ul>
         <p>Best regards,<br>The Leader's Row Team</p>
