@@ -81,27 +81,17 @@ const modules = [
   },
   {
     icon: MessageSquare,
-    title: "Interview Mastery: Phase 1",
-    subtitle: "Clarity + Structure",
-    description: "Become great on paper and in first rounds. Show up as a structured, strategic candidate who feels easy to say yes to.",
+    title: "Interview Mastery",
+    subtitle: "Foundations, Strategy & Product Judgment",
+    description: "Master every stage of the interview — from structured storytelling and first-round confidence to product sense, tradeoffs, and executive-level thinking.",
     outcomes: [
       "Strong interview foundations (confidence, structure, clarity)",
       "Build 'hireable' signals in your stories and answers",
-      "Close early-stage interview gaps fast",
-    ],
-    deliverables: ["STAR + Strategic Story Bank", "Interview Answer Structures"],
-  },
-  {
-    icon: Brain,
-    title: "Interview Mastery: Phase 2",
-    subtitle: "Product Judgment + Strategy",
-    description: "Master the interviews that decide the offer: product sense, tradeoffs, execution judgment, and leadership thinking.",
-    outcomes: [
       "Strong product thinking under pressure",
       "Tradeoff mastery and structured decision-making",
       "Become the candidate who sounds like they've already done the job",
     ],
-    deliverables: ["Product Judgment Playbook", "Executive Product Thinking Framework"],
+    deliverables: ["STAR + Strategic Story Bank", "Interview Answer Structures", "Product Judgment Playbook", "Executive Product Thinking Framework"],
   },
   {
     icon: Shield,
@@ -114,18 +104,6 @@ const modules = [
       "Learn power dynamics so you're never blindsided again",
     ],
     deliverables: ["Executive Presence Checklist", "Influence + Power Dynamics Toolkit", "High-Stakes Meeting System"],
-  },
-  {
-    icon: Rocket,
-    title: "The Leader's Playbook",
-    subtitle: "System Reuse & Repeatable Growth",
-    description: "Your lifetime career operating system. Promotions, pivots, layoffs, leadership jumps—this becomes your repeatable method.",
-    outcomes: [
-      "A reusable personal 'Career OS'",
-      "A system you can apply to any new goal",
-      "Long-term compounding growth through iteration",
-    ],
-    deliverables: ["Leader's Playbook Dashboard", "Career Growth System for Life"],
   },
 ];
 
