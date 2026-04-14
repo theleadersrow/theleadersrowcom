@@ -91,7 +91,7 @@ const questions = [
     question: "What type of growth are you looking for?",
     multiSelect: false,
     options: [
-      "Intensive transformation (8-week program)",
+      "Intensive transformation (6-week program)",
       "Steady weekly skill-building",
       "Both - I want it all",
     ],
@@ -231,7 +231,7 @@ const QuizLeadMagnet = () => {
     
     // Fully committed + wants intensive or all-in
     if (commitment === "Fully committed - ready to go all in" || 
-        growthType === "Intensive transformation (8-week program)" || 
+        growthType === "Intensive transformation (6-week program)" || 
         challenge.includes("All of the above") ||
         growthType === "Both - I want it all") {
       return {
@@ -249,7 +249,7 @@ const QuizLeadMagnet = () => {
         commitment === "Ready to invest time weekly") {
       return {
         title: "The Strategic Career Mastery Program is Your Path Forward",
-        message: "Build your leadership skills with our comprehensive 8-week program. Transform your career with expert guidance and community support.",
+        message: "Build your leadership skills with our comprehensive 6-week program. Transform your career with expert guidance and community support.",
         cta: "Explore The Program",
         link: "/200k-method",
       };

@@ -924,11 +924,11 @@ const CareerReport = () => {
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Strategic Career Mastery</h4>
-                      <p className="text-sm text-muted-foreground">8-Week Accelerator</p>
+                      <p className="text-sm text-muted-foreground">6-Week Accelerator</p>
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-5">
-                    Transform into a highly visible, well-positioned, top-paid Product Leader in 8 weeks.
+                    Transform into a highly visible, well-positioned, top-paid Product Leader in 6 weeks.
                   </p>
                   <Button className="w-full" onClick={() => navigate("/200k-method")}>
                     Learn More

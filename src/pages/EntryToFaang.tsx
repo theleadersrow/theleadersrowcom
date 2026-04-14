@@ -195,7 +195,7 @@ const workOnItems = [
 ];
 
 const programFormat = [
-  "8 weeks | Live, cohort-based",
+  "6 weeks | Live, cohort-based",
   "Weekly 2-hour sessions",
   "Small, high-caliber group",
   "Personalized strategy & positioning",
@@ -274,7 +274,7 @@ const faqs = [
   },
   {
     question: "How is this different from Weekly Edge?",
-    answer: "The Strategic Career Mastery Program is an intensive 8-week accelerator focused on career repositioning, personal branding, interview mastery, and landing senior roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of the Strategic Career Mastery Program continue with Weekly Edge to maintain momentum.",
+    answer: "The Strategic Career Mastery Program is an intensive 6-week accelerator focused on career repositioning, personal branding, interview mastery, and landing senior roles. Weekly Edge is an ongoing membership for continuous skill building. Many graduates of the Strategic Career Mastery Program continue with Weekly Edge to maintain momentum.",
   },
   {
     question: "Is this suitable if I'm already at a $200K+ compensation level?",
@@ -305,7 +305,7 @@ const faqs = [
     answer: "Because of the live, high-touch nature of this program, refunds are not offered once the cohort begins. This ensures commitment on both sides.",
   },
   {
-    question: "Is there ongoing support after the 8 weeks?",
+    question: "Is there ongoing support after the 6 weeks?",
     answer: "Yes! You'll have access to our private community where you can continue to connect with your cohort, ask questions, and receive support even after the program ends.",
   },
   {
@@ -344,7 +344,7 @@ const The200KMethod = () => {
             {/* Left Column - Title & CTA */}
             <div>
               <p className="text-secondary font-medium mb-4">
-                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">8-Week Cohort-Based Executive Program</span>
+                <span className="bg-secondary/20 px-3 py-1 rounded-full text-sm">6-Week Cohort-Based Executive Program</span>
               </p>
               <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-4">
                 The Strategic Career Mastery Program™
@@ -405,7 +405,7 @@ const The200KMethod = () => {
             {/* Right Column - Key Points */}
             <div className="bg-cream/5 border border-cream/20 rounded-xl p-6">
               <p className="text-cream/90 text-sm mb-5 leading-relaxed">
-                An 8-week strategic elevation system for PMs and business professionals ready to operate beyond their current title.
+                An 6-week strategic elevation system for PMs and business professionals ready to operate beyond their current title.
               </p>
               <p className="text-cream/80 text-sm mb-4 leading-relaxed">
                 You won't just prepare for interviews.{" "}
